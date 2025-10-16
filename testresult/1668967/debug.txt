@@ -1,0 +1,180 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3896465]
+equals!!!!!7!!!!
+equals!!!!!1e9+7!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!n-1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!998244353!!!!
+equals!!!!!p!!!!
+equals!!!!!(b[i+1]*998244353)%p!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!x=0!!!!
+equals!!!!!1!!!!
+equals!!!!!i=1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i]!!!!
+equals!!!!!p!!!!
+equals!!!!!(s[i-1]*a[i])%p!!!!
+equals!!!!!s[n]!!!!
+equals!!!!!s[n]!!!!
+equals!!!!!y[0]=s[n]!!!!
+equals!!!!!1!!!!
+equals!!!!!j=1!!!!
+equals!!!!!29!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!y[j-1]!!!!
+equals!!!!!p!!!!
+equals!!!!!(y[j-1]*y[j-1])%p!!!!
+equals!!!!!1!!!!
+equals!!!!!y[j]!!!!
+equals!!!!!p!!!!
+equals!!!!!(z*y[j])%p!!!!
+equals!!!!!z!!!!
+equals!!!!!1!!!!
+equals!!!!!n-1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i+1]!!!!
+equals!!!!!p!!!!
+equals!!!!!(invs[i+1]*a[i+1])%p!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!s[i-1]!!!!
+equals!!!!!p!!!!
+equals!!!!!(invs[i]*s[i-1])%p!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!i=1!!!!
+equals!!!!!n!!!!
+equals!!!!!inv[i]!!!!
+equals!!!!!p!!!!
+equals!!!!!(b[i]*inv[i])%p!!!!
+equals!!!!!p!!!!
+equals!!!!!(x+(b[i]*inv[i])%p)%p!!!!
+DFS is ready to dump ~
+SIZE!!30
+Path:long long b[5000010];
+long long a[5000010];
+long long s[5000010];
+long long inv[5000010];
+long long invs[5000010];
+long long y[30];
+long long x,n,i,j,p,z;
+int p_2[30]={1,0,1,0,0,0,0,0,0,1,0,1,0,0,1,1,0,1,0,1,1,0,0,1,1,1,0,1,1,1};
+scanf("%lld",&n);
+p=1e9+7;
+b[n]=1;
+i=n-1;
+@(i>=1);
+i--;
+b[i]=(b[i+1]*998244353)%p;
+@(i>=1);
+i--;
+b[i]=(b[i+1]*998244353)%p;
+@(i>=1);
+i--;
+b[i]=(b[i+1]*998244353)%p;
+@(!(i>=1));
+s[0]=1,x=0,i=1;
+@(i<=n);
+i++;
+scanf("%lld",&a[i]);
+s[i]=(s[i-1]*a[i])%p;
+@(i<=n);
+i++;
+scanf("%lld",&a[i]);
+s[i]=(s[i-1]*a[i])%p;
+@(i<=n);
+i++;
+scanf("%lld",&a[i]);
+s[i]=(s[i-1]*a[i])%p;
+@(!(i<=n));
+z=s[n],y[0]=s[n],j=1;
+@(j<=29);
+j++;
+y[j]=(y[j-1]*y[j-1])%p;
+@(p_2[j]==1);
+z=(z*y[j])%p;
+
+@(j<=29);
+j++;
+y[j]=(y[j-1]*y[j-1])%p;
+@(p_2[j]==1);
+z=(z*y[j])%p;
+
+@(j<=29);
+j++;
+y[j]=(y[j-1]*y[j-1])%p;
+@(p_2[j]==1);
+z=(z*y[j])%p;
+
+@(!(j<=29));
+invs[n]=z;
+i=n-1;
+@(i>=1);
+i--;
+invs[i]=(invs[i+1]*a[i+1])%p;
+@(i>=1);
+i--;
+invs[i]=(invs[i+1]*a[i+1])%p;
+@(i>=1);
+i--;
+invs[i]=(invs[i+1]*a[i+1])%p;
+@(!(i>=1));
+i=1;
+@(i<=n);
+i++;
+inv[i]=(invs[i]*s[i-1])%p;
+@(i<=n);
+i++;
+inv[i]=(invs[i]*s[i-1])%p;
+@(i<=n);
+i++;
+inv[i]=(invs[i]*s[i-1])%p;
+@(!(i<=n));
+x=0,i=1;
+@(i<=n);
+i++;
+x=(x+(b[i]*inv[i])%p)%p;
+@(i<=n);
+i++;
+x=(x+(b[i]*inv[i])%p)%p;
+@(i<=n);
+i++;
+x=(x+(b[i]*inv[i])%p)%p;
+@(!(i<=n));
+printf("%lld\n",x);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+cnip: /home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3++.h:1750: z3::expr z3::operator+(const z3::expr&, const z3::expr&): Assertion `false' failed.
+
+Program received signal SIGABRT, Aborted.
+__GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+50	../sysdeps/unix/sysv/linux/raise.c: No such file or directory.
+A debugging session is active.
+
+	Inferior 1 [process 3896436] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

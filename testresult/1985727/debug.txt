@@ -1,0 +1,894 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3905075]
+equals!!!!!(-x)!!!!
+equals!!!!!n!!!!
+equals!!!!!s!!!!
+equals!!!!!lowbit(x)!!!!
+equals!!!!!0!!!!
+equals!!!!!c[x]!!!!
+equals!!!!!lowbit(x)!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i-1]!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+DFS is ready to dump ~
+SIZE!!32
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+return x&(-x);
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(!(x<=n));
+
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(!(x>0));
+
+return ans;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x000a7481)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (let ((a!1 (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32)))
+                                  #x1fd95dca)
+                                #x001238cb
+                                #x2008003b)
+                         #x0019b44b
+                         #x1ff50478)
+                  #x0015a443
+                  #x20009000)))
+  (store (store a!1 #x001db90e #x00004000) #x001d790e #x000a58fe)))
+(define-fun s@0@0 () (_ BitVec 32)
+  #xe0038008)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00066200)
+[MATRIX]:
+0 0 1 1 1 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 1 1 1 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(!(x>0));
+
+return ans;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL(define-fun x@0@0 () (_ BitVec 32)
+  #x000059f8)
+(define-fun m@0@0 () (_ BitVec 32)
+  #xffffffc0)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #xffffffc0)
+              #x000f9c7b
+              #x000035aa)
+       #x000f6711
+       #x3ffff8d1))
+(define-fun n@0@0 () (_ BitVec 32)
+  #xffffffc0)
+[MATRIX]:
+0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "k" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "k" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:9
+[averagemem]:0
+modelL; no model available.
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "k" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "k" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "k" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:9
+[averagemem]:0
+modelL; no model available.
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(sign==1);
+int x,y,k,j;
+scanf("%d%d%d",&x,&y,&k);
+add(x,k);
+add(y+1,-k);
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+Path:int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+scanf("%d%d",&n,&m);
+i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+add(i,a[i]-a[i-1]);
+@(!(i<=n));
+i=0;
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(i<m);
+i++;
+int sign;
+scanf("%d",&sign);
+@(!(sign==1));
+int x;
+scanf("%d",&x);
+printf("%lld\n",sum(x));
+
+@(!(i<m));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+warning: a declaration with the name "sign" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:9
+[averagemem]:0
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3905064) exited normally]

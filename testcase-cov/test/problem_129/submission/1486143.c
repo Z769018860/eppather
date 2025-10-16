@@ -1,0 +1,1 @@
+char s[1<<21];int i,j,l=1;main(){gets(s);for(;s[i];j++){if(s[j]<s[j-l]){while(i<=j-l)printf("%d ",i+=l);j=i;l=1;}if(s[j]>s[j-l])l=j-i+1;}}

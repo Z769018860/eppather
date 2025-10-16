@@ -1,0 +1,29 @@
+; 
+(set-info :status unknown)
+(declare-fun b@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x103 (ite (bvsgt b@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x103 (_ bv0 32)) true)))
+(assert
+ (let ((?x41 (ite (not (and (distinct (bvsmod b@0@0 (_ bv2 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x41 (_ bv0 32)) true)))
+(assert
+ (let ((?x12 (ite (bvsgt (bvsdiv b@0@0 (_ bv2 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x12 (_ bv0 32)) true)))
+(assert
+ (let ((?x30 (bvsdiv b@0@0 (_ bv2 32))))
+ (let ((?x64 (bvsmod ?x30 (_ bv2 32))))
+ (and (distinct ?x64 (_ bv0 32)) true))))
+(assert
+ (let ((?x76 (ite (bvsgt (bvsdiv (bvsdiv b@0@0 (_ bv2 32)) (_ bv2 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x76 (_ bv0 32)) true)))
+(assert
+ (let (($x107 (not (and (distinct (bvsmod (bvsdiv (bvsdiv b@0@0 (_ bv2 32)) (_ bv2 32)) (_ bv2 32)) (_ bv0 32)) true))))
+ (let ((?x55 (ite $x107 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x55 (_ bv0 32)) true))))
+(assert
+ (let ((?x105 (ite (bvsgt (bvsdiv (bvsdiv (bvsdiv b@0@0 (_ bv2 32)) (_ bv2 32)) (_ bv2 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (let ((?x14 (ite (not (and (distinct ?x105 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x14 (_ bv0 32)) true))))
+(check-sat)
+

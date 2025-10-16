@@ -1,0 +1,37 @@
+; 
+(set-info :status unknown)
+(declare-fun num@0@0 () (_ BitVec 32))
+(declare-fun mask@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x260 (ite (not (and (distinct (ite (= (bvand num@0@0 (_ bv2863311530 32)) (_ bv2863311530 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x260 (_ bv0 32)) true)))
+(assert
+ (let ((?x189 (ite (not (and (distinct (ite (= (bvand num@0@0 (_ bv1431655765 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x189 (_ bv0 32)) true)))
+(assert
+ (let ((?x374 (ite (bvsgt (bvand num@0@0 mask@0@0) (_ bv1 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x374 (_ bv0 32)) true)))
+(assert
+ (let ((?x4680 (ite (bvsle (bvmul (_ bv2 32) (_ bv2 32)) (bvand num@0@0 mask@0@0)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x4680 (_ bv0 32)) true)))
+(assert
+ (let ((?x137 (ite (= (bvsmod (bvand num@0@0 mask@0@0) (bvadd (_ bv2 32) (_ bv1 32))) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x137 (_ bv0 32)) true)))
+(assert
+ (let ((?x276 (bvand num@0@0 mask@0@0)))
+ (let ((?x517 (ite (bvsle (bvmul (bvadd (_ bv2 32) (_ bv1 32)) (bvadd (_ bv2 32) (_ bv1 32))) ?x276) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x517 (_ bv0 32)) true))))
+(assert
+ (let (($x500 (= (bvsmod (bvand num@0@0 mask@0@0) (bvadd (bvadd (_ bv2 32) (_ bv1 32)) (_ bv1 32))) (_ bv0 32))))
+ (let ((?x79 (ite (not (and (distinct (ite $x500 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x79 (_ bv0 32)) true))))
+(assert
+ (let ((?x276 (bvand num@0@0 mask@0@0)))
+ (let (($x332 (bvsle (bvmul (bvadd (bvadd (_ bv2 32) (_ bv1 32)) (_ bv1 32)) (bvadd (bvadd (_ bv2 32) (_ bv1 32)) (_ bv1 32))) ?x276)))
+ (let ((?x91 (ite (not (and (distinct (ite $x332 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x91 (_ bv0 32)) true)))))
+(assert
+ (let ((?x278 (ite (not (and (distinct (_ bv0 32) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x278 (_ bv0 32)) true)))
+(check-sat)
+

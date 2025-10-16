@@ -1,0 +1,541 @@
+int head[100000];
+int to[100000];
+int next[100000];
+int c[100000];
+int reg[100000];
+int from[100000];
+int rev[100000];
+int vis[100000];
+int cnt = 1;
+int n, m, s, t;
+int quene[100000];
+int a;
+int b;
+int cc;
+int r;
+int a;
+int b;
+int flow;
+int aa;
+int bb;
+int flow = -1;
+long long res = 0;
+@(flow != 0);
+@(s == 0);
+exit(0);
+
+int front = 0;
+int tail = 0;
+quene[tail++] = s;
+int i = 1;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(!(i <= n));
+reg[s] = 1e9;
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(!(front != tail));
+
+flow = reg[t];
+
+@(flow != 0);
+int i = rev[from[t]];
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@(!());
+res += flow;
+
+@(flow != 0);
+@(s == 0);
+exit(0);
+
+int front = 0;
+int tail = 0;
+quene[tail++] = s;
+int i = 1;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(!(i <= n));
+reg[s] = 1e9;
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(!(front != tail));
+
+flow = reg[t];
+
+@(flow != 0);
+int i = rev[from[t]];
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@(!());
+res += flow;
+
+@(flow != 0);
+@(s == 0);
+exit(0);
+
+int front = 0;
+int tail = 0;
+quene[tail++] = s;
+int i = 1;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(i <= n);
+i++;
+vis[i] = 0;
+reg[i] = 0;
+@(!(i <= n));
+reg[s] = 1e9;
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(front != tail);
+int now = quene[front++];
+@(now == t);
+break;
+
+int vol = reg[now];
+vis[now] = 1;
+@(vol != 0);
+int i = head[now];
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(i);
+i = next[i];
+int v = to[i];
+@(!vis[v] && c[i] != 0);
+int give = min(vol, c[i]);
+quene[tail++] = v;
+vis[v] = 1;
+reg[v] = give;
+from[v] = i;
+
+@(!(i));
+@(!(front != tail));
+
+flow = reg[t];
+
+@(flow != 0);
+int i = rev[from[t]];
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@();
+i = rev[from[to[i]]];
+c[i] += flow;
+c[rev[i]] -= flow;
+@(to[i] == s);
+break;
+
+@(!());
+res += flow;
+
+@(!(flow != 0));
+
+return res;

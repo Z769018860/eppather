@@ -1,0 +1,24 @@
+long long x,n,p=998244352,i;
+long long b;
+long long m=0,ans=1;
+m=x;
+@(b);
+@(b%2==1);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b);
+@(!(b%2==1));
+
+m=(m*m)%p;
+b=b/2;
+@(b);
+@(b%2==1);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(!(b));
+
+return ans;

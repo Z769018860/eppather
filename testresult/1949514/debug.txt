@@ -1,0 +1,430 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3893671]
+equals!!!!!mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!p!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!(B[k][j] % 1000000007)!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007!!!!
+equals!!!!!positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007)!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!p!!!!
+equals!!!!!0!!!!
+equals!!!!!p!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+DFS is ready to dump ~
+SIZE!!35
+Path:int x;
+int mod;
+int n;
+int p;
+int m;
+long long A[n][p];
+long long B[p][m];
+long long result[n][m];
+int i,j,k;
+int n, p, m;
+long long A[n][p], B[p][m], result[n][m];
+int i,j;
+return (x % mod + mod) % mod;
+
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "A" already exists!
+warning: a declaration with the name "B" already exists!
+warning: a declaration with the name "result" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!35
+Path:int x;
+int mod;
+int n;
+int p;
+int m;
+long long A[n][p];
+long long B[p][m];
+long long result[n][m];
+int i,j,k;
+int n, p, m;
+long long A[n][p], B[p][m], result[n][m];
+int i,j;
+i = 0;
+@(i < n);
+++i;
+j = 0;
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(!(j < m));
+@(i < n);
+++i;
+j = 0;
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(!(j < m));
+@(i < n);
+++i;
+j = 0;
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(j < m);
+++j;
+result[i][j] = 0;
+k = 0;
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(k < p);
+++k;
+result[i][j] = positiveMod(result[i][j] + ((A[i][k] % 1000000007) * (B[k][j] % 1000000007)) % 1000000007, 1000000007);
+@(!(k < p));
+@(!(j < m));
+@(!(i < n));
+scanf("%d %d %d", &n, &p, &m);
+i = 0;
+@(i < n);
+i++;
+j = 0;
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(!(j < p));
+@(i < n);
+i++;
+j = 0;
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(!(j < p));
+@(i < n);
+i++;
+j = 0;
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(j < p);
+j++;
+scanf("%lld", &A[i][j]);
+@(!(j < p));
+@(!(i < n));
+i = 0;
+@(i < p);
+i++;
+j = 0;
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(!(j < m));
+@(i < p);
+i++;
+j = 0;
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(!(j < m));
+@(i < p);
+i++;
+j = 0;
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(j < m);
+j++;
+scanf("%lld", &B[i][j]);
+@(!(j < m));
+@(!(i < p));
+matrixMultiply(n, p, m, A, B, result);
+i = 0;
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(!(j < m));
+printf("\n");
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(!(j < m));
+printf("\n");
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(j < m);
+j++;
+printf("%lld ", result[i][j]);
+@(!(j < m));
+printf("\n");
+@(!(i < n));
+return 0;
+
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "A" already exists!
+warning: a declaration with the name "B" already exists!
+warning: a declaration with the name "result" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: positiveMod, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: matrixMultiply, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:288
+[averagemem]:1
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3893649] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

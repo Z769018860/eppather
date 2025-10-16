@@ -1,0 +1,17 @@
+int palindrome(int s[5], int n)
+{
+    int i;
+    int l;
+    int result;
+    l = n;
+    result = 1;
+    for(i = 0; i < l / 2; i = i + 1)
+    {
+        if(s[i] != s[l - i - 1])
+        {
+            result = 0;
+            break;
+        }
+    }
+    return result;
+}

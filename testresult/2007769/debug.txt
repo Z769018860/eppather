@@ -1,0 +1,2844 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3911875]
+equals!!!!!r!!!!
+equals!!!!!a[l]!!!!
+equals!!!!!r!!!!
+equals!!!!!2!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!p!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!tree[2 * p + 1]!!!!
+equals!!!!!tree[2 * p] + tree[2 * p + 1]!!!!
+equals!!!!!r!!!!
+equals!!!!!l!!!!
+equals!!!!!cr < l!!!!
+equals!!!!!l!!!!
+equals!!!!!r!!!!
+equals!!!!!cr <= r!!!!
+equals!!!!!cl!!!!
+equals!!!!!1!!!!
+equals!!!!!d!!!!
+equals!!!!!(cr - cl + 1) * d!!!!
+equals!!!!!cl!!!!
+equals!!!!!d!!!!
+equals!!!!!cl!!!!
+equals!!!!!2!!!!
+equals!!!!!p!!!!
+equals!!!!!mark[p]!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!mark[p]!!!!
+equals!!!!!p!!!!
+equals!!!!!cl!!!!
+equals!!!!!1!!!!
+equals!!!!!(mid - cl + 1)!!!!
+equals!!!!!mark[p] * (mid - cl + 1)!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!mid!!!!
+equals!!!!!(cr - mid)!!!!
+equals!!!!!mark[p] * (cr - mid)!!!!
+equals!!!!!0!!!!
+equals!!!!!p!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!tree[p * 2 + 1]!!!!
+equals!!!!!tree[p * 2] + tree[p * 2 + 1]!!!!
+equals!!!!!cr!!!!
+equals!!!!!cl!!!!
+equals!!!!!r < cl!!!!
+equals!!!!!l!!!!
+equals!!!!!r!!!!
+equals!!!!!cr <= r!!!!
+equals!!!!!cl!!!!
+equals!!!!!2!!!!
+equals!!!!!p!!!!
+equals!!!!!mark[p]!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!mark[p]!!!!
+equals!!!!!p!!!!
+equals!!!!!cl!!!!
+equals!!!!!1!!!!
+equals!!!!!(mid - cl + 1)!!!!
+equals!!!!!mark[p] * (mid - cl + 1)!!!!
+equals!!!!!p!!!!
+equals!!!!!1!!!!
+equals!!!!!mid!!!!
+equals!!!!!(cr - mid)!!!!
+equals!!!!!mark[p] * (cr - mid)!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!ans2!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+DFS is ready to dump ~
+SIZE!!55
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(cl > r || cr < l);
+return;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+feasible!!!
+[mem]:2
+[averagemem]:0
+modelL(define-fun r@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun l@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:16
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:17
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:25
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:15
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+feasible!!!
+[mem]:16
+[averagemem]:0
+modelL(define-fun r@0@0 () (_ BitVec 32)
+  #x0000061c)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x0000061c)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x0000061c)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun l@0@0 () (_ BitVec 32)
+  #x0000061c)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:24
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+infeasible!!!
+[mem]:2
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+infeasible!!!
+[mem]:3
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l == r);
+tree[p] = a[l];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+feasible!!!
+[mem]:11
+[averagemem]:0
+modelL(define-fun r@0@0 () (_ BitVec 32)
+  #x00060702)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x3c0606aa)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #xc3f03705)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00200000)
+(define-fun l@0@0 () (_ BitVec 32)
+  #x00060702)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(cl > r || cr < l);
+return;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:17
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+feasible!!!
+[mem]:18
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x0488e2ad)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x18001002)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x18000600)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x1000102c)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:26
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:16
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+feasible!!!
+[mem]:17
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x9ec1f0cc)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x64001002)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x04401007)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x16c45898)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:25
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+infeasible!!!
+[mem]:3
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+infeasible!!!
+[mem]:4
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l == r));
+long long mid = (l + r) / 2;
+bulid(l, mid, p * 2);
+bulid(mid + 1, r, p * 2 + 1);
+tree[p] = tree[2 * p] + tree[2 * p + 1];
+
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+feasible!!!
+[mem]:12
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #xa24cf128)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x32b105ae)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x40c805e1)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #xb0b4100f)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+[MATRIX]:
+1 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!55
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(cl > r || cr < l);
+return;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun cr@0@0 () (_ BitVec 32)
+  #x80000000)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x80000000)
+(define-fun l@0@0 () (_ BitVec 32)
+  #x80000001)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x80000001)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:14
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+feasible!!!
+[mem]:15
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #xa3a792af)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x70024000)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x442333a9)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #xb4867793)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00040000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(cr > cl);
+mark[p] += d;
+
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:23
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+infeasible!!!
+[mem]:13
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x8239b346)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x14000000)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x0414b040)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x08750343)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(cl >= l && cr <= r);
+tree[p] += (cr - cl + 1) * d;
+@(!(cr > cl));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+updown(l, r, d, 2 * p, cl, mid);
+updown(l, r, d, 2 * p + 1, mid + 1, cr);
+tree[p] = tree[p * 2] + tree[p * 2 + 1];
+
+
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+warning: a declaration with the name "mid" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+infeasible!!!
+[mem]:22
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+infeasible!!!
+[mem]:1
+[averagemem]:0
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(cl > r || cr < l));
+
+@(!(cl >= l && cr <= r));
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+feasible!!!
+[mem]:9
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x8063597f)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x0042c4d5)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x80003109)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+[MATRIX]:
+0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!55
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(l > cr || r < cl);
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun cr@0@0 () (_ BitVec 32)
+  #x80000000)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x80000000)
+(define-fun l@0@0 () (_ BitVec 32)
+  #x80000001)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x80000001)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l > cr || r < cl));
+
+@(cl >= l && cr <= r);
+return tree[p];
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+feasible!!!
+[mem]:1
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x7ffffffe)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x000003ff)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x00000008)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+@(!(l > cr || r < cl));
+
+@(!(cl >= l && cr <= r));
+long long mid = (cr + cl) / 2;
+mark[2 * p] += mark[p];
+mark[2 * p + 1] += mark[p];
+tree[2 * p] += mark[p] * (mid - cl + 1);
+tree[2 * p + 1] += mark[p] * (cr - mid);
+mark[p] = 0;
+long long ans1 = find(l, r, p * 2, cl, mid);
+long long ans2 = find(l, r, p * 2 + 1, mid + 1, cr);
+long long ans = ans1 + ans2;
+return ans;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+feasible!!!
+[mem]:9
+[averagemem]:0
+modelL(define-fun l@0@0 () (_ BitVec 32)
+  #x9ffffffe)
+(define-fun r@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun cr@0@0 () (_ BitVec 32)
+  #x1fffc518)
+(define-fun cl@0@0 () (_ BitVec 32)
+  #x9ffffae5)
+(define-fun p@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun q@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 0 1 0 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!55
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: updown, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+Path:long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(q--);
+scanf("%d", &fl);
+@(!(fl == 1));
+scanf("%d %d", &I, &J);
+printf("%lld\n", find(I, J, 1, 1, n));
+
+@(!(q--));
+
+return 0;
+
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "cl" already exists!
+warning: a declaration with the name "cr" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: bulid, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: find, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3911859) exited normally]

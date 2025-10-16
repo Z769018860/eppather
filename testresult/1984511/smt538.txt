@@ -1,0 +1,35 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun n1@0@0 () (_ BitVec 32))
+(assert
+ (and (distinct n@0@0 (_ bv0 32)) true))
+(assert
+ (and (distinct n1@0@0 (_ bv0 32)) true))
+(assert
+ (let ((?x47 (bvand n1@0@0 (_ bv1 32))))
+ (and (distinct ?x47 (_ bv0 32)) true)))
+(assert
+ (let ((?x24 (bvashr n1@0@0 (_ bv1 32))))
+ (and (distinct ?x24 (_ bv0 32)) true)))
+(assert
+ (let ((?x24 (bvashr n1@0@0 (_ bv1 32))))
+ (let ((?x96 (bvand ?x24 (_ bv1 32))))
+ (and (distinct ?x96 (_ bv0 32)) true))))
+(assert
+ (let ((?x24 (bvashr n1@0@0 (_ bv1 32))))
+ (let ((?x125 (bvashr ?x24 (_ bv1 32))))
+ (and (distinct ?x125 (_ bv0 32)) true))))
+(assert
+ (let (($x131 (not (and (distinct (bvand (bvashr (bvashr n1@0@0 (_ bv1 32)) (_ bv1 32)) (_ bv1 32)) (_ bv0 32)) true))))
+ (let ((?x95 (ite $x131 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x95 (_ bv0 32)) true))))
+(assert
+ (let (($x103 (not (and (distinct (bvashr (bvashr (bvashr n1@0@0 (_ bv1 32)) (_ bv1 32)) (_ bv1 32)) (_ bv0 32)) true))))
+ (let ((?x52 (ite $x103 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x52 (_ bv0 32)) true))))
+(assert
+ (let ((?x118 (ite (= n@0@0 (_ bv1 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x118 (_ bv0 32)) true)))
+(check-sat)
+

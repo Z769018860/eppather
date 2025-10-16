@@ -1,0 +1,33 @@
+int y;
+int x;
+int w;
+int h;
+int verbose;
+int hor[6][6];
+int ver[6][6];
+int vis[6][6];
+unsigned long count[1];
+@(!(x < 0 || y < 0 || x > w || y > h));
+
+@(!(x == 0 || y == 0 || x == w || y == h));
+
+@(!(vis[y][x] != 0));
+
+vis[y][x] = vis[y][x] + 1;
+vis[h - y][w - x] = vis[h - y][w - x] + 1;
+@(!(x != 0 && hor[y][x - 1] == 0));
+
+@(x < w && hor[y][x] == 0);
+hor[y][x] = 1;
+hor[h - y][w - x - 1] = 1;
+walk(y, x + 1, w, h, verbose, hor, ver, vis, count);
+hor[y][x] = 0;
+hor[h - y][w - x - 1] = 0;
+
+@(!(y != 0 && ver[y - 1][x] == 0));
+
+@(!(y < h && ver[y][x] == 0));
+
+vis[y][x] = vis[y][x] - 1;
+vis[h - y][w - x] = vis[h - y][w - x] - 1;
+return;

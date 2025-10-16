@@ -1,0 +1,105 @@
+const int N =1e6+10;
+char s[1000010],p[1000010];
+int ne[1000010];
+int slen,plen;
+int ans=0;
+plen=strlen(p+1);
+slen=strlen(s+1);
+int i = 2, j = 0;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(!(i <= plen));
+int i = 1, j = 0;
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(!(i <= slen));
+return ans;

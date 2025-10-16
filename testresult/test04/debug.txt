@@ -1,0 +1,120 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3880982]
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!k+1!!!!
+equals!!!!!1!!!!
+equals!!!!!k!!!!
+equals!!!!!n-k!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!1!!!!
+equals!!!!!tmp+1!!!!
+equals!!!!!1!!!!
+equals!!!!!k!!!!
+equals!!!!!1!!!!
+equals!!!!!2*k-1!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!2!!!!
+equals!!!!!tmp+2!!!!
+equals!!!!!tmp!!!!
+equals!!!!!2*tmp!!!!
+DFS is ready to dump ~
+SIZE!!12
+Path:int n;
+int i,k,tmp;
+k=1;
+@(k<=n);
+k=k+1;
+i=1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(!(i<n-k));
+i=1;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(!(i<=2*k-1));
+tmp=2*tmp;
+@(k<=n);
+k=k+1;
+i=1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(!(i<n-k));
+i=1;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(!(i<=2*k-1));
+tmp=2*tmp;
+@(k<=n);
+k=k+1;
+i=1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(i<n-k);
+i=i+1;
+tmp=tmp+1;
+@(!(i<n-k));
+i=1;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(i<=2*k-1);
+i=i+1;
+tmp=tmp+2;
+@(!(i<=2*k-1));
+tmp=2*tmp;
+@(!(k<=n));
+return;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3880957] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

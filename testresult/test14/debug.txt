@@ -1,0 +1,125 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3878403]
+equals!!!!!b!!!!
+equals!!!!!1!!!!
+equals!!!!!b+1!!!!
+equals!!!!!b!!!!
+equals!!!!!a%b!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!d+1!!!!
+equals!!!!!b!!!!
+equals!!!!!e+b!!!!
+DFS is ready to dump ~
+SIZE!!8
+Path:int a,b,c,d,e;
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(!(a != b));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun b@0@0 () (_ BitVec 32)
+  #xfffffffd)
+Path:int a,b,c,d,e;
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(a != b);
+b=b+1;
+c = a%b;
+@(!(c == 0));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #xdfffffdc)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:int a,b,c,d,e;
+@(a != b);
+b=b+1;
+c = a%b;
+@(c == 0);
+d=d+1;
+e=e+b;
+
+@(a != b);
+b=b+1;
+c = a%b;
+@(!(c == 0));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #xcffff454)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x100003e3)
+Path:int a,b,c,d,e;
+@(a != b);
+b=b+1;
+c = a%b;
+@(!(c == 0));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #x2c200000)
+(define-fun b@0@0 () (_ BitVec 32)
+  #xac200000)
+[MATRIX]:
+1 1 1 1 1 1 1 1 
+1 1 1 1 1 0 0 1 
+1 1 1 1 1 0 0 1 
+1 1 1 1 1 0 0 1 
+[matrix_before]:
+1 1 1 1 1 1 1 1 
+1 1 1 1 1 0 0 1 
+1 1 1 1 1 0 0 1 
+1 1 1 1 1 0 0 1 
+[Inferior 1 (process 3878358) exited normally]

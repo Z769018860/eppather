@@ -1,0 +1,76 @@
+int c[5];
+int s[5];
+int u[5];
+int len[5];
+int u[5];
+int out[5];
+int len[5];
+int i[5];
+int j[5];
+int in[5];
+int out[5];
+int u[5];
+int r[5];
+int len[5];
+len[0] = 0;
+int k = 0;
+@(k < 5);
+@(u[k] == 0);
+break;
+
+out[len[0]] = 0;
+j[0] = 0;
+@(len[0] > 0);
+i[0] = len[0] - 1;
+@(i[0] > 0 && is_comb(&u[i[0]]));
+i[0] = i[0] - 1;
+
+@(i[0] > 0 && is_comb(&u[i[0]]));
+i[0] = i[0] - 1;
+
+@(i[0] > 0 && is_comb(&u[i[0]]));
+i[0] = i[0] - 1;
+
+@(!(i[0] > 0 && is_comb(&u[i[0]])));
+
+int k = i[0];
+@(!(k < len[0]));
+
+j[0] = j[0] + len[0] - i[0];
+len[0] = i[0];
+
+@(len[0] > 0);
+i[0] = len[0] - 1;
+@(i[0] > 0 && is_comb(&u[i[0]]));
+i[0] = i[0] - 1;
+
+@(i[0] > 0 && is_comb(&u[i[0]]));
+i[0] = i[0] - 1;
+
+@(!(i[0] > 0 && is_comb(&u[i[0]])));
+
+int k = i[0];
+@(!(k < len[0]));
+
+j[0] = j[0] + len[0] - i[0];
+len[0] = i[0];
+
+@(len[0] > 0);
+i[0] = len[0] - 1;
+@(!(i[0] > 0 && is_comb(&u[i[0]])));
+
+int k = i[0];
+@(k < len[0]);
+out[j[0] + k - i[0]] = u[k];
+
+@(k < len[0]);
+out[j[0] + k - i[0]] = u[k];
+
+@(!(k < len[0]));
+
+j[0] = j[0] + len[0] - i[0];
+len[0] = i[0];
+
+@(!(len[0] > 0));
+
+return;

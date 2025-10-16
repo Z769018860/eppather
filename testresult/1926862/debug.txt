@@ -1,0 +1,322 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3893926]
+equals!!!!!7!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!n!!!!
+equals!!!!!p!!!!
+equals!!!!!j!!!!
+equals!!!!!p!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!n!!!!
+equals!!!!!m!!!!
+equals!!!!!p!!!!
+equals!!!!!a[i][k]!!!!
+equals!!!!!b[k][j]!!!!
+equals!!!!!mod!!!!
+equals!!!!!1ll * a[i][k] * b[k][j] % mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!(ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod!!!!
+equals!!!!!n!!!!
+equals!!!!!m!!!!
+DFS is ready to dump ~
+SIZE!!26
+Path:const int mod = 1e9 + 7;
+int a[500 + 10][500 + 10],b[500 + 10][500 + 10],ans[500 + 10][500 + 10];
+int n,p,m;
+scanf("%d%d%d",&n,&p,&m);
+int i = 1;
+@(i <= n);
+i++;
+int j = 1;
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(!(j <= p));
+@(i <= n);
+i++;
+int j = 1;
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(!(j <= p));
+@(i <= n);
+i++;
+int j = 1;
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(j <= p);
+j++;
+scanf("%d",a[i]+j);
+@(!(j <= p));
+@(!(i <= n));
+int i = 1;
+@(i <= p);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(!(j <= m));
+@(i <= p);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(!(j <= m));
+@(i <= p);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(j <= m);
+j++;
+scanf("%d",b[i]+j);
+@(!(j <= m));
+@(!(i <= p));
+int i = 1;
+@(i <= n);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(!(j <= m));
+@(i <= n);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(!(j <= m));
+@(i <= n);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(j <= m);
+j++;
+int k = 1;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(k <= p);
+k++;
+ans[i][j] = (ans[i][j] + 1ll * a[i][k] * b[k][j] % mod + mod) % mod;
+@(!(k <= p));
+@(!(j <= m));
+@(!(i <= n));
+int i = 1;
+@(i <= n);
+i++;
+int j = 1;
+@(j <= m);
+j++;
+printf("%d ",ans[i][j]);
+@(j <= m);
+j++;
+printf("%d ",ans[i][j]);
+@(j <= m);
+j++;
+printf("%d ",ans[i][j]);
+@(!(j <= m));
+puts("");
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+line 96:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 96:60 mismatched input ')' expecting ';'
+line 99:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 99:60 mismatched input ')' expecting ';'
+line 102:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 102:60 mismatched input ')' expecting ';'
+warning: a declaration with the name "k" already exists!
+line 109:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 109:60 mismatched input ')' expecting ';'
+line 112:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 112:60 mismatched input ')' expecting ';'
+line 115:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 115:60 mismatched input ')' expecting ';'
+warning: a declaration with the name "k" already exists!
+line 122:26 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+line 122:60 mismatched input ')' expecting ';'
+line 123:4 missing ')' at '<='
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a752f in std::default_delete<epat::Stmt>::operator()(epat::Stmt*) const ()
+A debugging session is active.
+
+	Inferior 1 [process 3893870] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

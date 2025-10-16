@@ -1,0 +1,38 @@
+Path 4 selected.
+Contents of result0.txt:
+feasible
+feasible
+(define-fun size@0@0 () (_ BitVec 32)
+  #x00000002)
+[mem]:0
+
+Path 1 selected.
+Contents of result1.txt:
+infeasible
+infeasible
+
+[mem]:8
+
+Path 11 selected.
+Contents of result2.txt:
+infeasible
+infeasible
+
+[mem]:8
+
+Path 5 selected.
+Contents of result3.txt:
+feasible
+feasible
+(define-fun size@0@0 () (_ BitVec 32)
+  #x00000004)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x806bb072)
+                     #x00000002
+                     #x7fb4c13d)
+              #x00000004
+              #x806bb073)
+       #x00000001
+       #x7fb4c13c))
+[mem]:10
+

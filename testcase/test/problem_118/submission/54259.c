@@ -1,0 +1,1 @@
+char s[101];m[2],r[16];main(){for(;gets(s);)puts(regexec(r,gets(s),1,m,regcomp(r,s,1))|*m|s[m[1]]?"No":"Yes");}

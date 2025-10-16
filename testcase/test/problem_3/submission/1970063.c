@@ -1,0 +1,2 @@
+#include <stdio.h>
+int main(void){FILE*in=fopen("copycat.in","r"),*out=fopen("copycat.out","w");int n;fscanf(in,"%d\n",&n);char str[10000];while(n--){fgets(str,10000,in);fprintf(out,"%s",str);}fclose(in);fclose(out);return 0;}

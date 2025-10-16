@@ -1,0 +1,25 @@
+long long p=998244352;
+long long a;
+long long b;
+long long r=1;
+long long x,n,a;
+@(b>0);
+@(b%2==1);
+r=r*a%p;
+
+b/=2;
+a=a*a%p;
+@(b>0);
+@(!(b%2==1));
+
+b/=2;
+a=a*a%p;
+@(b>0);
+@(b%2==1);
+r=r*a%p;
+
+b/=2;
+a=a*a%p;
+@(!(b>0));
+
+return r;

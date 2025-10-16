@@ -1,0 +1,28 @@
+typedef long long ll;
+ll a;
+ll n;
+ll p;
+ll ans = 1;
+ll x;
+ll k[7] = {2, 325, 9375, 28178, 450775, 9780504, 1795265022}, d = x - 1, r = 0;
+void;
+ll x;
+@(n > 0);
+@(!(n & 1));
+
+n >>= 1;
+a = (__int128)a * a % p;
+@(n > 0);
+@(!(n & 1));
+
+n >>= 1;
+a = (__int128)a * a % p;
+@(n > 0);
+@(n & 1);
+ans = (__int128)ans * a % p;
+
+n >>= 1;
+a = (__int128)a * a % p;
+@(!(n > 0));
+
+return ans%p;

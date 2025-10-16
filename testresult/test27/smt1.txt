@@ -1,0 +1,50 @@
+; 
+(set-info :status unknown)
+(declare-fun size@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x80 (ite (bvslt (_ bv0 32) size@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x80 (_ bv0 32)) true)))
+(assert
+ (let ((?x39 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) size@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x39 (_ bv0 32)) true)))
+(assert
+ (let (($x77 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) size@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x79 (ite (not $x77) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x79 (_ bv0 32)) true))))
+(assert
+ (let ((?x137 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x63 (bvadd ?x137 (_ bv1 32))))
+ (let ((?x138 (bvadd (_ bv0 32) ?x137)))
+ (let ((?x35 (bvadd ?x138 ?x63)))
+ (let ((?x142 (ite (not (and (distinct (ite (bvsgt ?x35 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x142 (_ bv0 32)) true)))))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv0 32)) (bvslt (_ bv0 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv0 32)) (bvslt (_ bv0 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv0 32)) (bvslt (_ bv0 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv1 32)) (bvslt (_ bv1 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv2 32)) (bvslt (_ bv2 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv2 32)) (bvslt (_ bv2 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv3 32)) (bvslt (_ bv3 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv3 32)) (bvslt (_ bv3 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv4 32)) (bvslt (_ bv4 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv0 32)) (bvslt (_ bv0 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv4 32)) (bvslt (_ bv4 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv1 32)) (bvslt (_ bv1 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv3 32)) (bvslt (_ bv3 32) (_ bv10 32))))
+(assert
+ (and (bvsle (_ bv0 32) (_ bv1 32)) (bvslt (_ bv1 32) (_ bv10 32))))
+(check-sat)
+

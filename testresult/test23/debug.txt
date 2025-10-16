@@ -1,0 +1,109 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3918906]
+equals!!!!!left!!!!
+equals!!!!!arr[left]!!!!
+equals!!!!!right!!!!
+equals!!!!!right!!!!
+equals!!!!!key!!!!
+equals!!!!!arr[right] >= key!!!!
+equals!!!!!1!!!!
+equals!!!!!right-1!!!!
+equals!!!!!arr[right]!!!!
+equals!!!!!right!!!!
+equals!!!!!right!!!!
+equals!!!!!key!!!!
+equals!!!!!arr[left] <= key!!!!
+equals!!!!!1!!!!
+equals!!!!!left+1!!!!
+equals!!!!!arr[left]!!!!
+equals!!!!!left!!!!
+equals!!!!!key!!!!
+DFS is ready to dump ~
+SIZE!!17
+Path:int arr[5], left, right;
+int key;
+int hole;
+hole=left;
+key=arr[left];
+@(left < right);
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(!(left < right && arr[right] >= key));
+
+arr[hole] = arr[right];
+hole = right;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(!(left < right && arr[left] <= key));
+
+arr[hole] = arr[left];
+hole = left;
+@(left < right);
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(!(left < right && arr[right] >= key));
+
+arr[hole] = arr[right];
+hole = right;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(!(left < right && arr[left] <= key));
+
+arr[hole] = arr[left];
+hole = left;
+@(left < right);
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(left < right && arr[right] >= key);
+right=right-1;
+@(!(left < right && arr[right] >= key));
+
+arr[hole] = arr[right];
+hole = right;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(left < right && arr[left] <= key);
+left=left+1;
+@(!(left < right && arr[left] <= key));
+
+arr[hole] = arr[left];
+hole = left;
+@(!(left < right));
+
+arr[hole] = key;
+return hole;
+
+infeasible!!!
+[mem]:38
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3918894] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

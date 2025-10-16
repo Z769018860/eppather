@@ -1,0 +1,59 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909512]
+equals!!!!!in!!!!
+equals!!!!!freopen("copycat.in", "r", stdin)!!!!
+equals!!!!!freopen("copycat.out", "w", stdout)!!!!
+equals!!!!!*out = freopen("copycat.out", "w", stdout)!!!!
+equals!!!!!'\n'!!!!
+equals!!!!!len!!!!
+equals!!!!!fclose(out)!!!!
+DFS is ready to dump ~
+SIZE!!10
+Path:char s[1919810];
+int len = fread(s, 1, 1919810, stdin);
+int idx = 0;
+FILE *in = freopen("copycat.in", "r", stdin), *out = freopen("copycat.out", "w", stdout);
+@(s[idx] != '\n');
+++idx;
+@(s[idx] != '\n');
+++idx;
+@(s[idx] != '\n');
+++idx;
+@(!(s[idx] != '\n'));
+
+++idx;
+@(idx < len);
+putchar_unlocked(s[idx++]);
+@(idx < len);
+putchar_unlocked(s[idx++]);
+@(idx < len);
+putchar_unlocked(s[idx++]);
+@(!(idx < len));
+
+fclose(in), fclose(out);
+
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: FILE, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: freopen, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: freopen, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: putchar_unlocked, assuming it is a function.
+find an undefined symbol: putchar_unlocked, assuming it is a function.
+find an undefined symbol: putchar_unlocked, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a594 in z3::context::operator _Z3_context*() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3909498] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

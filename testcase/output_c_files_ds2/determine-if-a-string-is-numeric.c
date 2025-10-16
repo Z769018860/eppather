@@ -1,0 +1,21 @@
+int isNumeric(int s[5], int p1[5]) {
+    int result[5];
+    result[0] = 0;
+    if (s[0] == 0 || s[0] == 0 || (s[0] >= 9 && s[0] <= 13) || s[0] == 32) {
+        result[0] = 0;
+    } else {
+        p1[0] = 0;
+        for (int i = 0; i < 5; i = i + 1) {
+            if (s[i] == 0) {
+                p1[0] = i;
+                break;
+            }
+        }
+        if (s[p1[0]] == 0) {
+            result[0] = 1;
+        } else {
+            result[0] = 0;
+        }
+    }
+    return result[0];
+}

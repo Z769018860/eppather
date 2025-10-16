@@ -1,0 +1,81 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908888]
+CATALOG
+TranslationUnit
+	Types: 
+	Any: stdout printf reach_dest move_left scanf v d l main m n 
+
+DFS is ready to dump ~
+SIZE!!16
+Path:int n,m,l,d,v;
+printf("reach_dest\n");
+fflush(stdout);
+fflush(stdout);
+scanf("%d",&v);
+return v;
+
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 
+SIZE!!16
+Path:int n,m,l,d,v;
+printf("move_left\n");
+fflush(stdout);
+fflush(stdout);
+scanf("%d",&v);
+
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+0 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 1 1 1 1 1 0 0 0 0 0 
+SIZE!!16
+Path:int n,m,l,d,v;
+scanf("%d%d%d%d",&n,&m,&l,&d);
+@(!reach_dest());
+move_left();
+@(!reach_dest());
+move_left();
+@(!reach_dest());
+move_left();
+@(!(!reach_dest()));
+
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: reach_dest, assuming it is a function.
+find an undefined symbol: move_left, assuming it is a function.
+find an undefined symbol: reach_dest, assuming it is a function.
+find an undefined symbol: move_left, assuming it is a function.
+find an undefined symbol: reach_dest, assuming it is a function.
+find an undefined symbol: move_left, assuming it is a function.
+find an undefined symbol: reach_dest, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3908846] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

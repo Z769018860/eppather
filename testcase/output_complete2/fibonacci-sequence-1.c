@@ -1,0 +1,9 @@
+int fibb(int a, int b, int n) {
+    int result[5];
+    result[0] = a;
+    if (n > 1) {
+        n = n - 1;
+        result[0] = fibb(b, a + b, n);
+    }
+    return result[0];
+}

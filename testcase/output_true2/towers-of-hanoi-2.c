@@ -1,0 +1,18 @@
+void move(int n, int from, int to, int via, int t0[5], int t1[5], int t2[5], int t0_n, int t1_n, int t2_n, int height)
+{
+    if (n == 0) { return; }
+    
+    move(n - 1, from, via, to, t0, t1, t2, t0_n, t1_n, t2_n, height);
+    
+    int d;
+    if (from == 0) { d = t0[t0_n - 1]; t0_n = t0_n - 1; }
+    else if (from == 1) { d = t1[t1_n - 1]; t1_n = t1_n - 1; }
+    else { d = t2[t2_n - 1]; t2_n = t2_n - 1; }
+    
+    if (to == 0) { t0[t0_n] = d; t0_n = t0_n + 1; }
+    else if (to == 1) { t1[t1_n] = d; t1_n = t1_n + 1; }
+    else { t2[t2_n] = d; t2_n = t2_n + 1; }
+    
+    move(n - 1, via, to, from, t0, t1, t2, t0_n, t1_n, t2_n, height);
+    return;
+}

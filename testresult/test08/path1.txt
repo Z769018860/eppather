@@ -1,0 +1,23 @@
+int data;
+int len;
+int a[5];
+int k = 0;
+int i;
+@(k < len && a[k] < data);
+k = k + 1;
+@(k < len && a[k] < data);
+k = k + 1;
+@(!(k < len && a[k] < data));
+
+i = len;
+@(i > k);
+i = i - 1;
+a[i] = a[i - 1];
+@(i > k);
+i = i - 1;
+a[i] = a[i - 1];
+@(!(i > k));
+@(!(k < 5));
+
+
+return;

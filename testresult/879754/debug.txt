@@ -1,0 +1,55 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908609]
+equals!!!!!0!!!!
+equals!!!!!rgm[0].rm_so!!!!
+equals!!!!!strlen(str)!!!!
+DFS is ready to dump ~
+SIZE!!11
+Path:char regex[110], str[110];
+@(~scanf("%s%s", regex, str));
+regex_t reg;
+regcomp(&reg, regex, REG_EXTENDED);
+regmatch_t rgm[1];
+@(regexec(&reg, str, 1, rgm, 0) == 0);
+@(rgm[0].rm_eo - rgm[0].rm_so == strlen(str));
+printf("Yes\n");
+
+printf("No\n");
+
+@(~scanf("%s%s", regex, str));
+regex_t reg;
+regcomp(&reg, regex, REG_EXTENDED);
+regmatch_t rgm[1];
+@(regexec(&reg, str, 1, rgm, 0) == 0);
+@(rgm[0].rm_eo - rgm[0].rm_so == strlen(str));
+printf("Yes\n");
+
+printf("No\n");
+
+@(~scanf("%s%s", regex, str));
+regex_t reg;
+regcomp(&reg, regex, REG_EXTENDED);
+regmatch_t rgm[1];
+@(regexec(&reg, str, 1, rgm, 0) == 0);
+@(rgm[0].rm_eo - rgm[0].rm_so == strlen(str));
+printf("Yes\n");
+
+printf("No\n");
+
+@(!(~scanf("%s%s", regex, str)));
+
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+line 3:0 no viable alternative at input 'regex_t'
+debug: empty type, return int
+line 3:8 extraneous input 'reg' expecting ';'
+find an undefined symbol: regcomp, assuming it is a function.
+find an undefined symbol: reg, assuming it is a function.
+find an undefined symbol: REG_EXTENDED, assuming it is a function.
+line 5:0 no viable alternative at input 'regmatch_t'
+debug: empty type, return int
+line 5:11 missing ';' at 'rgm'
+find an undefined symbol: rgm, assuming it is a function.
+[Inferior 1 (process 3908584) exited with code 01]

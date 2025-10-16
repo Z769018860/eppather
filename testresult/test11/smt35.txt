@@ -1,0 +1,46 @@
+; 
+(set-info :status unknown)
+(declare-fun a@0@0 () (_ BitVec 32))
+(declare-fun b@0@0 () (_ BitVec 32))
+(declare-fun m@0@0 () (_ BitVec 32))
+(declare-fun n@0@0 () (_ BitVec 32))
+(assert
+ (let (($x20 (bvslt a@0@0 (_ bv5 32))))
+ (let (($x563 (bvsle (_ bv0 32) a@0@0)))
+ (and $x563 $x20))))
+(assert
+ (let (($x924 (bvslt b@0@0 (_ bv5 32))))
+ (let (($x788 (bvsle (_ bv0 32) b@0@0)))
+ (and $x788 $x924))))
+(assert
+ (let (($x371 (not (and (distinct (ite (bvsge (bvsub a@0@0 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x389 (ite $x371 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x389 (_ bv0 32)) true))))
+(assert
+ (let (($x134 (not (and (distinct (ite (bvsge (bvsub b@0@0 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x153 (ite $x134 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x153 (_ bv0 32)) true))))
+(assert
+ (let (($x313 (not (and (distinct (ite (bvslt (bvadd a@0@0 (_ bv1 32)) m@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x126 (ite $x313 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x126 (_ bv0 32)) true))))
+(assert
+ (let (($x973 (not (and (distinct (ite (bvslt (bvadd b@0@0 (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x1078 (ite $x973 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x1078 (_ bv0 32)) true))))
+(assert
+ (let ((?x968 (ite (bvslt (_ bv0 32) m@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x968 (_ bv0 32)) true)))
+(assert
+ (let ((?x471 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x471 (_ bv0 32)) true)))
+(assert
+ (let (($x397 (not (and (distinct (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x655 (ite $x397 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x655 (_ bv0 32)) true))))
+(assert
+ (let (($x668 (not (and (distinct (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) m@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x79 (ite $x668 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x79 (_ bv0 32)) true))))
+(check-sat)
+

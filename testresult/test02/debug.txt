@@ -1,0 +1,233 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881018]
+equals!!!!!1!!!!
+equals!!!!!b+1!!!!
+equals!!!!!c!!!!
+equals!!!!!1!!!!
+equals!!!!!e+1!!!!
+equals!!!!!1!!!!
+equals!!!!!e-1!!!!
+equals!!!!!1!!!!
+equals!!!!!a+1!!!!
+DFS is ready to dump ~
+SIZE!!7
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun c@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun g@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(g == c);
+e=e+1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int a,b,c,d,e,f,g,h,i,j,k,l,m;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(a != b+1);
+@(!(g == c));
+
+e=e-1;
+
+a=a+1;
+@(!(a != b+1));
+
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun a@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun c@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun g@0@0 () (_ BitVec 32)
+  #xffffffff)
+[MATRIX]:
+1 1 1 1 0 1 1 
+0 1 0 0 1 1 1 
+[matrix_before]:
+1 1 1 1 0 1 1 
+0 1 0 0 1 1 1 
+[Inferior 1 (process 3881006) exited normally]

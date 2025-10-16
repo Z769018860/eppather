@@ -1,0 +1,56 @@
+typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;

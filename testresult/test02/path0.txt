@@ -1,0 +1,18 @@
+int a;
+int b;
+int c;
+int g;
+int e;
+@(a != b + 1);
+@(g == c);
+e = e + 1;
+
+a = a + 1;
+@(a != b + 1);
+@(g == c);
+e = e + 1;
+
+a = a + 1;
+@(!(a != b + 1));
+
+return e;

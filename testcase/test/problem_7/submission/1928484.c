@@ -1,0 +1,1 @@
+long a,t;main(){for(;~scanf("%ld",&t);a^=t);printf("%ld",a);}

@@ -1,0 +1,40 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3888960]
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!233!!!!
+equals!!!!!a[i]!!!!
+equals!!!!!hs*233+a[i]!!!!
+equals!!!!!233!!!!
+equals!!!!!b[i]!!!!
+equals!!!!!sb*233+b[i]!!!!
+equals!!!!!sb=sb*233+b[i]!!!!
+equals!!!!!233!!!!
+equals!!!!!fu*=233!!!!
+equals!!!!!sb!!!!
+equals!!!!!m!!!!
+equals!!!!!n!!!!
+equals!!!!!233!!!!
+equals!!!!!a[i]!!!!
+equals!!!!!m!!!!
+equals!!!!!a[i-m]!!!!
+equals!!!!!fu*a[i-m]!!!!
+equals!!!!!hs*233+a[i]-fu*a[i-m]!!!!
+equals!!!!!sb!!!!
+equals!!!!!(hs==sb)!!!!
+CATALOG
+TranslationUnit
+	Types: 
+	Any: printf sb hs ans puts strlen i n fu m main b a 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3888908] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

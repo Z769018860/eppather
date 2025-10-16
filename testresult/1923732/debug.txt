@@ -1,0 +1,17 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3895387]
+DFS is ready to dump ~
+SIZE!!2
+Path:const char*str="#include<stdio.h>%cconst char*str=%c%s%c;%cint main(){printf(str,10,34,str,34,10);}";
+printf(str,10,34,str,34,10);
+
+find an undefined symbol: printf, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3895376] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

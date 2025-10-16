@@ -1,0 +1,9 @@
+; 
+(set-info :status unknown)
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x22 (bvsub (select (store (store %a (_ bv2000003 32) (_ bv0 32)) (_ bv2000002 32) (_ bv0 32)) (_ bv2000000 32)) (select (store (store %a (_ bv2000003 32) (_ bv0 32)) (_ bv2000002 32) (_ bv0 32)) (_ bv2000001 32)))))
+ (let ((?x8 (ite (bvslt (_ bv0 32) (bvadd ?x22 (_ bv1 32))) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8 (_ bv0 32)) true))))
+(check-sat)
+

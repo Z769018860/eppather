@@ -1,0 +1,1 @@
+typedef long long ll;const ll mod=998244353,inv2=499122177,inv6=166374059;ll n,a,b,c;ll calc(ll n){return n*(n+1)%mod*(2*n+1)%mod*inv6%mod;}int main(){scanf("%lld",&n);for(ll i=1,j;i<=n;i=j+1)j=n/(n/i),a=(a+(calc(j)-calc(i-1)+mod)%mod*(n/i)%mod)%mod,b=(b+(i+j)*(j-i+1)%mod*inv2%mod*(n/i)%mod)%mod,c=(c+(j-i+1)*(n/i))%mod;printf("%lld",(2*a+3*b+5*c)%mod);}

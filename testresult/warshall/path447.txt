@@ -1,0 +1,116 @@
+int V;
+int graph[10][10];
+int dist[10][10];
+int i, j, k;
+i = 0;
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(!(graph[i][j] == 0 && i != j));
+dist[i][j] = graph[i][j];
+
+@(j < V);
+j = j + 1;
+@(!(graph[i][j] == 0 && i != j));
+dist[i][j] = graph[i][j];
+
+@(!(j < V));
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(!(graph[i][j] == 0 && i != j));
+dist[i][j] = graph[i][j];
+
+@(j < V);
+j = j + 1;
+@(!(graph[i][j] == 0 && i != j));
+dist[i][j] = graph[i][j];
+
+@(!(j < V));
+@(!(i < V));
+k = 0;
+@(k < V);
+k = k + 1;
+i = 0;
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(!(dist[i][j] > dist[i][k] + dist[k][j]));
+
+
+;
+@(j < V);
+j = j + 1;
+@(dist[i][j] > dist[i][k] + dist[k][j]);
+dist[i][j] = dist[i][k] + dist[k][j];
+
+;
+@(!(j < V));
+;
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(dist[i][j] > dist[i][k] + dist[k][j]);
+dist[i][j] = dist[i][k] + dist[k][j];
+
+;
+@(j < V);
+j = j + 1;
+@(!(dist[i][j] > dist[i][k] + dist[k][j]));
+
+
+;
+@(!(j < V));
+;
+@(!(i < V));
+;
+@(k < V);
+k = k + 1;
+i = 0;
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(dist[i][j] > dist[i][k] + dist[k][j]);
+dist[i][j] = dist[i][k] + dist[k][j];
+
+;
+@(j < V);
+j = j + 1;
+@(!(dist[i][j] > dist[i][k] + dist[k][j]));
+
+
+;
+@(!(j < V));
+;
+@(i < V);
+i = i + 1;
+j = 0;
+@(j < V);
+j = j + 1;
+@(dist[i][j] > dist[i][k] + dist[k][j]);
+dist[i][j] = dist[i][k] + dist[k][j];
+
+;
+@(j < V);
+j = j + 1;
+@(dist[i][j] > dist[i][k] + dist[k][j]);
+dist[i][j] = dist[i][k] + dist[k][j];
+
+;
+@(!(j < V));
+;
+@(!(i < V));
+;
+@(!(k < V));
+;
+return;

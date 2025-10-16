@@ -1,0 +1,5 @@
+void safe_add(int interval[2], int a, int b) {
+    interval[0] = a + b;
+    interval[1] = a + b;
+    return;
+}

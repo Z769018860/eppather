@@ -1,0 +1,304 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3907802]
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!j!!!!
+equals!!!!!(1LL<<j)!!!!
+equals!!!!!x!!!!
+equals!!!!!b[j]!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!j!!!!
+equals!!!!!(1LL<<j)!!!!
+equals!!!!!b[j]!!!!
+equals!!!!!62!!!!
+equals!!!!!b[i]!!!!
+equals!!!!!n!!!!
+equals!!!!!cnt!!!!
+equals!!!!!(1LL<<cnt)!!!!
+equals!!!!!cnt!!!!
+equals!!!!!i!!!!
+equals!!!!!(1LL<<i)!!!!
+equals!!!!!a[i]!!!!
+DFS is ready to dump ~
+SIZE!!37
+Path:typedef long long LL;
+LL b[64], a[64], x, k;
+int n, m, cnt=0;
+scanf("%d",&n);
+int i=0;
+@(i<n);
+++i;
+scanf("%lld",&x);
+int j=62;
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(!(j>=0));
+@(i<n);
+++i;
+scanf("%lld",&x);
+int j=62;
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(!(j>=0));
+@(i<n);
+++i;
+scanf("%lld",&x);
+int j=62;
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(j>=0);
+--j;
+@(x&(1LL<<j));
+@(!b[j]);
+b[j] = x;
+break;
+
+x ^= b[j];
+
+@(!(j>=0));
+@(!(i<n));
+int i=62;
+@(i>=0);
+--i;
+int j=i-1;
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(!(j>=0));
+@(i>=0);
+--i;
+int j=i-1;
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(!(j>=0));
+@(i>=0);
+--i;
+int j=i-1;
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(j>=0);
+--j;
+@(b[i]&(1LL<<j));
+b[i] ^= b[j];
+
+@(!(j>=0));
+@(!(i>=0));
+int i=0;
+@(i<=62);
+++i;
+@(b[i]);
+a[cnt++] = b[i];
+
+@(i<=62);
+++i;
+@(b[i]);
+a[cnt++] = b[i];
+
+@(i<=62);
+++i;
+@(b[i]);
+a[cnt++] = b[i];
+
+@(!(i<=62));
+scanf("%d",&m);
+@(m--);
+scanf("%lld",&k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL<<cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld",&k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL<<cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld",&k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL<<cnt));
+puts("-1");
+
+@(!(m--));
+
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 12:6 mismatched input 'LL' expecting ')'
+line 12:11 mismatched input ')' expecting ';'
+line 21:6 mismatched input 'LL' expecting ')'
+line 21:11 mismatched input ')' expecting ';'
+line 30:6 mismatched input 'LL' expecting ')'
+line 30:11 mismatched input ')' expecting ';'
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+line 44:6 mismatched input 'LL' expecting ')'
+line 44:11 mismatched input ')' expecting ';'
+line 53:6 mismatched input 'LL' expecting ')'
+line 53:11 mismatched input ')' expecting ';'
+debug:468: empty stmt
+line 62:6 mismatched input 'LL' expecting ')'
+line 62:11 mismatched input ')' expecting ';'
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+line 76:6 mismatched input 'LL' expecting ')'
+line 76:11 mismatched input ')' expecting ';'
+line 85:6 mismatched input 'LL' expecting ')'
+line 85:11 mismatched input ')' expecting ';'
+line 94:6 mismatched input 'LL' expecting ')'
+line 94:11 mismatched input ')' expecting ';'
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+line 109:9 mismatched input 'LL' expecting ')'
+line 109:14 mismatched input ')' expecting ';'
+line 114:9 mismatched input 'LL' expecting ')'
+line 114:14 mismatched input ')' expecting ';'
+line 119:9 mismatched input 'LL' expecting ')'
+line 119:14 mismatched input ')' expecting ';'
+warning: a declaration with the name "j" already exists!
+line 128:9 mismatched input 'LL' expecting ')'
+line 128:14 mismatched input ')' expecting ';'
+line 133:9 mismatched input 'LL' expecting ')'
+line 133:14 mismatched input ')' expecting ';'
+line 138:9 mismatched input 'LL' expecting ')'
+line 138:14 mismatched input ')' expecting ';'
+warning: a declaration with the name "j" already exists!
+line 147:9 mismatched input 'LL' expecting ')'
+line 147:14 mismatched input ')' expecting ';'
+debug:468: empty stmt
+line 152:9 mismatched input 'LL' expecting ')'
+line 152:14 mismatched input ')' expecting ';'
+line 157:9 mismatched input 'LL' expecting ')'
+line 157:14 mismatched input ')' expecting ';'
+debug:468: empty stmt
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 185:9 mismatched input 'LL' expecting ')'
+line 185:16 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 193:9 mismatched input 'LL' expecting ')'
+line 193:16 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 201:9 mismatched input 'LL' expecting ')'
+line 201:16 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a752f in std::default_delete<epat::Stmt>::operator()(epat::Stmt*) const ()
+A debugging session is active.
+
+	Inferior 1 [process 3907790] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

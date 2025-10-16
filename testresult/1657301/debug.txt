@@ -1,0 +1,217 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3905201]
+equals!!!!!(-x)!!!!
+equals!!!!!n!!!!
+equals!!!!!a!!!!
+equals!!!!!c[i] + a!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!i + lowbit(i)!!!!
+equals!!!!!0!!!!
+equals!!!!!c[x]!!!!
+equals!!!!!ans + c[x]!!!!
+equals!!!!!lowbit(x)!!!!
+equals!!!!!x - lowbit(x)!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!b!!!!
+equals!!!!!a!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+DFS is ready to dump ~
+SIZE!!31
+Path:typedef long long ll;
+ll c[1000010];
+int n, q;
+int x;
+int i;
+ll a;
+int x;
+ll ans = 0;
+int i, a, b = 0;
+return x & (-x);
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "a" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!31
+Path:typedef long long ll;
+ll c[1000010];
+int n, q;
+int x;
+int i;
+ll a;
+int x;
+ll ans = 0;
+int i, a, b = 0;
+@(i <= n);
+c[i] = c[i] + a;
+i = i + lowbit(i);
+@(i <= n);
+c[i] = c[i] + a;
+i = i + lowbit(i);
+@(i <= n);
+c[i] = c[i] + a;
+i = i + lowbit(i);
+@(!(i <= n));
+
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(!(x > 0));
+
+return ans;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "a" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+feasible!!!
+[mem]:9
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!31
+Path:typedef long long ll;
+ll c[1000010];
+int n, q;
+int x;
+int i;
+ll a;
+int x;
+ll ans = 0;
+int i, a, b = 0;
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(x > 0);
+ans = ans + c[x];
+x = x - lowbit(x);
+@(!(x > 0));
+
+return ans;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "a" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!31
+Path:typedef long long ll;
+ll c[1000010];
+int n, q;
+int x;
+int i;
+ll a;
+int x;
+ll ans = 0;
+int i, a, b = 0;
+scanf("%d %d", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%d", &a);
+update(i, a - b);
+b = a;
+@(i <= n);
+i++;
+scanf("%d", &a);
+update(i, a - b);
+b = a;
+@(i <= n);
+i++;
+scanf("%d", &a);
+update(i, a - b);
+b = a;
+@(!(i <= n));
+@(q--);
+int s, l, r, x;
+scanf("%d", &s);
+@(s == 1);
+scanf("%d %d %d", &l, &r, &x);
+update(l, x);
+update(r + 1, -x);
+
+@(s == 2);
+int h;
+scanf("%d", &h);
+printf("%lld\n", sum(h));
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "a" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: update, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: update, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: update, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: update, assuming it is a function.
+find an undefined symbol: update, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: sum, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+
+Program received signal SIGSEGV, Segmentation fault.
+psy::C::SyntaxNamePrinter::DFS (this=0x7fffffff7f00, node=std::shared_ptr<psy::C::CFGNode> (empty) = {...}, pathCoverage=std::vector<bool> of length 31, capacity 64 = {...}, path="scanf(\"%d %d\", &n, &q);\ni = 1;\n@(i <= n);\ni++;\nscanf(\"%d\", &a);\nupdate(i, a - b);\nb = a;\n@(i <= n);\ni++;\nscanf(\"%d\", &a);\nupdate(i, a - b);\nb = a;\n@(i <= n);\ni++;\nscanf(\"%d\", &a);\nupdate(i, a - b);\nb "..., depth=25, pathCount=@0x7fffffff79e8: 4, maxloop=3) at /home/zhangliwei/eppather/C/syntax/SyntaxNamePrinter.cpp:1574
+1574	    if (node->depth>=0)    
+A debugging session is active.
+
+	Inferior 1 [process 3905179] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

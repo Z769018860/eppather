@@ -1,0 +1,64 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3889023]
+equals!!!!!2!!!!
+equals!!!!!sizeof(char)!!!!
+equals!!!!!!!!!
+equals!!!!!2!!!!
+equals!!!!!sizeof(char)!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!sizeof(unsigned long long)!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!sizeof(unsigned long long)!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!strlen(A+1)!!!!
+equals!!!!!1!!!!
+equals!!!!!strlen(B+1)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!LA!!!!
+equals!!!!!1!!!!
+equals!!!!!131!!!!
+equals!!!!!power[i-1]*131!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!LA!!!!
+equals!!!!!1!!!!
+equals!!!!!131!!!!
+equals!!!!!A[i]!!!!
+equals!!!!!'0'!!!!
+equals!!!!!hash[i-1]*131 +A[i]-'0'!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!LB!!!!
+equals!!!!!131!!!!
+equals!!!!!B[i]!!!!
+equals!!!!!'0'!!!!
+equals!!!!!h*131 +B[i]-'0'!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!LB!!!!
+equals!!!!!LA-LB!!!!
+equals!!!!!LB!!!!
+equals!!!!!power[LB]!!!!
+equals!!!!!hash[i]*power[LB]!!!!
+equals!!!!!hash[i+LB]-hash[i]*power[LB]!!!!
+CATALOG
+TranslationUnit
+	Types: 
+	Any: printf A j B gets count LA main i LB hash h power strlen 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3888989] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

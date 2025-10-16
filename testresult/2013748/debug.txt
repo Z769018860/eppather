@@ -1,0 +1,96 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3889249]
+equals!!!!!-1!!!!
+equals!!!!!1!!!!
+equals!!!!!pattern_len - 1!!!!
+equals!!!!!-1!!!!
+equals!!!!!pattern[j]!!!!
+equals!!!!!pattern[i] == pattern[j]!!!!
+equals!!!!!j!!!!
+equals!!!!!next[j]!!!!
+equals!!!!!text_len!!!!
+equals!!!!!-1!!!!
+equals!!!!!pattern[j]!!!!
+equals!!!!!text[i] == pattern[j]!!!!
+equals!!!!!next[j]!!!!
+equals!!!!!pattern_len!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!next[j - 1] + 1!!!!
+DFS is ready to dump ~
+SIZE!!33
+Path:char pattern[];
+int next[];
+int pattern_len = strlen(pattern);
+int i = 0, j = -1;
+char text[];
+char pattern[];
+int text_len = strlen(text);
+int pattern_len = strlen(pattern);
+int next[pattern_len];
+int i = 0, j = 0;
+int cnt = 0;
+char text[1000005], pattern[1000005];
+int result = kmp(text, pattern);
+next[0] = -1;
+@(i < pattern_len - 1);
+@(j == -1 || pattern[i] == pattern[j]);
+i++;
+j++;
+next[i] = j;
+
+@(i < pattern_len - 1);
+@(j == -1 || pattern[i] == pattern[j]);
+i++;
+j++;
+next[i] = j;
+
+@(i < pattern_len - 1);
+@(j == -1 || pattern[i] == pattern[j]);
+i++;
+j++;
+next[i] = j;
+
+@(!(i < pattern_len - 1));
+
+get_next(pattern, next);
+@(i < text_len);
+@(j == -1 || text[i] == pattern[j]);
+i++;
+j++;
+
+@(j == pattern_len);
+cnt++;
+j = next[j - 1] + 1;
+
+@(i < text_len);
+@(j == -1 || text[i] == pattern[j]);
+i++;
+j++;
+
+@(j == pattern_len);
+cnt++;
+j = next[j - 1] + 1;
+
+@(i < text_len);
+@(j == -1 || text[i] == pattern[j]);
+i++;
+j++;
+
+@(j == pattern_len);
+cnt++;
+j = next[j - 1] + 1;
+
+@(!(i < text_len));
+
+return cnt;
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a889c in std::__uniq_ptr_impl<epat::Expr, std::default_delete<epat::Expr> >::_M_ptr() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3889225] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

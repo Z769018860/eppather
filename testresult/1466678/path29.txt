@@ -1,0 +1,30 @@
+typedef long long I64;
+typedef unsigned long long U64;
+typedef __int128 I128;
+int Witness[9] ={ 2, 3, 5, 7, 11, 13, 17, 19, 23};
+U64 base;
+U64 power;
+U64 mod;
+U64 r = 1;
+U64 n;
+U64 a;
+U64 x;
+int i, j;
+int pflag;
+int r = 0;
+U64 d = n - 1;
+U64 num;
+U64 t;
+void;
+U64 num;
+@(!(num == 1));
+
+@(!((num == 2) || (num == 3) || (num == 5)));
+
+@(!((num & 0x01) == 0));
+
+t = num % 6;
+@(!((t !=1) && (t != 5)));
+
+@(millerRabin(num));
+return 1;

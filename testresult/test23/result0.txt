@@ -1,0 +1,17 @@
+feasible
+feasible
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (let ((a!1 (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32)))
+                                  #x80000001)
+                                #x00000002
+                                #x80000003)
+                         #x00000004
+                         #x00000002)
+                  #x00000003
+                  #x00000001)))
+  (store a!1 #x00000000 #x00000000)))
+(define-fun left@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun right@0@0 () (_ BitVec 32)
+  #x00000004)
+[mem]:12

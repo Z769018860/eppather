@@ -1,0 +1,53 @@
+; 
+(set-info :status unknown)
+(declare-fun len1@0@0 () (_ BitVec 32))
+(declare-fun len2@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x194 (ite (bvslt (_ bv0 32) len1@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x194 (_ bv0 32)) true)))
+(assert
+ (let (($x82 (bvslt (_ bv0 32) (_ bv1000100 32))))
+ (let (($x140 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x140 $x82))))
+(assert
+ (let ((?x138 (bvneg (_ bv1 32))))
+ (let ((?x103 (store (store (store %a (_ bv3000304 32) (_ bv0 32)) (_ bv1000100 32) len1@0@0) (_ bv3000303 32) (_ bv0 32))))
+ (let ((?x8 (store (store ?x103 (_ bv3000302 32) ?x138) (_ bv1000101 32) len2@0@0)))
+ (let ((?x136 (select ?x8 (_ bv3000302 32))))
+ (let (($x46 (bvslt ?x136 (_ bv1000100 32))))
+ (let (($x172 (bvsle (_ bv0 32) ?x136)))
+ (and $x172 $x46))))))))
+(assert
+ (let ((?x138 (bvneg (_ bv1 32))))
+ (let ((?x103 (store (store (store %a (_ bv3000304 32) (_ bv0 32)) (_ bv1000100 32) len1@0@0) (_ bv3000303 32) (_ bv0 32))))
+ (let ((?x8 (store (store ?x103 (_ bv3000302 32) ?x138) (_ bv1000101 32) len2@0@0)))
+ (let (($x17 (and (distinct (ite (= (select ?x8 (_ bv1000102 32)) (select ?x8 (_ bv2000201 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x143 (ite (or (and (distinct (ite (= ?x138 ?x138) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) $x17) (_ bv1 32) (_ bv0 32))))
+ (and (distinct (ite (not (and (distinct ?x143 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))))))
+(assert
+ (let ((?x138 (bvneg (_ bv1 32))))
+ (let ((?x103 (store (store (store %a (_ bv3000304 32) (_ bv0 32)) (_ bv1000100 32) len1@0@0) (_ bv3000303 32) (_ bv0 32))))
+ (let ((?x8 (store (store ?x103 (_ bv3000302 32) ?x138) (_ bv1000101 32) len2@0@0)))
+ (let ((?x136 (select ?x8 (_ bv3000302 32))))
+ (let (($x46 (bvslt ?x136 (_ bv1000100 32))))
+ (let (($x172 (bvsle (_ bv0 32) ?x136)))
+ (and $x172 $x46))))))))
+(assert
+ (let ((?x138 (bvneg (_ bv1 32))))
+ (let ((?x103 (store (store (store %a (_ bv3000304 32) (_ bv0 32)) (_ bv1000100 32) len1@0@0) (_ bv3000303 32) (_ bv0 32))))
+ (let ((?x8 (store (store ?x103 (_ bv3000302 32) ?x138) (_ bv1000101 32) len2@0@0)))
+ (let ((?x177 (select ?x8 (_ bv4294967295 32))))
+ (let ((?x54 (store ?x8 (_ bv3000302 32) ?x177)))
+ (let ((?x44 (select ?x54 (_ bv3000302 32))))
+ (and (distinct (ite (= ?x44 (select ?x54 (_ bv1000101 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))))))
+(assert
+ (let ((?x138 (bvneg (_ bv1 32))))
+ (let ((?x103 (store (store (store %a (_ bv3000304 32) (_ bv0 32)) (_ bv1000100 32) len1@0@0) (_ bv3000303 32) (_ bv0 32))))
+ (let ((?x8 (store (store ?x103 (_ bv3000302 32) ?x138) (_ bv1000101 32) len2@0@0)))
+ (let ((?x177 (select ?x8 (_ bv4294967295 32))))
+ (let ((?x54 (store ?x8 (_ bv3000302 32) ?x177)))
+ (let ((?x44 (select ?x54 (_ bv3000302 32))))
+ (and (bvsle (_ bv0 32) ?x44) (bvslt ?x44 (_ bv1000100 32))))))))))
+(check-sat)
+

@@ -1,0 +1,124 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3907398]
+equals!!!!!r!!!!
+equals!!!!!r!!!!
+equals!!!!!1!!!!
+equals!!!!!(l+r) >> 1!!!!
+equals!!!!!1!!!!
+equals!!!!!m + 1!!!!
+equals!!!!!1!!!!
+equals!!!!!m - 1!!!!
+equals!!!!!n!!!!
+equals!!!!!guess(i)!!!!
+equals!!!!!n!!!!
+CATALOG
+TranslationUnit
+	Types: 
+	Any: a stdout printf scanf status main m r l n i guess 
+
+DFS is ready to dump ~
+SIZE!!35
+Path:int i;
+int l=0,r=1000000,m;
+int status;
+int n, a[100];
+@(l < r);
+m = (l+r) >> 1;
+printf("guess %d %d\n", i, m);
+fflush(stdout);
+fflush(stdout);
+scanf("%d", &status);
+switch (status) { case -1: l = m + 1; break; case 1: r = m - 1; break; case 0: return m; }
+case -1: l = m + 1;
+l = m + 1;
+break;
+case 1: r = m - 1;
+r = m - 1;
+break;
+case 0: return m;
+return m;
+
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!35
+Path:int i;
+int l=0,r=1000000,m;
+int status;
+int n, a[100];
+printf("get_num\n");
+fflush(stdout);
+fflush(stdout);
+scanf("%d", &n);
+int i=0;
+@(i<n);
+i++;
+a[i] = guess(i);
+@(i<n);
+i++;
+a[i] = guess(i);
+@(i<n);
+i++;
+a[i] = guess(i);
+@(!(i<n));
+printf("submit");
+int i=0;
+@(i<n);
+i++;
+printf(" %d", a[i]);
+@(i<n);
+i++;
+printf(" %d", a[i]);
+@(i<n);
+i++;
+printf(" %d", a[i]);
+@(!(i<n));
+printf("\n");
+fflush(stdout);
+fflush(stdout);
+
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: guess, assuming it is a function.
+find an undefined symbol: guess, assuming it is a function.
+find an undefined symbol: guess, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fflush, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3907390) exited normally]

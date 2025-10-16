@@ -1,0 +1,13 @@
+int s[5];
+int index[1];
+int i = 0;
+int c;
+@(s[index[0]] == ' ' || s[index[0]] == '\t');
+index[0] = index[0] + 1;
+@(s[index[0]] == ' ' || s[index[0]] == '\t');
+index[0] = index[0] + 1;
+@(!(s[index[0]] == ' ' || s[index[0]] == '\t'));
+
+c = s[index[0]];
+@(c != '.' && (c < '0' || c > '9'));
+return c;

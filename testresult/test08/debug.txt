@@ -1,0 +1,55 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3923725]
+equals!!!!!data!!!!
+equals!!!!!1!!!!
+equals!!!!!k+1!!!!
+equals!!!!!len!!!!
+equals!!!!!k!!!!
+equals!!!!!1!!!!
+equals!!!!!i-1!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i-1]!!!!
+equals!!!!!data!!!!
+DFS is ready to dump ~
+SIZE!!11
+Path:int data;
+int len;
+int a[5];
+int k=0;
+int i;
+@(a[k]<data);
+k=k+1;
+@(a[k]<data);
+k=k+1;
+@(a[k]<data);
+k=k+1;
+@(!(a[k]<data));
+
+i=len;
+@(i>k);
+i=i-1;
+a[i]=a[i-1];
+@(i>k);
+i=i-1;
+a[i]=a[i-1];
+@(i>k);
+i=i-1;
+a[i]=a[i-1];
+@(!(i>k));
+a[k]=data;
+return;
+
+infeasible!!!
+[mem]:11
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3923700] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

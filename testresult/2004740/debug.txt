@@ -1,0 +1,75 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909227]
+equals!!!!!fp1!!!!
+equals!!!!!*fp2!!!!
+equals!!!!!fopen("copycat.in", "r")!!!!
+equals!!!!!fopen("copycat.out", "w")!!!!
+equals!!!!!getc(fp1)!!!!
+equals!!!!!EOF!!!!
+equals!!!!!0!!!!
+equals!!!!!'\n'!!!!
+DFS is ready to dump ~
+SIZE!!11
+Path:short a, cnt = 0;
+FILE *fp1, *fp2;
+fp1 = fopen("copycat.in", "r");
+fp2 = fopen("copycat.out", "w");
+@((a = getc(fp1)) != EOF);
+@(cnt > 0);
+putc(a, fp2);
+
+@(a == '\n');
+cnt++;
+
+@((a = getc(fp1)) != EOF);
+@(cnt > 0);
+putc(a, fp2);
+
+@(a == '\n');
+cnt++;
+
+@((a = getc(fp1)) != EOF);
+@(cnt > 0);
+putc(a, fp2);
+
+@(a == '\n');
+cnt++;
+
+@(!((a = getc(fp1)) != EOF));
+
+return 0;
+
+find an undefined symbol: FILE, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: fp2, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: fopen, assuming it is a function.
+find an undefined symbol: fp2, assuming it is a function.
+find an undefined symbol: fopen, assuming it is a function.
+find an undefined symbol: getc, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: EOF, assuming it is a function.
+find an undefined symbol: putc, assuming it is a function.
+find an undefined symbol: fp2, assuming it is a function.
+find an undefined symbol: getc, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: EOF, assuming it is a function.
+find an undefined symbol: putc, assuming it is a function.
+find an undefined symbol: fp2, assuming it is a function.
+find an undefined symbol: getc, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: EOF, assuming it is a function.
+find an undefined symbol: putc, assuming it is a function.
+find an undefined symbol: fp2, assuming it is a function.
+find an undefined symbol: getc, assuming it is a function.
+find an undefined symbol: fp1, assuming it is a function.
+find an undefined symbol: EOF, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3909192] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

@@ -1,0 +1,103 @@
+; 
+(set-info :status unknown)
+(declare-fun a@0@0 () (_ BitVec 32))
+(declare-fun b@0@0 () (_ BitVec 32))
+(declare-fun m@0@0 () (_ BitVec 32))
+(declare-fun n@0@0 () (_ BitVec 32))
+(assert
+ (let (($x115 (bvslt a@0@0 (_ bv5 32))))
+ (let (($x22 (bvsle (_ bv0 32) a@0@0)))
+ (and $x22 $x115))))
+(assert
+ (let (($x938 (bvslt b@0@0 (_ bv5 32))))
+ (let (($x164 (bvsle (_ bv0 32) b@0@0)))
+ (and $x164 $x938))))
+(assert
+ (let ((?x58 (ite (bvsge (bvsub a@0@0 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x58 (_ bv0 32)) true)))
+(assert
+ (let ((?x145 (bvsub a@0@0 (_ bv1 32))))
+ (let (($x155 (bvslt ?x145 (_ bv5 32))))
+ (let (($x124 (bvsle (_ bv0 32) ?x145)))
+ (and $x124 $x155)))))
+(assert
+ (let (($x938 (bvslt b@0@0 (_ bv5 32))))
+ (let (($x164 (bvsle (_ bv0 32) b@0@0)))
+ (and $x164 $x938))))
+(assert
+ (let ((?x118 (ite (bvsge (bvsub b@0@0 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x118 (_ bv0 32)) true)))
+(assert
+ (let ((?x145 (bvsub a@0@0 (_ bv1 32))))
+ (let (($x155 (bvslt ?x145 (_ bv5 32))))
+ (let (($x124 (bvsle (_ bv0 32) ?x145)))
+ (and $x124 $x155)))))
+(assert
+ (let ((?x21 (bvsub b@0@0 (_ bv1 32))))
+ (let (($x109 (bvslt ?x21 (_ bv5 32))))
+ (let (($x78 (bvsle (_ bv0 32) ?x21)))
+ (and $x78 $x109)))))
+(assert
+ (let ((?x118 (ite (bvsge (bvsub b@0@0 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x118 (_ bv0 32)) true)))
+(assert
+ (let (($x115 (bvslt a@0@0 (_ bv5 32))))
+ (let (($x22 (bvsle (_ bv0 32) a@0@0)))
+ (and $x22 $x115))))
+(assert
+ (let ((?x21 (bvsub b@0@0 (_ bv1 32))))
+ (let (($x109 (bvslt ?x21 (_ bv5 32))))
+ (let (($x78 (bvsle (_ bv0 32) ?x21)))
+ (and $x78 $x109)))))
+(assert
+ (let ((?x150 (ite (bvslt (bvadd a@0@0 (_ bv1 32)) m@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x150 (_ bv0 32)) true)))
+(assert
+ (let ((?x138 (bvadd a@0@0 (_ bv1 32))))
+ (let (($x93 (bvslt ?x138 (_ bv5 32))))
+ (let (($x102 (bvsle (_ bv0 32) ?x138)))
+ (and $x102 $x93)))))
+(assert
+ (let (($x938 (bvslt b@0@0 (_ bv5 32))))
+ (let (($x164 (bvsle (_ bv0 32) b@0@0)))
+ (and $x164 $x938))))
+(assert
+ (let (($x283 (not (and (distinct (ite (bvslt (bvadd b@0@0 (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x94 (ite $x283 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x94 (_ bv0 32)) true))))
+(assert
+ (let (($x283 (not (and (distinct (ite (bvslt (bvadd b@0@0 (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x94 (ite $x283 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x94 (_ bv0 32)) true))))
+(assert
+ (let ((?x661 (ite (bvslt (_ bv0 32) m@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x661 (_ bv0 32)) true)))
+(assert
+ (let ((?x159 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x159 (_ bv0 32)) true)))
+(assert
+ (let ((?x891 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x891 (_ bv0 32)) true)))
+(assert
+ (let (($x35 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x134 (ite (not $x35) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x134 (_ bv0 32)) true))))
+(assert
+ (let ((?x128 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) m@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x128 (_ bv0 32)) true)))
+(assert
+ (let ((?x159 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x159 (_ bv0 32)) true)))
+(assert
+ (let ((?x891 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x891 (_ bv0 32)) true)))
+(assert
+ (let (($x35 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x134 (ite (not $x35) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x134 (_ bv0 32)) true))))
+(assert
+ (let (($x36 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) m@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x91 (ite (not $x36) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x91 (_ bv0 32)) true))))
+(check-sat)
+

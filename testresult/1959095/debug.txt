@@ -1,0 +1,50 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909327]
+equals!!!!!getchar()!!!!
+equals!!!!!fread(a, 1, 1000000, stdin)!!!!
+DFS is ready to dump ~
+SIZE!!9
+Path:int t;
+char a[1000000];
+freopen("copycat.in", "r", stdin);
+freopen("copycat.out", "w", stdout);
+scanf("%d", &t), getchar();
+@(t = fread(a, 1, 1000000, stdin));
+fwrite(a, 1, t, stdout);
+@(t = fread(a, 1, 1000000, stdin));
+fwrite(a, 1, t, stdout);
+@(t = fread(a, 1, 1000000, stdin));
+fwrite(a, 1, t, stdout);
+@(!(t = fread(a, 1, 1000000, stdin)));
+
+return 0;
+
+find an undefined symbol: freopen, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: freopen, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: fwrite, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: fwrite, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: fwrite, assuming it is a function.
+find an undefined symbol: stdout, assuming it is a function.
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3909310] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

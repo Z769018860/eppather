@@ -1,0 +1,363 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3893806]
+equals!!!!!n!!!!
+equals!!!!!m!!!!
+equals!!!!!N!!!!
+equals!!!!!N!!!!
+equals!!!!!m!!!!
+equals!!!!!p!!!!
+equals!!!!!N!!!!
+equals!!!!!N!!!!
+equals!!!!!n!!!!
+equals!!!!!p!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!N!!!!
+equals!!!!!b[k][j]!!!!
+equals!!!!!N!!!!
+equals!!!!!a[i][k]%N*b[k][j]%N!!!!
+equals!!!!!N!!!!
+DFS is ready to dump ~
+SIZE!!27
+Path:long long a[501][501],b[501][501],tmp,n,m,p,N=1000000007;
+void;
+scanf("%lld %lld %lld",&n,&m,&p);
+int i=1;
+@(i<=n);
+i++;
+int j=1;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(!(j<=m));
+@(i<=n);
+i++;
+int j=1;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(!(j<=m));
+@(i<=n);
+i++;
+int j=1;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(j<=m);
+j++;
+scanf("%lld",&a[i][j]);
+a[i][j]+=N;
+a[i][j]%=N;
+@(!(j<=m));
+@(!(i<=n));
+int i=1;
+@(i<=m);
+i++;
+int j=1;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(!(j<=p));
+@(i<=m);
+i++;
+int j=1;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(!(j<=p));
+@(i<=m);
+i++;
+int j=1;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(j<=p);
+j++;
+scanf("%lld",&b[i][j]);
+b[i][j]+=N;
+b[i][j]%=N;
+@(!(j<=p));
+@(!(i<=m));
+int i=1;
+@(i<=n);
+i++;
+int j=1;
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(!(j<=p));
+printf("\n");
+@(i<=n);
+i++;
+int j=1;
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(!(j<=p));
+printf("\n");
+@(i<=n);
+i++;
+int j=1;
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(j<=p);
+j++;
+tmp=0;
+int k=1;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(k<=m);
+k++;
+tmp+=a[i][k]%N*b[k][j]%N;
+@(!(k<=m));
+printf("%lld ",tmp%N);
+@(!(j<=p));
+printf("\n");
+@(!(i<=n));
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:216
+[averagemem]:1
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3893789] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

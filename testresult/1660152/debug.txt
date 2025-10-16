@@ -1,0 +1,22 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908443]
+equals!!!!!m->rm_so!!!!
+equals!!!!!strlen(s)!!!!
+equals!!!!!m->rm_eo - m->rm_so < strlen(s)!!!!
+equals!!!!!"Yes"!!!!
+equals!!!!!puts(regexec(&r, s, 1, m, 0) || m->rm_eo - m->rm_so < strlen(s) ? "No" : "Yes")!!!!
+equals!!!!!regfree(&r)!!!!
+DFS is ready to dump ~
+SIZE!!3
+Path:char p[101], s[101];
+regmatch_t m[1];
+regex_t r;
+@(~scanf("%s%s", p, s));
+regcomp(&r, p, 1), puts(regexec(&r, s, 1, m, 0) || m->rm_eo - m->rm_so < strlen(s) ? "No" : "Yes"), regfree(&r);
+
+line 2:0 no viable alternative at input 'regmatch_t'
+debug: empty type, return int
+line 2:11 missing ';' at 'm'
+find an undefined symbol: m, assuming it is a function.
+[Inferior 1 (process 3908429) exited with code 01]

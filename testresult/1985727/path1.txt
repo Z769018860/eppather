@@ -1,0 +1,32 @@
+int n,m;
+int a[1000001];
+long long c[1000001];
+int x;
+int x;
+int s;
+int x;
+long long ans=0;
+int i;
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(x<=n);
+c[x]+=s;
+x+=lowbit(x);
+@(!(x<=n));
+
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(x>0);
+ans+=c[x];
+x-=lowbit(x);
+@(!(x>0));
+
+return ans;

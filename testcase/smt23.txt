@@ -1,0 +1,8 @@
+; 
+(set-info :status unknown)
+(assert
+ (let (($x185 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x165 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x165 $x185))))
+(check-sat)
+

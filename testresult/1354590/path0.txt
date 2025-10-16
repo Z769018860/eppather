@@ -1,0 +1,206 @@
+typedef long long LL;
+LL bit[64], a[64], x, k;
+int n, m, cnt = 0;
+scanf("%d", &n);
+int i = 0;
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(!(i < n));
+int i = 50;
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(!(~i));
+int i = 0;
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(!(i <= 50));
+scanf("%d", &m);
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(!(m--));
+
+return 0;

@@ -1,0 +1,56 @@
+long long tree[1000001];
+int a[1000001];
+int n,q;
+int x;
+int i;
+int x;
+int r;
+long long res=0;
+int d,b,c;
+int a[n];
+scanf("%d%d",&n,&q);
+int i=1;
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+@(i<=n);
+i++;
+scanf("%d",&a[i]);
+@(!(i<=n));
+int i=1;
+@(i<=n);
+i++;
+modify(i,a[i]);
+@(i<=n);
+i++;
+modify(i,a[i]);
+@(i<=n);
+i++;
+modify(i,a[i]);
+@(!(i<=n));
+int i=0;
+@(i<q);
+i++;
+scanf("%d%d%d",&d,&b,&c);
+@(d==1);
+modify(b,c);
+
+@(i<q);
+i++;
+scanf("%d%d%d",&d,&b,&c);
+@(!(d==1));
+
+printf("%lld\n",qry(c)-qry(b-1));
+
+@(i<q);
+i++;
+scanf("%d%d%d",&d,&b,&c);
+@(!(d==1));
+
+printf("%lld\n",qry(c)-qry(b-1));
+
+@(!(i<q));
+return 0;

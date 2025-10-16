@@ -1,0 +1,51 @@
+void compute_values(int time[11], int analytic[11], int step2[11], int step5[11], int step10[11]) {
+    int i;
+    for (i = 0; i < 11; i = i + 1) {
+        time[i] = i * 10;
+    }
+    analytic[0] = 100000;
+    analytic[1] = 59727;
+    analytic[2] = 39728;
+    analytic[3] = 29797;
+    analytic[4] = 24865;
+    analytic[5] = 22416;
+    analytic[6] = 21200;
+    analytic[7] = 20596;
+    analytic[8] = 20296;
+    analytic[9] = 20147;
+    analytic[10] = 20073;
+    step2[0] = 100000;
+    step2[1] = 57634;
+    step2[2] = 37704;
+    step2[3] = 28328;
+    step2[4] = 23918;
+    step2[5] = 21843;
+    step2[6] = 20867;
+    step2[7] = 20408;
+    step2[8] = 20192;
+    step2[9] = 20090;
+    step2[10] = 20042;
+    step5[0] = 100000;
+    step5[1] = 53800;
+    step5[2] = 34280;
+    step5[3] = 26034;
+    step5[4] = 22549;
+    step5[5] = 21077;
+    step5[6] = 20455;
+    step5[7] = 20192;
+    step5[8] = 20081;
+    step5[9] = 20034;
+    step5[10] = 20014;
+    step10[0] = 100000;
+    step10[1] = 44000;
+    step10[2] = 27200;
+    step10[3] = 22160;
+    step10[4] = 20648;
+    step10[5] = 20194;
+    step10[6] = 20058;
+    step10[7] = 20017;
+    step10[8] = 20005;
+    step10[9] = 20002;
+    step10[10] = 20000;
+    return;
+}

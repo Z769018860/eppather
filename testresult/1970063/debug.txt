@@ -1,0 +1,95 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909094]
+equals!!!!!in!!!!
+equals!!!!!fopen("copycat.in","r")!!!!
+equals!!!!!fopen("copycat.out","w")!!!!
+equals!!!!!*out=fopen("copycat.out","w")!!!!
+CATALOG
+TranslationUnit
+	Types: 
+	Any: fprintf fgets str fscanf n out fopen in FILE main 
+
+DFS is ready to dump ~
+SIZE!!13
+Path:void;
+int n;
+char str[10000];
+FILE*in=fopen("copycat.in","r"),*out=fopen("copycat.out","w");
+fscanf(in,"%d\n",&n);
+@(n--);
+fgets(str,10000,in);
+fprintf(out,"%s",str);
+fclose(in);
+fclose(in);
+fclose(out);
+fclose(out);
+@(n--);
+fgets(str,10000,in);
+fprintf(out,"%s",str);
+fclose(in);
+fclose(in);
+fclose(out);
+fclose(out);
+@(n--);
+fgets(str,10000,in);
+fprintf(out,"%s",str);
+fclose(in);
+fclose(in);
+fclose(out);
+fclose(out);
+@(!(n--));
+
+return 0;
+
+find an undefined symbol: FILE, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fopen, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fopen, assuming it is a function.
+find an undefined symbol: fscanf, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fgets, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fprintf, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fgets, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fprintf, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fgets, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fprintf, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: in, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+find an undefined symbol: fclose, assuming it is a function.
+find an undefined symbol: out, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3909075] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

@@ -1,0 +1,144 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3906730]
+equals!!!!!1!!!!
+equals!!!!!__builtin_clz(x - 1)!!!!
+equals!!!!!(32 - __builtin_clz(x - 1))!!!!
+equals!!!!!mod!!!!
+equals!!!!!2!!!!
+equals!!!!!mod * 2!!!!
+equals!!!!!ret.mod2 = mod * 2!!!!
+equals!!!!!32!!!!
+equals!!!!!mod!!!!
+equals!!!!!r!!!!
+equals!!!!!r!!!!
+equals!!!!!mod!!!!
+equals!!!!!r * r % mod!!!!
+equals!!!!!ret.r2 = r * r % mod!!!!
+equals!!!!!5!!!!
+equals!!!!!mod!!!!
+equals!!!!!x * mod!!!!
+equals!!!!!2 - x * mod!!!!
+equals!!!!!-x!!!!
+equals!!!!!m->ir!!!!
+equals!!!!!m->mod!!!!
+equals!!!!!* m->mod!!!!
+equals!!!!!32!!!!
+equals!!!!!b!!!!
+equals!!!!!m->mod2!!!!
+equals!!!!!0!!!!
+equals!!!!!v2!!!!
+equals!!!!!b!!!!
+equals!!!!!m->mod2!!!!
+equals!!!!!0!!!!
+equals!!!!!v1!!!!
+equals!!!!!b!!!!
+equals!!!!!x!!!!
+equals!!!!!m->mod!!!!
+equals!!!!!0!!!!
+equals!!!!!v2!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!mont32_mul(r, a, m)!!!!
+equals!!!!!mont32_mul(a, a, m)!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!mont32_trans(G, m)!!!!
+equals!!!!!1!!!!
+equals!!!!!rank2!!!!
+equals!!!!!mont32_qpow(G, (m->mod - 1) >> rank2, m)!!!!
+equals!!!!!mont32_inv(info.rt[rank2], m)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!mont32_mul(info.rt[i], info.rt[i], m)!!!!
+equals!!!!!1!!!!
+equals!!!!!mont32_mul(info.irt[i], info.irt[i], m)!!!!
+equals!!!!!1!!!!
+equals!!!!!rank2 - 1!!!!
+equals!!!!!2!!!!
+equals!!!!!mont32_mul(prod, info.rt[i + 2], m)!!!!
+equals!!!!!2!!!!
+equals!!!!!mont32_mul(iprod, info.irt[i + 2], m)!!!!
+equals!!!!!2!!!!
+equals!!!!!mont32_mul(prod, info.irt[i + 2], m)!!!!
+equals!!!!!2!!!!
+equals!!!!!mont32_mul(iprod, info.rt[i + 2], m)!!!!
+equals!!!!!2!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!n!!!!
+equals!!!!!2!!!!
+equals!!!!!l * 2!!!!
+equals!!!!!++k!!!!
+equals!!!!!l!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!l!!!!
+equals!!!!!j!!!!
+equals!!!!!mont32_add(x, y, m)!!!!
+equals!!!!!j!!!!
+equals!!!!!l!!!!
+equals!!!!!mont32_sub(x, y, m)!!!!
+equals!!!!!mont32_mul(r, info->rate2[__builtin_ctz(~k)], m)!!!!
+equals!!!!!n!!!!
+equals!!!!!2!!!!
+equals!!!!!n!!!!
+equals!!!!!2!!!!
+equals!!!!!l * 2!!!!
+equals!!!!!++k!!!!
+equals!!!!!l!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!l!!!!
+equals!!!!!j!!!!
+equals!!!!!mont32_add(x, y, m)!!!!
+equals!!!!!j!!!!
+equals!!!!!l!!!!
+equals!!!!!mont32_mul(mont32_sub(x, y, m), r, m)!!!!
+equals!!!!!mont32_mul(r, info->irate2[__builtin_ctz(~k)], m)!!!!
+equals!!!!!n!!!!
+equals!!!!!mont32_mul(f[i], g[i], m)!!!!
+equals!!!!!4!!!!
+equals!!!!!!!!!
+equals!!!!!4!!!!
+equals!!!!!' '!!!!
+equals!!!!!'0'!!!!
+equals!!!!!10!!!!
+equals!!!!!*(fin->p)!!!!
+equals!!!!!'0'!!!!
+equals!!!!!x * 10 + *(fin->p) - '0'!!!!
+equals!!!!!fin->p++!!!!
+equals!!!!!m++!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!f!!!!
+equals!!!!!l!!!!
+equals!!!!!!!!!
+equals!!!!!g!!!!
+equals!!!!!l!!!!
+equals!!!!!!!!!
+equals!!!!!n!!!!
+equals!!!!!mont32_trans(fasti_get_u32(&fin), &mod)!!!!
+equals!!!!!m!!!!
+equals!!!!!mont32_trans(fasti_get_u32(&fin), &mod)!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!n + m - 1!!!!
+equals!!!!!_mm_free(g)!!!!
+CATALOG
+TranslationUnit
+	Types: u64 FILE Mont32T u32 size_t i32 uint64_t usize int64_t NttInfo uint32_t FastI int32_t 
+	Any: _mm_free stdin main fasti_get_u32 MADV_SEQUENTIAL fasti_destory st_size madvise fstat fin mont32_qpow0 mont32_sub file mont32_trans x __builtin_ctz v1 v2 b one irt mont32_init m mont32_add Mont32T i32 intt mont32_get FastI u64 mod mod2 munmap usize rt k u32 __builtin_clz i64 r mont32_reduce l g i r2 rank2 ret n y mont32_inv printf rate2 irate2 a ntt fileno mont32_mul NttInfo mont32_qpow ntt_prepare bit_ceil f G fd ir prod iprod j ivn dot sb info fasti_init p 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3906679] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

@@ -1,0 +1,149 @@
+ 
+
+\hypertarget{md_README_autotoc_md0}{}\doxysection{Psyche-\/C}\label{md_README_autotoc_md0}
+Psyche is a rather unique compiler frontend for the C programming language that is specifically designed for the implementation of static analysis tools. This is where the \char`\"{}uniqueness\char`\"{} of Psyche-\/C comes from\+:
+
+
+\begin{DoxyItemize}
+\item Clean separation between the syntactic and semantic compiler phases.
+\item Algorithmic and heuristic syntax disambiguation.
+\item Type inference of missing {\ttfamily struct}, {\ttfamily union}, {\ttfamily enum}, and {\ttfamily typedef} ~\newline
+ (i.\+e., tolerance and \char`\"{}recovery\char`\"{} against {\ttfamily \#include} failures).
+\item A\+PI inspired by that of the \href{https://github.com/dotnet/roslyn}{\texttt{ Roslyn .N\+ET compiler}}.
+\item A\+ST resembling that of the \href{https://clang.llvm.org/}{\texttt{ L\+L\+VM\textquotesingle{}s Clang frontend}}.
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md1}{}\doxysubsection{Library and A\+PI}\label{md_README_autotoc_md1}
+Psyche-\/C is implemented as a library. Its native A\+PI is in C++ (A\+P\+Is for other languages are \href{https://github.com/ltcmelo/psychec/issues/112}{\texttt{ on the way}}).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void} analyse(\textcolor{keyword}{const} SourceText\& srcText, \textcolor{keyword}{const} FileInfo\& fi)}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    ParseOptions parseOpts;}
+\DoxyCodeLine{    parseOpts.setTreatmentOfAmbiguities(ParseOptions::TreatmentOfAmbiguities::DisambiguateAlgorithmically);}
+\DoxyCodeLine{    }
+\DoxyCodeLine{    \textcolor{keyword}{auto} tree = SyntaxTree::parseText(srcText,}
+\DoxyCodeLine{                                      TextPreprocessingState::Preprocessed,}
+\DoxyCodeLine{                                      TextCompleteness::Fragment,}
+\DoxyCodeLine{                                      parseOpts,}
+\DoxyCodeLine{                                      fi.fileName());}
+\DoxyCodeLine{}
+\DoxyCodeLine{    \textcolor{keyword}{auto} compilation = Compilation::create(\textcolor{stringliteral}{"code-\/analysis"});}
+\DoxyCodeLine{    compilation-\/>addSyntaxTree(tree.get());}
+\DoxyCodeLine{}
+\DoxyCodeLine{    AnalysisVisitor analysis(tree.get(), compilation-\/>semanticModel(tree.get()));}
+\DoxyCodeLine{    analysis.run(tree-\/>translationUnitRoot());}
+\DoxyCodeLine{\}}
+\end{DoxyCode}
+
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{SyntaxVisitor::Action AnalysisVisitor::visitFunctionDefinition(\textcolor{keyword}{const} FunctionDefinitionSyntax* node)\textcolor{keyword}{ override}}
+\DoxyCodeLine{\textcolor{keyword}{}\{}
+\DoxyCodeLine{    \textcolor{keyword}{const} sym = semaModel-\/>declaredSymbol(node);}
+\DoxyCodeLine{    \textcolor{keywordflow}{if} (sym-\/>kind() == SymbolKind::Function) \{}
+\DoxyCodeLine{        \textcolor{keyword}{const} FunctionSymbol* funSym = sym-\/>asFunction();}
+\DoxyCodeLine{        \textcolor{comment}{// ...}}
+\DoxyCodeLine{    \}}
+\DoxyCodeLine{    \textcolor{keywordflow}{return} Action::Skip;}
+\DoxyCodeLine{\}}
+\end{DoxyCode}
+\hypertarget{md_README_autotoc_md2}{}\doxysubsection{The $<$em$>$cnippet$<$/em$>$ Driver}\label{md_README_autotoc_md2}
+Psyche-\/C comes with the {\itshape cnippet} driver so that it can also be used as an ordinary C parser.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void} f()}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    int ;}
+\DoxyCodeLine{\}}
+\end{DoxyCode}
+
+
+If you \char`\"{}compile\char`\"{} the snippet above with {\itshape cnippet}, you\textquotesingle{}ll see a diagnostic similar/equal to what you would see with G\+CC or Clang.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\string~ cnip test.c}
+\DoxyCodeLine{test.c:4:4 error: declaration does not declare anything}
+\DoxyCodeLine{int ;}
+\DoxyCodeLine{    \string^}
+\end{DoxyCode}
+
+
+N\+O\+TE\+: Semantic analysis isn\textquotesingle{}t yet complete.\hypertarget{md_README_autotoc_md3}{}\doxysubsection{Type Inference}\label{md_README_autotoc_md3}
+Psyche-\/C can infer the missing types of a code snippet (a.\+k.\+a. as an incomplete program or program fragment).
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keywordtype}{void} f()}
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    T v = 0;}
+\DoxyCodeLine{    v-\/>value = 42;}
+\DoxyCodeLine{    v-\/>next = v;}
+\DoxyCodeLine{\}}
+\end{DoxyCode}
+
+
+If you compile the snippet above with G\+CC or Clang, you\textquotesingle{}ll see a diagnostic such as \+\_\+\char`\"{}declaration for\+\_\+\`{}\+T\`{}\+\_\+is not available\char`\"{}\+\_\+. ~\newline
+ With {\itshape cnippet}, \char`\"{}compilation\char`\"{} succeeds, as the following definitions are (implicitly) synthesised.
+
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{\textcolor{keyword}{typedef} \textcolor{keyword}{struct }TYPE\_2\_\_ TYPE\_1\_\_;}
+\DoxyCodeLine{\textcolor{keyword}{struct }TYPE\_2\_\_ }
+\DoxyCodeLine{\{}
+\DoxyCodeLine{    \textcolor{keywordtype}{int} value;}
+\DoxyCodeLine{    \textcolor{keyword}{struct }TYPE\_2\_\_* next;}
+\DoxyCodeLine{\} ;}
+\DoxyCodeLine{\textcolor{keyword}{typedef} TYPE\_1\_\_* T;}
+\end{DoxyCode}
+
+
+These are a few application of type inference for C\+:
+
+
+\begin{DoxyItemize}
+\item Enabling, on incomplete source-\/code, static analysis techniques that require fully-\/typed programs.
+\item Compiling partial code (e.\+g., a snippet retrieved from a bug tracker) for object-\/code inspection.
+\item Generating test-\/input data for a function in isolation (without its dependencies).
+\item Quick prototyping of an algorithm, without the need of explicit types.
+\end{DoxyItemize}
+
+N\+O\+TE\+: Type inference isn\textquotesingle{}t yet available on master, only in the \href{https://github.com/ltcmelo/psychec/tree/original}{\texttt{ original branch}}.\hypertarget{md_README_autotoc_md4}{}\doxysubsection{Documentation and Resources}\label{md_README_autotoc_md4}
+
+\begin{DoxyItemize}
+\item The Doxygen-\/generated \href{https://ltcmelo.github.io/psychec/api-docs/html/index.html}{\texttt{ A\+PI}}.
+\item A contributor\textquotesingle{}s \href{https://github.com/ltcmelo/psychec/wiki}{\texttt{ wiki}}.
+\item An \href{http://cuda.dcc.ufmg.br/psyche-c/}{\texttt{ online interface}} that offers a glimpse of Psyche-\/C\textquotesingle{}s type inference functionality.
+\item Articles/blogs\+:
+\begin{DoxyItemize}
+\item \href{https://ltcmelo.github.io/psychec/2021/03/03/c-ast-dump-psyche.html}{\texttt{ Dumping a C program’s A\+ST with Psyche-\/C}} ~\newline
+ (pt-\/\+BR) \href{https://www.embarcados.com.br/visualizando-a-ast-psyche-c/}{\texttt{ Visualizando a A\+ST de um programa C com o Psyche-\/C}}
+\item \href{https://www.codeproject.com/Articles/1238603/Programming-in-C-with-Type-Inference}{\texttt{ Programming in C with type inference}} ~\newline
+ (pt-\/\+BR) \href{https://www.embarcados.com.br/inferencia-de-tipos-em-c-usando-psychec/}{\texttt{ Programando em C com inferência de tipos usando PsycheC}}
+\end{DoxyItemize}
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md5}{}\doxysubsection{Building and Testing}\label{md_README_autotoc_md5}
+Except for type inference, which is written in Haskell, Psyche-\/C is written in C++17; {\itshape cnippet} is written in Python 3.
+
+To build\+: \begin{DoxyVerb}cmake CMakeLists.txt && make -j 4
+\end{DoxyVerb}
+
+
+To run the tests\+: \begin{DoxyVerb}./test-suite
+\end{DoxyVerb}
+\hypertarget{md_README_autotoc_md6}{}\doxysubsection{Related Publications}\label{md_README_autotoc_md6}
+
+\begin{DoxyItemize}
+\item \href{https://dl.acm.org/doi/10.1145/3421472}{\texttt{ Type Inference for C\+: Applications to the Static Analysis of Incomplete Programs}}~\newline
+ A\+CM Transactions on Programming Languages and Systems — {\bfseries{T\+O\+P\+L\+AS}}, Volume 42, Issue 3, Article No. 15, Dec. 2020.
+\item \href{https://dl.acm.org/doi/10.1145/3158117}{\texttt{ Inference of static semantics for incomplete C programs}}~\newline
+ Proceedings of the A\+CM on Programming Languages, Volume 2, Issue {\bfseries{P\+O\+PL}}, Jan. 2018, Article No. 29.
+\item \href{https://conf.researchr.org/info/cgo-2021/accepted-papers}{\texttt{ Angha\+Bench\+: a Suite with One Million Compilable C Benchmarks for Code-\/\+Size Reduction}}~\newline
+ Proceedings of the I\+E\+E\+E/\+A\+CM International Symposium on Code Generation and Optimization — {\bfseries{C\+GO}}, 2021.
+\item \href{https://dl.acm.org/citation.cfm?id=3314890}{\texttt{ Generation of in-\/bounds inputs for arrays in memory-\/unsafe languages}}~\newline
+ Proceedings of the I\+E\+E\+E/\+A\+CM International Symposium on Code Generation and Optimization — {\bfseries{C\+GO}}, Feb. 2019, p. 136-\/148.
+\item \href{https://dl.acm.org/citation.cfm?id=3243200}{\texttt{ Automatic annotation of tasks in structured code}}~\newline
+ Proceedings of the International Conference on Parallel Architectures and Compilation Techniques — {\bfseries{P\+A\+CT}}, Nov. 2018, Article No. 31. 
+\end{DoxyItemize}\hypertarget{md_README_autotoc_md7}{}\doxysubsection{Extra Note for Code\+C\+FG}\label{md_README_autotoc_md7}
+Development mannual for code\+C\+FG is in {\ttfamily psychec4code\+Cfg开发手册.\+md} 

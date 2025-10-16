@@ -1,0 +1,25 @@
+int k, ki;
+scanf("%d", &k);
+ki = k + 1;
+printf("%d\n", ki);
+@(ki % 2 == 0);
+int i = ki / 2, j = i + 1;
+@(i >= 1 && j <= ki);
+i--, j++;
+printf("%d %d ", i, j);
+
+int i = x - 1, j = x + 1;
+@(i >= 1 && j <= ki);
+i--, j++;
+printf("%d %d ", i, j);
+
+@(i >= 1 && j <= ki);
+i--, j++;
+printf("%d %d ", i, j);
+
+@(i >= 1 && j <= ki);
+i--, j++;
+printf("%d %d ", i, j);
+
+@(!(i >= 1 && j <= ki));
+return 0;

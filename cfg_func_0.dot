@@ -1,0 +1,32 @@
+digraph CFG_0 {
+  rankdir=LR;
+  node [fontname="Helvetica"];
+  0 [shape=box, label="0: void f(int flag1, int flag2)"];
+  1 [shape=box, label="1: int i;"];
+  2 [shape=box, label="2: int *a;"];
+  3 [shape=diamond, label="3: for(i=0;; i<3; i=i+1)"];
+  4 [shape=diamond, label="4: if(flag1)"];
+  5 [shape=box, label="5: ExpressionStatement"];
+  6 [shape=diamond, label="6: if(flag2)"];
+  7 [shape=box, label="7: a[i+2] = 0;"];
+  8 [shape=box, label="8: a[i] = 0;"];
+  9 [shape=box, label="9: ExpressionStatement"];
+  10 [shape=box, label="10: ExpressionStatement"];
+  11 [shape=box, label="11: a[i+1] = 0;"];
+  12 [shape=box, label="12: ExpressionStatement"];
+  0 -> 1 [label="next"];
+  1 -> 2 [label="next"];
+  2 -> 3 [label="next"];
+  3 -> 4 [label="next"];
+  3 -> 5 [style=dashed, label="false"];
+  4 -> 6 [label="next"];
+  4 -> 7 [style=dashed, label="false"];
+  6 -> 8 [label="next"];
+  6 -> 9 [style=dashed, label="false"];
+  7 -> 10 [label="next"];
+  8 -> 9 [label="next"];
+  9 -> 11 [label="next"];
+  10 -> 3 [label="next"];
+  11 -> 12 [label="next"];
+  12 -> 10 [label="next"];
+}

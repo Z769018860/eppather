@@ -1,0 +1,126 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3882754]
+equals!!!!!1!!!!
+equals!!!!!(n+1)!!!!
+equals!!!!!mod!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!(2*n+1)!!!!
+equals!!!!!mod!!!!
+equals!!!!!inv6!!!!
+equals!!!!!mod!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!j + 1!!!!
+equals!!!!!i!!!!
+equals!!!!!(n / i)!!!!
+equals!!!!!n / (n / i)!!!!
+equals!!!!!1!!!!
+equals!!!!!calc(i - 1)!!!!
+equals!!!!!mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!i!!!!
+equals!!!!!(n / i)!!!!
+equals!!!!!mod!!!!
+equals!!!!!(calc(j) - calc(i - 1) + mod) % mod * (n / i) % mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!(s1 + (calc(j) - calc(i - 1) + mod) % mod * (n / i) % mod) % mod!!!!
+equals!!!!!j!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!(j - i + 1)!!!!
+equals!!!!!mod!!!!
+equals!!!!!inv2!!!!
+equals!!!!!mod!!!!
+equals!!!!!i!!!!
+equals!!!!!(n / i)!!!!
+equals!!!!!mod!!!!
+equals!!!!!(i + j) * (j - i + 1) % mod * inv2 % mod * (n / i) % mod!!!!
+equals!!!!!mod!!!!
+equals!!!!!(s2 + (i + j) * (j - i + 1) % mod * inv2 % mod * (n / i) % mod) % mod!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!(n / i)!!!!
+equals!!!!!(j - i + 1) * (n / i)!!!!
+equals!!!!!mod!!!!
+equals!!!!!(s3 + (j - i + 1) * (n / i)) % mod!!!!
+equals!!!!!s1!!!!
+equals!!!!!s2!!!!
+equals!!!!!3 * s2!!!!
+equals!!!!!s3!!!!
+equals!!!!!5 * s3!!!!
+equals!!!!!mod!!!!
+DFS is ready to dump ~
+SIZE!!12
+Path:typedef long long ll;
+const ll mod = 998244353,inv2 = 499122177,inv6 = 166374059;
+ll n,s1,s2,s3;
+ll n;
+return n*(n+1)%mod*(2*n+1)%mod*inv6%mod;
+
+warning: a declaration with the name "n" already exists!
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!12
+Path:typedef long long ll;
+const ll mod = 998244353,inv2 = 499122177,inv6 = 166374059;
+ll n,s1,s2,s3;
+ll n;
+scanf("%lld", &n);
+ll i = 1, j;
+@(i <= n);
+i = j + 1;
+j = n / (n / i);
+s1 = (s1 + (calc(j) - calc(i - 1) + mod) % mod * (n / i) % mod) % mod;
+s2 = (s2 + (i + j) * (j - i + 1) % mod * inv2 % mod * (n / i) % mod) % mod;
+s3 = (s3 + (j - i + 1) * (n / i)) % mod;
+@(i <= n);
+i = j + 1;
+j = n / (n / i);
+s1 = (s1 + (calc(j) - calc(i - 1) + mod) % mod * (n / i) % mod) % mod;
+s2 = (s2 + (i + j) * (j - i + 1) % mod * inv2 % mod * (n / i) % mod) % mod;
+s3 = (s3 + (j - i + 1) * (n / i)) % mod;
+@(i <= n);
+i = j + 1;
+j = n / (n / i);
+s1 = (s1 + (calc(j) - calc(i - 1) + mod) % mod * (n / i) % mod) % mod;
+s2 = (s2 + (i + j) * (j - i + 1) % mod * inv2 % mod * (n / i) % mod) % mod;
+s3 = (s3 + (j - i + 1) * (n / i)) % mod;
+@(!(i <= n));
+printf("%lld", (2 * s1 + 3 * s2 + 5 * s3) % mod);
+return 0;
+
+warning: a declaration with the name "n" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: calc, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: ll, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3882717) exited normally]

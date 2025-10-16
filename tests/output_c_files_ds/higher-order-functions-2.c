@@ -1,0 +1,3 @@
+void funcToBePassed(void) {
+    return;
+}

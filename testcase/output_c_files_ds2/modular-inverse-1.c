@@ -1,0 +1,28 @@
+int mul_inv(int a, int b) {
+    int b0[5];
+    int t[5];
+    int q[5];
+    int x0[5];
+    int x1[5];
+    b0[0] = b;
+    x0[0] = 0;
+    x1[0] = 1;
+    if (b == 1) {
+        x1[0] = 1;
+        return x1[0];
+    }
+    for (; a > 1; ) {
+        q[0] = a / b;
+        t[0] = b;
+        b = a % b;
+        a = t[0];
+        t[0] = x0[0];
+        x0[0] = x1[0] - q[0] * x0[0];
+        x1[0] = t[0];
+    }
+    if (x1[0] < 0) {
+        x1[0] = x1[0] + b0[0];
+    }
+    return x1[0];
+    return;
+}

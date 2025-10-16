@@ -1,0 +1,17 @@
+; 
+(set-info :status unknown)
+(declare-fun i@0@0 () (_ BitVec 32))
+(declare-fun j@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let (($x11 (bvslt i@0@0 (_ bv2097152 32))))
+ (let (($x10 (bvsle (_ bv0 32) i@0@0)))
+ (and $x10 $x11))))
+(assert
+ (let ((?x31 (store %a (_ bv2097153 32) j@0@0)))
+ (let ((?x17 (store ?x31 (_ bv2097154 32) (_ bv1 32))))
+ (let ((?x32 (store ?x17 (_ bv2097152 32) i@0@0)))
+ (let ((?x23 (select ?x32 i@0@0)))
+ (and (distinct ?x23 (_ bv0 32)) true))))))
+(check-sat)
+

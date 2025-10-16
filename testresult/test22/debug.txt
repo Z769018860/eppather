@@ -1,0 +1,187 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3923881]
+equals!!!!!1!!!!
+equals!!!!!len!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!1!!!!
+equals!!!!!ar[i-1]!!!!
+equals!!!!!ar[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!i - 1!!!!
+equals!!!!!0!!!!
+equals!!!!!temp!!!!
+equals!!!!!ar[j] > temp!!!!
+equals!!!!!1!!!!
+equals!!!!!j+1!!!!
+equals!!!!!1!!!!
+equals!!!!!ar[j]!!!!
+equals!!!!!1!!!!
+equals!!!!!temp!!!!
+DFS is ready to dump ~
+SIZE!!14
+Path:int ar[5];
+int len;
+int temp = 0;
+int i = 0,j = 0;
+i = 1;
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(!(i < len));
+return;
+
+infeasible!!!
+[mem]:42
+[averagemem]:1
+Path:int ar[5];
+int len;
+int temp = 0;
+int i = 0,j = 0;
+i = 1;
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(i < len);
+i=i+1;
+@(!(ar[i] < ar[i-1]));
+
+return;
+
+infeasible!!!
+[mem]:30
+[averagemem]:0
+Path:int ar[5];
+int len;
+int temp = 0;
+int i = 0,j = 0;
+i = 1;
+@(i < len);
+i=i+1;
+@(ar[i] < ar[i-1]);
+temp = ar[i];
+j = i - 1;
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(j >= 0 && ar[j] > temp);
+j=j+1;
+ar[j + 1] = ar[j];
+@(!(j >= 0 && ar[j] > temp));
+ar[j + 1] = temp;
+
+@(i < len);
+i=i+1;
+@(!(ar[i] < ar[i-1]));
+
+return;
+
+infeasible!!!
+[mem]:16
+[averagemem]:0
+Path:int ar[5];
+int len;
+int temp = 0;
+int i = 0,j = 0;
+i = 1;
+@(i < len);
+i=i+1;
+@(!(ar[i] < ar[i-1]));
+
+return;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+modelL(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000))
+(define-fun len@0@0 () (_ BitVec 32)
+  #x00000002)
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 1 
+[Inferior 1 (process 3923851) exited normally]

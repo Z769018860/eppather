@@ -1,0 +1,6 @@
+int func() {
+    int poker[4] = {0x2665, 0x2666, 0x2663, 0x2660};
+    int four_two[3] = {0x56db, 0x5341, 0x4e8c};
+    int airplane = 0x2708;
+    return;
+}

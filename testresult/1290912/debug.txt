@@ -1,0 +1,220 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3883352]
+equals!!!!!11005!!!!
+equals!!!!!11005!!!!
+equals!!!!!sm!!!!
+equals!!!!!sm!!!!
+equals!!!!!id[y]!!!!
+equals!!!!!t!!!!
+equals!!!!!-1.0!!!!
+equals!!!!!sm!!!!
+equals!!!!!fac!!!!
+equals!!!!!sn!!!!
+equals!!!!!mat[i][y]!!!!
+equals!!!!!x!!!!
+equals!!!!!-1e-10!!!!
+equals!!!!!1e-10!!!!
+equals!!!!!fac < 1e-10!!!!
+equals!!!!!(fac > -1e-10 && fac < 1e-10)!!!!
+equals!!!!!sm!!!!
+equals!!!!!mat[x][j]!!!!
+equals!!!!!fac * mat[x][j]!!!!
+equals!!!!!sm!!!!
+equals!!!!!sn + sm!!!!
+equals!!!!!i!!!!
+equals!!!!!sn!!!!
+equals!!!!!rv!!!!
+equals!!!!!mat[i][0]!!!!
+equals!!!!!i!!!!
+equals!!!!!r = i!!!!
+equals!!!!!sm!!!!
+equals!!!!!cv!!!!
+equals!!!!!mat[r][i]!!!!
+equals!!!!!i!!!!
+equals!!!!!c = i!!!!
+equals!!!!!sm!!!!
+equals!!!!!cv!!!!
+equals!!!!!mat[0][i]!!!!
+equals!!!!!i!!!!
+equals!!!!!c = i!!!!
+equals!!!!!sn!!!!
+equals!!!!!mat[i][c]!!!!
+equals!!!!!rv!!!!
+equals!!!!!-1e-10!!!!
+equals!!!!!mat[i][c] < -1e-10!!!!
+equals!!!!!theta!!!!
+equals!!!!!i!!!!
+equals!!!!!r = i!!!!
+equals!!!!!1!!!!
+equals!!!!!sm!!!!
+equals!!!!!sn + sm!!!!
+equals!!!!!sm!!!!
+equals!!!!!mat[i - sm][0]!!!!
+equals!!!!!1!!!!
+equals!!!!!m + 1!!!!
+equals!!!!!m!!!!
+equals!!!!!n + m!!!!
+equals!!!!!m!!!!
+equals!!!!!1.0!!!!
+equals!!!!!-1.0!!!!
+equals!!!!!i!!!!
+equals!!!!!-1.0!!!!
+equals!!!!!i!!!!
+equals!!!!!w!!!!
+equals!!!!!1!!!!
+equals!!!!!1.0!!!!
+equals!!!!!1!!!!
+equals!!!!!-1.0!!!!
+equals!!!!!1!!!!
+equals!!!!!1.0!!!!
+DFS is ready to dump ~
+SIZE!!79
+Path:typedef int I;
+typedef char C;
+typedef double F;
+typedef long long L;
+I sn, sm;
+I id[11005 + 11005];
+F mat[11005][11005];
+F ans[11005 + 11005];
+int x;
+int y;
+F fac = -mat[x][y];
+I n, m, s, t;
+L ans = mat[0][0];
+({I t = id[x + sm]; id[x + sm] = id[y]; id[y] = t;});
+I t = id[x + sm];
+id[x + sm] = id[y];
+id[y] = t;
+mat[x][y] = -1.0;
+I i = 0;
+@(i <= sm);
+i++;
+mat[x][i] /= fac;
+@(i <= sm);
+i++;
+mat[x][i] /= fac;
+@(i <= sm);
+i++;
+mat[x][i] /= fac;
+@(!(i <= sm));
+I i = 0;
+@(i <= sn);
+i++;
+fac = mat[i][y];
+@(i == x || (fac > -1e-10 && fac < 1e-10));
+continue;
+
+I j = 0;
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(!(j <= sm));
+@(i <= sn);
+i++;
+fac = mat[i][y];
+@(i == x || (fac > -1e-10 && fac < 1e-10));
+continue;
+
+I j = 0;
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(!(j <= sm));
+@(i <= sn);
+i++;
+fac = mat[i][y];
+@(i == x || (fac > -1e-10 && fac < 1e-10));
+continue;
+
+I j = 0;
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(j <= sm);
+j++;
+mat[i][j] += fac * mat[x][j];
+@(!(j <= sm));
+@(!(i <= sn));
+I i = 1;
+@(i <= sn + sm);
+i++;
+id[i] = i;
+@(i <= sn + sm);
+i++;
+id[i] = i;
+@(i <= sn + sm);
+i++;
+id[i] = i;
+@(!(i <= sn + sm));
+@(1);
+I r = 0, c = 0;
+F rv = 0, cv = 0;
+I i = 1;
+@(i <= sn);
+i++;
+@(mat[i][0] < rv);
+rv = mat[i][0], r = i;
+
+@(i <= sn);
+i++;
+@(mat[i][0] < rv);
+rv = mat[i][0], r = i;
+
+@(i <= sn);
+i++;
+@(mat[i][0] < rv);
+rv = mat[i][0], r = i;
+
+@(!(i <= sn));
+@(!r);
+break;
+
+I i = 1;
+@(i <= sm);
+i++;
+@(mat[r][i] > cv);
+cv = mat[r][i], c = i;
+
+@(i <= sm);
+i++;
+@(mat[r][i] > cv);
+cv = mat[r][i], c = i;
+
+@(i <= sm);
+i++;
+@(mat[r][i] > cv);
+cv = mat[r][i], c = i;
+
+@(!(i <= sm));
+@(!c);
+return 0;
+
+warning: a declaration with the name "ans" already exists!
+line 14:1 no viable alternative at input '({'
+corrupted size vs. prev_size
+
+Program received signal SIGABRT, Aborted.
+__GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+50	../sysdeps/unix/sysv/linux/raise.c: No such file or directory.
+A debugging session is active.
+
+	Inferior 1 [process 3883337] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

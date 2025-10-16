@@ -1,0 +1,115 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3889082]
+equals!!!!!strlen(s)!!!!
+equals!!!!!strlen(t)!!!!
+equals!!!!!-1!!!!
+equals!!!!!tlen!!!!
+equals!!!!!-1!!!!
+equals!!!!!t[k]!!!!
+equals!!!!!t[j]==t[k]!!!!
+equals!!!!!++k!!!!
+equals!!!!!next[k]!!!!
+equals!!!!!0!!!!
+equals!!!!!slen!!!!
+equals!!!!!0!!!!
+equals!!!!!t[j]!!!!
+equals!!!!!s[i]!=t[j]!!!!
+equals!!!!!next[j]!!!!
+equals!!!!!-1!!!!
+equals!!!!!t[j]!!!!
+equals!!!!!s[i]==t[j]!!!!
+equals!!!!!tlen!!!!
+equals!!!!!next[j]!!!!
+DFS is ready to dump ~
+SIZE!!26
+Path:char s[1000010],t[1000010];
+int next[1000010];
+int slen,tlen;
+int j=0,k=-1;
+int ans=0,i,j=0;
+slen=strlen(s);
+tlen=strlen(t);
+next[0]=-1;
+@(j<tlen);
+@(k==-1||t[j]==t[k]);
+next[++j]=++k;
+
+@(j<tlen);
+@(k==-1||t[j]==t[k]);
+next[++j]=++k;
+
+@(j<tlen);
+@(k==-1||t[j]==t[k]);
+next[++j]=++k;
+
+@(!(j<tlen));
+
+getnext();
+i=0;
+@(i<slen);
+i++;
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(!(j>=0&&s[i]!=t[j]));
+
+@(j==-1||s[i]==t[j]);
+j++;
+
+@(j==tlen);
+ans++;
+j=next[j];
+
+@(i<slen);
+i++;
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(!(j>=0&&s[i]!=t[j]));
+
+@(j==-1||s[i]==t[j]);
+j++;
+
+@(j==tlen);
+ans++;
+j=next[j];
+
+@(i<slen);
+i++;
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(j>=0&&s[i]!=t[j]);
+j=next[j];
+@(!(j>=0&&s[i]!=t[j]));
+
+@(j==-1||s[i]==t[j]);
+j++;
+
+@(j==tlen);
+ans++;
+j=next[j];
+
+@(!(i<slen));
+return ans;
+
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: getnext, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a594 in z3::context::operator _Z3_context*() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3889070] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

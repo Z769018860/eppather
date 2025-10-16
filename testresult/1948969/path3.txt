@@ -1,0 +1,26 @@
+long long x;
+long long a;
+long long p;
+long long ans=1;
+int x, n;
+int ai;
+int p = 998244352;
+@(a > 0);
+@(a % 2 == 1);
+ans = ans * x % p;
+
+x = x * x % p;
+a = a / 2;
+@(a > 0);
+@(!(a % 2 == 1));
+
+x = x * x % p;
+a = a / 2;
+@(a > 0);
+@(!(a % 2 == 1));
+
+x = x * x % p;
+a = a / 2;
+@(!(a > 0));
+
+return ans;

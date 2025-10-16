@@ -1,0 +1,74 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3917862]
+equals!!!!!_obuf!!!!
+equals!!!!!10000!!!!
+equals!!!!!_ibuf + 10000!!!!
+equals!!!!!_ibuf!!!!
+equals!!!!!10000!!!!
+equals!!!!!_obuf + 10000!!!!
+equals!!!!!_obuf!!!!
+equals!!!!!ch!!!!
+equals!!!!!'-'!!!!
+equals!!!!!-1!!!!
+equals!!!!!getC()!!!!
+equals!!!!!10!!!!
+equals!!!!!ch!!!!
+equals!!!!!'0'!!!!
+equals!!!!!num * 10 + ch - '0'!!!!
+equals!!!!!getC()!!!!
+equals!!!!!fac!!!!
+equals!!!!!0!!!!
+equals!!!!!-num!!!!
+equals!!!!!10!!!!
+equals!!!!!'0'!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!'0'!!!!
+equals!!!!!getC()!!!!
+equals!!!!!ch!!!!
+equals!!!!!getC()!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!5!!!!
+equals!!!!!getI()!!!!
+equals!!!!!n!!!!
+equals!!!!!getI()!!!!
+equals!!!!!5!!!!
+equals!!!!!s!!!!
+equals!!!!!size!!!!
+equals!!!!!-(i)!!!!
+equals!!!!!((i) & -(i))!!!!
+equals!!!!!size!!!!
+equals!!!!!-(i)!!!!
+equals!!!!!((i) & -(i))!!!!
+equals!!!!!val!!!!
+equals!!!!!-(i)!!!!
+equals!!!!!((i) & -(i))!!!!
+equals!!!!!bit[i]!!!!
+equals!!!!!5!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!998244353!!!!
+equals!!!!!fac[i - 1] * i % 998244353!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!fac[n - i]!!!!
+equals!!!!!get_bit(ai[i] - 1) * fac[n - i]!!!!
+equals!!!!!998244353!!!!
+CATALOG
+TranslationUnit
+	Types: FILE I C 
+	Any: solve ret get_bit val add_bit s bit i main end_IO input stdin readS _os init_IO pos _is fread _i F size putS C I _obuf fwrite _o putI stdout ans ai getC isgraph num memset init_bit fac putC ch getI isdigit _ibuf n str 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3917850] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

@@ -1,0 +1,55 @@
+long long tree[10000005];
+long long mark[10000005];
+long long a[1000001];
+long long n, q;
+long long l;
+long long r;
+long long p;
+long long l;
+long long r;
+long long d;
+long long p;
+long long cl;
+long long cr;
+long long l;
+long long r;
+long long p;
+long long cl;
+long long cr;
+int t;
+int fl;
+int I, v, J;
+scanf("%lld %lld", &n, &q);
+int i = 1;
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(i <= n);
+i++;
+scanf("%lld", a + i);
+@(!(i <= n));
+bulid(1, n, 1);
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(q--);
+scanf("%d", &fl);
+@(fl == 1);
+scanf("%d %d %d", &I, &J, &v);
+updown(I, J, v, 1, 1, n);
+
+@(!(q--));
+
+return 0;

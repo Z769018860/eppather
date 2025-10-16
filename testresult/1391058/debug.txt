@@ -1,0 +1,266 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3905679]
+equals!!!!!-x!!!!
+equals!!!!!n!!!!
+equals!!!!!k!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!c[i]!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!1!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!q!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!sum(c, x - 1)!!!!
+DFS is ready to dump ~
+SIZE!!32
+Path:int x;
+long *c;
+int n;
+int i;
+long k;
+long *c;
+int i;
+long result = 0;
+void;
+int n, q;
+long *c;
+int op;
+long x, y;
+int i;
+return x & -x;
+
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int x;
+long *c;
+int n;
+int i;
+long k;
+long *c;
+int i;
+long result = 0;
+void;
+int n, q;
+long *c;
+int op;
+long x, y;
+int i;
+@(i <= n);
+c[i] += k;
+i += lowbit(i);
+@(i <= n);
+c[i] += k;
+i += lowbit(i);
+@(i <= n);
+c[i] += k;
+i += lowbit(i);
+@(!(i <= n));
+
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(!(i));
+
+return result;
+
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x20000000)
+(define-fun c@0@0 () (_ BitVec 32)
+  #xddfffcf2)
+(define-fun i@0@0 () (_ BitVec 32)
+  #x04420000)
+(define-fun k@0@0 () (_ BitVec 32)
+  #x88000040)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (let ((a!1 (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32)))
+                                  #xc29980fc)
+                                #x20997dfa
+                                #x40000000)
+                         #xe241fcf2
+                         #x7c000000)
+                  #xe641fd32
+                  #x000008f8)))
+  (store (store a!1 #xe0997dfa #xe0000006) #x6e42066a #x2a577750)))
+(define-fun x@0@0 () (_ BitVec 32)
+  #xc29980fc)
+[MATRIX]:
+0 0 1 1 1 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 1 1 1 1 0 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int x;
+long *c;
+int n;
+int i;
+long k;
+long *c;
+int i;
+long result = 0;
+void;
+int n, q;
+long *c;
+int op;
+long x, y;
+int i;
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(i);
+result += c[i];
+i -= lowbit(i);
+@(!(i));
+
+return result;
+
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL(define-fun c@0@0 () (_ BitVec 32)
+  #xaaaaaaac)
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun i@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #xaaaaaaab)
+       #x55555557
+       #x00000000))
+(define-fun x@0@0 () (_ BitVec 32)
+  #xaaaaaaab)
+[MATRIX]:
+0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:int x;
+long *c;
+int n;
+int i;
+long k;
+long *c;
+int i;
+long result = 0;
+void;
+int n, q;
+long *c;
+int op;
+long x, y;
+int i;
+scanf("%d %d", &n, &q);
+c = (long *)calloc(n + 1, sizeof(long));
+i = 1;
+@(i <= n);
+i++;
+scanf("%ld", &x);
+add(c, n, i, x);
+@(i <= n);
+i++;
+scanf("%ld", &x);
+add(c, n, i, x);
+@(i <= n);
+i++;
+scanf("%ld", &x);
+add(c, n, i, x);
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%d %ld %ld", &op, &x, &y);
+@(op == 1);
+add(c, n, x, y);
+
+@(i <= q);
+i++;
+scanf("%d %ld %ld", &op, &x, &y);
+@(op == 1);
+add(c, n, x, y);
+
+@(i <= q);
+i++;
+scanf("%d %ld %ld", &op, &x, &y);
+@(op == 1);
+add(c, n, x, y);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: calloc, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: add, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a594 in z3::context::operator _Z3_context*() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3905621] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

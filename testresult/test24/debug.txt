@@ -1,0 +1,57 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3923818]
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!n!!!!
+DFS is ready to dump ~
+SIZE!!10
+Path:int arr[5];
+int len;
+int n;
+int i;
+@(i<n);
+i=i+1;
+@(arr[i]==n);
+return i;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x10000000)
+(define-fun i@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x10000000))
+(define-fun len@0@0 () (_ BitVec 32)
+  #x10000000)
+Path:int arr[5];
+int len;
+int n;
+int i;
+@(i<n);
+i=i+1;
+@(!(arr[i]==n));
+
+return -1;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun i@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+(define-fun len@0@0 () (_ BitVec 32)
+  #x00000000)
+[MATRIX]:
+1 1 1 1 1 1 0 1 1 0 
+1 1 1 1 1 1 0 1 0 1 
+[matrix_before]:
+1 1 1 1 1 1 0 1 1 0 
+1 1 1 1 1 1 0 1 0 1 
+[Inferior 1 (process 3923785) exited normally]

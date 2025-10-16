@@ -1,0 +1,5 @@
+void insert_append(int anchor[2], int newlink[2]) {
+    newlink[1] = anchor[1];
+    anchor[1] = newlink[0];
+    return;
+}

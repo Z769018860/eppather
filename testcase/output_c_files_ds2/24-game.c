@@ -1,0 +1,51 @@
+int eval_tree(int e_op, int e_val, int e_left, int e_right, int res_num, int res_denom) {
+    int l_num[5];
+    int l_denom[5];
+    int r_num[5];
+    int r_denom[5];
+    int t[5];
+    int m[5];
+    int n[5];
+    
+    if (e_op == 1) {
+        res_num = e_val;
+        res_denom = 1;
+        return;
+    }
+
+    eval_tree(e_left, 0, 0, 0, l_num[0], l_denom[0]);
+    eval_tree(e_right, 0, 0, 0, r_num[0], r_denom[0]);
+
+    if (e_op == 2) {
+        res_num = l_num[0] * r_denom[0] + l_denom[0] * r_num[0];
+        res_denom = l_denom[0] * r_denom[0];
+    } else {
+        if (e_op == 3) {
+            res_num = l_num[0] * r_denom[0] - l_denom[0] * r_num[0];
+            res_denom = l_denom[0] * r_denom[0];
+        } else {
+            if (e_op == 4) {
+                res_num = l_num[0] * r_num[0];
+                res_denom = l_denom[0] * r_denom[0];
+            } else {
+                if (e_op == 5) {
+                    res_num = l_num[0] * r_denom[0];
+                    res_denom = l_denom[0] * r_num[0];
+                }
+            }
+        }
+    }
+    
+    m[0] = res_denom;
+    n[0] = res_num;
+    for (t[0] = 0; m[0] != 0; t[0] = t[0] + 1) {
+        t[0] = m[0];
+        m[0] = n[0] % m[0];
+        n[0] = t[0];
+    }
+    if (t[0] != 0) {
+        res_denom = res_denom / t[0];
+        res_num = res_num / t[0];
+    }
+    return;
+}

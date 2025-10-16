@@ -1,0 +1,183 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909613]
+equals!!!!!20!!!!
+equals!!!!!250000!!!!
+equals!!!!!250000!!!!
+equals!!!!!(Network) { 0, 0, 0, 0x3f3f3f3f }!!!!
+equals!!!!!(Network) { x, 0, 0, -0x3f3f3f3f }!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!fa[x] = 0!!!!
+equals!!!!!ncnt!!!!
+equals!!!!!fe[x] = ncnt!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!-v!!!!
+equals!!!!!!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!-net_pool[fe[x] | 1].cap!!!!
+equals!!!!!1!!!!
+equals!!!!!fe[x] ^= 1!!!!
+equals!!!!!1!!!!
+equals!!!!!net_pool[fe[x] ^ 1].to!!!!
+equals!!!!!1!!!!
+equals!!!!!t!!!!
+equals!!!!!addSupply(v, b)!!!!
+equals!!!!!b!!!!
+equals!!!!!(Network) { v, f - b, 0, c }!!!!
+equals!!!!!(Network) { u, 0, b, -c }!!!!
+equals!!!!!1!!!!
+equals!!!!!e!!!!
+equals!!!!!fe[u]!!!!
+equals!!!!!e!!!!
+equals!!!!!mk[u] = e!!!!
+equals!!!!!fa[u]!!!!
+equals!!!!!u = fa[u]!!!!
+equals!!!!!e!!!!
+equals!!!!!1!!!!
+equals!!!!!fe[v] ^ 1!!!!
+equals!!!!!e!!!!
+equals!!!!!mk[v] = e!!!!
+equals!!!!!fa[v]!!!!
+equals!!!!!v = fa[v]!!!!
+equals!!!!!fe[v]!!!!
+equals!!!!!f!!!!
+equals!!!!!i!!!!
+equals!!!!!net_pool[buf[i]].cap!!!!
+equals!!!!!f = net_pool[buf[i]].cap!!!!
+equals!!!!!fe[v]!!!!
+equals!!!!!f!!!!
+equals!!!!!1!!!!
+equals!!!!!f!!!!
+equals!!!!!net_pool[buf[i] ^ 1].cap += f!!!!
+equals!!!!!0!!!!
+equals!!!!!(e2 < 0)!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!(e2 < 0)!!!!
+equals!!!!!(buf[e2] ^ (e2 < 0))!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!mk[z] = 1!!!!
+equals!!!!!fe[z]!!!!
+equals!!!!!t!!!!
+equals!!!!!fa[z]!!!!
+equals!!!!!t!!!!
+equals!!!!!z!!!!
+equals!!!!!t!!!!
+equals!!!!!ti!!!!
+equals!!!!!x!!!!
+equals!!!!!ti!!!!
+equals!!!!!fa[x]!!!!
+equals!!!!!x = fa[x]!!!!
+equals!!!!!buf[top]!!!!
+equals!!!!!net_pool[fe[x]].cost!!!!
+equals!!!!!pi[fa[x]] + net_pool[fe[x]].cost!!!!
+equals!!!!!pi[x] = pi[fa[x]] + net_pool[fe[x]].cost!!!!
+equals!!!!!ncnt!!!!
+equals!!!!!-1!!!!
+equals!!!!!fa[0] = -1!!!!
+equals!!!!!ti!!!!
+equals!!!!!ncnt!!!!
+equals!!!!!1!!!!
+equals!!!!!i + 1!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!phi(net_pool[i ^ 1].to)!!!!
+equals!!!!!phi(net_pool[i].to) - phi(net_pool[i ^ 1].to)!!!!
+equals!!!!!net_pool[i].cost < phi(net_pool[i].to) - phi(net_pool[i ^ 1].to)!!!!
+equals!!!!!i!!!!
+equals!!!!!m!!!!
+equals!!!!!ncnt!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!net_pool[i].cap!!!!
+equals!!!!!ncnt!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!net_pool[i ^ 1].to!!!!
+equals!!!!!net_pool[i].base!!!!
+DFS is ready to dump ~
+SIZE!!80
+Path:typedef int I;
+typedef char C;
+typedef long long L;
+typedef struct
+{
+I to;
+I cap;
+I base;
+L cost;
+}
+Network;
+Network net_pool[250000 * 20];
+I ncnt = 1;
+I fa[250000], fe[250000], mk[250000], _buf[2 * 250000];
+L pi[250000];
+I ti, *buf = _buf + 250000;
+I x;
+I v;
+I u;
+I v;
+I f;
+I b;
+L c;
+I e;
+I u = net_pool[e ^ 1].to, v = net_pool[e].to, l = 0, r = 0;
+I e2 = l, f = net_pool[buf[l]].cap;
+I x = e ^ (e2 < 0), y = net_pool[x].to, z = net_pool[x ^ 1].to;
+I x;
+I top = 0;
+void;
+void;
+I n, m;
+@(!mk[x]);
+net_pool[++ncnt] = (Network) { 0, 0, 0, 0x3f3f3f3f };
+net_pool[++ncnt] = (Network) { x, 0, 0, -0x3f3f3f3f };
+mk[x] = 1, fa[x] = 0, fe[x] = ncnt;
+
+@((net_pool[fe[x] | 1].cap += fe[x] & 1 ? v : -v) < 0);
+net_pool[fe[x] | 1].cap = -net_pool[fe[x] | 1].cap, fe[x] ^= 1;
+I t = net_pool[fe[x]].to;
+net_pool[fe[x]].to = net_pool[fe[x] ^ 1].to;
+net_pool[fe[x] ^ 1].to = t;
+;
+
+addSupply(u, -b), addSupply(v, b);
+net_pool[++ncnt] = (Network) { v, f - b, 0, c };
+net_pool[++ncnt] = (Network) { u, 0, b, -c };
+
+warning: a declaration with the name "v" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "v" already exists!
+warning: a declaration with the name "f" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: Network, assuming it is a function.
+line 34:29 missing ';' at '{'
+line 34:41 missing ';' at 'x3f3f3f3f'
+find an undefined symbol: Network, assuming it is a function.
+line 35:29 missing ';' at '{'
+line 35:42 missing ';' at 'x3f3f3f3f'
+find an undefined symbol: addSupply, assuming it is a function.
+find an undefined symbol: addSupply, assuming it is a function.
+find an undefined symbol: Network, assuming it is a function.
+line 46:29 missing ';' at '{'
+line 46:46 extraneous input '}' expecting ';'
+find an undefined symbol: Network, assuming it is a function.
+line 47:29 missing ';' at '{'
+line 47:43 extraneous input '}' expecting ';'
+line 48:0 mismatched input '<EOF>' expecting '}'
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a8b65 in std::default_delete<epat::CompoundStmt>::operator()(epat::CompoundStmt*) const ()
+A debugging session is active.
+
+	Inferior 1 [process 3909584] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

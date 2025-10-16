@@ -1,0 +1,1 @@
+T,n,a,b,i;char s[1000000];main(){for(scanf("%d",&T);T--;printf("%d %d\n",a,b&&(*s&8))){for(scanf("%s",s),n=strlen(s),a=b=0;i<n;++i)s[i]&8?a=b=1:0;for(;--i;)s[i]&s[i-1]&8?a=b=0:0;}}

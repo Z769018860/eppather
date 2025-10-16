@@ -1,0 +1,1 @@
+int f[1<<22],i=2;main(n,p){scanf("%d%d",&n,&p);for(f[1]=1,puts("1");i<=n;i++)printf("%d\n",f[i]=1ll*(p-p/i)*f[p%i]%p);}

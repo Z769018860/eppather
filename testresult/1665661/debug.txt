@@ -1,0 +1,142 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3896406]
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i]!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!s[i - 1] * a[i] % 1000000007!!!!
+equals!!!!!2!!!!
+equals!!!!!quickpow(s[n], 1000000007 - 2,1000000007)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!a[i+1]!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!sv[i+1] * a[i+1] % 1000000007!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!s[i - 1]!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!sv[i] * s[i - 1] % 1000000007!!!!
+equals!!!!!n!!!!
+equals!!!!!998244353!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!inv[i]!!!!
+equals!!!!!1000000007!!!!
+equals!!!!!(c*998244353%1000000007 +inv[i])%1000000007!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!mod!!!!
+equals!!!!!2!!!!
+equals!!!!!tmp!!!!
+equals!!!!!mod!!!!
+equals!!!!!tmp * tmp % mod!!!!
+equals!!!!!2!!!!
+equals!!!!!0!!!!
+equals!!!!!x!!!!
+equals!!!!!mod!!!!
+DFS is ready to dump ~
+SIZE!!34
+Path:long long int quickpow(long long int x, long long int b, long long int mod);
+long long int inv[5000001],sv[5000001],a[5000001],s[5000001];
+int n,t;
+long long int c=0;
+long long int x;
+long long int b;
+long long int mod;
+long long int tmp = quickpow(x, b / 2, mod);
+scanf("%d",&n);
+t=n;
+int i = 1;
+@(i <= n);
+++i;
+scanf("%lld",&a[i]);
+@(i <= n);
+++i;
+scanf("%lld",&a[i]);
+@(i <= n);
+++i;
+scanf("%lld",&a[i]);
+@(!(i <= n));
+s[0] = 1;
+int i = 1;
+@(i <= n);
+++i;
+s[i] = s[i - 1] * a[i] % 1000000007;
+@(i <= n);
+++i;
+s[i] = s[i - 1] * a[i] % 1000000007;
+@(i <= n);
+++i;
+s[i] = s[i - 1] * a[i] % 1000000007;
+@(!(i <= n));
+sv[n] = quickpow(s[n], 1000000007 - 2,1000000007);
+int i = n-1;
+@(i >= 1);
+--i;
+sv[i ] = sv[i+1] * a[i+1] % 1000000007;
+@(i >= 1);
+--i;
+sv[i ] = sv[i+1] * a[i+1] % 1000000007;
+@(i >= 1);
+--i;
+sv[i ] = sv[i+1] * a[i+1] % 1000000007;
+@(!(i >= 1));
+int i = 1;
+@(i <= n);
+++i;
+inv[i] = sv[i] * s[i - 1] % 1000000007;
+@(i <= n);
+++i;
+inv[i] = sv[i] * s[i - 1] % 1000000007;
+@(i <= n);
+++i;
+inv[i] = sv[i] * s[i - 1] % 1000000007;
+@(!(i <= n));
+int i=1;
+@(i<=n);
+i++;
+c=(c*998244353%1000000007 +inv[i])%1000000007;
+@(i<=n);
+i++;
+c=(c*998244353%1000000007 +inv[i])%1000000007;
+@(i<=n);
+i++;
+c=(c*998244353%1000000007 +inv[i])%1000000007;
+@(!(i<=n));
+printf("%lld\n",c);
+return 0;
+
+find an undefined symbol: quickpow, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: quickpow, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:36
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3896397] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

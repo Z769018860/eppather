@@ -1,0 +1,62 @@
+int n;
+int *a;
+int cur, j, low_ind, temp;
+cur = 0;
+@(cur < n-1);
+cur=cur+1;
+low_ind = cur;
+j = cur + 1;
+@(j < n);
+j=j+1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+@(j < n);
+j=j+1;
+@(!(a[j] < a[low_ind]));
+
+@(j < n);
+j=j+1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+@(!(j < n));
+@(cur < n-1);
+cur=cur+1;
+low_ind = cur;
+j = cur + 1;
+@(j < n);
+j=j+1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+@(j < n);
+j=j+1;
+@(!(a[j] < a[low_ind]));
+
+@(j < n);
+j=j+1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+@(!(j < n));
+@(cur < n-1);
+cur=cur+1;
+low_ind = cur;
+j = cur + 1;
+@(j < n);
+j=j+1;
+@(!(a[j] < a[low_ind]));
+
+@(j < n);
+j=j+1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+@(j < n);
+j=j+1;
+@(!(a[j] < a[low_ind]));
+
+@(!(j < n));
+@(!(cur < n-1));
+return;

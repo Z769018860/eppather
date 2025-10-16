@@ -1,0 +1,85 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3890882]
+equals!!!!!21!!!!
+equals!!!!!'a'!!!!
+equals!!!!!'a'!!!!
+equals!!!!!s[1] == 'a'!!!!
+equals!!!!!1!!!!
+equals!!!!!x!!!!
+equals!!!!!z = x!!!!
+equals!!!!!s[z]!!!!
+equals!!!!!s[y] >= s[z]!!!!
+equals!!!!!s[z]!!!!
+equals!!!!!x!!!!
+equals!!!!!++z!!!!
+equals!!!!!z!!!!
+equals!!!!!z!!!!
+equals!!!!!y - z!!!!
+776425.c:2:17 warning: missing type specifier, assume `int'
+char s[1 << 21];
+                 ^
+
+DFS is ready to dump ~
+SIZE!!14
+Path:char s[1 << 21];
+int x = 0, y, z;
+scanf("%s", s);
+@(s[0] == 'a' && s[1] == 'a');
+int i = 0;
+@(s[i]);
+++ i;
+printf("%d ", i + 1);
+@(s[i]);
+++ i;
+printf("%d ", i + 1);
+@(s[i]);
+++ i;
+printf("%d ", i + 1);
+@(!(s[i]));
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:6
+[averagemem]:0
+Path:char s[1 << 21];
+int x = 0, y, z;
+scanf("%s", s);
+@(!(s[0] == 'a' && s[1] == 'a'));
+
+@(s[x]);
+y = z = x;
+@(s[++y] && s[y] >= s[z]);
+;
+@(s[++y] && s[y] >= s[z]);
+;
+@(s[++y] && s[y] >= s[z]);
+;
+@(!(s[++y] && s[y] >= s[z]));
+
+@(x <= z);
+printf("%d ", x += y - z);
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:15
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3890855) exited normally]

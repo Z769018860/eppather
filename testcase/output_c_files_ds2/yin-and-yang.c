@@ -1,0 +1,9 @@
+void draw_yinyang(int trans, int scale) {
+    int x[5];
+    int y[5];
+    int s[5];
+    x[0] = trans;
+    y[0] = trans;
+    s[0] = scale;
+    return;
+}

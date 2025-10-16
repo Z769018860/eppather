@@ -1,0 +1,106 @@
+char s[1048577];
+int ans[1048577];
+int *dest;
+const char *src;
+struct duval_triple pos = { 0, 0, 1 };
+char *s_top = s + fread(s, 1, 1048577, stdin);
+int *ans_top = duval(ans, s);
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(!(src[pos.index]));
+
+return dest;

@@ -1,0 +1,36 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3911211]
+equals!!!!!t!!!!
+1928484.c:2:9 warning: missing type specifier, assume `int'
+long a,t;main(){for(;~scanf("%ld",&t);a^=t);printf("%ld",a);}
+         ^
+
+DFS is ready to dump ~
+SIZE!!5
+Path:long a,t;
+@(~scanf("%ld",&t));
+a^=t;
+;
+@(~scanf("%ld",&t));
+a^=t;
+;
+@(~scanf("%ld",&t));
+a^=t;
+;
+@(!(~scanf("%ld",&t)));
+printf("%ld",a);
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3911176] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

@@ -1,0 +1,104 @@
+int malicious_x;
+int array1_size = 16;
+int array1[160] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16};
+int array2[256 * 512] = {0};
+int temp = 0;
+int results[256];
+int value[2];
+int score[2];
+int tries, i, j, k;
+int training_x, x;
+int mix_i;
+i = 0;
+@(i < 256);
+i = i + 1;
+results[i] = 0;
+@(i < 256);
+i = i + 1;
+results[i] = 0;
+@(!(i < 256));
+tries = 999;
+@(tries > 0);
+tries = tries - 1;
+training_x = tries % array1_size;
+j = 29;
+@(j >= 0);
+j = j - 1;
+x = ((j % 6) - 1) & ~65535;
+x = (x | (x >> 16));
+x = training_x ^ (x & (malicious_x ^ training_x));
+@(x < array1_size);
+temp &= array2[array1[x] * 512];
+
+@(j >= 0);
+j = j - 1;
+x = ((j % 6) - 1) & ~65535;
+x = (x | (x >> 16));
+x = training_x ^ (x & (malicious_x ^ training_x));
+@(x < array1_size);
+temp &= array2[array1[x] * 512];
+
+@(!(j >= 0));
+i = 0;
+@(i < 256);
+i = i + 1;
+mix_i = ((i * 167) + 13) & 255;
+@(!(mix_i != array1[tries % array1_size]));
+
+j = k = -1;
+i = 0;
+@(i < 256);
+i = i + 1;
+@(j < 0 || results[i] >= results[j]);
+k = j;
+j = i;
+
+@(i < 256);
+i = i + 1;
+@(j < 0 || results[i] >= results[j]);
+k = j;
+j = i;
+
+@(!(i < 256));
+@(results[j] >= (2 * results[k] + 5) || (results[j] == 2 && results[k] == 0));
+break;
+
+@(tries > 0);
+tries = tries - 1;
+training_x = tries % array1_size;
+j = 29;
+@(j >= 0);
+j = j - 1;
+x = ((j % 6) - 1) & ~65535;
+x = (x | (x >> 16));
+x = training_x ^ (x & (malicious_x ^ training_x));
+@(!(x < array1_size));
+
+@(i < 256);
+i = i + 1;
+mix_i = ((i * 167) + 13) & 255;
+@(!(mix_i != array1[tries % array1_size]));
+
+j = k = -1;
+i = 0;
+@(i < 256);
+i = i + 1;
+@(!(j < 0 || results[i] >= results[j]));
+
+@(k < 0 || results[i] >= results[k]);
+k = i;
+
+
+@(i < 256);
+i = i + 1;
+@(j < 0 || results[i] >= results[j]);
+k = j;
+j = i;
+
+@(!(i < 256));
+@(!(results[j] >= (2 * results[k] + 5) || (results[j] == 2 && results[k] == 0)));
+
+value[0] = j;
+score[0] = results[j];
+value[1] = k;
+score[1] = results[k];

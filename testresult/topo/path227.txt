@@ -1,0 +1,81 @@
+int graph[100][100];
+int n;
+int inDegree[100] = {0};
+int stack[100], top = -1;
+int i,j,node;
+i = 0;
+@(i < n);
+i = i + 1;
+j = 0;
+@(j < n);
+j = j + 1;
+@(!(graph[j][i]));
+
+
+;
+@(j < n);
+j = j + 1;
+@(graph[j][i]);
+inDegree[i] = inDegree[i] + 1;
+
+;
+@(!(j < n));
+;
+@(i < n);
+i = i + 1;
+j = 0;
+@(j < n);
+j = j + 1;
+@(graph[j][i]);
+inDegree[i] = inDegree[i] + 1;
+
+;
+@(j < n);
+j = j + 1;
+@(graph[j][i]);
+inDegree[i] = inDegree[i] + 1;
+
+;
+@(!(j < n));
+;
+@(!(i < n));
+i = 0;
+@(i < n);
+i = i + 1;
+@(!(inDegree[i] == 0));
+
+
+;
+@(i < n);
+i = i + 1;
+@(inDegree[i] == 0);
+top = top + 1;
+stack[top] = i;
+
+;
+@(!(i < n));
+@(top != -1);
+node = stack[top];
+top = top - 1;
+i = 0;
+@(i < n);
+i = i + 1;
+@(graph[node][i]);
+inDegree[i] = inDegree[i] - 1;
+@(!(inDegree[i] == 0));
+
+
+;
+
+;
+@(i < n);
+i = i + 1;
+@(!(graph[node][i]));
+
+
+;
+@(!(i < n));
+;
+@(!(top != -1));
+
+return;

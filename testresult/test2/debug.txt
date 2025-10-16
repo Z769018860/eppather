@@ -1,0 +1,472 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3918475]
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!p2 >= 0!!!!
+equals!!!!!nums2[p2]!!!!
+equals!!!!!nums1[p1]!!!!
+equals!!!!!1!!!!
+equals!!!!!p1-1!!!!
+equals!!!!!nums2[p2]!!!!
+equals!!!!!1!!!!
+equals!!!!!p2-1!!!!
+equals!!!!!1!!!!
+equals!!!!!p-1!!!!
+equals!!!!!0!!!!
+equals!!!!!nums2[p2]!!!!
+equals!!!!!1!!!!
+equals!!!!!p2-1!!!!
+equals!!!!!1!!!!
+equals!!!!!p-1!!!!
+DFS is ready to dump ~
+SIZE!!15
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x5ffffffe)
+              #xfffffffe
+              #x40000003)
+       #x40000003
+       #x60000000))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #xfffffffd)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xffffffff)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x5ffffdfb)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xa000020a)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x40018510)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+                     #xa000020c
+                     #xa0018309)
+              #x00000004
+              #x80000001)
+       #xa000020d
+       #xa001830b))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #x5ffe7cfe)
+(define-fun nums2Size@0@0 () (_ BitVec 32)
+  #x80000000)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x44ffbe8e)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x08000002)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000)
+                     #x1e49fd4e
+                     #x4cffbe8e)
+              #xbb00417a
+              #x4cffbe90)
+       #x1e49fd4d
+       #x8821825b))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #xb3004179)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xd94a3ec1)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x1000879b)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x23ff7028)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+                     #x00000010
+                     #x8c000844)
+              #x00000011
+              #x33fff7c1)
+       #xefff786d
+       #x33fff7c3))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #xcc000846)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xefff7877)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x7f3ff004)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x007ff000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x7fc00000)
+                     #x80c01004
+                     #x00000000)
+              #x80c01005
+              #x7fbfe001)
+       #x7f3bf001
+       #x80000010))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #x80402006)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xfffbffff)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x02a80001)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x7d67fffe)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (let ((a!1 (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32)))
+                                  #x7fe0000a)
+                                #x044a20d1
+                                #x80000005)
+                         #xfd580006
+                         #x80000000)
+                  #x818220dc
+                  #x80000040)))
+  (store (store a!1 #xfd57ffff #xff900000) #x044a20d2 #x7ff0000a)))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #x7ff00002)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #x01a220d2)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x522b5420)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00400000)
+                     #x0000143f
+                     #x80000001)
+              #xb2154000
+              #xd0000002)
+       #x00001441
+       #xd1801c66))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #xb2154000)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #xadd4c022)
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(p1 >= 0 && p2 >= 0);
+@(!(nums1[p1] > nums2[p2]));
+nums1[p] = nums2[p2];
+p2=p2-1;
+
+p=p-1;
+@(!(p1 >= 0 && p2 >= 0));
+
+@(p2 >= 0);
+nums1[p] = nums2[p2];
+p2=p2-1;
+p=p-1;
+
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x7ffff809)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x10040800)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+                     #x0ffff809
+                     #x6ffc0007)
+              #x800007ff
+              #x8f040200)
+       #x0ffff80a
+       #x90040001))
+(define-fun nums1@0@0 () (_ BitVec 32)
+  #x6ffc0000)
+(define-fun nums2@0@0 () (_ BitVec 32)
+  #x90000002)
+[MATRIX]:
+1 1 1 1 1 1 1 1 0 0 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+[matrix_before]:
+1 1 1 1 1 1 1 1 0 0 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 
+1 1 1 1 1 1 0 0 1 1 1 1 1 1 1 
+[Inferior 1 (process 3918464) exited normally]

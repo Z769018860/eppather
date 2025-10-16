@@ -1,0 +1,28 @@
+void process_counts(int cie, int cei, int ie, int ei) {
+    int result[5];
+    result[0] = 0;
+    result[1] = 0;
+    result[2] = 0;
+    result[3] = 0;
+    result[4] = 0;
+    
+    if (2 * ei < ie) {
+        result[0] = 1;
+    } else {
+        result[0] = 0;
+    }
+    
+    if (2 * cie < cei) {
+        result[1] = 1;
+    } else {
+        result[1] = 0;
+    }
+    
+    if (2 * (cie + ei) < (cei + ie)) {
+        result[2] = 1;
+    } else {
+        result[2] = 0;
+    }
+    
+    return;
+}

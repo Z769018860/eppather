@@ -1,0 +1,133 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3878037]
+equals!!!!!2!!!!
+equals!!!!!k-2!!!!
+equals!!!!!2!!!!
+equals!!!!!k-2!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!k-2!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!k!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!k!!!!
+equals!!!!!i-k!!!!
+equals!!!!!i!!!!
+equals!!!!!f[j]!!!!
+equals!!!!!sum!!!!
+DFS is ready to dump ~
+SIZE!!19
+Path:int k;
+int m;
+int i,j,sum;
+int f[10];
+@(m<=k-2);
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun m@0@0 () (_ BitVec 32)
+  #x80000000)
+(define-fun k@0@0 () (_ BitVec 32)
+  #x80000002)
+Path:int k;
+int m;
+int i,j,sum;
+int f[10];
+@(!(m<=k-2));
+
+@(m==k-2);
+return 1;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:int k;
+int m;
+int i,j,sum;
+int f[10];
+@(!(m<=k-2));
+
+@(!(m==k-2));
+
+i=0;
+@(i<=k-2);
+i++;
+f[i]=0;
+@(i<=k-2);
+i++;
+f[i]=0;
+@(i<=k-2);
+i++;
+f[i]=0;
+@(!(i<=k-2));
+f[k-1]=1;
+i=k;
+@(i<=m);
+i++;
+sum=0;
+j=i-k;
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(!(j<i));
+f[i]=sum;
+@(i<=m);
+i++;
+sum=0;
+j=i-k;
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(!(j<i));
+f[i]=sum;
+@(i<=m);
+i++;
+sum=0;
+j=i-k;
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(j<i);
+j++;
+sum+=f[j];
+@(!(j<i));
+f[i]=sum;
+@(!(i<=m));
+return f[m];
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:17
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3878024) exited normally]

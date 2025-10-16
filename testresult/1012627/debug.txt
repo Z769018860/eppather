@@ -1,0 +1,9290 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881711]
+equals!!!!!oldrk[b]!!!!
+equals!!!!!w!!!!
+equals!!!!!w!!!!
+equals!!!!!oldrk[b+w]!!!!
+equals!!!!!oldrk[a+w] == oldrk[b+w]!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!s[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!cnt[i-1]!!!!
+equals!!!!!1!!!!
+equals!!!!!n - 1!!!!
+equals!!!!!0!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!w = 1!!!!
+equals!!!!!n!!!!
+equals!!!!!2!!!!
+equals!!!!!p!!!!
+equals!!!!!m = p!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!w!!!!
+equals!!!!!n - w!!!!
+equals!!!!!i = n - w!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!w!!!!
+equals!!!!!w!!!!
+equals!!!!!sa[i] - w!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!rk[pn[i]]!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!cnt[i-1]!!!!
+equals!!!!!1!!!!
+equals!!!!!n - 1!!!!
+equals!!!!!0!!!!
+equals!!!!!pn[i]!!!!
+equals!!!!!pn!!!!
+equals!!!!!rk!!!!
+equals!!!!!pn = rk!!!!
+equals!!!!!t!!!!
+equals!!!!!rk = t!!!!
+equals!!!!!0!!!!
+equals!!!!!rk[sa[0]] = 0!!!!
+equals!!!!!1!!!!
+equals!!!!!i = 1!!!!
+equals!!!!!p = i = 1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!p++!!!!
+equals!!!!!(cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++)!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+DFS is ready to dump ~
+SIZE!!47
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+return oldrk[a] == oldrk[b] && oldrk[a+w] == oldrk[b+w];
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+feasible!!!
+[mem]:4
+[averagemem]:4
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!47
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:177
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:175
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:172
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:169
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:164
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:164
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:161
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:164
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:161
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:158
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:164
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:161
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:158
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:155
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:166
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:164
+[averagemem]:0
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:161
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:158
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:155
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(sa[i] >= w);
+pn[p++] = sa[i] - w;
+
+@(!(i < n));
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:155
+[averagemem]:0
+modelL; no model available.
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+i = 0;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(i < n);
+i++;
+cnt[rk[i] = s[i]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(i >= 0);
+i--;
+sa[--cnt[rk[i]]] = i;
+@(!(i >= 0));
+p = w = 1;
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(p < n);
+w *= 2, m = p;
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+p = 0, i = n - w;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(i < n);
+i++;
+pn[p++] = i;
+@(!(i < n));
+@(i < n);
+i++;
+@(!(sa[i] >= w));
+
+i = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(i <= m);
+i++;
+cnt[i] = 0;
+@(!(i <= m));
+i = 0;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(i < n);
+i++;
+cnt[cache[i] = rk[pn[i]]]++;
+@(!(i < n));
+i = 1;
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(i <= m);
+i++;
+cnt[i] += cnt[i-1];
+@(!(i <= m));
+i = n - 1;
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(i >= 0);
+i--;
+sa[--cnt[cache[i]]] = pn[i];
+@(!(i >= 0));
+t = pn, pn = rk, rk = t, rk[sa[0]] = 0, p = i = 1;
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(i < n);
+i++;
+rk[sa[i]] = (cmp(pn, sa[i-1], sa[i], w) ? p - 1 : p++);
+@(!(i < n));
+@(!(p < n));
+i = 0;
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(i < n);
+i++;
+printf("%d ", sa[i] + 1);
+@(!(i < n));
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: cmp, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:153
+[averagemem]:0
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!47
+Path:int sa[1000010], rank[1000010], sa2[1000010], cnt[1000010], cache[1000010];
+char s[1000010];
+int *oldrk;
+int a;
+int b;
+int w;
+char *s;
+int n;
+int m;
+int i, p, w, *rk = rank, *pn = sa2, *t;
+scanf("%s", s);
+DA(s, strlen(s), 256);
+return 0;
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "w" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: DA, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 
+[Inferior 1 (process 3881675) exited normally]

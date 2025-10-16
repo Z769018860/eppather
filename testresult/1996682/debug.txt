@@ -1,0 +1,7624 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3904434]
+equals!!!!!-x!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i - 1]!!!!
+equals!!!!!t[i] - t[i - 1]!!!!
+equals!!!!!t0[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!n!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!t1[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!q!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!d + 1!!!!
+equals!!!!!n!!!!
+equals!!!!!x!!!!
+equals!!!!!lowbit(m)!!!!
+equals!!!!!n!!!!
+equals!!!!!x!!!!
+equals!!!!!lowbit(d)!!!!
+equals!!!!!2!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!t1[m]!!!!
+equals!!!!!lowbit(m)!!!!
+DFS is ready to dump ~
+SIZE!!36
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+return x & -x;
+
+warning: a declaration with the name "x" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!36
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:33
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:32
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:29
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:32
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:31
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:32
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:31
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:31
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:30
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:24
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:21
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:31
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:30
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:30
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:29
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:23
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:30
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:29
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:29
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:22
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:19
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:29
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:24
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:21
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:28
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:24
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:23
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:20
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t1[i + lowbit(i)] += t1[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:17
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:27
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:23
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:22
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:19
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:26
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:22
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(c == 1);
+scanf("%lld %lld %lld", &m, &d, &x);
+d = d + 1;
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(m <= n);
+t1[m] += x;
+m += lowbit(m);
+@(!(m <= n));
+
+@(d <= n);
+t1[d] -= x;
+d += lowbit(d);
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:25
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(!(i <= q));
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:24
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:21
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(c == 2);
+scanf("%lld", &m);
+ans1 = 0;
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(m > 0);
+ans1 += t1[m];
+m -= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1);
+
+
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:18
+[averagemem]:0
+modelL; no model available.
+Path:long long t[1000001];
+long long t0[1000001];
+long long t1[1000001];
+long long n, q;
+long long x;
+long long c, m, d, x;
+long long i, j, I;
+long long ans1, ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+t0[i] = t[i] - t[i - 1];
+t1[i] = t0[i];
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld", &c);
+@(!(c == 1));
+
+@(!(c == 2));
+
+return 0;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:15
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3904414) exited normally]

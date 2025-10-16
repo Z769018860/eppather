@@ -1,0 +1,126 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3890827]
+equals!!!!!22!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!outBuf!!!!
+equals!!!!!ch!!!!
+equals!!!!!outBuf!!!!
+equals!!!!!sizeof(outBuf)!!!!
+equals!!!!!0!!!!
+equals!!!!!!!!!
+equals!!!!!-x!!!!
+equals!!!!!x = -x!!!!
+equals!!!!!10!!!!
+equals!!!!!x % 10!!!!
+equals!!!!!10!!!!
+equals!!!!!x /= 10!!!!
+equals!!!!!num!!!!
+equals!!!!!*(-- numNow)!!!!
+equals!!!!!21!!!!
+equals!!!!!'a'!!!!
+equals!!!!!'a'!!!!
+equals!!!!!s[1] == 'a'!!!!
+equals!!!!!1!!!!
+equals!!!!!pc(32)!!!!
+equals!!!!!x!!!!
+equals!!!!!z = x!!!!
+equals!!!!!s[z]!!!!
+equals!!!!!s[y] >= s[z]!!!!
+equals!!!!!s[z]!!!!
+equals!!!!!x!!!!
+equals!!!!!++z!!!!
+equals!!!!!z!!!!
+equals!!!!!z!!!!
+equals!!!!!y - z!!!!
+equals!!!!!pc(32)!!!!
+776463.c:74:17 warning: missing type specifier, assume `int'
+char s[1 << 21];
+                 ^
+
+DFS is ready to dump ~
+SIZE!!32
+Path:char outBuf[1 << 22], *outNow = outBuf;
+char s[1 << 21];
+char ch;
+int x;
+short num[35], *numNow = num;
+int x = 0, y, z;
+*outNow = '\0';
+printf("%s", outBuf);
+outNow = outBuf;
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: unsupported type for sort: char [1 << 22], file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: char [1 << 22], file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!32
+Path:char outBuf[1 << 22], *outNow = outBuf;
+char s[1 << 21];
+char ch;
+int x;
+short num[35], *numNow = num;
+int x = 0, y, z;
+*(outNow ++) = ch;
+@(outNow - outBuf == sizeof(outBuf));
+flush ();
+
+@(x <= 0);
+pc (x? (char)'-': (char)'0'), x = -x;
+
+@(x);
+*(numNow ++) = x % 10, x /= 10;
+@(x);
+*(numNow ++) = x % 10, x /= 10;
+@(x);
+*(numNow ++) = x % 10, x /= 10;
+@(!(x));
+
+@(numNow != num);
+pc ((char)(48 | *(-- numNow)));
+@(numNow != num);
+pc ((char)(48 | *(-- numNow)));
+@(numNow != num);
+pc ((char)(48 | *(-- numNow)));
+@(!(numNow != num));
+
+scanf("%s", s);
+@(s[0] == 'a' && s[1] == 'a');
+int i = 0;
+@(s[i]);
+++ i;
+print(i + 1), pc(32);
+@(s[i]);
+++ i;
+print(i + 1), pc(32);
+@(s[i]);
+++ i;
+print(i + 1), pc(32);
+@(!(s[i]));
+flush();
+return 0;
+
+warning: a declaration with the name "x" already exists!
+line 8:28 no viable alternative at input 'outBuf'
+debug: empty type, return int
+find an undefined symbol: flush, assuming it is a function.
+find an undefined symbol: pc, assuming it is a function.
+debug:317: callee is not valid: (char)'-'
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a309a in std::__shared_ptr<epat::Type, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<epat::Type, (__gnu_cxx::_Lock_policy)2> const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3890803] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

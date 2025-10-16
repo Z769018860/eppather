@@ -1,0 +1,309 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3917230]
+equals!!!!!x!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!m!!!!
+equals!!!!!p!!!!
+equals!!!!!(ans*m)%p!!!!
+equals!!!!!m!!!!
+equals!!!!!p!!!!
+equals!!!!!(m*m)%p!!!!
+equals!!!!!2!!!!
+equals!!!!!b/2!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+DFS is ready to dump ~
+SIZE!!17
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun b@0@0 () (_ BitVec 32)
+  #x00000007)
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun b@0@0 () (_ BitVec 32)
+  #x00000005)
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun b@0@0 () (_ BitVec 32)
+  #x00000006)
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(b%2);
+ans=(ans*m)%p;
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun b@0@0 () (_ BitVec 32)
+  #x00000004)
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+m = x;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(b > 0);
+@(!(b%2));
+
+m=(m*m)%p;
+b=b/2;
+@(!(b > 0));
+
+return ans;
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+[MATRIX]:
+1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+0 0 0 1 1 1 1 1 1 0 0 0 0 0 0 0 0 
+SIZE!!17
+Path:long long x,n,p=998244352,i;
+long long b;
+long long m,ans=1;
+scanf("%lld %lld",&x,&n);
+i=0;
+@(i<n);
+i++;
+long long a;
+scanf("%lld",&a);
+printf("%lld ",q(a));
+@(i<n);
+i++;
+long long a;
+scanf("%lld",&a);
+printf("%lld ",q(a));
+@(i<n);
+i++;
+long long a;
+scanf("%lld",&a);
+printf("%lld ",q(a));
+@(!(i<n));
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: q, assuming it is a function.
+warning: a declaration with the name "a" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: q, assuming it is a function.
+warning: a declaration with the name "a" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: q, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3917201] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

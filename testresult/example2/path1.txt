@@ -1,0 +1,21 @@
+int arr[10];
+int size;
+int target;
+int i, j, k;
+i = 0;
+@(i < size - 2);
+i = i + 1;
+j = i + 1;
+@(j < size - 1);
+j = j + 1;
+k = j + 1;
+@(k < size);
+k = k + 1;
+@(!(arr[i] + arr[j] + arr[k] == target));
+
+
+;
+@(k < size);
+k = k + 1;
+@(arr[i] + arr[j] + arr[k] == target);
+return 1;

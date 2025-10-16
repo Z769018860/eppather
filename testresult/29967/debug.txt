@@ -1,0 +1,357 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3909693]
+equals!!!!!20!!!!
+equals!!!!!'A'!!!!
+equals!!!!!1!!!!
+equals!!!!!'A'!!!!
+equals!!!!!2!!!!
+equals!!!!!'A'!!!!
+equals!!!!!3!!!!
+equals!!!!!strlen(a)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!((k-1)<<1)!!!!
+equals!!!!!1!!!!
+equals!!!!!(1<<((k-1)<<1))-1!!!!
+equals!!!!!n!!!!
+equals!!!!!'A'!!!!
+equals!!!!!f[a[i]-'A']!!!!
+equals!!!!!1!!!!
+equals!!!!!k-1!!!!
+equals!!!!!2!!!!
+equals!!!!!DNA[i]!!!!
+equals!!!!!h<<2|DNA[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!2!!!!
+equals!!!!!DNA[i]!!!!
+equals!!!!!h<<2|DNA[i]!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!(k<<1)!!!!
+equals!!!!!(1<<(k<<1))!!!!
+equals!!!!!cnt[i]!!!!
+equals!!!!!cnt[i]!!!!
+DFS is ready to dump ~
+SIZE!!25
+Path:char a[5000010];
+int n,m,k,cnt[1<<20],f[26],h,ans;
+int DNA[5000010];
+f['G'-'A']=1;
+f['C'-'A']=2;
+f['T'-'A']=3;
+scanf("%s",a);
+n=strlen(a);
+scanf("%d",&k);
+m=(1<<((k-1)<<1))-1;
+int i=0;
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(!(i<n));
+int i=0;
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(!(i<k-1));
+int i=k-1;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(!(i<n));
+int i=0;
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(!(i<(1<<(k<<1))));
+printf("%d\n",ans);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:27
+[averagemem]:0
+Path:char a[5000010];
+int n,m,k,cnt[1<<20],f[26],h,ans;
+int DNA[5000010];
+f['G'-'A']=1;
+f['C'-'A']=2;
+f['T'-'A']=3;
+scanf("%s",a);
+n=strlen(a);
+scanf("%d",&k);
+m=(1<<((k-1)<<1))-1;
+int i=0;
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(!(i<n));
+int i=0;
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(!(i<k-1));
+int i=k-1;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(!(i<n));
+int i=0;
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(i<(1<<(k<<1)));
+i++;
+@(!(ans<cnt[i]));
+
+printf("%d\n",ans);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:26
+[averagemem]:0
+Path:char a[5000010];
+int n,m,k,cnt[1<<20],f[26],h,ans;
+int DNA[5000010];
+f['G'-'A']=1;
+f['C'-'A']=2;
+f['T'-'A']=3;
+scanf("%s",a);
+n=strlen(a);
+scanf("%d",&k);
+m=(1<<((k-1)<<1))-1;
+int i=0;
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(!(i<n));
+int i=0;
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(!(i<k-1));
+int i=k-1;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(!(i<n));
+int i=0;
+@(i<(1<<(k<<1)));
+i++;
+@(ans<cnt[i]);
+ans=cnt[i];
+
+@(i<(1<<(k<<1)));
+i++;
+@(!(ans<cnt[i]));
+
+printf("%d\n",ans);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:24
+[averagemem]:0
+modelL; no model available.
+Path:char a[5000010];
+int n,m,k,cnt[1<<20],f[26],h,ans;
+int DNA[5000010];
+f['G'-'A']=1;
+f['C'-'A']=2;
+f['T'-'A']=3;
+scanf("%s",a);
+n=strlen(a);
+scanf("%d",&k);
+m=(1<<((k-1)<<1))-1;
+int i=0;
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(i<n);
+i++;
+DNA[i]=f[a[i]-'A'];
+@(!(i<n));
+int i=0;
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(i<k-1);
+i++;
+h=h<<2|DNA[i];
+@(!(i<k-1));
+int i=k-1;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(i<n);
+i++;
+h=h<<2|DNA[i];
+++cnt[h];
+h&=m;
+@(!(i<n));
+int i=0;
+@(i<(1<<(k<<1)));
+i++;
+@(!(ans<cnt[i]));
+
+printf("%d\n",ans);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+feasible!!!
+[mem]:22
+[averagemem]:0
+modelL; no model available.
+[MATRIX]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[Inferior 1 (process 3909677) exited normally]

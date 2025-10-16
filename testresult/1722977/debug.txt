@@ -1,0 +1,95 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3910881]
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!i!!!!
+equals!!!!!arr[p % i]!!!!
+equals!!!!!p!!!!
+equals!!!!!(p / i) * arr[p % i] % p!!!!
+equals!!!!!p - (p / i) * arr[p % i] % p!!!!
+DFS is ready to dump ~
+SIZE!!10
+Path:long long arr[3000001];
+void;
+size_t n, p;
+scanf("%zu %zu", &n, &p);
+printf("1\n");
+arr[1] = 1;
+size_t i = 2;
+@(i <= n);
+++i;
+arr[i] = p - (p / i) * arr[p % i] % p;
+printf("%lld\n", arr[i]);
+@(i <= n);
+++i;
+arr[i] = p - (p / i) * arr[p % i] % p;
+printf("%lld\n", arr[i]);
+@(i <= n);
+++i;
+arr[i] = p - (p / i) * arr[p % i] % p;
+printf("%lld\n", arr[i]);
+@(!(i <= n));
+return 0;
+
+line 3:0 no viable alternative at input 'size_t'
+debug: empty type, return int
+line 3:7 missing ';' at 'n'
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+line 7:0 no viable alternative at input 'size_t'
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+line 7:7 missing ';' at 'i'
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3910849] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

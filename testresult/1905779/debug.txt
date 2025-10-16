@@ -1,0 +1,368 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3893423]
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!p!!!!
+equals!!!!!M!!!!
+equals!!!!!M!!!!
+equals!!!!!M!!!!
+equals!!!!!M!!!!
+equals!!!!!((b[k][j] + M) % M)!!!!
+equals!!!!!M!!!!
+equals!!!!!(((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M!!!!
+equals!!!!!sum!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!M!!!!
+equals!!!!!M!!!!
+DFS is ready to dump ~
+SIZE!!35
+Path:const unsigned M = 1000000007;
+void Input(long a[500][500], int m, int n);
+void Calc(long a[500][500], long b[500][500], long c[500][500], int n, int m, int p);
+void Output(long c[500][500], int n, int m);
+int n, p, m;
+long a[500][500], b[500][500], c[500][500];
+long a[500][500];
+int m;
+int n;
+int i, j;
+long a[500][500];
+long b[500][500];
+long c[500][500];
+int n;
+int m;
+int p;
+int i, j, k;
+long c[500][500];
+int n;
+int m;
+int i, j;
+scanf("%d %d %d", &n, &p, &m);
+Input(a, n, p);
+Input(b, p, m);
+Calc(a, b, c, n, m, p);
+Output(c, n, m);
+return 0;
+
+warning: a declaration with the name "a" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "a" already exists!
+warning: a declaration with the name "b" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: Input, assuming it is a function.
+find an undefined symbol: Input, assuming it is a function.
+find an undefined symbol: Calc, assuming it is a function.
+find an undefined symbol: Output, assuming it is a function.
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!35
+Path:const unsigned M = 1000000007;
+void Input(long a[500][500], int m, int n);
+void Calc(long a[500][500], long b[500][500], long c[500][500], int n, int m, int p);
+void Output(long c[500][500], int n, int m);
+int n, p, m;
+long a[500][500], b[500][500], c[500][500];
+long a[500][500];
+int m;
+int n;
+int i, j;
+long a[500][500];
+long b[500][500];
+long c[500][500];
+int n;
+int m;
+int p;
+int i, j, k;
+long c[500][500];
+int n;
+int m;
+int i, j;
+i = 0;
+@(i < m);
+i++;
+j = 0;
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(!(j < n));
+@(i < m);
+i++;
+j = 0;
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(!(j < n));
+@(i < m);
+i++;
+j = 0;
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(j < n);
+j++;
+scanf("%ld", &a[i][j]);
+@(!(j < n));
+@(!(i < m));
+i = 0;
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(!(j < m));
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(!(j < m));
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(j < m);
+j++;
+long long sum = 0;
+k = 0;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(k < p);
+k++;
+sum += (((a[i][k] + M) % M) * ((b[k][j] + M) % M)) % M;
+@(!(k < p));
+c[i][j] = sum;
+@(!(j < m));
+@(!(i < n));
+i = 0;
+@(i < n);
+i++;
+j = 0;
+@(j < m);
+j++;
+printf("%ld ", (c[i][j] + M) % M);
+@(j < m);
+j++;
+printf("%ld ", (c[i][j] + M) % M);
+@(j < m);
+j++;
+printf("%ld ", (c[i][j] + M) % M);
+@(!(j < m));
+printf("\n");
+
+warning: a declaration with the name "a" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "a" already exists!
+warning: a declaration with the name "b" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "p" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+warning: a declaration with the name "c" already exists!
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+warning: a declaration with the name "sum" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:150
+[averagemem]:1
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3893411] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

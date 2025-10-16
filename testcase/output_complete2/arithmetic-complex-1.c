@@ -1,0 +1,20 @@
+void complex_operations(int n1, int n2, int n3, int n4, int n5, int n6, int n7, int n8, int n9, int n10) {
+    int a[5];
+    int b[5];
+    int c[5];
+    a[0] = 1;
+    a[1] = 1;
+    b[0] = 3;
+    b[1] = 1;
+    c[0] = a[0] + b[0];
+    c[1] = a[1] + b[1];
+    c[0] = a[0] * b[0] - a[1] * b[1];
+    c[1] = a[0] * b[1] + a[1] * b[0];
+    c[0] = a[0] / (a[0] * a[0] + a[1] * a[1]);
+    c[1] = -a[1] / (a[0] * a[0] + a[1] * a[1]);
+    c[0] = -a[0];
+    c[1] = -a[1];
+    c[0] = a[0];
+    c[1] = -a[1];
+    return;
+}

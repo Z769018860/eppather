@@ -1,0 +1,40 @@
+int n;
+int a[10];
+int cur, j, low_ind, temp;
+cur = 0;
+@(cur < n - 1);
+cur = cur + 1;
+low_ind = cur;
+j = cur + 1;
+@(j < n);
+j = j + 1;
+@(!(a[j] < a[low_ind]));
+
+
+;
+@(j < n);
+j = j + 1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+;
+@(!(j < n));
+temp = a[cur];
+a[cur] = a[low_ind];
+a[low_ind] = temp;
+@(cur < n - 1);
+cur = cur + 1;
+low_ind = cur;
+j = cur + 1;
+@(j < n);
+j = j + 1;
+@(a[j] < a[low_ind]);
+low_ind = j;
+
+;
+@(!(j < n));
+temp = a[cur];
+a[cur] = a[low_ind];
+a[low_ind] = temp;
+@(!(cur < n - 1));
+return;

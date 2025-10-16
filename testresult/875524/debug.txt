@@ -1,0 +1,54 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908489]
+equals!!!!!m.rm_so!!!!
+equals!!!!!!!!!
+equals!!!!!m.rm_eo - m.rm_so <!!!!
+equals!!!!!"Yes"!!!!
+DFS is ready to dump ~
+SIZE!!8
+Path:const int N = 110;
+char s[N], t[N];
+regex_t r;
+regmatch_t m;
+@(~scanf("%s%s", s, t));
+regcomp(&r, s, 1);
+puts(regexec(&r, t, 1, &m, 0) || m.rm_eo - m.rm_so < (int)strlen(t) ? "No" : "Yes");
+regfree(&r);
+@(~scanf("%s%s", s, t));
+regcomp(&r, s, 1);
+puts(regexec(&r, t, 1, &m, 0) || m.rm_eo - m.rm_so < (int)strlen(t) ? "No" : "Yes");
+regfree(&r);
+@(~scanf("%s%s", s, t));
+regcomp(&r, s, 1);
+puts(regexec(&r, t, 1, &m, 0) || m.rm_eo - m.rm_so < (int)strlen(t) ? "No" : "Yes");
+regfree(&r);
+@(!(~scanf("%s%s", s, t)));
+
+return 0;
+
+line 3:0 no viable alternative at input 'regex_t'
+debug: empty type, return int
+line 3:8 extraneous input 'r' expecting ';'
+line 4:0 no viable alternative at input 'regmatch_t'
+debug: empty type, return int
+line 4:11 extraneous input 'm' expecting ';'
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: regcomp, assuming it is a function.
+find an undefined symbol: r, assuming it is a function.
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: regexec, assuming it is a function.
+find an undefined symbol: r, assuming it is a function.
+find an undefined symbol: m, assuming it is a function.
+find an undefined symbol: m, assuming it is a function.
+error: base not a struct type!
+find an undefined symbol: m, assuming it is a function.
+error: base not a struct type!
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a309a in std::__shared_ptr<epat::Type, (__gnu_cxx::_Lock_policy)2>::__shared_ptr(std::__shared_ptr<epat::Type, (__gnu_cxx::_Lock_policy)2> const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3908467] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

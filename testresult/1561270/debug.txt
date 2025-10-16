@@ -1,0 +1,183 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3895182]
+equals!!!!!(-x)!!!!
+equals!!!!!n!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!m!!!!
+equals!!!!!lowbit(j)!!!!
+equals!!!!!val!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!lowbit(j)!!!!
+equals!!!!!g[i][j]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!query(x-1,d)!!!!
+equals!!!!!1!!!!
+equals!!!!!query(c,y-1)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!query(x-1,y-1)!!!!
+DFS is ready to dump ~
+SIZE!!25
+Path:long long g[5010][5010],n,m;
+long long x;
+long long x;
+long long y;
+long long val;
+long long x;
+long long y;
+long long res = 0;
+long long opt,x,y,c,d;
+return x&(-x);
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL
+[MATRIX]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[matrix_before]:
+1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+SIZE!!25
+Path:long long g[5010][5010],n,m;
+long long x;
+long long x;
+long long y;
+long long val;
+long long x;
+long long y;
+long long res = 0;
+long long opt,x,y,c,d;
+long long i = x ;
+@(i <= n);
+i += lowbit(i);
+long long j = y ;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(!(j <= m));
+@(i <= n);
+i += lowbit(i);
+long long j = y ;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(!(j <= m));
+@(i <= n);
+i += lowbit(i);
+long long j = y ;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(j <= m);
+j+= lowbit(j);
+g[i][j] += val;
+@(!(j <= m));
+@(!(i <= n));
+long long i = x ;
+@(i);
+i -= lowbit(i);
+long long j = y ;
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(!(j));
+@(i);
+i -= lowbit(i);
+long long j = y ;
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(!(j));
+@(i);
+i -= lowbit(i);
+long long j = y ;
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(j);
+j -= lowbit(j);
+res += g[i][j];
+@(!(j));
+@(!(i));
+return res;
+
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+find an undefined symbol: lowbit, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a594 in z3::context::operator _Z3_context*() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3895168] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

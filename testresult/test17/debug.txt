@@ -1,0 +1,623 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881099]
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!n-1!!!!
+equals!!!!!high!!!!
+equals!!!!!low!!!!
+equals!!!!!2!!!!
+equals!!!!!(high+low)/2!!!!
+equals!!!!!v[mid]!!!!
+equals!!!!!1!!!!
+equals!!!!!mid+1!!!!
+equals!!!!!v[mid]!!!!
+equals!!!!!1!!!!
+equals!!!!!mid-1!!!!
+DFS is ready to dump ~
+SIZE!!15
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000005)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000004)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00000010)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000)
+       #x00000004
+       #x40000000))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000004)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x03602731)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+       #x00000004
+       #x03602731))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00004001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000)
+       #x00000005
+       #x40004002))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x80400000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+              #x00000005
+              #x00400001)
+       #x00000004
+       #x84000001))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #xce038002)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+              #x00000005
+              #x12800003)
+       #x00000004
+       #xce038002))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:3
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #xc9018002)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #xc9018002)
+       #x00000003
+       #x80000000))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000008)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00004001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000)
+       #x00000004
+       #x40004002))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x8000c000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x80000000)
+              #x00000002
+              #x00004001)
+       #x00000003
+       #x80200010))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000006)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x5c586301)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x00000000)
+              #x00000002
+              #x5c586301)
+       #x00000003
+       #x5cd00302))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(x>v[mid]);
+low=mid+1;
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000009)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x02084001)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x42084002)
+              #x00000005
+              #x40820002)
+       #x00000001
+       #x00000000))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(!(low<=high));
+
+return -1;
+
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000009)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x40000001)
+              #x00000005
+              #x00000002)
+       #x00000001
+       #x40004000))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x0000000a)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x0382da40)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x0382da41)
+       #x00000001
+       #x0382da40))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(x<v[mid]);
+high=mid-1;
+
+
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000005)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x4042c5e0)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  (store ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x4042c5e0)
+       #x00000003
+       #x604285e1))
+Path:int x;
+int v[5];
+int n;
+int low,high,mid;
+low=0;
+high=n-1;
+@(low<=high);
+mid=(high+low)/2;
+@(!(x>v[mid]));
+
+@(!(x<v[mid]));
+
+return mid;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun x@0@0 () (_ BitVec 32)
+  #x4060a469)
+(define-fun %a () (Array (_ BitVec 32) (_ BitVec 32))
+  ((as const (Array (_ BitVec 32) (_ BitVec 32))) #x4060a469))
+[MATRIX]:
+1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+[matrix_before]:
+1 1 1 1 1 1 1 1 1 1 1 0 0 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 1 0 1 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+1 1 1 1 1 1 1 1 1 1 0 1 0 1 0 
+[Inferior 1 (process 3881061) exited normally]

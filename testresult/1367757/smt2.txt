@@ -1,0 +1,11 @@
+; 
+(set-info :status unknown)
+(declare-fun place@0@0 () (_ BitVec 32))
+(assert
+ (and (distinct place@0@0 (_ bv0 32)) true))
+(assert
+ (let (($x44 (bvslt place@0@0 (_ bv1000001 32))))
+ (let (($x39 (bvsle (_ bv0 32) place@0@0)))
+ (and $x39 $x44))))
+(check-sat)
+

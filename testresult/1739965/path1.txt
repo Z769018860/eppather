@@ -1,0 +1,22 @@
+char a[1000000];
+char b[1000000];
+int lena = strlen(a);
+int lenb = strlen(b);
+int i,sum=0;
+scanf("%s%s",a,b);
+i=0;
+@(i<lena-lenb+1);
+i++;
+@(strncmp(&a[i],b,lenb)==0);
+sum++;
+
+@(i<lena-lenb+1);
+i++;
+@(strncmp(&a[i],b,lenb)==0);
+sum++;
+
+@(i<lena-lenb+1);
+i++;
+@(!(strncmp(&a[i],b,lenb)==0));
+
+printf("%d",sum);

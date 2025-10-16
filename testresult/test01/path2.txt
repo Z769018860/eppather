@@ -1,0 +1,15 @@
+int flag;
+int x;
+@(!(flag > 42));
+
+@(!(flag == 42));
+int ret = 0;
+int i = 0;
+@(i < x);
+i = i + 1;
+ret = ret + i * x;
+@(i < x);
+i = i + 1;
+ret = ret + i * x;
+@(!(i < x));
+return ret;

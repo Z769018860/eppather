@@ -1,0 +1,55 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3898282]
+equals!!!!!x!!!!
+equals!!!!!find(f[x])!!!!
+equals!!!!!find(x)!!!!
+equals!!!!!find(y)!!!!
+equals!!!!!y!!!!
+equals!!!!!y!!!!
+equals!!!!!8000005!!!!
+equals!!!!!i!!!!
+equals!!!!!m!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!find(v)!!!!
+equals!!!!!998244353!!!!
+equals!!!!!ans % 998244353!!!!
+DFS is ready to dump ~
+SIZE!!28
+Path:int f[8000005] = { 0 };
+int n,m;
+int x;
+int x;
+int y;
+int ans = 0;
+@(f[x] == x);
+return x;
+
+warning: a declaration with the name "x" already exists!
+feasible!!!
+[mem]:1
+[averagemem]:0
+modelL(define-fun x@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:int f[8000005] = { 0 };
+int n,m;
+int x;
+int x;
+int y;
+int ans = 0;
+@(!(f[x] == x));
+
+return f[x] = find(f[x]);
+
+warning: a declaration with the name "x" already exists!
+find an undefined symbol: find, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff755aca8 in Z3_inc_ref () from /usr/lib/x86_64-linux-gnu/libz3.so.4
+A debugging session is active.
+
+	Inferior 1 [process 3898264] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

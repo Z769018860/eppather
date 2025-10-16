@@ -1,0 +1,101 @@
+typedef long long I64;
+typedef unsigned long long U64;
+typedef __int128 I128;
+int Witness[9] ={ 2, 3, 5, 7, 11, 13, 17, 19, 23};
+U64 base;
+U64 power;
+U64 mod;
+U64 r = 1;
+U64 n;
+U64 a;
+U64 x;
+int i, j;
+int pflag;
+int r = 0;
+U64 d = n - 1;
+U64 num;
+U64 t;
+void;
+U64 num;
+@((d&1) == 0);
+d >>= 1;
+r ++;
+@((d&1) == 0);
+d >>= 1;
+r ++;
+@((d&1) == 0);
+d >>= 1;
+r ++;
+@(!((d&1) == 0));
+
+i=0;
+@(i < 9);
+i ++;
+a = Witness[i];
+@(!(a == n));
+
+x = binPower( a, d, n);
+@(x == 1 || x == (n-1));
+continue;
+
+pflag = 0;
+j = 1;
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(x == (n-1));
+pflag = 1;
+break;
+
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(x == (n-1));
+pflag = 1;
+break;
+
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(x == (n-1));
+pflag = 1;
+break;
+
+@(!(j < r));
+@(!(!pflag));
+
+@(i < 9);
+i ++;
+a = Witness[i];
+@(!(a == n));
+
+x = binPower( a, d, n);
+@(!(x == 1 || x == (n-1)));
+
+pflag = 0;
+j = 1;
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(!(x == (n-1)));
+
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(x == (n-1));
+pflag = 1;
+break;
+
+@(j < r);
+j ++;
+x = (U128)x * x % n;
+@(!(x == (n-1)));
+
+@(!(j < r));
+@(!(!pflag));
+
+@(i < 9);
+i ++;
+a = Witness[i];
+@(a == n);
+return 1;

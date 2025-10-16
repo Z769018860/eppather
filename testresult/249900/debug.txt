@@ -1,0 +1,288 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3917830]
+equals!!!!!m!!!!
+equals!!!!!2*m!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!b[j]!!!!
+equals!!!!!a[i]*b[j]!!!!
+equals!!!!!65537!!!!
+equals!!!!!(tp[i+j]+a[i]*b[j])%65537!!!!
+equals!!!!!m!!!!
+equals!!!!!2!!!!
+equals!!!!!m!!!!
+equals!!!!!m!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!m!!!!
+equals!!!!!j!!!!
+equals!!!!!tp[i]!!!!
+equals!!!!!65537!!!!
+equals!!!!!(tp[i-m+j]+tp[i])%65537!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!tp[i]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!g[i]!!!!
+equals!!!!!s*g[i]!!!!
+equals!!!!!65537!!!!
+equals!!!!!(ans+s*g[i])%65537!!!!
+equals!!!!!2!!!!
+equals!!!!!65537!!!!
+equals!!!!!s*2%65537!!!!
+equals!!!!!s=s*2%65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!n!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!C(n%65537,m%65537)!!!!
+equals!!!!!65537!!!!
+equals!!!!!inv[m]!!!!
+equals!!!!!m!!!!
+equals!!!!!inv[n-m]!!!!
+equals!!!!!65537!!!!
+equals!!!!!1!!!!
+equals!!!!!x!!!!
+equals!!!!!65537!!!!
+equals!!!!!s*x%65537!!!!
+equals!!!!!x!!!!
+equals!!!!!65537!!!!
+equals!!!!!x*x%65537!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!(m+1)!!!!
+equals!!!!!lim!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!i*m!!!!
+equals!!!!!C(n1-i*m,i)!!!!
+equals!!!!!pw2*C(n1-i*m,i)!!!!
+equals!!!!!m!!!!
+equals!!!!!i*m!!!!
+equals!!!!!C(n1-i*m,i)!!!!
+equals!!!!!pw2*C(n1-i*m,i)!!!!
+equals!!!!!iv!!!!
+equals!!!!!65537!!!!
+equals!!!!!pw2*iv%65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!1!!!!
+equals!!!!!inv[0]=1!!!!
+equals!!!!!65537!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!65537!!!!
+equals!!!!!fac[i-1]*i%65537!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!ksm2(fac[65537 -1],65537 -2)!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!(i+1)!!!!
+equals!!!!!65537!!!!
+equals!!!!!inv[i+1]*(i+1)%65537!!!!
+equals!!!!!1!!!!
+equals!!!!!calc(n)!!!!
+equals!!!!!65537!!!!
+equals!!!!!65537!!!!
+equals!!!!!1!!!!
+equals!!!!!3000!!!!
+DFS is ready to dump ~
+SIZE!!76
+Path:typedef long long ll;
+ll m,n;
+ll f[6005],g[6005],tp[6005];
+ll fac[65538],inv[65538];
+ll *a;
+ll *b;
+ll s=1,ans=0;
+ll n;
+ll m;
+ll x;
+ll k;
+ll s=1;
+ll n1;
+ll ans=0,pw2=ksm2(2,n1),iv=ksm2(ksm2(2,m+1),65537 -2);
+int lim=n1/(m+1);
+int i=0;
+@(i<=2*m);
+i++;
+tp[i]=0;
+@(i<=2*m);
+i++;
+tp[i]=0;
+@(i<=2*m);
+i++;
+tp[i]=0;
+@(!(i<=2*m));
+int i=0;
+@(i<m);
+i++;
+int j=0;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(!(j<m));
+@(i<m);
+i++;
+int j=0;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(!(j<m));
+@(i<m);
+i++;
+int j=0;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(j<m);
+j++;
+tp[i+j]=(tp[i+j]+a[i]*b[j])%65537;
+@(!(j<m));
+@(!(i<m));
+int i=2*m-2;
+@(i>=m);
+i--;
+int j=0;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(!(j<m));
+tp[i]=0;
+@(i>=m);
+i--;
+int j=0;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(!(j<m));
+tp[i]=0;
+@(i>=m);
+i--;
+int j=0;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(j<m);
+j++;
+tp[i-m+j]=(tp[i-m+j]+tp[i])%65537;
+@(!(j<m));
+tp[i]=0;
+@(!(i>=m));
+int i=0;
+@(i<m);
+i++;
+a[i]=tp[i];
+@(i<m);
+i++;
+a[i]=tp[i];
+@(i<m);
+i++;
+a[i]=tp[i];
+@(!(i<m));
+@(n);
+@(n&1);
+mul(g,f);
+
+mul(f,f);
+n>>=1;
+@(n);
+@(n&1);
+mul(g,f);
+
+mul(f,f);
+n>>=1;
+@(n);
+@(n&1);
+mul(g,f);
+
+mul(f,f);
+n>>=1;
+@(!(n));
+
+f[1]=1;
+g[0]=1;
+ksm1();
+int i=0;
+@(i<m);
+i++;
+ans=(ans+s*g[i])%65537,s=s*2%65537;
+@(i<m);
+i++;
+ans=(ans+s*g[i])%65537,s=s*2%65537;
+@(i<m);
+i++;
+ans=(ans+s*g[i])%65537,s=s*2%65537;
+@(!(i<m));
+printf("%lld\n",(ans%65537 +65537)%65537);
+
+find an undefined symbol: ll, assuming it is a function.
+find an undefined symbol: a, assuming it is a function.
+find an undefined symbol: ll, assuming it is a function.
+find an undefined symbol: b, assuming it is a function.
+warning: a declaration with the name "n" already exists!
+warning: a declaration with the name "m" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "ans" already exists!
+find an undefined symbol: ksm2, assuming it is a function.
+find an undefined symbol: ksm2, assuming it is a function.
+find an undefined symbol: ksm2, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: a, assuming it is a function.
+[Inferior 1 (process 3917811) exited with code 01]

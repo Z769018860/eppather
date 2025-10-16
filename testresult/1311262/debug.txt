@@ -1,0 +1,52 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3910621]
+equals!!!!!22!!!!
+equals!!!!!1!!!!
+equals!!!!!puts("1")!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!p/i!!!!
+equals!!!!!(p-p/i)!!!!
+equals!!!!!i!!!!
+equals!!!!!f[p%i]!!!!
+equals!!!!!p!!!!
+equals!!!!!1ll*(p-p/i)*f[p%i]%p!!!!
+1311262.c:2:17 warning: missing type specifier, assume `int'
+int f[1<<22],i=2;main(n,p){scanf("%d%d",&n,&p);for(f[1]=1,puts("1");i<=n;i++)printf("%d\n",f[i]=1ll*(p-p/i)*f[p%i]%p);}
+                 ^
+
+DFS is ready to dump ~
+SIZE!!5
+Path:int f[1<<22],i=2;
+n;
+p;
+scanf("%d%d",&n,&p);
+f[1]=1,puts("1");
+@(i<=n);
+i++;
+printf("%d\n",f[i]=1ll*(p-p/i)*f[p%i]%p);
+
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+line 8:20 mismatched input 'll' expecting ')'
+find an undefined symbol: ll, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+find an undefined symbol: p, assuming it is a function.
+line 8:39 extraneous input ')' expecting ';'
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a594 in z3::context::operator _Z3_context*() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3910597] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

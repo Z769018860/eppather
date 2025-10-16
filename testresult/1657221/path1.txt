@@ -1,0 +1,31 @@
+const int N=1e6+9;
+long long tree[N];
+int n,m;
+long long x;
+int i;
+int x;
+int i;
+long long c=0;
+@(i<=n);
+tree[i]+=x;
+i+=lbit(i);
+@(i<=n);
+tree[i]+=x;
+i+=lbit(i);
+@(i<=n);
+tree[i]+=x;
+i+=lbit(i);
+@(!(i<=n));
+
+@(i);
+c+=tree[i];
+i-=lbit(i);
+@(i);
+c+=tree[i];
+i-=lbit(i);
+@(i);
+c+=tree[i];
+i-=lbit(i);
+@(!(i));
+
+return c;

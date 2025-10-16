@@ -1,0 +1,61 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3890670]
+equals!!!!!strlen(s)!!!!
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+equals!!!!!s[k]!!!!
+equals!!!!!s[j] > s[k]!!!!
+equals!!!!!j!!!!
+equals!!!!!j!!!!
+equals!!!!!k - j!!!!
+equals!!!!!k!!!!
+equals!!!!!j!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!i + 1!!!!
+equals!!!!!s[k]!!!!
+equals!!!!!i!!!!
+equals!!!!!k++!!!!
+equals!!!!!k++!!!!
+DFS is ready to dump ~
+SIZE!!14
+Path:int n;
+char s[2002000];
+scanf("%s",s);
+n = strlen(s);
+int i = 0, j = 0, k = 1;
+@(i < n);
+;
+@(k > n || s[j] > s[k]);
+@(i <= j);
+i += k - j;
+printf("%d ", i + k - j);
+@(i <= j);
+i += k - j;
+printf("%d ", i + k - j);
+@(i <= j);
+i += k - j;
+printf("%d ", i + k - j);
+@(!(i <= j));
+j = i;
+k = i + 1;
+
+@(s[j] < s[k]);
+j = i, k++;
+
+j++, k++;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3890646] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

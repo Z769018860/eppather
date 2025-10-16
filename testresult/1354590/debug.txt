@@ -1,0 +1,300 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3907766]
+equals!!!!!n!!!!
+equals!!!!!j!!!!
+equals!!!!!(1LL << j)!!!!
+equals!!!!!x!!!!
+equals!!!!!bit[j]!!!!
+equals!!!!!1!!!!
+equals!!!!!j!!!!
+equals!!!!!(1LL << j)!!!!
+equals!!!!!bit[j]!!!!
+equals!!!!!50!!!!
+equals!!!!!bit[i]!!!!
+equals!!!!!n!!!!
+equals!!!!!cnt!!!!
+equals!!!!!(1LL << cnt)!!!!
+equals!!!!!cnt!!!!
+equals!!!!!i!!!!
+equals!!!!!(1LL << i)!!!!
+equals!!!!!a[i]!!!!
+DFS is ready to dump ~
+SIZE!!37
+Path:typedef long long LL;
+LL bit[64], a[64], x, k;
+int n, m, cnt = 0;
+scanf("%d", &n);
+int i = 0;
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(i < n);
+++i;
+scanf("%lld", &x);
+int j = 50;
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(~j);
+--j;
+@(x & (1LL << j));
+@(!bit[j]);
+bit[j] = x;
+break;
+
+x ^= bit[j];
+
+@(!(~j));
+@(!(i < n));
+int i = 50;
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(~i);
+--i;
+int j = i - 1;
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(~j);
+--j;
+@(bit[i] & (1LL << j));
+bit[i] ^= bit[j];
+
+@(!(~j));
+@(!(~i));
+int i = 0;
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(i <= 50);
+++i;
+@(bit[i]);
+a[cnt++] = bit[i];
+
+@(!(i <= 50));
+scanf("%d", &m);
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(m--);
+scanf("%lld", &k);
+@(cnt != n);
+--k;
+
+@(k >= (1LL << cnt));
+puts("-1");
+
+@(!(m--));
+
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 12:8 mismatched input 'LL' expecting ')'
+line 12:15 mismatched input ')' expecting ';'
+line 21:8 mismatched input 'LL' expecting ')'
+line 21:15 mismatched input ')' expecting ';'
+line 30:8 mismatched input 'LL' expecting ')'
+line 30:15 mismatched input ')' expecting ';'
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+line 44:8 mismatched input 'LL' expecting ')'
+line 44:15 mismatched input ')' expecting ';'
+line 53:8 mismatched input 'LL' expecting ')'
+line 53:15 mismatched input ')' expecting ';'
+debug:468: empty stmt
+line 62:8 mismatched input 'LL' expecting ')'
+line 62:15 mismatched input ')' expecting ';'
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "j" already exists!
+line 76:8 mismatched input 'LL' expecting ')'
+line 76:15 mismatched input ')' expecting ';'
+line 85:8 mismatched input 'LL' expecting ')'
+line 85:15 mismatched input ')' expecting ';'
+line 94:8 mismatched input 'LL' expecting ')'
+line 94:15 mismatched input ')' expecting ';'
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+line 109:13 mismatched input 'LL' expecting ')'
+line 109:20 mismatched input ')' expecting ';'
+line 114:13 mismatched input 'LL' expecting ')'
+line 114:20 mismatched input ')' expecting ';'
+line 119:13 mismatched input 'LL' expecting ')'
+line 119:20 mismatched input ')' expecting ';'
+warning: a declaration with the name "j" already exists!
+line 128:13 mismatched input 'LL' expecting ')'
+line 128:20 mismatched input ')' expecting ';'
+line 133:13 mismatched input 'LL' expecting ')'
+line 133:20 mismatched input ')' expecting ';'
+line 138:13 mismatched input 'LL' expecting ')'
+line 138:20 mismatched input ')' expecting ';'
+warning: a declaration with the name "j" already exists!
+line 147:13 mismatched input 'LL' expecting ')'
+line 147:20 mismatched input ')' expecting ';'
+line 152:13 mismatched input 'LL' expecting ')'
+line 152:20 mismatched input ')' expecting ';'
+debug:468: empty stmt
+line 157:13 mismatched input 'LL' expecting ')'
+line 157:20 mismatched input ')' expecting ';'
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 185:9 mismatched input 'LL' expecting ')'
+line 185:18 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 193:9 mismatched input 'LL' expecting ')'
+line 193:18 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+line 201:9 mismatched input 'LL' expecting ')'
+line 201:18 mismatched input ')' expecting ';'
+find an undefined symbol: puts, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a752f in std::default_delete<epat::Stmt>::operator()(epat::Stmt*) const ()
+A debugging session is active.
+
+	Inferior 1 [process 3907754] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

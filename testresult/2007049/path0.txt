@@ -1,0 +1,50 @@
+typedef long long i64;
+int to[2000010], nxt[2000010], head[2000010];
+int g_cnt;
+int N;
+i64 bit_a[1000010];
+int a[1000010], dfn[1000010], sz[1000010];
+int t;
+i64 k = 0, f = 1;
+char c = getchar_unlocked();
+i64 x;
+int u;
+int v;
+int k;
+i64 ret = 0;
+int k;
+i64 x;
+int l;
+int r;
+int u;
+int f;
+int n = rd(), q = rd(), rt = rd();
+@(c < '0' || c > '9');
+@(c == '-');
+f = 0;
+
+c = getchar_unlocked();
+@(c < '0' || c > '9');
+@(c == '-');
+f = 0;
+
+c = getchar_unlocked();
+@(c < '0' || c > '9');
+@(c == '-');
+f = 0;
+
+c = getchar_unlocked();
+@(!(c < '0' || c > '9'));
+
+@(c >= '0' && c <= '9');
+k = (k << 1) + (k << 3) + (c ^ 48);
+c = getchar_unlocked();
+@(c >= '0' && c <= '9');
+k = (k << 1) + (k << 3) + (c ^ 48);
+c = getchar_unlocked();
+@(c >= '0' && c <= '9');
+k = (k << 1) + (k << 3) + (c ^ 48);
+c = getchar_unlocked();
+@(!(c >= '0' && c <= '9'));
+
+return f ? k : -k;

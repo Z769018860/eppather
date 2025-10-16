@@ -1,0 +1,15 @@
+int gtk_window_func(int argc1, int argv1) {
+    int window[5];
+    int gtk_init_result[5];
+    int g_signal_connect_result[5];
+    int gtk_widget_show_result[5];
+    int gtk_main_result[5];
+    
+    gtk_init_result[0] = 0;
+    window[0] = 0;
+    g_signal_connect_result[0] = 0;
+    gtk_widget_show_result[0] = 0;
+    gtk_main_result[0] = 0;
+    
+    return;
+}

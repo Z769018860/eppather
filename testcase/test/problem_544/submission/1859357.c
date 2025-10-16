@@ -1,0 +1,1 @@
+main(n,i){scanf("%d",&n);for(printf("%d\n",i=++n);i--;)printf("%d ",(i&1?i+1:2*n-i)/2);}

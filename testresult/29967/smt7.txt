@@ -1,0 +1,22 @@
+; 
+(set-info :status unknown)
+(assert
+ (let ((?x56 (bvsub (_ bv71 32) (_ bv65 32))))
+ (let (($x26 (bvslt ?x56 (_ bv26 32))))
+ (let (($x25 (bvsle (_ bv0 32) ?x56)))
+ (and $x25 $x26)))))
+(assert
+ (let ((?x43 (bvsub (_ bv67 32) (_ bv65 32))))
+ (let (($x52 (bvslt ?x43 (_ bv26 32))))
+ (let (($x51 (bvsle (_ bv0 32) ?x43)))
+ (and $x51 $x52)))))
+(assert
+ (let ((?x48 (bvsub (_ bv84 32) (_ bv65 32))))
+ (let (($x50 (bvslt ?x48 (_ bv26 32))))
+ (let (($x66 (bvsle (_ bv0 32) ?x48)))
+ (and $x66 $x50)))))
+(assert
+ (let ((?x72 (ite (bvslt (_ bv0 32) (_ bv3 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x72 (_ bv0 32)) true)))
+(check-sat)
+

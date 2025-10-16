@@ -1,0 +1,13 @@
+; 
+(set-info :status unknown)
+(assert
+ (and (distinct (_ bv1 32) (_ bv0 32)) true))
+(assert
+ (and (distinct (_ bv1 32) (_ bv0 32)) true))
+(assert
+ (and (distinct (_ bv1 32) (_ bv0 32)) true))
+(assert
+ (let ((?x27 (ite (not (and (distinct (_ bv1 32) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x27 (_ bv0 32)) true)))
+(check-sat)
+

@@ -1,0 +1,49 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3911292]
+equals!!!!!3000000!!!!
+equals!!!!!y!!!!
+DFS is ready to dump ~
+SIZE!!9
+Path:void;
+long long x,y;
+scanf("%lld",&x);
+int i=1;
+@(i<3000000);
+i++;
+scanf("%lld",&y);
+x^=y;
+@(i<3000000);
+i++;
+scanf("%lld",&y);
+x^=y;
+@(i<3000000);
+i++;
+scanf("%lld",&y);
+x^=y;
+@(!(i<3000000));
+printf("%lld",x);
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3911268] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

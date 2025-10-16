@@ -1,0 +1,16 @@
+long long int quickpow(long long int x, long long int b, long long int mod);
+long long int inv[5000001],sv[5000001],a[5000001],s[5000001];
+int n,t;
+long long int c=0;
+long long int x;
+long long int b;
+long long int mod;
+long long int tmp = quickpow(x, b / 2, mod);
+@(!(b == 0));
+
+@(!(b == 1));
+
+tmp = tmp * tmp % mod;
+@(!(b % 2 == 0));
+
+return tmp * x % mod;

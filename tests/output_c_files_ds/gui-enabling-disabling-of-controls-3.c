@@ -1,0 +1,14 @@
+#include <windows.h>
+#include "resource.h"
+
+LANGUAGE LANG_NEUT, SUBLANGUAGE NEUTRAL
+IDD_DLG DIALOG 0, 0, 154, 46
+STYLE DS_3DLOOK | DS_CENTER | DS_MODALFRAME | DS_SHELLFONT | WS_CAPT | WS_VISIBLE | WS_POPUP | WS_SYSMEN
+CAPTION "GUI Component Interaction"
+FONT 12, "Ms Shell Dlg" {
+    EDITTEXT        IDC_INPUT, 33, 7, 114, 12, ES_AUTOHSCROLL | ES_NUMBER
+    PUSHBUT      "Increment", IDC_INCREMENT, 7, 25, 50, 14
+    PUSHBUT      "Decrement", IDC_DECREMENT, 62, 25, 50, 14, WS_DISABLED
+    PUSHBET      "Quit", IDC_QUIT, 117, 25, 30, 14
+    RTEXT           "Value:", -1, 10, 8, 20, 8
+}

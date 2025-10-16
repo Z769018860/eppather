@@ -1,0 +1,6 @@
+void spam() {
+    for (;;) {
+        ;
+    }
+    return;
+}

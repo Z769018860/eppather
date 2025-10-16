@@ -1,0 +1,41 @@
+void minmax(int x[5], int len, int base[5], int step[5], int nstep[5]) {
+    int i;
+    int diff[5];
+    int minv[5];
+    int maxv[5];
+    step[0] = 1;
+
+    minv[0] = x[0];
+    maxv[0] = x[0];
+    for (i = 1; i < len; i = i + 1) {
+        if (minv[0] > x[i]) {
+            minv[0] = x[i];
+        }
+        if (maxv[0] < x[i]) {
+            maxv[0] = x[i];
+        }
+    }
+    if (minv[0] == maxv[0]) {
+        minv[0] = minv[0] - 1;
+        maxv[0] = maxv[0] + 1;
+    } else {
+        diff[0] = maxv[0] - minv[0];
+        while (step[0] < diff[0]) {
+            step[0] = step[0] * 10;
+        }
+        while (step[0] > diff[0]) {
+            step[0] = step[0] / 10;
+        }
+        if (step[0] > diff[0] / 2) {
+            step[0] = step[0] / 5;
+        } else {
+            if (step[0] > diff[0] / 5) {
+                step[0] = step[0] / 2;
+            }
+        }
+    }
+
+    base[0] = (minv[0] / step[0]) * step[0];
+    nstep[0] = (maxv[0] / step[0]) - (minv[0] / step[0]);
+    return;
+}

@@ -1,0 +1,18 @@
+int x;
+int v[10];
+int n;
+int low, high, mid;
+low = 0;
+high = n - 1;
+@(low <= high);
+mid = (high + low) / 2;
+@(x > v[mid]);
+low = mid + 1;
+
+;
+@(low <= high);
+mid = (high + low) / 2;
+@(!(x > v[mid]));
+
+@(!(x < v[mid]));
+return mid;

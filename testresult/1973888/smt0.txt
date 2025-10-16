@@ -1,0 +1,7 @@
+; 
+(set-info :status unknown)
+(assert
+ (let ((?x7 (ite (bvslt (_ bv1 32) (_ bv3000000 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x7 (_ bv0 32)) true)))
+(check-sat)
+

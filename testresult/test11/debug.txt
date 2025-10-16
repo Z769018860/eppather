@@ -1,0 +1,833 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3918665]
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!s!!!!
+equals!!!!!0!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!j+1!!!!
+equals!!!!!1!!!!
+equals!!!!!k+1!!!!
+equals!!!!!2!!!!
+equals!!!!!k+2!!!!
+DFS is ready to dump ~
+SIZE!!22
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:14
+[averagemem]:0
+modelL(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000002)
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:12
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:12
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:10
+[averagemem]:0
+modelL(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000001)
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(!(a+1<=m));
+i=0;
+j=0;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(!(j<n));
+k=k+2;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:8
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000003)
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:12
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:10
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:10
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:8
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(b-1>=0);
+g[a-1][b-1]=s;
+
+@(!(b-1>=0));
+
+@(!(a+1<=m));
+i=0;
+j=0;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(!(j<n));
+k=k+2;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:6
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:12
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:10
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:10
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:8
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(b-1>=0);
+g[a][b-1]=s;
+
+@(!(a+1<=m));
+i=0;
+j=0;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(!(j<n));
+k=k+2;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:6
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:10
+[averagemem]:0
+modelL(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000001)
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000001)
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(b+1<=n);
+g[a+1][b+1]=s;
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:8
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(b+1<=n);
+g[a][b+1]=s;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+infeasible!!!
+[mem]:8
+[averagemem]:0
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(!(b-1>=0));
+
+@(a+1<=m);
+g[a+1][b]=s;
+@(!(b+1<=n));
+
+@(!(b+1<=n));
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:6
+[averagemem]:0
+modelL(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+Path:int g[5][5];
+int m,n,k;
+int a;
+int b;
+int s;
+int i,j,k;
+g[a][b]=s;
+@(a-1>=0);
+g[a-1][b]=s;
+@(!(b-1>=0));
+
+@(!(b-1>=0));
+
+@(!(a+1<=m));
+i=0;
+j=0;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(j<n);
+j=j+1;
+k=k+1;
+@(!(j<n));
+k=k+2;
+
+i=0;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(i<m);
+i=i+1;
+@(!(i<m));
+return;
+
+warning: a declaration with the name "k" already exists!
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun b@0@0 () (_ BitVec 32)
+  #x00000000)
+(define-fun a@0@0 () (_ BitVec 32)
+  #x00000004)
+
+Program received signal SIGSEGV, Segmentation fault.
+psy::C::SyntaxNamePrinter::DFS (this=0x7fffffff7f20, node=std::shared_ptr<psy::C::CFGNode> (empty) = {...}, pathCoverage=std::vector<bool> of length 22, capacity 64 = {...}, path="g[a][b]=s;\n@(!(a-1>=0));\n", depth=4, pathCount=@0x7fffffff7a08: 20, maxloop=3) at /home/zhangliwei/eppather/C/syntax/SyntaxNamePrinter.cpp:1574
+1574	    if (node->depth>=0)    
+A debugging session is active.
+
+	Inferior 1 [process 3918614] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

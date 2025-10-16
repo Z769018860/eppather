@@ -1,0 +1,64 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3910981]
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!p/i!!!!
+equals!!!!!i!!!!
+equals!!!!!inv[p%i]!!!!
+equals!!!!!p!!!!
+equals!!!!!*inv[p%i]%p!!!!
+equals!!!!!n!!!!
+DFS is ready to dump ~
+SIZE!!11
+Path:int inv[3000010];
+int n,p;
+scanf("%d%d",&n,&p);
+inv[1]=1;
+int i=2;
+@(i<=n);
+i++;
+inv[i]=(long long)(p-p/i)*inv[p%i]%p;
+@(i<=n);
+i++;
+inv[i]=(long long)(p-p/i)*inv[p%i]%p;
+@(i<=n);
+i++;
+inv[i]=(long long)(p-p/i)*inv[p%i]%p;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+i++;
+printf("%d\n",inv[i]);
+@(i<=n);
+i++;
+printf("%d\n",inv[i]);
+@(i<=n);
+i++;
+printf("%d\n",inv[i]);
+@(!(i<=n));
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:10
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3910958] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

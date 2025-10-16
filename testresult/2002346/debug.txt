@@ -1,0 +1,527 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3912653]
+equals!!!!!'0'!!!!
+equals!!!!!'9'!!!!
+equals!!!!!ch > '9'!!!!
+equals!!!!!'-'!!!!
+equals!!!!!0!!!!
+equals!!!!!getchar()!!!!
+equals!!!!!'0'!!!!
+equals!!!!!'9'!!!!
+equals!!!!!ch <= '9'!!!!
+equals!!!!!10!!!!
+equals!!!!!'0'!!!!
+equals!!!!!(ch ^ '0')!!!!
+equals!!!!!x * 10 + (ch ^ '0')!!!!
+equals!!!!!getchar()!!!!
+equals!!!!!-x!!!!
+equals!!!!!0!!!!
+equals!!!!!-x!!!!
+equals!!!!!x = -x!!!!
+equals!!!!!9!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!'0'!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!r!!!!
+equals!!!!!rd()!!!!
+equals!!!!!r!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!build(rc(u), m + 1, r)!!!!
+equals!!!!!tr[rc(u)].sum!!!!
+equals!!!!!tr[lc(u)].sum + tr[rc(u)].sum!!!!
+equals!!!!!r!!!!
+equals!!!!!l!!!!
+equals!!!!!R < l!!!!
+equals!!!!!(r)!!!!
+equals!!!!!(r)!!!!
+equals!!!!!(l)!!!!
+equals!!!!!(l)!!!!
+equals!!!!!(((L) > (l)) ? (L) : (l))!!!!
+equals!!!!!1!!!!
+equals!!!!!((((R) < (r)) ? (R) : (r)) - (((L) > (l)) ? (L) : (l)) + 1)!!!!
+equals!!!!!val!!!!
+equals!!!!!1ll * ((((R) < (r)) ? (R) : (r)) - (((L) > (l)) ? (L) : (l)) + 1) * val!!!!
+equals!!!!!L!!!!
+equals!!!!!r!!!!
+equals!!!!!R <= r!!!!
+equals!!!!!val!!!!
+equals!!!!!R!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!add(rc(u), l, r, M + 1, R, val)!!!!
+equals!!!!!r!!!!
+equals!!!!!l!!!!
+equals!!!!!R < l!!!!
+equals!!!!!L!!!!
+equals!!!!!r!!!!
+equals!!!!!R <= r!!!!
+equals!!!!!(r)!!!!
+equals!!!!!(r)!!!!
+equals!!!!!(l)!!!!
+equals!!!!!(l)!!!!
+equals!!!!!(((L) > (l)) ? (L) : (l))!!!!
+equals!!!!!1!!!!
+equals!!!!!((((R) < (r)) ? (R) : (r)) - (((L) > (l)) ? (L) : (l)) + 1)!!!!
+equals!!!!!delta * ((((R) < (r)) ? (R) : (r)) - (((L) > (l)) ? (L) : (l)) + 1)!!!!
+equals!!!!!R!!!!
+equals!!!!!1!!!!
+equals!!!!!tr[u].tag_add!!!!
+equals!!!!!1!!!!
+equals!!!!!tr[u].tag_add!!!!
+equals!!!!!sum(rc(u), l, r, M + 1, R, delta + tr[u].tag_add)!!!!
+equals!!!!!rd()!!!!
+equals!!!!!rd()!!!!
+equals!!!!!q = rd()!!!!
+equals!!!!!rd()!!!!
+equals!!!!!rd()!!!!
+equals!!!!!l = rd()!!!!
+equals!!!!!rd()!!!!
+equals!!!!!r = rd()!!!!
+equals!!!!!1!!!!
+equals!!!!!rd()!!!!
+equals!!!!!add(1, l, r, 1, n, val)!!!!
+equals!!!!!putchar('\n')!!!!
+DFS is ready to dump ~
+SIZE!!51
+Path:typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+i64 delta;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;
+
+find an undefined symbol: getchar, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "val" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "L" already exists!
+warning: a declaration with the name "R" already exists!
+warning: a declaration with the name "M" already exists!
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+i64 delta;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;
+
+find an undefined symbol: getchar, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "val" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "L" already exists!
+warning: a declaration with the name "R" already exists!
+warning: a declaration with the name "M" already exists!
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+i64 delta;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;
+
+find an undefined symbol: getchar, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "val" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "L" already exists!
+warning: a declaration with the name "R" already exists!
+warning: a declaration with the name "M" already exists!
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+i64 delta;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;
+
+find an undefined symbol: getchar, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "val" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "L" already exists!
+warning: a declaration with the name "R" already exists!
+warning: a declaration with the name "M" already exists!
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+Error: unsupported type for sort: i64, file: /home/zhangliwei/eppather/epat++/libepat++/src/smt_expr.cpp, line: 53
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+Path:typedef long long i64;
+int n, q;
+int op, l, r, val;
+struct node
+{
+i64 sum, tag_add;
+} tr[1000010 << 2];
+i64 x = 0, f = 1;
+char ch = getchar();
+i64 x;
+int x;
+int x;
+int u;
+int l;
+int r;
+int u;
+int l;
+int r;
+int L;
+int R;
+int val;
+int M = (L + R) >> 1;
+int u;
+int l;
+int r;
+int L;
+int R;
+i64 delta;
+int M = (L + R) >> 1;
+@(ch < '0' || ch > '9');
+@(!(ch == '-'));
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(ch < '0' || ch > '9');
+@(ch == '-');
+f = 0;
+
+ch = getchar();
+@(!(ch < '0' || ch > '9'));
+
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(ch >= '0' && ch <= '9');
+x = x * 10 + (ch ^ '0');
+ch = getchar();
+@(!(ch >= '0' && ch <= '9'));
+
+return f ? x : -x;
+
+find an undefined symbol: getchar, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "val" already exists!
+warning: a declaration with the name "u" already exists!
+warning: a declaration with the name "l" already exists!
+warning: a declaration with the name "r" already exists!
+warning: a declaration with the name "L" already exists!
+warning: a declaration with the name "R" already exists!
+warning: a declaration with the name "M" already exists!
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+find an undefined symbol: getchar, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff755ac99 in Z3_inc_ref () from /usr/lib/x86_64-linux-gnu/libz3.so.4
+A debugging session is active.
+
+	Inferior 1 [process 3912612] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

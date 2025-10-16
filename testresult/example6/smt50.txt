@@ -1,0 +1,70 @@
+; 
+(set-info :status unknown)
+(declare-fun size@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x115 (ite (bvslt (_ bv0 32) size@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x115 (_ bv0 32)) true)))
+(assert
+ (let ((?x10 (ite (= (bvsmod (bvadd (_ bv0 32) (_ bv1 32)) (_ bv2 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x10 (_ bv0 32)) true)))
+(assert
+ (and (bvsle (_ bv0 32) (bvadd (_ bv0 32) (_ bv1 32))) (bvslt (bvadd (_ bv0 32) (_ bv1 32)) (_ bv10 32))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x74 (select ?x28 (_ bv1 32))))
+ (let ((?x41 (ite (not (and (distinct (ite (= (bvsmod ?x74 (_ bv2 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x41 (_ bv0 32)) true))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (let (($x72 (not (and (distinct (ite (and (distinct (bvsmod ?x63 (_ bv2 32)) (_ bv0 32)) true) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (and (distinct (ite $x72 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (and (bvsle (_ bv0 32) ?x63) (bvslt ?x63 (_ bv10 32)))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x74 (select ?x28 (_ bv1 32))))
+ (and (distinct (ite (bvsgt ?x74 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (and (bvsle (_ bv0 32) ?x63) (bvslt ?x63 (_ bv10 32)))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (let ((?x130 (bvsub ?x63 (_ bv1 32))))
+ (and (bvsle (_ bv0 32) ?x130) (bvslt ?x130 (_ bv10 32))))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x74 (select ?x28 (_ bv1 32))))
+ (let (($x30 (and (and (distinct (ite (bvsgt (select ?x28 (_ bv12 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsgt ?x74 (select ?x28 (_ bv0 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (and (distinct (ite (not (and (distinct (ite $x30 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (and (bvsle (_ bv0 32) ?x63) (bvslt ?x63 (_ bv10 32)))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x74 (select ?x28 (_ bv1 32))))
+ (let ((?x16 (ite (not (and (distinct (ite (bvslt ?x74 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x16 (_ bv0 32)) true))))))
+(assert
+ (let ((?x43 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x28 (store (store (store %a (_ bv11 32) (_ bv0 32)) (_ bv10 32) size@0@0) (_ bv12 32) ?x43)))
+ (let ((?x63 (select ?x28 (_ bv12 32))))
+ (let ((?x60 (ite (not (and (distinct (ite (bvslt ?x63 (select ?x28 (_ bv10 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x60 (_ bv0 32)) true))))))
+(check-sat)
+

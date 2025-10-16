@@ -1,0 +1,1 @@
+c programs from https://github.com/lennylxx/leetcode/blob/master/src/1.c

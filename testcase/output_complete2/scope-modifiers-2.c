@@ -1,0 +1,7 @@
+int code(int x) {
+    int v[5];
+    int p[5];
+    v[0] = 0;
+    p[0] = 0;
+    return;
+}

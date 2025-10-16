@@ -1,0 +1,141 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3890520]
+equals!!!!!pos.index!!!!
+equals!!!!!1!!!!
+equals!!!!!pos.index + 1!!!!
+equals!!!!!src[pos.loop_r]!!!!
+equals!!!!!src[pos.loop_l] <= src[pos.loop_r]!!!!
+equals!!!!!src[pos.loop_r]!!!!
+equals!!!!!pos.index!!!!
+equals!!!!!pos.loop_l!!!!
+equals!!!!!pos.loop_l!!!!
+equals!!!!!len!!!!
+equals!!!!!pos.index!!!!
+equals!!!!!fread(s, 1, 1048577, stdin)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!!isalpha(*(s_top-1))!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!ans_top!!!!
+DFS is ready to dump ~
+SIZE!!24
+Path:char s[1048577];
+int ans[1048577];
+int *dest;
+const char *src;
+struct duval_triple pos = { 0, 0, 1 };
+char *s_top = s + fread(s, 1, 1048577, stdin);
+int *ans_top = duval(ans, s);
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(src[pos.index]);
+pos.loop_l = pos.index;
+pos.loop_r = pos.index + 1;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]);
+@(src[pos.loop_l] < src[pos.loop_r]);
+pos.loop_l = pos.index;
+
+pos.loop_r++;
+@(!(src[pos.loop_r] && src[pos.loop_l] <= src[pos.loop_r]));
+
+int len = pos.loop_r - pos.loop_l;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(pos.index <= pos.loop_l);
+pos.index += len;
+*dest++ = pos.index;
+@(!(pos.index <= pos.loop_l));
+
+@(!(src[pos.index]));
+
+return dest;
+
+error: struct duval_triple not found
+find an undefined symbol: fread, assuming it is a function.
+find an undefined symbol: stdin, assuming it is a function.
+find an undefined symbol: duval, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559c098f in std::vector<std::shared_ptr<epat::FieldDecl>, std::allocator<std::shared_ptr<epat::FieldDecl> > >::begin() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3890497] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

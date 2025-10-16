@@ -1,0 +1,50 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3895002]
+equals!!!!!sizeof (int)!!!!
+equals!!!!!sizeof (void *)!!!!
+equals!!!!!4 * sizeof (void *)!!!!
+equals!!!!!sizeof (size_t)!!!!
+equals!!!!!y!!!!
+equals!!!!!n!!!!
+equals!!!!!-x!!!!
+equals!!!!!(x&-x)!!!!
+equals!!!!!j!!!!
+equals!!!!!m!!!!
+equals!!!!!-y!!!!
+equals!!!!!(y&-y)!!!!
+equals!!!!!key!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!y!!!!
+equals!!!!!-x!!!!
+equals!!!!!(x&-x)!!!!
+equals!!!!!j!!!!
+equals!!!!!-y!!!!
+equals!!!!!(y&-y)!!!!
+equals!!!!!BIT[x][y]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!SUM(BIT,A-1,Y)!!!!
+equals!!!!!1!!!!
+equals!!!!!SUM(BIT,X,B-1)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!SUM(BIT,A-1,B-1)!!!!
+equals!!!!!SUM(BIT,X,Y)-SUM(BIT,A-1,Y)-SUM(BIT,X,B-1)+SUM(BIT,A-1,B-1)!!!!
+CATALOG
+TranslationUnit
+	Types: elem FILE __fpos_t fpos_t __builtin_va_list __off_t __uint32_t __uint8_t __off64_t __int16_t size_t __int64_t __int8_t __int32_t _IO_lock_t __uint16_t __uint64_t __gnuc_va_list __mbstate_t 
+	Any: K A choose update j ADD BIT elem b __overflow clearerr fwrite __ptr fread fsetpos ungetc puts fputs putchar putc __c fputc getchar fgetc x vscanf __scanf__ sscanf scanf vsnprintf SUM __printf__ __maxlen snprintf y vfprintf main sprintf printf __arg __n __ssize_t rewind __sig_atomic_t __blksize_t __useconds_t __time_t __rlim64_t __wch __rlim_t __int32_t __id_t fprintf __clockid_t __int_least8_t fgets freopen __val __off64_t __uint32_t getc stdin __blkcnt64_t a _IO_read_base __off_t ferror __value __ino_t __int8_t vsscanf vsprintf __int_least64_t _vtable_offset __pid_t __uint64_t __syscall_slong_t _IO_read_ptr rename perror __suseconds_t size_t __uint16_t B __int16_t __daddr_t _IO_backup_base __fsblkcnt64_t __u_int __fsfilcnt_t __uint_least16_t __intmax_t __u_char __uint_least64_t __ino64_t __key_t __uint_least8_t __u_quad_t __int_least32_t __intptr_t __uint_least32_t __whence __fpos64_t __fsblkcnt_t __filename i __fsword_t __clock_t __fsid_t __quad_t fflush __mode_t __size __uintmax_t __state __u_long __timer_t _IO_save_base fgetpos __nlink_t _IO_write_end key m __off __int_least16_t remove _lock __dev_t __u_short vfscanf _IO_read_end __fsfilcnt64_t __gid_t _IO_save_end __stream _unused2 __uid_t __int64_t __syscall_ulong_t __loff_t __caddr_t _shortbuf __mbstate_t __count Y __wchb _mode __pos __FILE FILE _flags fclose _IO_write_ptr _IO_buf_base __fpos_t _IO_buf_end __pad5 _markers _old_offset X __uint8_t _chain _fileno ftell __gnuc_va_list _cur_column _offset __uflow _codecvt vprintf __blkcnt_t _wide_data fscanf stdout _freeres_list __old __format _freeres_buf fpos_t _flags2 stderr __new __socklen_t tmpfile sum tmpnam _IO_lock_t __modes fseek __s fopen feof setbuf n _IO_write_base __buf setvbuf 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3894990] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

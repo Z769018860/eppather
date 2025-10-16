@@ -1,0 +1,44 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881448]
+equals!!!!!1!!!!
+equals!!!!!2!!!!
+equals!!!!!(n+1)/2!!!!
+equals!!!!!m!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!n-1-i!!!!
+equals!!!!!a[i]!!!!
+equals!!!!!a[j]!!!!
+equals!!!!!temp!!!!
+DFS is ready to dump ~
+SIZE!!14
+Path:int a[5];
+int n;
+int m;
+int i=0;
+int temp;
+m==(n+1)/2;
+i;
+@(i<m);
+i=i+1;
+int j;
+j=n-1-i;
+temp=a[i];
+a[i]=a[j];
+a[j]=temp;
+
+feasible!!!
+[mem]:4
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000002)
+(define-fun m@0@0 () (_ BitVec 32)
+  #x00000001)
+[MATRIX]:
+1 1 1 1 1 1 1 1 0 1 1 1 1 1 
+[matrix_before]:
+1 1 1 1 1 1 1 1 0 1 1 1 1 1 
+[Inferior 1 (process 3881431) exited normally]

@@ -1,0 +1,23 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908643]
+equals!!!!!*m!!!!
+equals!!!!!s[m[1]]!!!!
+equals!!!!!"Yes"!!!!
+54259.c:2:12 warning: missing type specifier, assume `int'
+char s[101];m[2],r[16];main(){for(;gets(s);)puts(regexec(r,gets(s),1,m,regcomp(r,s,1))|*m|s[m[1]]?"No":"Yes");}
+            ^
+54259.c:2:23 warning: missing type specifier, assume `int'
+char s[101];m[2],r[16];main(){for(;gets(s);)puts(regexec(r,gets(s),1,m,regcomp(r,s,1))|*m|s[m[1]]?"No":"Yes");}
+                       ^
+
+DFS is ready to dump ~
+SIZE!!4
+Path:char s[101];
+m[2],r[16];
+@(gets(s));
+;
+puts(regexec(r,gets(s),1,m,regcomp(r,s,1))|*m|s[m[1]]?"No":"Yes");
+
+find an undefined symbol: m, assuming it is a function.
+[Inferior 1 (process 3908628) exited with code 01]

@@ -1,0 +1,37 @@
+int num;
+int mask;
+int result = 0;
+int masked = num & mask;
+int arr[5];
+int size;
+int mask;
+int totalSum = 0;
+@((num & 2863311530) == 2863311530);
+result = result + num;
+
+@(!((num & 1431655765) == 0));
+
+
+@(masked > 1);
+int isPrime = 1;
+int i = 2;
+@(i * i <= masked);
+i = i + 1;
+@(masked % i == 0);
+isPrime = 0;
+break;
+
+;
+@(i * i <= masked);
+i = i + 1;
+@(!(masked % i == 0));
+
+
+;
+@(!(i * i <= masked));
+@(isPrime);
+result = result + masked;
+
+;
+
+return result;

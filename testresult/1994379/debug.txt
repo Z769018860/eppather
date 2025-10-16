@@ -1,0 +1,16 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3895715]
+DFS is ready to dump ~
+SIZE!!3
+Path:char s[] = "#include <stdio.h>%cint main() {%c char s[] = %c%s%c%c%c printf(s, 10, 10, 34, s, 34, ';', 10, ';', 10)%c%c}";
+printf(s, 10, 10, 34, s, 34, ';', 10, ';', 10);
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00005555559a889c in std::__uniq_ptr_impl<epat::Expr, std::default_delete<epat::Expr> >::_M_ptr() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3895686] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

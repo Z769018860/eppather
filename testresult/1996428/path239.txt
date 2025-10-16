@@ -1,0 +1,110 @@
+int a[1000001];
+long long t[1000001];
+long long x;
+long long n, q;
+long long c, m, d;
+long long i, j;
+long long ans1,ans2;
+scanf("%lld %lld", &n, &q);
+i = 1;
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+@(i <= n);
+i++;
+scanf("%lld", t + i);
+@(!(i <= n));
+i = 1;
+@(i <= n);
+i++;
+@(i + lowbit(i) <= n);
+t[i + lowbit(i)] += t[i];
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+@(i <= n);
+i++;
+@(!(i + lowbit(i) <= n));
+
+@(!(i <= n));
+i = 1;
+@(i <= q);
+i++;
+scanf("%lld %lld %lld", &c, &m, &d);
+@(!(c == 1));
+
+@(c == 2);
+ans1 = 0;
+ans2 = 0;
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(!(d > 0));
+
+m -= 1;
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1 - ans2);
+
+@(i <= q);
+i++;
+scanf("%lld %lld %lld", &c, &m, &d);
+@(!(c == 1));
+
+@(!(c == 2));
+
+@(i <= q);
+i++;
+scanf("%lld %lld %lld", &c, &m, &d);
+@(!(c == 1));
+
+@(c == 2);
+ans1 = 0;
+ans2 = 0;
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(d > 0);
+ans1 += t[d];
+d -= lowbit(d);
+@(!(d > 0));
+
+m -= 1;
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(m > 0);
+ans2 += t[m];
+m-= lowbit(m);
+@(!(m > 0));
+
+printf("%lld\n", ans1 - ans2);
+
+@(!(i <= q));
+return 0;

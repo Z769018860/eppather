@@ -1,0 +1,77 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881302]
+equals!!!!!42!!!!
+equals!!!!!42!!!!
+equals!!!!!42!!!!
+equals!!!!!1!!!!
+equals!!!!!x+1!!!!
+equals!!!!!x!!!!
+equals!!!!!1!!!!
+equals!!!!!i+1!!!!
+equals!!!!!x!!!!
+equals!!!!!i * x!!!!
+equals!!!!!ret + i * x!!!!
+equals!!!!!flag!!!!
+DFS is ready to dump ~
+SIZE!!11
+Path:int flag;
+int x;
+@(flag > 42);
+return x + 42;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun flag@0@0 () (_ BitVec 32)
+  #x0000002b)
+Path:int flag;
+int x;
+@(!(flag > 42));
+
+@(flag==42);
+x=x+1;
+
+
+return 42 + flag;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun flag@0@0 () (_ BitVec 32)
+  #x0000002a)
+Path:int flag;
+int x;
+@(!(flag > 42));
+
+@(!(flag==42));
+int ret = 0;
+int i = 0;
+@(i < x);
+i=i+1;
+ret = ret + i * x;
+@(i < x);
+i=i+1;
+ret = ret + i * x;
+@(i < x);
+i=i+1;
+ret = ret + i * x;
+@(!(i < x));
+return ret;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun x@0@0 () (_ BitVec 32)
+  #x00000003)
+(define-fun flag@0@0 () (_ BitVec 32)
+  #x00000000)
+[MATRIX]:
+1 1 1 0 0 0 0 0 0 0 0 
+1 1 0 1 1 0 0 0 0 0 1 
+1 1 0 1 0 1 1 0 1 1 0 
+[matrix_before]:
+1 1 1 0 0 0 0 0 0 0 0 
+1 1 0 1 1 0 0 0 0 0 1 
+1 1 0 1 0 1 1 0 1 1 0 
+[Inferior 1 (process 3881279) exited normally]

@@ -1,0 +1,2 @@
+#import<bits/stdc++.h>
+using namespace std;int main(){int n,d;cin>>n>>d;vector g(n,vector<int>(d));for(auto &i:g)for(int &j:i)cin>>j,j--;mt19937 m(time(0));uniform_int_distribution<>u(0,d-1);vector<int> p(n),r(n,-1),h(n,-1);iota(p.begin(),p.end(),0),shuffle(p.begin(),p.end(),m);vector<bool> b(n);for(int &i:p){vector<int> s={i};while(1){int v=r[i];while(v==r[i])v=g[i][u(m)];while(b[v])s.pop_back(),b[s.back()]=0,s.pop_back();if(b[v]=1,s.push_back(v);h[v]<0)break; s.push_back(i=h[v]);}for(int j=0;j<s.size();j+=2)b[r[h[s[j+1]]=s[j]]=s[j+1]]=0;}for(int i:r)cout<<i+1<<' ';}

@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=11"/>
+<meta name="generator" content="Doxygen 1.9.4"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>feasibility: C:/Users/Lenovo/source/repos/feasibility/feasibility/driver.h 源文件</title>
+<link href="tabs.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
+<link href="search/search.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="search/searchdata.js"></script>
+<script type="text/javascript" src="search/search.js"></script>
+<link href="doxygen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<div id="top"><!-- do not remove this div, it is closed by doxygen! -->
+<div id="titlearea">
+<table cellspacing="0" cellpadding="0">
+ <tbody>
+ <tr id="projectrow">
+  <td id="projectalign">
+   <div id="projectname">feasibility<span id="projectnumber">&#160;1.4.2</span>
+   </div>
+   <div id="projectbrief">path feasibility</div>
+  </td>
+ </tr>
+ </tbody>
+</table>
+</div>
+<!-- end header part -->
+<!-- 制作者 Doxygen 1.9.4 -->
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+var searchBox = new SearchBox("searchBox", "search",'搜索','.html');
+/* @license-end */
+</script>
+<script type="text/javascript" src="menudata.js"></script>
+<script type="text/javascript" src="menu.js"></script>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(function() {
+  initMenu('',true,false,'search.php','搜索');
+  $(document).ready(function() { init_search(); });
+});
+/* @license-end */
+</script>
+<div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:d3d9a9a6595521f9666a5e94cc830dab83b65699&amp;dn=expat.txt MIT */
+$(document).ready(function(){initNavTree('driver_8h_source.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
+<!-- window showing the filter options -->
+<div id="MSearchSelectWindow"
+     onmouseover="return searchBox.OnSearchSelectShow()"
+     onmouseout="return searchBox.OnSearchSelectHide()"
+     onkeydown="return searchBox.OnSearchSelectKey(event)">
+</div>
+
+<!-- iframe showing the search results (closed by default) -->
+<div id="MSearchResultsWindow">
+<iframe src="javascript:void(0)" frameborder="0" 
+        name="MSearchResults" id="MSearchResults">
+</iframe>
+</div>
+
+<div class="header">
+  <div class="headertitle"><div class="title">driver.h</div></div>
+</div><!--header-->
+<div class="contents">
+<a href="driver_8h.html">浏览该文件的文档.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span> </div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#ifndef TOOL_DRIVER_H</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#define TOOL_DRIVER_H</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span> </div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="preprocessor">#include &lt;map&gt;</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#include &lt;vector&gt;</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#include &lt;iostream&gt;</span></div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span> </div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="comment">//# define YY_DECL \</span></div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="comment">//  tool::Parser::symbol_type yylex (Driver&amp; drv)</span></div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="comment"></span><span class="comment">//YY_DECL;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno"><a class="line" href="namespacetool.html">   27</a></span><span class="keyword">namespace </span><a class="code hl_namespace" href="namespacetool.html">tool</a> {</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>    <span class="comment">// class location;</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>    <span class="keyword">class </span>Scanner;</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>    <span class="keyword">class </span>Solver;</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>    <span class="keyword">class </span>location;</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span> </div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>    <span class="keyword">class </span>Context;</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>    <span class="keyword">class </span>Node;</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>    <span class="keyword">class </span>QualType;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span> </div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>    <span class="keyword">enum class</span> result;</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html">   43</a></span>    <span class="keyword">class </span><a class="code hl_class" href="classtool_1_1_driver.html">Driver</a></div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>    {</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        <span class="keyword">friend</span> <span class="keyword">class </span>Parser;</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        <span class="keyword">friend</span> <span class="keyword">class </span>Scanner;</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        Scanner* lexer = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        Solver* solver = <span class="keyword">nullptr</span>;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        std::vector&lt;Context*&gt; ctxs;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>        <span class="keywordtype">bool</span> analyzed = <span class="keyword">false</span>, parsed = <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        <span class="comment">// int path_type = 0;</span></div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        result res;</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        std::string source_name = <span class="stringliteral">&quot;no source&quot;</span>;</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>        QualType&amp; qt;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordtype">void</span> setQualType(<span class="keyword">const</span> QualType&amp; qt);</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        QualType&amp; getQualType();</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span> </div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>        <span class="comment">// Whether to generate parser debug traces.</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>        <span class="keywordtype">bool</span> trace_parsing;</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        <span class="comment">// Handling the scanner.</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <span class="comment">//void scan_begin ();</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        <span class="comment">//void scan_end ();</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        <span class="comment">// Whether to generate scanner debug traces.</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <span class="keywordtype">bool</span> trace_scanning;</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <span class="comment">// The token&#39;s location used by the scanner.</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        tool::location&amp; location;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordtype">void</span> reset();</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a49d36a71daa65eeb3215ca058b1069be">   74</a></span>        <a class="code hl_function" href="classtool_1_1_driver.html#a49d36a71daa65eeb3215ca058b1069be">Driver</a>();</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#aae18ce12dd6deb8ccb29f85585cf1d9a">   78</a></span>        <a class="code hl_function" href="classtool_1_1_driver.html#aae18ce12dd6deb8ccb29f85585cf1d9a">~Driver</a>();</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        Context* getContext() { <span class="keywordflow">return</span> ctxs.back(); }</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>        <span class="keywordtype">void</span> push(Context* ctx);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>        <span class="keywordtype">void</span> pop();</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="keywordtype">void</span> pushAST(Node* node);</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a734d68851c8ba455c0bbb86afeb10bb1">   87</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#a734d68851c8ba455c0bbb86afeb10bb1">printAST</a>();</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ad04b46e47b13858105fee24884344cec">   92</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#ad04b46e47b13858105fee24884344cec">printAST</a>(std::ostream&amp; os);</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ad7e8880631aedd9ff9fa094c48805b61">   96</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#ad7e8880631aedd9ff9fa094c48805b61">printCode</a>();</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a44459558a354a29ca9b9b9bc21897d88">  101</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#a44459558a354a29ca9b9b9bc21897d88">printCode</a>(std::ostream&amp; os);</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ad97cc8af734900e8b100e9f6483dcec9">  111</a></span>        <span class="keywordtype">bool</span> <a class="code hl_function" href="classtool_1_1_driver.html#ad97cc8af734900e8b100e9f6483dcec9">feasible</a>();</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ae9c28fe8e01c68cbc263647b71617855">  120</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#ae9c28fe8e01c68cbc263647b71617855">feasible</a>(std::istream&amp; in, <span class="keyword">const</span> std::string &amp;in_name = <span class="stringliteral">&quot;stream input&quot;</span>);</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a132a04f41ecf1111f69ee58928efd2d5">  129</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#a132a04f41ecf1111f69ee58928efd2d5">feasible</a>(<span class="keyword">const</span> std::string&amp; in, <span class="keyword">const</span> std::string&amp; in_name = <span class="stringliteral">&quot;string stream&quot;</span>);</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        <span class="comment">// int feasible(const std::string&amp; file_name);</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        </div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#af979308b4826c265ce19b7dc4e5e191b">  140</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#af979308b4826c265ce19b7dc4e5e191b">parseStream</a>(std::istream&amp; in, <span class="keyword">const</span> std::string&amp; in_name = <span class="stringliteral">&quot;stream input&quot;</span>);</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a831cb81529a8a17058f98d11c6c4966a">  149</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#a831cb81529a8a17058f98d11c6c4966a">parseString</a>(<span class="keyword">const</span> std::string&amp; in, <span class="keyword">const</span> std::string&amp; in_name = <span class="stringliteral">&quot;string stream&quot;</span>);</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a19220ef79e8aff372087903a1a59d1b2">  157</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#a19220ef79e8aff372087903a1a59d1b2">parseFile</a>(<span class="keyword">const</span> std::string&amp; file_name);</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        </div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ac016e03decd7cc71471240d7b9b56f9b">  165</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#ac016e03decd7cc71471240d7b9b56f9b">printModel</a>(std::ostream&amp; os = std::cout);</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a3688a79cbf651f7199cae843474a19e5">  172</a></span>        std::string <a class="code hl_function" href="classtool_1_1_driver.html#a3688a79cbf651f7199cae843474a19e5">getModel</a>();</div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#ac5d4f8a9fa5719b4e5416a688f4f9cfc">  179</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#ac5d4f8a9fa5719b4e5416a688f4f9cfc">printSMT2</a>(std::ostream&amp; os = std::cout);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a0df3cac997c1d8a9eb25c8c424c013df">  186</a></span>        std::string <a class="code hl_function" href="classtool_1_1_driver.html#a0df3cac997c1d8a9eb25c8c424c013df">getSMT2</a>();</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a404cabc307ff12c7be40de47f730fa9c">  191</a></span>        <span class="keywordtype">void</span> <a class="code hl_function" href="classtool_1_1_driver.html#a404cabc307ff12c7be40de47f730fa9c">printMem</a>(std::ostream&amp; os = std::cout);</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno"><a class="line" href="classtool_1_1_driver.html#a504efe451060fe69aa01d78189abde23">  196</a></span>        <span class="keywordtype">int</span> <a class="code hl_function" href="classtool_1_1_driver.html#a504efe451060fe69aa01d78189abde23">getMem</a>();</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>    };</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>}</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span> </div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="preprocessor">#endif </span><span class="comment">// !TOOL_DRIVER_H</span></div>
+<div class="ttc" id="aclasstool_1_1_driver_html"><div class="ttname"><a href="classtool_1_1_driver.html">tool::Driver</a></div><div class="ttdoc">接口类Driver 工具的接口类Driver，在使用工具时，需要先实例化一个Driver类</div><div class="ttdef"><b>Definition:</b> <a href="driver_8h_source.html#l00043">driver.h:44</a></div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a0df3cac997c1d8a9eb25c8c424c013df"><div class="ttname"><a href="classtool_1_1_driver.html#a0df3cac997c1d8a9eb25c8c424c013df">tool::Driver::getSMT2</a></div><div class="ttdeci">std::string getSMT2()</div><div class="ttdoc">获取可行输入的解空间</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a132a04f41ecf1111f69ee58928efd2d5"><div class="ttname"><a href="classtool_1_1_driver.html#a132a04f41ecf1111f69ee58928efd2d5">tool::Driver::feasible</a></div><div class="ttdeci">int feasible(const std::string &amp;in, const std::string &amp;in_name=&quot;string stream&quot;)</div><div class="ttdoc">从字符串中分析路径可行性</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a19220ef79e8aff372087903a1a59d1b2"><div class="ttname"><a href="classtool_1_1_driver.html#a19220ef79e8aff372087903a1a59d1b2">tool::Driver::parseFile</a></div><div class="ttdeci">int parseFile(const std::string &amp;file_name)</div><div class="ttdoc">从文件中读取路径</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a3688a79cbf651f7199cae843474a19e5"><div class="ttname"><a href="classtool_1_1_driver.html#a3688a79cbf651f7199cae843474a19e5">tool::Driver::getModel</a></div><div class="ttdeci">std::string getModel()</div><div class="ttdoc">获取可行的初始输入</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a404cabc307ff12c7be40de47f730fa9c"><div class="ttname"><a href="classtool_1_1_driver.html#a404cabc307ff12c7be40de47f730fa9c">tool::Driver::printMem</a></div><div class="ttdeci">void printMem(std::ostream &amp;os=std::cout)</div><div class="ttdoc">打印数组访存次数</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a44459558a354a29ca9b9b9bc21897d88"><div class="ttname"><a href="classtool_1_1_driver.html#a44459558a354a29ca9b9b9bc21897d88">tool::Driver::printCode</a></div><div class="ttdeci">void printCode(std::ostream &amp;os)</div><div class="ttdoc">打印路径代码</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a49d36a71daa65eeb3215ca058b1069be"><div class="ttname"><a href="classtool_1_1_driver.html#a49d36a71daa65eeb3215ca058b1069be">tool::Driver::Driver</a></div><div class="ttdeci">Driver()</div><div class="ttdoc">Driver的构造函数</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a504efe451060fe69aa01d78189abde23"><div class="ttname"><a href="classtool_1_1_driver.html#a504efe451060fe69aa01d78189abde23">tool::Driver::getMem</a></div><div class="ttdeci">int getMem()</div><div class="ttdoc">获取数组访存次数</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a734d68851c8ba455c0bbb86afeb10bb1"><div class="ttname"><a href="classtool_1_1_driver.html#a734d68851c8ba455c0bbb86afeb10bb1">tool::Driver::printAST</a></div><div class="ttdeci">void printAST()</div><div class="ttdoc">打印抽象语法树</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_a831cb81529a8a17058f98d11c6c4966a"><div class="ttname"><a href="classtool_1_1_driver.html#a831cb81529a8a17058f98d11c6c4966a">tool::Driver::parseString</a></div><div class="ttdeci">int parseString(const std::string &amp;in, const std::string &amp;in_name=&quot;string stream&quot;)</div><div class="ttdoc">从字符串中读取路径</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_aae18ce12dd6deb8ccb29f85585cf1d9a"><div class="ttname"><a href="classtool_1_1_driver.html#aae18ce12dd6deb8ccb29f85585cf1d9a">tool::Driver::~Driver</a></div><div class="ttdeci">~Driver()</div><div class="ttdoc">Driver的析构函数</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ac016e03decd7cc71471240d7b9b56f9b"><div class="ttname"><a href="classtool_1_1_driver.html#ac016e03decd7cc71471240d7b9b56f9b">tool::Driver::printModel</a></div><div class="ttdeci">void printModel(std::ostream &amp;os=std::cout)</div><div class="ttdoc">打印可行的初始输入</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ac5d4f8a9fa5719b4e5416a688f4f9cfc"><div class="ttname"><a href="classtool_1_1_driver.html#ac5d4f8a9fa5719b4e5416a688f4f9cfc">tool::Driver::printSMT2</a></div><div class="ttdeci">void printSMT2(std::ostream &amp;os=std::cout)</div><div class="ttdoc">打印可行输入的解空间</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ad04b46e47b13858105fee24884344cec"><div class="ttname"><a href="classtool_1_1_driver.html#ad04b46e47b13858105fee24884344cec">tool::Driver::printAST</a></div><div class="ttdeci">void printAST(std::ostream &amp;os)</div><div class="ttdoc">打印抽象语法树</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ad7e8880631aedd9ff9fa094c48805b61"><div class="ttname"><a href="classtool_1_1_driver.html#ad7e8880631aedd9ff9fa094c48805b61">tool::Driver::printCode</a></div><div class="ttdeci">void printCode()</div><div class="ttdoc">打印路径代码。</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ad97cc8af734900e8b100e9f6483dcec9"><div class="ttname"><a href="classtool_1_1_driver.html#ad97cc8af734900e8b100e9f6483dcec9">tool::Driver::feasible</a></div><div class="ttdeci">bool feasible()</div><div class="ttdoc">分析路径可行性。</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_ae9c28fe8e01c68cbc263647b71617855"><div class="ttname"><a href="classtool_1_1_driver.html#ae9c28fe8e01c68cbc263647b71617855">tool::Driver::feasible</a></div><div class="ttdeci">int feasible(std::istream &amp;in, const std::string &amp;in_name=&quot;stream input&quot;)</div><div class="ttdoc">从流中分析路径可行性</div></div>
+<div class="ttc" id="aclasstool_1_1_driver_html_af979308b4826c265ce19b7dc4e5e191b"><div class="ttname"><a href="classtool_1_1_driver.html#af979308b4826c265ce19b7dc4e5e191b">tool::Driver::parseStream</a></div><div class="ttdeci">int parseStream(std::istream &amp;in, const std::string &amp;in_name=&quot;stream input&quot;)</div><div class="ttdoc">从流中读取路径</div></div>
+<div class="ttc" id="anamespacetool_html"><div class="ttname"><a href="namespacetool.html">tool</a></div><div class="ttdoc">工具接口的命名空间 工具接口的命名空间，使用using namespace tool来方便调用接口</div><div class="ttdef"><b>Definition:</b> <a href="driver_8h_source.html#l00027">driver.h:27</a></div></div>
+</div><!-- fragment --></div><!-- contents -->
+</div><!-- doc-content -->
+<!-- start footer part -->
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="navelem"><a class="el" href="dir_938f5fa34b9deec8f38d573e58f3644e.html">feasibility</a></li><li class="navelem"><a class="el" href="driver_8h.html">driver.h</a></li>
+    <li class="footer">制作者 <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.4 </li>
+  </ul>
+</div>
+</body>
+</html>

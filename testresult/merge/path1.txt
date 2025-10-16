@@ -1,0 +1,16 @@
+int arr[10];
+int l;
+int m;
+int r;
+int i, j, k;
+int n1 = m - l + 1;
+int n2 = r - m;
+int L[n1], R[n2];
+int arr[10];
+int l;
+int r;
+@(l < r);
+int m = l + (r - l) / 2;
+mergeSort(arr, l, m);
+mergeSort(arr, m + 1, r);
+merge(arr, l, m, r);

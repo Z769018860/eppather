@@ -1,0 +1,33 @@
+void maxSubseq(int sequence[5], int len, int result[3]) {
+    int maxSum[5] = {0};
+    int thisSum[5] = {0};
+    int i[5] = {0};
+    int start[5] = {0};
+    int end[5] = {-1};
+    int j;
+    
+    for (j = 0; j < len; j = j + 1) {
+        thisSum[0] = thisSum[0] + sequence[j];
+        if (thisSum[0] < 0) {
+            i[0] = j + 1;
+            thisSum[0] = 0;
+        } else {
+            if (thisSum[0] > maxSum[0]) {
+                maxSum[0] = thisSum[0];
+                start[0] = i[0];
+                end[0] = j;
+            }
+        }
+    }
+    
+    if (start[0] <= end[0] && start[0] >= 0 && end[0] >= 0) {
+        result[0] = start[0];
+        result[1] = end[0] + 1;
+        result[2] = maxSum[0];
+    } else {
+        result[0] = 0;
+        result[1] = 0;
+        result[2] = 0;
+    }
+    return;
+}

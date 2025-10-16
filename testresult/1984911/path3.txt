@@ -1,0 +1,27 @@
+long long p = 998244352;
+long long stt(long long a, long long b, long long mod);
+long long a;
+long long b;
+long long mod;
+long long res = 1;
+long long x, n, c;
+a = a % mod;
+@(b);
+@(b & 1);
+res = res * a % mod;
+
+a = a * a % mod;
+b >>= 1;
+@(b);
+@(!(b & 1));
+
+a = a * a % mod;
+b >>= 1;
+@(b);
+@(!(b & 1));
+
+a = a * a % mod;
+b >>= 1;
+@(!(b));
+
+return res;

@@ -1,0 +1,156 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3908946]
+equals!!!!!'-'!!!!
+equals!!!!!'0'!!!!
+equals!!!!!'9'!!!!
+equals!!!!!c > '9'!!!!
+equals!!!!!(c < '0' || c > '9')!!!!
+equals!!!!!EOF!!!!
+equals!!!!!1!!!!
+equals!!!!!getchar_unlocked()!!!!
+equals!!!!!'-'!!!!
+equals!!!!!1!!!!
+equals!!!!!!!!!
+equals!!!!!'-'!!!!
+equals!!!!!48!!!!
+equals!!!!!(c ^ 48)!!!!
+equals!!!!!!!!!
+equals!!!!!getchar_unlocked()!!!!
+equals!!!!!'0'!!!!
+equals!!!!!'9'!!!!
+equals!!!!!c <= '9'!!!!
+equals!!!!!1!!!!
+equals!!!!!3!!!!
+equals!!!!!(k << 3)!!!!
+equals!!!!!48!!!!
+equals!!!!!(c ^ 48)!!!!
+equals!!!!!(k << 1) + (k << 3) + (c ^ 48)!!!!
+equals!!!!!getchar_unlocked()!!!!
+equals!!!!!c = getchar_unlocked()!!!!
+equals!!!!!EOF!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!-k!!!!
+equals!!!!!!!!!
+equals!!!!!0!!!!
+equals!!!!!-x!!!!
+equals!!!!!x = -x!!!!
+equals!!!!!9!!!!
+equals!!!!!10!!!!
+equals!!!!!10!!!!
+equals!!!!!'0'!!!!
+equals!!!!!12!!!!
+equals!!!!!5!!!!
+equals!!!!!12!!!!
+equals!!!!!5!!!!
+equals!!!!!-x!!!!
+equals!!!!!n!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!m!!!!
+equals!!!!!lowbit(j)!!!!
+equals!!!!!z!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!_modify(x_2 + 1, y_2 + 1, val)!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!_modify(x_1, y_2 + 1, -val)!!!!
+equals!!!!!lowbit(i)!!!!
+equals!!!!!lowbit(j)!!!!
+equals!!!!!bit2d[i][j]!!!!
+equals!!!!!rd(&m)!!!!
+equals!!!!!rd(&y_1)!!!!
+equals!!!!!1!!!!
+equals!!!!!rd(&y_2)!!!!
+equals!!!!!rd(&k)!!!!
+equals!!!!!modify(x_1, y_1, x_2, y_2, k)!!!!
+equals!!!!!putchar_unlocked('\n')!!!!
+DFS is ready to dump ~
+SIZE!!51
+Path:typedef long long i64;
+char eof_flag;
+i64 bit2d[((1 << 12) | 5)][((1 << 12) | 5)];
+int n, m;
+int op, x_1, y_1, x_2, y_2, k;
+int *s;
+int k = 0, f = 1;
+char c = getchar_unlocked();
+i64 x;
+int x;
+i64 x;
+i64 y;
+i64 z;
+int x_1;
+int y_1;
+int x_2;
+int y_2;
+i64 val;
+i64 x;
+i64 y;
+i64 ret = 0;
+@(eof_flag);
+return 0;
+
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: getchar_unlocked, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x_1" already exists!
+warning: a declaration with the name "y_1" already exists!
+warning: a declaration with the name "x_2" already exists!
+warning: a declaration with the name "y_2" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun eof_flag@0@0 () (_ BitVec 32)
+  #xffffffff)
+Path:typedef long long i64;
+char eof_flag;
+i64 bit2d[((1 << 12) | 5)][((1 << 12) | 5)];
+int n, m;
+int op, x_1, y_1, x_2, y_2, k;
+int *s;
+int k = 0, f = 1;
+char c = getchar_unlocked();
+i64 x;
+int x;
+i64 x;
+i64 y;
+i64 z;
+int x_1;
+int y_1;
+int x_2;
+int y_2;
+i64 val;
+i64 x;
+i64 y;
+i64 ret = 0;
+@(!(eof_flag));
+
+@(c != '-' && (c < '0' || c > '9'));
+@(c == EOF);
+eof_flag = 1;
+return 0;
+
+warning: a declaration with the name "k" already exists!
+find an undefined symbol: getchar_unlocked, assuming it is a function.
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "x_1" already exists!
+warning: a declaration with the name "y_1" already exists!
+warning: a declaration with the name "x_2" already exists!
+warning: a declaration with the name "y_2" already exists!
+warning: a declaration with the name "x" already exists!
+warning: a declaration with the name "y" already exists!
+find an undefined symbol: EOF, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff755ac99 in Z3_inc_ref () from /usr/lib/x86_64-linux-gnu/libz3.so.4
+A debugging session is active.
+
+	Inferior 1 [process 3908914] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

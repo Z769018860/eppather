@@ -1,0 +1,92 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3903765]
+equals!!!!!seed!!!!
+equals!!!!!998244353ll!!!!
+equals!!!!!1000000007ll!!!!
+equals!!!!!1ll * seed * 998244353ll % 1000000007ll!!!!
+equals!!!!!newNode!!!!
+equals!!!!!!!!!
+equals!!!!!1!!!!
+equals!!!!!x!!!!
+equals!!!!!newNode -> data = x!!!!
+equals!!!!!Random()!!!!
+equals!!!!!NULL!!!!
+equals!!!!!newNode -> rch = NULL!!!!
+equals!!!!!newTreap!!!!
+equals!!!!!!!!!
+equals!!!!!NULL!!!!
+equals!!!!!NULL!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> rch) -> size!!!!
+equals!!!!!((x -> rch) == NULL ? 0 : (x -> rch) -> size)!!!!
+equals!!!!!1!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size) + ((x -> rch) == NULL ? 0 : (x -> rch) -> size) + 1!!!!
+equals!!!!!NULL!!!!
+equals!!!!!NULL!!!!
+equals!!!!!y -> key!!!!
+equals!!!!!Merge(x -> rch, y)!!!!
+equals!!!!!Merge(x, y -> lch)!!!!
+equals!!!!!NULL!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size)!!!!
+equals!!!!!tmp.second!!!!
+equals!!!!!1!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size)!!!!
+equals!!!!!tmp.first!!!!
+equals!!!!!NULL!!!!
+equals!!!!!x -> data!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!1!!!!
+equals!!!!!GetRank(x -> rch, data)!!!!
+equals!!!!!Merge(Merge(tmp.first, NewNode(x)), tmp.second)!!!!
+equals!!!!!Merge(tmp1.first, tmp2.second)!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size)!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!1!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size) + 1!!!!
+equals!!!!!NULL!!!!
+equals!!!!!(x -> lch) -> size!!!!
+equals!!!!!((x -> lch) == NULL ? 0 : (x -> lch) -> size)!!!!
+equals!!!!!1!!!!
+equals!!!!!NULL!!!!
+equals!!!!!data!!!!
+equals!!!!!(x -> data)!!!!
+equals!!!!!(x -> data)!!!!
+equals!!!!!((ans) > (x -> data) ? (ans) : (x -> data))!!!!
+equals!!!!!x -> rch!!!!
+equals!!!!!x -> lch!!!!
+equals!!!!!NULL!!!!
+equals!!!!!data!!!!
+equals!!!!!(x -> data)!!!!
+equals!!!!!(x -> data)!!!!
+equals!!!!!((ans) < (x -> data) ? (ans) : (x -> data))!!!!
+equals!!!!!x -> lch!!!!
+equals!!!!!x -> rch!!!!
+equals!!!!!INT_MAX!!!!
+equals!!!!!ans!!!!
+equals!!!!!tree!!!!
+equals!!!!!CreateTreap()!!!!
+CATALOG
+TranslationUnit
+	Types: pair treap node 
+	Any: cmd scanf n main Predecessor free tmp1 seed GetKth root pair Successor treap tmp first printf y Split second data node k Random rch lch INT_MAX key size NewNode x DeleteNode newNode CreateTreap ans Merge tmp2 DFS InsertNode newTreap PushUp DeleteTreap GetRank tree 
+
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00007ffff7cc6cf2 in psy::C::SyntaxNode::kind (this=0x0) at /home/zhangliwei/eppather/C/syntax/SyntaxNode.cpp:47
+47	    return kind_;
+A debugging session is active.
+
+	Inferior 1 [process 3903719] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

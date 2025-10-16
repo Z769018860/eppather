@@ -1,0 +1,59 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3896207]
+equals!!!!!n!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!n+i!!!!
+equals!!!!!1!!!!
+DFS is ready to dump ~
+SIZE!!8
+Path:int n;
+scanf("%d",&n);
+printf("%d\n",++n);
+int i=1;
+@(i<=n);
+i++;
+printf("%d ",((n^i)&1?n-i+1:n+i)>>1);
+@(i<=n);
+i++;
+printf("%d ",((n^i)&1?n-i+1:n+i)>>1);
+@(i<=n);
+i++;
+printf("%d ",((n^i)&1?n-i+1:n+i)>>1);
+@(!(i<=n));
+puts("");
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+debug:317: callee is not valid: n - i + 1
+debug:468: empty stmt
+find an undefined symbol: printf, assuming it is a function.
+debug:317: callee is not valid: n - i + 1
+debug:468: empty stmt
+find an undefined symbol: printf, assuming it is a function.
+debug:317: callee is not valid: n - i + 1
+debug:468: empty stmt
+find an undefined symbol: puts, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:0
+[averagemem]:0
+[MATRIX]:
+[matrix_before]:
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a75098 in std::vector<int, std::allocator<int> >::size() const ()
+A debugging session is active.
+
+	Inferior 1 [process 3896183] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

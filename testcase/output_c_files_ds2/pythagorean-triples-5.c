@@ -1,0 +1,38 @@
+void new_tri(int in[3], int max_peri, int* total, int* prim)
+{
+    int t[3];
+    int p;
+    int x[5];
+    int y[5];
+    int z[5];
+    x[0] = in[0];
+    y[0] = in[1];
+    z[0] = in[2];
+
+recur:
+    p = x[0] + y[0] + z[0];
+    if (p > max_peri)
+    {
+        return;
+    }
+
+    *prim = *prim + 1;
+    *total = *total + max_peri / p;
+
+    t[0] = x[0] - 2 * y[0] + 2 * z[0];
+    t[1] = 2 * x[0] - y[0] + 2 * z[0];
+    t[2] = t[1] - y[0] + z[0];
+    new_tri(t, max_peri, total, prim);
+
+    t[0] = t[0] + 4 * y[0];
+    t[1] = t[1] + 2 * y[0];
+    t[2] = t[2] + 4 * y[0];
+    new_tri(t, max_peri, total, prim);
+
+    z[0] = t[2] - 4 * x[0];
+    y[0] = t[1] - 4 * x[0];
+    x[0] = t[0] - 2 * x[0];
+    goto recur;
+
+    return;
+}

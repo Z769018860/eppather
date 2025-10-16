@@ -1,0 +1,94 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3898532]
+equals!!!!!8!!!!
+equals!!!!!(*s&8)!!!!
+equals!!!!!strlen(s)!!!!
+equals!!!!!n=strlen(s)!!!!
+equals!!!!!0!!!!
+equals!!!!!i=0!!!!
+equals!!!!!b=i=0!!!!
+equals!!!!!a=b=i=0!!!!
+equals!!!!!n!!!!
+equals!!!!!8!!!!
+equals!!!!!1!!!!
+equals!!!!!b=1!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!s[i-1]!!!!
+equals!!!!!8!!!!
+equals!!!!!0!!!!
+equals!!!!!b=0!!!!
+equals!!!!!0!!!!
+1256402.c:1:14 warning: missing type specifier, assume `int'
+# 1 "<stdin>"
+              ^
+1256402.c:2:26 warning: missing type specifier, assume `int'
+T,n,a,b,i;char s[1000000];main(){for(scanf("%d",&T);T--;printf("%d %d\n",a,b&&(*s&8))){for(scanf("%s",s),n=strlen(s),a=b=i=0;i<n;++i)s[i]&8?a=b=1:0;for(i=1;i<n;++i)s[i]&s[i-1]&8?a=b=0:0;}}
+                          ^
+
+DFS is ready to dump ~
+SIZE!!9
+Path:T,n,a,b,i;
+char s[1000000];
+scanf("%d",&T);
+@(T--);
+printf("%d %d\n",a,b&&(*s&8));
+scanf("%s",s),n=strlen(s),a=b=i=0;
+@(i<n);
+++i;
+;
+@(i<n);
+++i;
+;
+@(i<n);
+++i;
+;
+@(!(i<n));
+i=1;
+@(i<n);
+++i;
+;
+
+find an undefined symbol: T, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: a, assuming it is a function.
+find an undefined symbol: b, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: T, assuming it is a function.
+find an undefined symbol: T, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: a, assuming it is a function.
+find an undefined symbol: b, assuming it is a function.
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: a, assuming it is a function.
+find an undefined symbol: b, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+find an undefined symbol: n, assuming it is a function.
+find an undefined symbol: i, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3898478] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

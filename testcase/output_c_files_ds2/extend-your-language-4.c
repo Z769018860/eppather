@@ -1,0 +1,38 @@
+int func(int i, int j) {
+    int result[5];
+    result[0] = 0;
+    for (i = 0; i < 5; i = i + 1) {
+        for (j = 0; j < 5; j = j + 1) {
+            switch((i == 1) + (j == 1) * 2) {
+                case 3: {
+                    result[0] = result[0] + 1;
+                    break;
+                }
+                case 1: {
+                    result[0] = result[0] + 2;
+                    break;
+                }
+                case 2: {
+                    result[0] = result[0] + 3;
+                    break;
+                }
+                case 0: {
+                    result[0] = result[0] + 4;
+                    switch((i == 2) + (j == 2) * 2) {
+                        case 3: {
+                            result[0] = result[0] + 5;
+                            result[0] = result[0] + 6;
+                            break;
+                        }
+                        default: {
+                            result[0] = result[0] + 7;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    return;
+}

@@ -1,0 +1,64 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3890391]
+equals!!!!!21!!!!
+equals!!!!!l!!!!
+equals!!!!!s[j-l]!!!!
+equals!!!!!l!!!!
+equals!!!!!j-l!!!!
+equals!!!!!l!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!l!!!!
+equals!!!!!s[j-l]!!!!
+equals!!!!!i!!!!
+equals!!!!!1!!!!
+equals!!!!!j-i+1!!!!
+1486143.c:2:26 warning: missing type specifier, assume `int'
+char s[1<<21];int i,j,l=1;main(){gets(s);for(;s[i];j++){if(s[j]<s[j-l]){while(i<=j-l)printf("%d ",i+=l);j=i;l=1;}if(s[j]>s[j-l])l=j-i+1;}}
+                          ^
+
+DFS is ready to dump ~
+SIZE!!12
+Path:char s[1<<21];
+int i,j,l=1;
+gets(s);
+gets(s);
+@(s[i]);
+j++;
+@(s[j]<s[j-l]);
+@(i<=j-l);
+printf("%d ",i+=l);
+@(i<=j-l);
+printf("%d ",i+=l);
+@(i<=j-l);
+printf("%d ",i+=l);
+@(!(i<=j-l));
+
+j=i;
+l=1;
+
+@(s[j]>s[j-l]);
+l=j-i+1;
+
+find an undefined symbol: gets, assuming it is a function.
+find an undefined symbol: gets, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 536
+
+infeasible!!!
+[mem]:5
+[averagemem]:0
+
+Program received signal SIGSEGV, Segmentation fault.
+psy::C::SyntaxNamePrinter::DFS (this=0x7fffffff7f00, node=std::shared_ptr<psy::C::CFGNode> (empty) = {...}, pathCoverage=std::vector<bool> of length 12, capacity 64 = {...}, path="gets(s);\ngets(s);\n@(s[i]);\nj++;\n@(s[j]<s[j-l]);\n@(i<=j-l);\nprintf(\"%d \",i+=l);\n@(i<=j-l);\nprintf(\"%d \",i+=l);\n@(i<=j-l);\nprintf(\"%d \",i+=l);\n@(!(i<=j-l));\n\nj=i;\nl=1;\n\n@(!(s[j]>s[j-l]));\n", depth=17, pathCount=@0x7fffffff79e8: 1, maxloop=3) at /home/zhangliwei/eppather/C/syntax/SyntaxNamePrinter.cpp:1574
+1574	    if (node->depth>=0)    
+A debugging session is active.
+
+	Inferior 1 [process 3890372] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

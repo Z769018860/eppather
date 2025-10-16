@@ -1,0 +1,15 @@
+; 
+(set-info :status unknown)
+(declare-fun netmask@0@0 () (_ BitVec 32))
+(assert
+ (let (($x13 (or (and (distinct (ite (= netmask@0@0 (_ bv4294967295 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (= netmask@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x18 (ite (not (and (distinct (ite $x13 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x18 (_ bv0 32)) true))))
+(assert
+ (let ((?x10 (bvnot netmask@0@0)))
+ (let ((?x67 (bvadd ?x10 (_ bv1 32))))
+ (let (($x63 (and (distinct (ite (= (bvand ?x67 (bvsub ?x67 (_ bv1 32))) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x41 (ite (not $x63) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x41 (_ bv0 32)) true))))))
+(check-sat)
+

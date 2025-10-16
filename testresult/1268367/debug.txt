@@ -1,0 +1,636 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3881871]
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!strlen(a+1)!!!!
+equals!!!!!n!!!!
+equals!!!!!'0'!!!!
+equals!!!!!1!!!!
+equals!!!!!200!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]+1!!!!
+equals!!!!!1!!!!
+equals!!!!!'0'!!!!
+equals!!!!!1!!!!
+equals!!!!!sum[a[i]-'0'+1]!!!!
+equals!!!!!'0'!!!!
+equals!!!!!1!!!!
+equals!!!!!i!!!!
+equals!!!!!j!!!!
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+equals!!!!!rank[i]!!!!
+equals!!!!!num1[i]=rank[i]!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!(j-1)!!!!
+equals!!!!!(1<<(j-1))!!!!
+equals!!!!!rank[i+(1<<(j-1))]!!!!
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]+1!!!!
+equals!!!!!1!!!!
+equals!!!!!sum[num2[sa[i]]]!!!!
+equals!!!!!rank[sa[i]]=sum[num2[sa[i]]]!!!!
+equals!!!!!sa[i]!!!!
+equals!!!!!n!!!!
+equals!!!!!now[i]!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+equals!!!!!t[i-1]+1!!!!
+equals!!!!!1!!!!
+equals!!!!!sum[num1[sa[i]]]!!!!
+equals!!!!!sa[i]!!!!
+equals!!!!!n!!!!
+equals!!!!!now[i]!!!!
+equals!!!!!0!!!!
+equals!!!!!n!!!!
+equals!!!!!1!!!!
+equals!!!!!tp1[sa[i-1]]!!!!
+equals!!!!!1!!!!
+equals!!!!!tp2[sa[i-1]]!!!!
+equals!!!!!1!!!!
+equals!!!!!rank[sa[i-1]]!!!!
+equals!!!!!i!!!!
+equals!!!!!cnt++!!!!
+equals!!!!!i!!!!
+equals!!!!!cnt++!!!!
+equals!!!!!n!!!!
+equals!!!!!n!!!!
+DFS is ready to dump ~
+SIZE!!64
+Path:char a[2000005];
+int n,f[2000005][25],rank[2000005],tp1[2000005],tp2[2000005];
+int sa[2000005],t[2000005],num1[2000005];
+int num2[2000005],sum[2000005],now[2000005],cnt;
+scanf("%s",a+1);
+n=strlen(a+1);
+int i=1;
+@(i<=n);
+i++;
+t[a[i]-'0'+1]++;
+@(i<=n);
+i++;
+t[a[i]-'0'+1]++;
+@(i<=n);
+i++;
+t[a[i]-'0'+1]++;
+@(!(i<=n));
+int i=1;
+@(i<=200);
+i++;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=200);
+i++;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=200);
+i++;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=200));
+int i=n;
+@(i>=1);
+i--;
+rank[i]=sum[a[i]-'0'+1];
+sa[t[a[i]-'0'+1]--]=i;
+@(i>=1);
+i--;
+rank[i]=sum[a[i]-'0'+1];
+sa[t[a[i]-'0'+1]--]=i;
+@(i>=1);
+i--;
+rank[i]=sum[a[i]-'0'+1];
+sa[t[a[i]-'0'+1]--]=i;
+@(!(i>=1));
+int j=1;
+@((1<<j)<=n);
+++j;
+int i=1;
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(!(i<=n));
+cnt=0;
+int i=1;
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(!(i<=n));
+@(cnt>=n);
+break;
+
+@((1<<j)<=n);
+++j;
+int i=1;
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(!(i<=n));
+cnt=0;
+int i=1;
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(!(i<=n));
+@(cnt>=n);
+break;
+
+@((1<<j)<=n);
+++j;
+int i=1;
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(i<=n);
+++i;
+tp1[i]=num1[i]=rank[i];
+t[i]=0;
+num2[i]=rank[i+(1<<(j-1))];
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(i<=n);
+++i;
+t[num2[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+tp2[sa[i]]=rank[sa[i]]=sum[num2[sa[i]]];
+now[t[num2[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(i<=n);
+++i;
+sa[i]=now[i];
+t[i]=0;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(i<=n);
+++i;
+t[num1[i]]++;
+@(!(i<=n));
+int i=1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(i<=n);
+++i;
+t[i]+=t[i-1];
+sum[i]=t[i-1]+1;
+@(!(i<=n));
+int i=n;
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(i>=1);
+--i;
+rank[sa[i]]=sum[num1[sa[i]]];
+now[t[num1[sa[i]]]--]=sa[i];
+@(!(i>=1));
+int i=1;
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(i<=n);
+++i;
+sa[i]=now[i];
+@(!(i<=n));
+cnt=0;
+int i=1;
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(i<=n);
+++i;
+@(tp1[sa[i]]==tp1[sa[i-1]]);
+@(tp2[sa[i]]==tp2[sa[i-1]]);
+rank[sa[i]]=rank[sa[i-1]];
+
+rank[sa[i]]=i,cnt++;
+
+@(!(i<=n));
+@(cnt>=n);
+break;
+
+@(!((1<<j)<=n));
+int i=1;
+@(i<=n);
+i++;
+printf("%d ",sa[i]);
+@(i<=n);
+i++;
+printf("%d ",sa[i]);
+@(i<=n);
+i++;
+printf("%d ",sa[i]);
+@(!(i<=n));
+return 0;
+
+find an undefined symbol: scanf, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "i" already exists!
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+find an undefined symbol: printf, assuming it is a function.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x0000555555a2a811 in z3::ast::ast(z3::ast const&) ()
+A debugging session is active.
+
+	Inferior 1 [process 3881859] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]

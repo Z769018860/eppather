@@ -1,0 +1,149 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[Detaching after vfork from child process 3889197]
+equals!!!!!10!!!!
+equals!!!!!1!!!!
+equals!!!!!strlen(p+1)!!!!
+equals!!!!!1!!!!
+equals!!!!!strlen(s+1)!!!!
+equals!!!!!plen!!!!
+equals!!!!!1!!!!
+equals!!!!!p[j + 1]!!!!
+equals!!!!!p[i] != p[j + 1]!!!!
+equals!!!!!ne[j]!!!!
+equals!!!!!1!!!!
+equals!!!!!p[j + 1]!!!!
+equals!!!!!j!!!!
+equals!!!!!slen!!!!
+equals!!!!!1!!!!
+equals!!!!!p[j + 1]!!!!
+equals!!!!!s[i] != p[j + 1]!!!!
+equals!!!!!ne[j]!!!!
+equals!!!!!1!!!!
+equals!!!!!p[j + 1]!!!!
+equals!!!!!plen!!!!
+equals!!!!!ne[j]!!!!
+equals!!!!!1!!!!
+equals!!!!!1!!!!
+DFS is ready to dump ~
+SIZE!!25
+Path:const int N =1e6+10;
+char s[1000010],p[1000010];
+int ne[1000010];
+int slen,plen;
+int ans=0;
+plen=strlen(p+1);
+slen=strlen(s+1);
+int i = 2, j = 0;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(i <= plen);
+i ++;
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(j && p[i] != p[j + 1]);
+j = ne[j];
+@(!(j && p[i] != p[j + 1]));
+
+@(p[i] == p[j + 1]);
+j ++ ;
+
+ne[i] = j;
+@(!(i <= plen));
+int i = 1, j = 0;
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(i <= slen);
+i ++;
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(j && s[i] != p[j + 1]);
+j = ne[j];
+@(!(j && s[i] != p[j + 1]));
+
+@(s[i] == p[j + 1]);
+j ++ ;
+
+@(j == plen);
+j = ne[j];
+ans++;
+
+@(!(i <= slen));
+return ans;
+
+find an undefined symbol: strlen, assuming it is a function.
+find an undefined symbol: strlen, assuming it is a function.
+warning: a declaration with the name "i" already exists!
+warning: a declaration with the name "j" already exists!
+cnip: /home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3++.h:1750: z3::expr z3::operator+(const z3::expr&, const z3::expr&): Assertion `false' failed.
+
+Program received signal SIGABRT, Aborted.
+__GI_raise (sig=sig@entry=6) at ../sysdeps/unix/sysv/linux/raise.c:50
+50	../sysdeps/unix/sysv/linux/raise.c: No such file or directory.
+A debugging session is active.
+
+	Inferior 1 [process 3889136] will be killed.
+
+Quit anyway? (y or n) [answered Y; input not from terminal]
