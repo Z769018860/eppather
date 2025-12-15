@@ -57,7 +57,7 @@ file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE EXECUTABLE PERMISSIONS
      NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip")
     file(RPATH_CHANGE
          FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip"
-         OLD_RPATH "/home/zhangliwei/eppather/C:/home/zhangliwei/eppather/common:/home/zhangliwei/eppather/lpsolve:"
+         OLD_RPATH "/home/zhangliwei/eppather/C:/home/zhangliwei/eppather/common:/home/zhangliwei/eppather/lpsolve:/home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
          NEW_RPATH "$ORIGIN:@executable_path:@loader_path")
     if(CMAKE_INSTALL_DO_STRIP)
       execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip")

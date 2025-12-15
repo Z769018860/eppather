@@ -76,7 +76,7 @@ MemoryCheckCommandOptions:
 MemoryCheckSuppressionFile: 
 
 # Coverage
-CoverageCommand: /usr/bin/gcov
+CoverageCommand: /usr/local/bin/gcov
 CoverageExtraFlags: -l
 
 # Cluster commands

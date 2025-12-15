@@ -82,7 +82,7 @@ epat++/test/epat-reg_test: epat++/test/CMakeFiles/epat-reg_test.dir/build.make
 epat++/test/epat-reg_test: epat++/libepat++/liblibepat++.a
 epat++/test/epat-reg_test: epat++/epat-protocol/libepat-protocol.a
 epat++/test/epat-reg_test: epat++/epat-protocol/grammar/antlr4-runtime/libantlr4-runtime.a
-epat++/test/epat-reg_test: /usr/lib/x86_64-linux-gnu/libz3.so
+epat++/test/epat-reg_test: epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin/libz3.so
 epat++/test/epat-reg_test: epat++/test/CMakeFiles/epat-reg_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangliwei/eppather/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable epat-reg_test"
 	cd /home/zhangliwei/eppather/epat++/test && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/epat-reg_test.dir/link.txt --verbose=$(VERBOSE)

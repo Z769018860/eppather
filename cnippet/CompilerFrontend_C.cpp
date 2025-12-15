@@ -172,8 +172,8 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         transformer.printCFG_DFS2();
     }
 
-    if (config_->dumpgreedyDFS) {
-        std::cout << "greedyDFS is ready to dump ~" << std::endl;
+    if (config_->dumpMaxMemDP) {
+        std::cout << "MaxMemDP is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
         transformer.printCFG_greedyDFS();

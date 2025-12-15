@@ -1,82 +1,158 @@
-int c[5];
-int s[5];
-int u[5];
-int len[5];
-int u[5];
-int out[5];
-int len[5];
-int i[5];
-int j[5];
-int in[5];
-int out[5];
-int u[5];
-int r[5];
-int len[5];
-len[0] = 0;
-int k = 0;
-@(k < 5);
-@(u[k] == 0);
-break;
+int a[5];
+int b[5];
+int i;
+int dir[5];
+int pattern[5];
+int tree[5];
+int f[5];
+int argv[5][5];
+int i;
+int j;
+i = 0;
+@(i < 5);
+argv[0][i] = dir[i];
 
-out[len[0]] = 0;
-j[0] = 0;
-@(len[0] > 0);
-i[0] = len[0] - 1;
-@(i[0] > 0 && is_comb(&u[i[0]]));
-i[0] = i[0] - 1;
+@(i < 5);
+argv[0][i] = dir[i];
 
-@(i[0] > 0 && is_comb(&u[i[0]]));
-i[0] = i[0] - 1;
+@(i < 5);
+argv[0][i] = dir[i];
 
-@(i[0] > 0 && is_comb(&u[i[0]]));
-i[0] = i[0] - 1;
+@(!(i < 5));
 
-@(!(i[0] > 0 && is_comb(&u[i[0]])));
+argv[1][0] = 0;
+i = 0;
+@(i < 5);
+tree[i] = 0;
 
-int k = i[0];
-@(k < len[0]);
-out[j[0] + k - i[0]] = u[k];
+@(i < 5);
+tree[i] = 0;
 
-@(k < len[0]);
-out[j[0] + k - i[0]] = u[k];
+@(i < 5);
+tree[i] = 0;
 
-@(!(k < len[0]));
+@(!(i < 5));
 
-j[0] = j[0] + len[0] - i[0];
-len[0] = i[0];
+i = 0;
+@(i < 5);
+f[i] = 0;
 
-@(len[0] > 0);
-i[0] = len[0] - 1;
-@(!(i[0] > 0 && is_comb(&u[i[0]])));
+@(i < 5);
+f[i] = 0;
 
-int k = i[0];
-@(k < len[0]);
-out[j[0] + k - i[0]] = u[k];
+@(i < 5);
+f[i] = 0;
 
-@(k < len[0]);
-out[j[0] + k - i[0]] = u[k];
+@(!(i < 5));
 
-@(!(k < len[0]));
+i = 0;
+@(i < 5);
+@(tree[i] != 0);
+continue;
 
-j[0] = j[0] + len[0] - i[0];
-len[0] = i[0];
+@(i < 5);
+@(tree[i] != 0);
+continue;
 
-@(len[0] > 0);
-i[0] = len[0] - 1;
-@(i[0] > 0 && is_comb(&u[i[0]]));
-i[0] = i[0] - 1;
+@(i < 5);
+@(tree[i] != 0);
+continue;
 
-@(!(i[0] > 0 && is_comb(&u[i[0]])));
+@(!(i < 5));
 
-int k = i[0];
-@(k < len[0]);
-out[j[0] + k - i[0]] = u[k];
+i = 0;
+@(i < 5);
+f[i] = 0;
 
-@(!(k < len[0]));
+@(i < 5);
+f[i] = 0;
 
-j[0] = j[0] + len[0] - i[0];
-len[0] = i[0];
+@(i < 5);
+f[i] = 0;
 
-@(!(len[0] > 0));
+@(!(i < 5));
+
+i = 0;
+@(i < 5);
+@(f[i] == 1);
+continue;
+
+@(f[i] == 2);
+continue;
+
+@(f[i] == 3);
+continue;
+
+@(f[i] == 4);
+continue;
+
+@(i < 5);
+@(f[i] == 1);
+continue;
+
+@(f[i] == 2);
+continue;
+
+@(f[i] == 3);
+continue;
+
+@(f[i] == 4);
+continue;
+
+@(i < 5);
+@(f[i] == 1);
+continue;
+
+@(f[i] == 2);
+continue;
+
+@(f[i] == 3);
+continue;
+
+@(!(f[i] == 4));
+
+
+@(!(i < 5));
+
+i = 0;
+@(i < 5);
+@(pattern[i] == 0);
+continue;
+
+@(i < 5);
+@(pattern[i] == 0);
+continue;
+
+@(i < 5);
+@(!(pattern[i] == 0));
+
+
+@(!(i < 5));
+
+i = 0;
+@(i < 5);
+@(f[i] == 5);
+continue;
+
+@(i < 5);
+@(f[i] == 5);
+continue;
+
+@(!(i < 5));
+
+i = 0;
+@(i < 5);
+@(tree[i] != 0);
+continue;
+
+@(i < 5);
+@(tree[i] != 0);
+continue;
+
+@(i < 5);
+@(tree[i] != 0);
+continue;
+
+@(!(i < 5));
 
 return;

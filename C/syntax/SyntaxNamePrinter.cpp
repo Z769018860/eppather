@@ -1578,174 +1578,6 @@ inline bool isPathFeasibleCached(const std::string& fullExpr) {
     return ok;
 }
 
-// ================== 性能优化版 DP 算法 ==================
-// 主要优化：减少字符串操作 + 缓存可行性 + 合并状态 key + 循环迭代复用
-
-PathInfo SyntaxNamePrinter::MaxMemsDP(
-    const std::shared_ptr<CFGNode>& entry,
-    int maxloop,
-    const std::string& pathPrefix,
-    int depth,
-    std::unordered_map<CFGNode*, int>& loopUnrollMap
-) {
-    if (depth > 1000) return PathInfo(0, pathPrefix, false);
-    if (!entry)       return PathInfo(0, pathPrefix, true);
-
-    const int curMem = entry->getMem(vartemp);
-
-    // ==== 可行性缓存（避免重复 feasibleWithVartemp 检查） ====
-    static thread_local std::unordered_map<size_t, bool> feasibleCache;
-    auto checkFeasibleCached = [&](const std::string& path) {
-        size_t h = std::hash<std::string>{}(path);
-        auto it = feasibleCache.find(h);
-        if (it != feasibleCache.end()) return it->second;
-        bool ok = feasibleWithVartemp(this, path);
-        feasibleCache[h] = ok;
-        return ok;
-    };
-
-    // ==== Key 计算（不再依赖 pathPrefix） ====
-    auto makeKey = [&](CFGNode* node) {
-        size_t keyHash = reinterpret_cast<size_t>(node) ^ std::hash<std::string>{}(LoopMapKey(loopUnrollMap));
-        return keyHash;
-    };
-
-    // ==== 1) Memo 命中 ====
-    size_t key = makeKey(entry.get());
-    auto it = dpMemo2.find(key); // dpMemo2: unordered_map<size_t, PathInfo>
-    if (it != dpMemo2.end()) {
-        PathInfo res = it->second;
-        res.mems += curMem;
-        res.path = pathPrefix + res.path;
-        return res;
-    }
-
-    // ==== 2) Return 或 终止 ====
-    if (entry->isReturn || !entry->getNextNode()) {
-        std::string curPath = pathPrefix;
-        std::string code = entry->getCode();
-        if (!entry->isLoop && !entry->isIf && !entry->isFuncDef && !(entry->isVarDef && entry->nodeLevel == 3)) {
-            if (!code.empty()) curPath += code + "\n";
-        }
-        if (!checkFeasibleCached(curPath)) {
-            dpMemo2[key] = PathInfo(0, "", false);
-            return PathInfo(0, curPath, false);
-        }
-        std::string suffix;
-        if (curPath.size() >= pathPrefix.size() &&
-            curPath.compare(0, pathPrefix.size(), pathPrefix) == 0)
-            suffix = curPath.substr(pathPrefix.size());
-        dpMemo2[key] = PathInfo(0, suffix, true);
-        return PathInfo(curMem, curPath, true);
-    }
-
-    // ==== 3) 跳过定义节点 ====
-    if (entry->isFuncDef || (entry->isVarDef && entry->nodeLevel == 3)) {
-        PathInfo child = MaxMemsDP(entry->getNextNode(), maxloop, pathPrefix, depth + 1, loopUnrollMap);
-        if (!child.feasible) {
-            dpMemo2[key] = PathInfo(0, "", false);
-            return child;
-        }
-        child.mems += curMem;
-        dpMemo2[key] = PathInfo(child.mems - curMem, child.path.substr(pathPrefix.size()), child.feasible);
-        return child;
-    }
-
-    // ==== 4) IF 分支 ====
-    if (entry->isIf) {
-        std::string tPath = pathPrefix + "@(" + entry->cond_str + ");\n";
-        std::string fPath = pathPrefix + "@(!(" + entry->cond_str + "));\n";
-
-        PathInfo tInfo(0, tPath, false), fInfo(0, fPath, false);
-        bool tFeas = checkFeasibleCached(tPath);
-        bool fFeas = checkFeasibleCached(fPath);
-
-        if (tFeas && entry->getNextNode())
-            tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap);
-        if (fFeas && entry->getNextFalseNode())
-            fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap);
-
-        if (tInfo.feasible) tInfo.mems += curMem;
-        if (fInfo.feasible) fInfo.mems += curMem;
-
-        if (!tInfo.feasible && !fInfo.feasible) {
-            dpMemo2[key] = PathInfo(0, "", false);
-            return PathInfo(0, pathPrefix, false);
-        }
-        PathInfo best = (tInfo.feasible && (!fInfo.feasible || tInfo.mems >= fInfo.mems)) ? tInfo : fInfo;
-        dpMemo2[key] = PathInfo(best.mems - curMem, best.path.substr(pathPrefix.size()), best.feasible);
-        return best;
-    }
-
-    // ==== 5) 循环节点（For/While 优化） ====
-    if (entry->isLoop) {
-        auto& unroll = loopUnrollMap[entry.get()];
-        if (unroll >= maxloop) {
-            std::string fPath = pathPrefix + "@(!(" + entry->cond_str + "));\n";
-            if (!checkFeasibleCached(fPath) || !entry->getNextFalseNode()) {
-                dpMemo2[key] = PathInfo(0, "", false);
-                return PathInfo(0, fPath, false);
-            }
-            PathInfo child = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap);
-            if (!child.feasible) {
-                dpMemo2[key] = PathInfo(0, "", false);
-                return PathInfo(0, fPath, false);
-            }
-            child.mems += curMem;
-            dpMemo2[key] = PathInfo(child.mems - curMem, child.path.substr(pathPrefix.size()), child.feasible);
-            return child;
-        }
-
-        // True 分支
-        std::string tPath = pathPrefix + "@(" + entry->cond_str + ");\n";
-        if (checkFeasibleCached(tPath) && entry->getNextNode()) {
-            unroll++;
-            PathInfo tChild = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap);
-            unroll--;
-            if (tChild.feasible) {
-                tChild.mems += curMem;
-                dpMemo2[key] = PathInfo(tChild.mems - curMem, tChild.path.substr(pathPrefix.size()), true);
-                return tChild;
-            }
-        }
-
-        // False 分支
-        std::string fPath = pathPrefix + "@(!(" + entry->cond_str + "));\n";
-        if (!checkFeasibleCached(fPath) || !entry->getNextFalseNode()) {
-            dpMemo2[key] = PathInfo(0, "", false);
-            return PathInfo(0, fPath, false);
-        }
-        PathInfo fChild = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap);
-        if (!fChild.feasible) {
-            dpMemo2[key] = PathInfo(0, "", false);
-            return PathInfo(0, fPath, false);
-        }
-        fChild.mems += curMem;
-        dpMemo2[key] = PathInfo(fChild.mems - curMem, fChild.path.substr(pathPrefix.size()), true);
-        return fChild;
-    }
-
-    // ==== 6) 普通顺序节点 ====
-    std::string code = entry->getCode();
-    std::string curPath = pathPrefix;
-    if (!code.empty()) {
-        curPath += code;
-        curPath += "\n";
-    }
-    if (!checkFeasibleCached(curPath)) {
-        dpMemo2[key] = PathInfo(0, "", false);
-        return PathInfo(0, curPath, false);
-    }
-    PathInfo child = MaxMemsDP(entry->getNextNode(), maxloop, curPath, depth + 1, loopUnrollMap);
-    if (!child.feasible) {
-        dpMemo2[key] = PathInfo(0, "", false);
-        return PathInfo(0, curPath, false);
-    }
-    child.mems += curMem;
-    dpMemo2[key] = PathInfo(child.mems - curMem, child.path.substr(pathPrefix.size()), true);
-    return child;
-}
-
 // ========== 核心：与新 CFG 对齐的 DP ==========
 // 说明：依赖以下已存在成员/类型：
 // - struct PathInfo { int mems; std::string path; bool feasible; ... };
@@ -1756,7 +1588,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 // - std::string vartemp;
 // - CFGNode 的接口：isFuncDef/isVarDef/isIf/isLoop/isWhile/isFor/isReturn/cond_str/initstmt_str/expr_str
 //                    getCode()/getMem(vartemp)/getNextNode()/getNextFalseNode()
-/*
+
 PathInfo SyntaxNamePrinter::MaxMemsDP(
     const std::shared_ptr<CFGNode>& entry,
     int maxloop,
@@ -2021,7 +1853,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         return appendNormalThenNext(code, entry->getNextNode());
     }
 }
-*/
+
 
 // ========== 驱动：与 DFS2 保持同样的 maxloop 和输出 ==========
 // 改动：无可行路径时输出 "MEMS: -1"

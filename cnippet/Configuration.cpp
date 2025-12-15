@@ -30,7 +30,7 @@ Configuration::Configuration(const cxxopts::ParseResult& parsedCmdLine)
     , dumpCFG(parsedCmdLine.count("dump-CFG"))
     , dumpDFS(parsedCmdLine.count("dump-DFS"))
     , dumpDFS2(parsedCmdLine.count("dump-DFS2"))
-    , dumpgreedyDFS(parsedCmdLine.count("dump-greedyDFS"))
+    , dumpMaxMemDP(parsedCmdLine.count("dump-MaxMemDP"))
     , dumpBFS(parsedCmdLine.count("dump-BFS"))
     , WIP_(parsedCmdLine.count("WIP"))
 {}

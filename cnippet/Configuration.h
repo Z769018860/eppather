@@ -38,7 +38,7 @@ public:
     bool dumpCFG;
     bool dumpDFS;
     bool dumpDFS2;
-    bool dumpgreedyDFS;
+    bool dumpMaxMemDP;
     bool dumpBFS;
     bool WIP_;
 

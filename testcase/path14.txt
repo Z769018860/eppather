@@ -1,33 +1,71 @@
-int y;
-int x;
-int w;
-int h;
-int verbose;
-int hor[6][6];
-int ver[6][6];
-int vis[6][6];
-unsigned long count[1];
-@(!(x < 0 || y < 0 || x > w || y > h));
+int pool;
+int need;
+unsigned long chosen;
+int at;
+int n1;
+int n2;
+int n3;
+int at_arr[5];
+int pool_arr[5];
+int need_arr[5];
+unsigned long chosen_arr[5];
+int i;
+at_arr[0] = at;
+pool_arr[0] = pool;
+need_arr[0] = need;
+chosen_arr[0] = chosen;
+@(!(pool_arr[0] < need_arr[0] + at_arr[0]));
 
-@(!(x == 0 || y == 0 || x == w || y == h));
+@(need_arr[0] == 0);
+i = 0;
+@(i < 5);
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(n2 < i);
+n1 = n1 * 2;
 
-@(!(vis[y][x] != 0));
+@(n2 < i);
+n1 = n1 * 2;
 
-vis[y][x] = vis[y][x] + 1;
-vis[h - y][w - x] = vis[h - y][w - x] + 1;
-@(!(x != 0 && hor[y][x - 1] == 0));
+@(n2 < i);
+n1 = n1 * 2;
 
-@(x < w && hor[y][x] == 0);
-hor[y][x] = 1;
-hor[h - y][w - x - 1] = 1;
-walk(y, x + 1, w, h, verbose, hor, ver, vis, count);
-hor[y][x] = 0;
-hor[h - y][w - x - 1] = 0;
+@(!(n2 < i));
 
-@(!(y != 0 && ver[y - 1][x] == 0));
+@(chosen_arr[0] & n1);
+n3 = i;
 
-@(!(y < h && ver[y][x] == 0));
+@(i < 5);
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(n2 < i);
+n1 = n1 * 2;
 
-vis[y][x] = vis[y][x] - 1;
-vis[h - y][w - x] = vis[h - y][w - x] - 1;
+@(n2 < i);
+n1 = n1 * 2;
+
+@(!(n2 < i));
+
+@(chosen_arr[0] & n1);
+n3 = i;
+
+@(i < 5);
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(n2 < i);
+n1 = n1 * 2;
+
+@(n2 < i);
+n1 = n1 * 2;
+
+@(!(n2 < i));
+
+@(chosen_arr[0] & n1);
+n3 = i;
+
+@(!(i < 5));
+
 return;

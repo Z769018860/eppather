@@ -72,8 +72,8 @@ int Driver::execute(int argc, char* argv[])
               "Dump the program's path in the DFS mode to the console.(icov)")
             ("q,dump-DFS2",
               "Dump the program's path in the DFS mode to the console.(bcov)")
-            ("g,dump-greedyDFS",
-              "Dump the program's path in the greedy DFS mode to the console.")
+            ("g,dump-MaxMemDP",
+              "Dump the program's worst path in the DP mode to the console.")
             ("b,dump-BFS",
               "Dump the program's path in the BFS mode to the console.")
             ("d,debug",

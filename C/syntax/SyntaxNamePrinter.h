@@ -214,9 +214,11 @@ public:
 
     std::unordered_map<const CFGNode*, PathInfo> memo;
     PathInfo MaxMemsDP(
-        const std::shared_ptr<CFGNode>& node, int maxloop,
-        std::string pathPrefix, int depth,
-        std::unordered_map<CFGNode*, int>& loopUnrollMap
+    const std::shared_ptr<CFGNode>& entry,
+    int maxloop,
+    std::string pathPrefix,  // raw path 前缀（不含 vartemp）
+    int depth,
+    std::unordered_map<CFGNode*, int>& loopUnrollMap
     );
     //std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp);
 

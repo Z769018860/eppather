@@ -1,35 +1,65 @@
-int c[5];
-int s[5];
-int u[5];
-int len[5];
-int u[5];
-int out[5];
-int len[5];
-int i[5];
-int j[5];
-int in[5];
-int out[5];
-int u[5];
-int r[5];
-int len[5];
-mb_to_wchar(in, u);
-ws_reverse(u, r);
-len[0] = 0;
-int i = 0;
+int pool;
+int need;
+unsigned long chosen;
+int at;
+int n1;
+int n2;
+int n3;
+int at_arr[5];
+int pool_arr[5];
+int need_arr[5];
+unsigned long chosen_arr[5];
+int i;
+at_arr[0] = at;
+pool_arr[0] = pool;
+need_arr[0] = need;
+chosen_arr[0] = chosen;
+@(!(pool_arr[0] < need_arr[0] + at_arr[0]));
+
+@(need_arr[0] == 0);
+i = 0;
 @(i < 5);
-@(!(r[i] == 0));
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(n2 < i);
+n1 = n1 * 2;
 
-len[0] = len[0] + 1;
+@(n2 < i);
+n1 = n1 * 2;
+
+@(n2 < i);
+n1 = n1 * 2;
+
+@(!(n2 < i));
+
+@(chosen_arr[0] & n1);
+n3 = i;
 
 @(i < 5);
-@(!(r[i] == 0));
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(n2 < i);
+n1 = n1 * 2;
 
-len[0] = len[0] + 1;
+@(n2 < i);
+n1 = n1 * 2;
+
+@(!(n2 < i));
+
+@(chosen_arr[0] & n1);
+n3 = i;
+
+@(i < 5);
+@(i < pool_arr[0]);
+n1 = 1;
+n2 = 0;
+@(!(n2 < i));
+
+@(!(chosen_arr[0] & n1));
+
 
 @(!(i < 5));
-
-len[0] = len[0] + 1;
-int i = 0;
-@(!(i < len[0]));
 
 return;

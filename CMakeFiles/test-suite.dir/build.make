@@ -102,7 +102,7 @@ test-suite: lpsolve/liblpsolve55.so
 test-suite: libParser/libParser.a
 test-suite: epat++/epat-protocol/libepat-protocol.a
 test-suite: epat++/epat-protocol/grammar/antlr4-runtime/libantlr4-runtime.a
-test-suite: /usr/lib/x86_64-linux-gnu/libz3.so
+test-suite: epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin/libz3.so
 test-suite: CMakeFiles/test-suite.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangliwei/eppather/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable test-suite"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/test-suite.dir/link.txt --verbose=$(VERBOSE)

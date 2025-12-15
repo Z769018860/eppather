@@ -1,153 +1,305 @@
-![](https://github.com/ltcmelo/psychec/workflows/build/badge.svg)
-![](https://github.com/ltcmelo/psychec/workflows/test-suite/badge.svg)
+````markdown
+# Eppather
 
-![](https://docs.google.com/drawings/d/e/2PACX-1vT-pCvcuO4U63ERkXWfBzOfVKwMQ_kh-ntzANYyNrnkt8FUV2wRHd5fN6snq33u5hWmnNQR3E3glsnH/pub?w=375&h=150)
+[中文](#中文说明) | [English](#english)
 
-# Psyche-C
+---
 
-Psyche is a rather unique compiler frontend for the C programming language that is specifically designed for the implementation of static analysis tools. This is where the "uniqueness" of Psyche-C comes from:
+## 中文说明
 
-- Clean separation between the syntactic and semantic compiler phases.
-- Algorithmic and heuristic syntax disambiguation.
-- Type inference of missing `struct`, `union`, `enum`, and `typedef`  
-  (i.e., tolerance and "recovery" against `#include` failures).
-- API inspired by that of the [Roslyn .NET compiler](https://github.com/dotnet/roslyn).
-- AST resembling that of the [LLVM's Clang frontend](https://clang.llvm.org/).
+### 一、工具简介
 
-## Library and API
+**Eppather** 是一个面向 C 语言程序的**静态路径分析与测试生成原型工具**，用于分析程序的**最坏情况执行路径（Worst-Case Path）**，并以 **MEMS（Memory Accesses）** 作为平台无关的性能度量指标，服务于 **WCET（Worst-Case Execution Time）分析**。
 
-Psyche-C is implemented as a library. Its native API is in C++ (APIs for other languages are [on the way](https://github.com/ltcmelo/psychec/issues/112)).
+Eppather 结合了以下核心组件：
 
-```cpp
-void analyse(const SourceText& srcText, const FileInfo& fi)
-{
-    ParseOptions parseOpts;
-    parseOpts.setTreatmentOfAmbiguities(ParseOptions::TreatmentOfAmbiguities::DisambiguateAlgorithmically);
-    
-    auto tree = SyntaxTree::parseText(srcText,
-                                      TextPreprocessingState::Preprocessed,
-                                      TextCompleteness::Fragment,
-                                      parseOpts,
-                                      fi.fileName());
+- **Psychec**：用于 C 程序的 AST 构建与语义解析  
+- **路径探索模块**：支持 DFS / BFS / 动态规划（DP）等多种路径搜索策略  
+- **epat++ + Z3**：用于路径可达性判定与符号约束求解  
 
-    auto compilation = Compilation::create("code-analysis");
-    compilation->addSyntaxTree(tree.get());
+**输入**：C 语言源代码（`.c` 文件）  
 
-    AnalysisVisitor analysis(tree.get(), compilation->semanticModel(tree.get()));
-    analysis.run(tree->translationUnitRoot());
-}
+**输出**：
+- MEMS 最大的最坏情况执行路径  
+- 路径对应的 MEMS 数值与分析时间  
+- 能够触发该路径的测试输入（SMT 模型）  
+
+此外，Eppather 也支持：
+- 全路径遍历  
+- AST / CFG 等中间结果输出  
+- 基于 SMT 的路径可行性分析  
+
+---
+
+### 二、编译与运行
+
+#### 1. 编译环境
+
+- 无额外特殊依赖  
+- 需要 **Clang** 相关环境（用于解析与分析）  
+
+#### 2. 编译方式
+
+```bash
+cmake CMakeLists.txt && make -j 4
+````
+
+成功编译后将生成可执行文件 `cnip`：
+
+```text
+[100%] Linking CXX executable cnip
+[100%] Built target cnip
 ```
 
-```cpp
-SyntaxVisitor::Action AnalysisVisitor::visitFunctionDefinition(const FunctionDefinitionSyntax* node) override
-{
-    const sym = semaModel->declaredSymbol(node);
-    if (sym->kind() == SymbolKind::Function) {
-        const FunctionSymbol* funSym = sym->asFunction();
-        // ...
-    }
-    return Action::Skip;
-}
+---
 
+### 三、命令行参数说明
+
+查看帮助信息：
+
+```bash
+./cnip -h
 ```
 
+主要参数如下：
 
-## The *cnippet* Driver
+```text
+Usage:
+  ./cnip [OPTION...] file
 
-Psyche-C comes with the *cnippet* driver so that it can also be used as an ordinary C parser.
-
-
-```c
-void f()
-{
-    int ;
-}
+-l, --lang <C>                指定语言（默认：C）
+-z, --dump-AST                输出 AST
+-c, --dump-CFG                输出 CFG
+-f, --dump-DFS                DFS 遍历路径（icov）
+-q, --dump-DFS2               DFS 遍历路径（bcov）
+-b, --dump-BFS                BFS 遍历路径
+-g, --dump-MaxMemDP           使用动态规划搜索 MEMS 最大路径
+-d, --debug                   调试模式
+-p, --plugin arg              加载插件
+-w, --WIP                     启用实验性功能
+-h, --help                    帮助信息
+-o, --output arg              输出文件（默认：a.cstr）
 ```
 
-If you "compile" the snippet above with *cnippet*, you'll see a diagnostic similar/equal to what you would see with GCC or Clang.
+---
 
-```
-~ cnip test.c
-test.c:4:4 error: declaration does not declare anything
-int ;
-    ^
-```
+### 四、使用示例
 
-NOTE: Semantic analysis isn't yet complete.
+#### 1. 全路径遍历（DFS）
 
-## Type Inference
-
-Psyche-C can infer the missing types of a code snippet (a.k.a. as an incomplete program or program fragment).
-
-```c
-void f()
-{
-    T v = 0;
-    v->value = 42;
-    v->next = v;
-}
+```bash
+./cnip -q test2.c
 ```
 
-If you compile the snippet above with GCC or Clang, you'll see a diagnostic such as _"declaration for_`T`_is not available"_.  
-With *cnippet*, "compilation" succeeds, as the following definitions are (implicitly) synthesised.
+输出包括：
 
-```c
-typedef struct TYPE_2__ TYPE_1__;
-struct TYPE_2__ 
-{
-    int value;
-    struct TYPE_2__* next;
-} ;
-typedef TYPE_1__* T;
+* 路径条件
+* 可行性判定（SMT）
+* MEMS 数值
+* 路径覆盖矩阵
+* 执行时间
+
+示例（截取）：
+
+```text
+feasible!!!
+[mem]:0
+[DFS TIME COST]: 29.0845 seconds
+[DFS MAX MEMS]: 18
+[DFS MIN MEMS]: 0
 ```
 
-These are a few application of type inference for C:
+---
 
-- Enabling, on incomplete source-code, static analysis techniques that require fully-typed programs.
-- Compiling partial code (e.g., a snippet retrieved from a bug tracker) for object-code inspection.
-- Generating test-input data for a function in isolation (without its dependencies).
-- Quick prototyping of an algorithm, without the need of explicit types.
+#### 2. 最坏情况路径（动态规划）
 
-NOTE: Type inference isn't yet available on master, only in the [original branch](https://github.com/ltcmelo/psychec/tree/original).
+```bash
+./cnip -g test2.c
+```
 
-## Documentation and Resources
+示例输出：
 
-- The Doxygen-generated [API](https://ltcmelo.github.io/psychec/api-docs/html/index.html).
-- A contributor's [wiki](https://github.com/ltcmelo/psychec/wiki).
-- An [online interface](http://cuda.dcc.ufmg.br/psyche-c/) that offers a glimpse of Psyche-C's type inference functionality.
-- Articles/blogs:
-  - [Dumping a C program’s AST with Psyche-C](https://ltcmelo.github.io/psychec/2021/03/03/c-ast-dump-psyche.html)  
-    (pt-BR) [Visualizando a AST de um programa C com o Psyche-C](https://www.embarcados.com.br/visualizando-a-ast-psyche-c/)
-  - [Programming in C with type inference](https://www.codeproject.com/Articles/1238603/Programming-in-C-with-Type-Inference)  
-    (pt-BR) [Programando em C com inferência de tipos usando PsycheC](https://www.embarcados.com.br/inferencia-de-tipos-em-c-usando-psychec/)
+```text
+[MAX MEMS PATH]:
+...
+MEMS: 18
+[DP TIME COST]: 10.3801 seconds
+```
 
-## Building and Testing
+该模式用于**高效计算 MEMS 最大的最坏情况执行路径**。
 
-Except for type inference, which is written in Haskell, Psyche-C is written in C++17; *cnippet* is written in Python 3.
+---
 
-To build:
+#### 3. 循环展开次数说明
 
-    cmake CMakeLists.txt && make -j 4
+若未显式指定，默认循环最大展开次数为 **3**。
 
-To run the tests:
+可通过如下方式指定：
 
-    ./test-suite
+```bash
+./cnip -z test2.c 5
+```
 
-## Related Publications
+表示循环最多展开 **5 次**。
 
-- [Type Inference for C: Applications to the Static Analysis of Incomplete Programs](https://dl.acm.org/doi/10.1145/3421472)<br/>
-ACM Transactions on Programming Languages and Systems — **TOPLAS**, Volume 42, Issue 3, Article No. 15, Dec. 2020.
+---
 
-- [Inference of static semantics for incomplete C programs](https://dl.acm.org/doi/10.1145/3158117)<br/>
-Proceedings of the ACM on Programming Languages, Volume 2, Issue **POPL**, Jan. 2018, Article No. 29.
+### 五、中间结果输出
 
-- [AnghaBench: a Suite with One Million Compilable C Benchmarks for Code-Size Reduction](https://conf.researchr.org/info/cgo-2021/accepted-papers)<br/>
-Proceedings of the IEEE/ACM International Symposium on Code Generation and Optimization — **CGO**, 2021.
+#### 1. AST 输出
 
-- [Generation of in-bounds inputs for arrays in memory-unsafe languages](https://dl.acm.org/citation.cfm?id=3314890)<br/>
-Proceedings of the IEEE/ACM International Symposium on Code Generation and Optimization — **CGO**, Feb. 2019, p. 136-148.
+```bash
+./cnip -z test2.c
+```
 
-- [Automatic annotation of tasks in structured code](https://dl.acm.org/citation.cfm?id=3243200)<br/>
-Proceedings of the International Conference on Parallel Architectures and Compilation Techniques — **PACT**, Nov. 2018, Article No. 31.
-## Extra Note for CodeCFG
-Development mannual for codeCFG is in `psychec4codeCfg开发手册.md`
+该功能完全复用 **Psychec** 的 AST 构建能力。
+
+---
+
+#### 2. CFG 输出
+
+```bash
+./cnip -c test2.c
+```
+
+将输出：
+
+* CFG 表格形式
+* 对应的 DOT 文件
+
+并提示：
+
+```text
+Render with: dot -Tpng cfg_func_0.dot -o cfg_func_0.png
+```
+
+---
+
+### 六、批量测试与数据集
+
+测试用例位于：
+
+```text
+eppather/testcase
+```
+
+#### 1. Rosetta Code
+
+* 官网：[https://rosettacode.org/wiki/Rosetta_Code](https://rosettacode.org/wiki/Rosetta_Code)
+* 提取 C 语言程序：**1139 个 `.c` 文件**
+* 覆盖大量算法与编程模式
+
+---
+
+#### 2. The Arcane Algorithm Archive
+
+* 官网：[https://www.algorithm-archive.org/](https://www.algorithm-archive.org/)
+* 补充提取：**19 个 C 程序**
+
+---
+
+### 七、数据集预处理（LLM 前端）
+
+为了支持更多样化的输入形式，Eppather 提供了一个**基于 LLM 的语法转换前端（Demo）**，用于将非标准 C 代码转换为 Eppather 可接受的形式。
+
+执行方式：
+
+```bash
+cd testcase
+python ds.py
+```
+
+可配置输入输出目录：
+
+```python
+input_dir = './rosetta-c'
+output_dir = './output_c_files_ds2'
+```
+
+---
+
+### 八、批量执行
+
+若仅需批量运行分析：
+
+```bash
+python auto_mem_ds.py
+```
+
+输出结果将写入 CSV 文件，用于：
+
+* 对比 DP 与完全遍历结果的一致性
+* 分析不同路径搜索策略的执行效率
+
+---
+
+## English
+
+### Overview
+
+**Eppather** is a prototype static analysis and test generation tool for **C programs**, aiming to identify **worst-case execution paths** using **MEMS (Memory Accesses)** as a platform-independent cost metric, targeting **WCET (Worst-Case Execution Time) analysis**.
+
+Eppather integrates:
+
+* **Psychec** for AST construction and semantic analysis
+* Multiple path exploration strategies (DFS / BFS / DP)
+* **epat++ + Z3** for symbolic execution and path feasibility checking
+
+**Input**: C source files (`.c`)
+
+**Output**:
+
+* Worst-case execution path with maximum MEMS
+* Corresponding MEMS value and analysis time
+* Feasible test inputs (SMT models)
+
+---
+
+### Build & Run
+
+```bash
+cmake CMakeLists.txt && make -j 4
+```
+
+Run:
+
+```bash
+./cnip -h
+```
+
+---
+
+### Example: Worst-Case Path via DP
+
+```bash
+./cnip -g test2.c
+```
+
+Output:
+
+```text
+MEMS: 18
+[DP TIME COST]: 10.38 seconds
+```
+
+---
+
+### Benchmarks
+
+* **Rosetta Code** (1139 C programs)
+* **The Arcane Algorithm Archive**
+
+These benchmarks are used to evaluate:
+
+* Path optimality
+* Search efficiency
+* Consistency between DP-based and exhaustive traversal
+
+---
+
+### Project Status
+
+This project is a **research prototype** under active development.
+
+```
+```

@@ -82,7 +82,7 @@ epat++/test/epat-hello_world: epat++/test/CMakeFiles/epat-hello_world.dir/build.
 epat++/test/epat-hello_world: epat++/libepat++/liblibepat++.a
 epat++/test/epat-hello_world: epat++/epat-protocol/libepat-protocol.a
 epat++/test/epat-hello_world: epat++/epat-protocol/grammar/antlr4-runtime/libantlr4-runtime.a
-epat++/test/epat-hello_world: /usr/lib/x86_64-linux-gnu/libz3.so
+epat++/test/epat-hello_world: epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin/libz3.so
 epat++/test/epat-hello_world: epat++/test/CMakeFiles/epat-hello_world.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/zhangliwei/eppather/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable epat-hello_world"
 	cd /home/zhangliwei/eppather/epat++/test && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/epat-hello_world.dir/link.txt --verbose=$(VERBOSE)
