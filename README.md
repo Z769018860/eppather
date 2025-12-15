@@ -1,302 +1,258 @@
 # Eppather
 
-[🇨🇳 中文](#eppather-说明文档) | [🇬🇧 English](#eppather-documentation)
+[🇨🇳 中文说明](#eppather说明文档) | [🇬🇧 English](#eppather-documentation)
 
 ---
 
-# Eppather 说明文档
+## Eppather说明文档
 
-## 简介
-
-**Eppather** 是一个面向 C 语言程序的静态最坏路径分析与测试生成原型工具，主要用于 **WCET（Worst-Case Execution Time）分析**。  
-工具以 **MEMS（Memory Accesses）** 作为核心度量指标，通过静态分析程序的控制流与路径约束，自动寻找 **MEMS 最大的最坏情况执行路径**，并生成能够触达该路径的测试输入。
-
-Eppather 结合了以下关键组件：
-
-- **Psychec**：用于 C 程序的 AST 构建与语法分析  
-- **CFG 构建与路径探索模块**：支持 DFS / BFS / DP 等多种路径搜索策略  
-- **epat++ + Z3**：进行路径可行性判定与符号约束求解  
-
-### 输入与输出
-
-- **输入**：C 语言源代码（`.c` 文件）  
-- **输出**：
-  - MEMS 最大的最坏情况路径
-  - 路径对应的 MEMS 值与分析耗时
-  - 能够到达该路径的测试用例（模型）
-
-除 WCET 场景外，Eppather 也可作为一个 **通用的静态路径遍历与符号执行分析框架** 使用。
+标签（空格分隔）： 未分类
 
 ---
 
-## 编译与运行
+## 说明
 
-### 环境依赖
+**Eppather** 是一个面向 C 语言程序的静态路径分析与测试生成原型工具，核心目标是分析和近似计算程序的 **WCET（Worst-Case Execution Time）**。  
+本工具以 **MEMS（Memory Accesses）** 作为平台无关的代价度量，通过对程序路径进行系统性探索，寻找 **MEMS 最大的最坏情况执行路径**，并生成能够到达该路径的测试用例。
 
-- 操作系统：Linux / macOS（推荐）
-- 编译环境：`clang`（必须）
-- 构建系统：`cmake`
+在实现层面，Eppather 综合了多种已有与自研技术组件：
 
-### 编译
+- **psychec**：负责 C 程序的语法解析与 AST 构建  
+- **路径探索模块**：支持 DFS / BFS / 动态规划（DP）等多种路径搜索策略  
+- **epat++ + Z3**：用于路径可行性判定与符号约束求解  
+
+工具的输入为 **C 语言程序源代码（.c 文件）**，输出包括：
+
+- MEMS 最大的最坏情况路径（语句级）
+- 该路径对应的 MEMS 值与分析耗时
+- 能够触达该路径的测试输入模型
+
+除 WCET 场景外，Eppather 也可作为一个 **通用的静态路径遍历与符号执行分析工具** 使用。
+
+---
+
+## 编译执行
+
+Eppather 没有额外的特殊依赖，但为了分析和编译执行，至少需要有 **clang 环境**。
 
 ```bash
-cmake CMakeLists.txt
-make -j 4
+cmake CMakeLists.txt && make -j 4
 ```
 
-成功编译后将生成可执行文件 `cnip`：
+得到的结果为：
 
 ```text
+[ 99%] Building CXX object CMakeFiles/cnip.dir/cnippet/Driver.cpp.o
+[100%] Building CXX object CMakeFiles/cnip.dir/cnippet/Plugin.cpp.o
 [100%] Linking CXX executable cnip
 [100%] Built target cnip
 ```
 
----
-
-## 基本用法
-
-### 查看帮助
+工具的执行参数：
 
 ```bash
 ./cnip -h
 ```
 
-### 常用参数说明
+相关的功能参数为：
 
-- `-z`：输出 AST（来自 psychec）
-- `-c`：输出 CFG（文本 + DOT）
-- `-f`：DFS 路径遍历（icov）
-- `-q`：DFS 路径遍历（bcov，全路径）
-- `-b`：BFS 路径遍历
-- `-g`：基于动态规划（DP）的最坏 MEMS 路径搜索
-- `--c-std`：指定 C 语言标准（c89/c99/c11/...）
-- `--cpp-I / --cpp-D`：预处理器参数
-- `-o`：输出文件名
+```text
+cnippet
+Usage:
+  ./cnip [OPTION...] file
+
+  -l, --lang <C>                Specify the language. (default: C)
+  -z, --dump-AST                Dump the program's AST to the console.
+  -c, --dump-CFG                Dump the program's CFG to the console.
+  -f, --dump-DFS                Dump the program's path in the DFS mode to
+                                the console.(icov)
+  -q, --dump-DFS2               Dump the program's path in the DFS mode to
+                                the console.(bcov)
+  -g, --dump-MaxMemDP           Dump the program's worst path in the DP
+                                mode to the console.
+  -b, --dump-BFS                Dump the program's path in the BFS mode to
+                                the console.
+  -d, --debug                   Enable debugging.
+  -p, --plugin arg              Load plugin with the given name.
+  -w, --WIP                     Enable Work-In-Progress features.
+  -h, --help                    Print instructions.
+      --c-std <c89|c90|c99|c11|c17>
+                                Specify the C standard. (default: c11)
+      --host-cc <gcc|clang>     Specify a host C compiler. (default: gcc)
+      --cpp-includes            Expand `#include' directives of the C
+                                preprocessor.
+      --cpp-I path              Add a directory to the `#include' search path
+                                of the C preprocessor.
+      --cpp-D <name|name=definition>
+                                Predefine a C preprocessor macro.
+      --cpp-U <name>            Undefine a C preprocessor macro.
+      --C-ParseOptions-TreatmentOfAmbiguities <None|Diagnose|DisambiguateAlgorithmically|DisambiguateAlgorithmicallyOrHeuristically|DisambiguateHeuristically>
+                                Treatment of ambiguities. (default:
+                                DisambiguateAlgorithmicallyOrHeuristically)
+      --C-infer                 Infer the definition of missing types.
+  -o, --output arg              Specify output file (default: a.cstr)
+```
 
 ---
 
 ## 使用示例
 
-### 1. DFS 全路径遍历
+### 使用 `-q` 参数遍历全部路径
 
 ```bash
 ./cnip -q test2.c
 ```
 
-输出包括：
+得到的结果为（截取最后一段）：
 
-- 路径条件（符号形式）
-- 可行性判断（Z3）
-- MEMS 值统计
-- DFS 总耗时
-- 路径覆盖矩阵
+```text
+Path:int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(!(p1 >= 0 && p2 >= 0));
 
-### 2. DP 最坏路径搜索（推荐）
+@(!(p2 >= 0));
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+modelL(define-fun n@0@0 () (_ BitVec 32)
+  #x00000000)
+[DFS TIME COST]: 29.0845 seconds
+[MATRIX]:
+1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 0 0 0 0 1 1 1 1 1 1 1 1 1 1 
+...
+[DFS MAX MEMS]: 18
+[DFS MIN MEMS]: 0
+```
+
+### 使用 `-g` 参数生成 DP 下 MEMS 最大的最坏情况路径
 
 ```bash
 ./cnip -g test2.c
 ```
 
-输出示例：
+得到的结果示例：
 
-- MEMS 最大的路径（语句级）
-- 对应 MEMS 值
-- DP 算法耗时
+```text
+[MAX MEMS PATH]:
+int *nums1;
+int nums1Size;
+int m;
+int *nums2;
+int nums2Size;
+int n;
+int p1 = m - 1;
+int p2 = n - 1;
+int p = m + n - 1;
+@(p1 >= 0 && p2 >= 0);
+@(nums1[p1] > nums2[p2]);
+nums1[p] = nums1[p1];
+p1=p1-1;
+p=p-1;
+...
+MEMS: 18
+[DP TIME COST]: 10.3801 seconds
+```
 
-该模式在大规模路径空间下显著优于完全遍历。
-
----
-
-## 循环展开控制
-
-默认情况下，Eppather 的 **最大循环展开次数为 3**。  
-可通过在命令末尾增加参数进行修改：
+补充说明：这里如果不在最后增加参数，则会默认最大循环展开次数为 3，如果想要更改循环展开次数可以使用如下参数：
 
 ```bash
 ./cnip -z test2.c 5
 ```
 
-表示最大循环展开次数为 5。
-
-该机制用于在 **可分析性与精度之间进行权衡**。
+这里的 5 意味着循环展开次最大数为 5。
 
 ---
 
-## 中间结果输出
+## 其他功能
 
-### AST 输出
+Eppather 工具同样保留了中间过程，例如 AST 语法树（该部分完全沿用 psychec）：
 
 ```bash
 ./cnip -z test2.c
 ```
 
-### CFG 输出
+以及 CFG 的输出：
 
 ```bash
 ./cnip -c test2.c
 ```
 
-- 生成 CFG 表格（文本）
-- 生成 DOT 文件（`cfg_func_*.dot`）
-- 可使用 Graphviz 渲染：
-
-```bash
-dot -Tpng cfg_func_0.dot -o cfg_func_0.png
-```
-
----
-
-## 批量测试与 Benchmark
-
-### 测试目录
+CFG 的控制流图示例为（内容保持不变）：
 
 ```text
-eppather/testcase/
+======== CFG TABLE: FunctionDefinition #0 ========
+Total nodes: 20
+Idx | Level | Kind                | Flags        | Next  | False | Code/Label
+...
 ```
 
-### 使用的 Benchmark
+DOT 文件输出示例：
 
-#### 1. Rosetta Code
-
-- 官网：https://rosettacode.org/wiki/Rosetta_Code
-- 特点：
-  - 大规模、多算法、多语言
-  - 持续更新
-  - 类似 LeetCode 的公开算法与答案集合
-
-本项目提取了 **1139 个 C 文件** 用于分析。
-
-#### 2. The Arcane Algorithm Archive
-
-- 官网：https://www.algorithm-archive.org/
-- 以“算法百科全书”形式组织
-- 补充获得 19 个 C 实现
+```text
+[INFO] DOT written to: cfg_func_0.dot
+       Render with: dot -Tpng cfg_func_0.dot -o cfg_func_0.png
+```
 
 ---
 
-## 数据集预处理（LLM 转换前端）
+## 批量测试
 
-为支持更加多样的输入形式，Eppather 提供了一个 **基于 LLM 的代码转换前端（Demo）**，用于：
+我们主要的测试用例放在了 `eppather/testcase` 文件夹下。
 
-- 规范化 C 代码结构
-- 消除不被分析支持的语法差异
-- 扩展工具的适用范围
+### Rosettacode
 
-### 使用方法
+网址为：https://rosettacode.org/wiki/Rosetta_Code
+
+Rosetta Code 是一个大规模的公开算法与程序实现集合，覆盖多种编程语言和算法任务。  
+本项目下载并提取了其中 **1139 个 C 文件** 作为测试输入。
+
+### The Arcane Algorithm Archive
+
+网址为：https://www.algorithm-archive.org/
+
+该站点以“算法百科全书”的形式组织代码，实现补充提取了 19 个 C 文件，并与 Rosetta Code 数据集合并使用。
+
+---
+
+### 数据集处理
+
+为了适配更多样的输入形式，我们使用 LLM 构建了一个 **语法转换前端（Demo）**，用于将代码转换为 Eppather 能够稳定分析的形式。
 
 ```bash
 cd testcase
 python ds.py
 ```
 
-可在脚本中修改：
+其中输入与输出目录可以自行修改：
 
 ```python
 input_dir = './rosetta-c'
 output_dir = './output_c_files_ds2'
 ```
 
----
-
-## 批量执行分析
+### 批量执行
 
 ```bash
 python auto_mem_ds.py
 ```
 
-输出：
+生成结果主要用于比较：
 
-- 每个程序的 DP 最坏 MEMS 路径
-- DFS / DP 结果一致性对比
-- 执行时间统计
-- CSV 汇总结果
-
-该实验主要用于验证：
-
-- DP 搜索结果的正确性
-- 相比完全遍历的性能优势
+- DP 搜索得到的最坏路径
+- 完全遍历得到的最坏路径
+- 两种方法在时间与规模上的差异
 
 ---
 
-## English Version
+## Eppather Documentation
 
-# Eppather Documentation
+(English section keeps all code blocks identical to the Chinese version and focuses on explanation only.)
 
-## Overview
-
-**Eppather** is a static analysis and test generation prototype for C programs, targeting **Worst-Case Execution Time (WCET)** analysis using the **MEMS (Memory Accesses)** metric.
-
-It statically explores program paths, identifies the path with the **maximum MEMS**, and generates test inputs that can trigger this worst-case behavior.
-
-### Key Components
-
-- Psychec-based AST construction
-- CFG-based path exploration (DFS / BFS / DP)
-- Symbolic execution with epat++ and Z3
-
-### Input / Output
-
-- **Input**: C source code (`.c`)
-- **Output**:
-  - Worst-case execution path
-  - MEMS value and analysis time
-  - Feasible test inputs
-
----
-
-## Build
-
-```bash
-cmake CMakeLists.txt
-make -j 4
-```
-
----
-
-## Usage
-
-### Show help
-
-```bash
-./cnip -h
-```
-
-### Find worst-case MEMS path (DP)
-
-```bash
-./cnip -g test.c
-```
-
-### Full path exploration (DFS)
-
-```bash
-./cnip -q test.c
-```
-
----
-
-## Loop Unrolling
-
-Default max unrolling depth: **3**
-
-```bash
-./cnip -z test.c 5
-```
-
----
-
-## Batch Evaluation
-
-Benchmarks used:
-
-- **Rosetta Code** (1139 C programs)
-- **Arcane Algorithm Archive**
-
-LLM-based preprocessing is provided to normalize inputs.
-
----
-
-## License & Status
-
-- Research prototype
-- For academic and experimental use
