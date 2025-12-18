@@ -350,29 +350,25 @@ std::string CFGNode::getCode() {
 }
 
 int CFGNode::getMem(const std::string& vartemp) {
-    if (this->setmem) {
-        // 如果已经设置了memUsage，则直接返回
-        return this->memUsage;
-    } else {
-        // 计算memUsage的逻辑
-        // 假设我们有一个静态方法或者单例对象solver可以从代码片段计算内存使用量
-        // 需要根据实际情况替换以下计算memUsage的代码
-        std::string code;
-        if (this->isFor)
-             code=vartemp+"@("+ this->cond_str +");"+"\n"+this->expr_str+";"+"\n";
-        else if (this->isIf||this->isWhile)
-            code=vartemp+"@("+ this->cond_str +");"+"\n";
-        else if (this->isFuncDef)
-            code="";
-        else
-            code=vartemp+this->getCode();
-        //cout<<"code="<<code<<endl;
-        auto epat = epat::Root::fromString(code); // 假设这是转换代码片段为某种表示的方法
-        auto solver = epat::Solver::create(std::move(epat)); // 创建solver实例
-        this->memUsage = solver->getMem(); // 假设getMem是计算和返回内存使用量的方法
-        this->setmem = true; // 标记为已设置memUsage
-        return this->memUsage;
+    if (setmem) return memUsage;
+
+    EpatRunner runner(vartemp);
+    std::vector<PathDecision> decisions;
+
+    if (isFor) {
+        decisions.push_back(PathDecision{this, PathDecisionKind::LoopInit});
+        decisions.push_back(PathDecision{this, PathDecisionKind::TrueBranch});
+        decisions.push_back(PathDecision{this, PathDecisionKind::LoopUpdate});
+    } else if (isIf || isWhile) {
+        decisions.push_back(PathDecision{this, PathDecisionKind::TrueBranch});
+    } else if (!isFuncDef) {
+        decisions.push_back(PathDecision{this, PathDecisionKind::Code});
     }
+
+    auto eval = runner.solve(decisions);
+    memUsage = eval.mem;
+    setmem = true;
+    return memUsage;
 }
 
 
@@ -1147,7 +1143,7 @@ void SyntaxNamePrinter::printCFG_DFS() {
 
     for (auto& funcNode : funcDefStack_) {
         std::vector<bool> pathCoverage(maxdepth, false);
-        std::string path;
+        std::vector<PathDecision> decisions;
 
         std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
         ofs.close();
@@ -1157,7 +1153,7 @@ void SyntaxNamePrinter::printCFG_DFS() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        DFS(funcNode, pathCoverage, path, 0, pathCount, 3, maxMems, minMems);
+        DFS(funcNode, pathCoverage, decisions, 0, pathCount, 3, maxMems, minMems);
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
@@ -1183,7 +1179,7 @@ void SyntaxNamePrinter::printCFG_DFS2() {
         loopCount.resize(maxdepth, 0);
 
         std::vector<bool> pathCoverage(maxdepth, false);
-        std::string path;
+        std::vector<PathDecision> decisions;
 
         std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
         ofs.close();
@@ -1192,7 +1188,7 @@ void SyntaxNamePrinter::printCFG_DFS2() {
         minmem = std::numeric_limits<int>::max();
 
         auto start = std::chrono::high_resolution_clock::now();
-        DFS2(funcNode, pathCoverage, path, 0, pathCount, 3);
+        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, 3);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
@@ -1212,7 +1208,7 @@ void SyntaxNamePrinter::printCFG_DFS2() {
 void SyntaxNamePrinter::DFS(
     std::shared_ptr<CFGNode> node,
     std::vector<bool>& pathCoverage,
-    std::string& path,
+    std::vector<PathDecision>& decisions,
     int depth,
     int& pathCount,
     int maxloop,
@@ -1226,19 +1222,32 @@ void SyntaxNamePrinter::DFS(
     if (node->depth >= 0)
         pathCoverage[node->depth] = true;
 
+    auto appendAndEvalLeaf = [&](bool includeCode) {
+        bool pushed = false;
+        if (includeCode && !node->isLoop && !node->isIf &&
+            !node->isFuncDef && !(node->isVarDef && node->nodeLevel == 3)) {
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+            pushed = true;
+        }
+
+        EpatRunner runner(vartemp);
+        auto eval = runner.solve(decisions);
+        const bool feasible = eval.status == result::feasible;
+        if (feasible) {
+            if (eval.mem > maxMems) maxMems = eval.mem;
+            if (eval.mem < minMems) minMems = eval.mem;
+        }
+
+        auto script = runner.render(decisions);
+        processPathResult(eval, script, pathCoverage, pathCount, depth);
+        ++pathCount;
+
+        if (pushed) decisions.pop_back();
+    };
+
     // 叶子节点处理
     if (node->isReturn || !node->getNextNode()) {
-        std::string fullPath = vartemp + path + node->getCode() + "\n";
-        auto epat = epat::Root::fromString(fullPath);
-        auto solver = epat::Solver::create(std::move(epat));
-        int mem = solver->getMem();
-        bool feasible = solver->feasible() == result::feasible;
-        if (feasible) {
-            if (mem > maxMems) maxMems = mem;
-            if (mem < minMems) minMems = mem;
-        }
-        processPathResult(fullPath, pathCoverage, pathCount, depth);
-        pathCount++;
+        appendAndEvalLeaf(true);
         return;
     }
 
@@ -1246,66 +1255,76 @@ void SyntaxNamePrinter::DFS(
         if (node->isFor) {
             // False分支（循环终止）
             if (loopCount[node->depth] >= maxloop) {
-                path += "@(!(" + node->cond_str + "));\n";
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                DFS(node->getNextFalseNode()->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+                DFS(node->getNextFalseNode()->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+                decisions.pop_back();
                 return;
             }
             // 第一次进入时补初始化
-            if (loopCount[node->depth] == 0 && node->initstmt_str != ";")
-                path += node->initstmt_str + ";\n";
+            bool pushedInit = false;
+            if (loopCount[node->depth] == 0 && node->initstmt_str != ";") {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
+                pushedInit = true;
+            }
 
             // True分支（进入循环体）
-            path += "@(" + node->cond_str + ");\n" + node->expr_str + ";\n";
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
             loopCount[node->depth]++;
-            DFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+            DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+            decisions.pop_back();
+            decisions.pop_back();
+            if (pushedInit) decisions.pop_back();
 
         }
 
         if (node->isWhile) {
             // False分支（循环终止）
             if (loopCount[node->depth] >= maxloop) {
-                path += "@(!(" + node->cond_str + "));\n";
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                DFS(node->getNextFalseNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+                DFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+                decisions.pop_back();
                 return;
             }
             // True分支（进入循环体）
-            path += "@(" + node->cond_str + ");\n";
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             loopCount[node->depth]++;
-            DFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+            DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+            decisions.pop_back();
         }
     }
 
     if (node->isIf) {
         // True分支
 
-        std::string temp_path=path;
-        int temp_depth=depth;
-        auto temp_pathcoverage=pathCoverage;
         temp_loopCount[depth]=loopCount;
-        path += "@(" + node->cond_str + ");\n";
-        DFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+        auto temp_pathcoverage = pathCoverage;
+        decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+        DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+        decisions.pop_back();
 
         // False分支
-        depth=temp_depth;
-       for (int i=node->depth+1;i<maxdepth;i++)
-
+        for (int i=node->depth+1;i<maxdepth;i++)
             pathCoverage[i]=false;//对于之前下面的覆盖率清零；
-        pathCoverage=temp_pathcoverage;
+
+        pathCoverage = temp_pathcoverage;
         loopCount=temp_loopCount[depth];
-        path = temp_path + "@(!(" + node->cond_str + "));\n";
-        DFS(node->getNextFalseNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+        decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+        DFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+        decisions.pop_back();
         return;
     }
 
     if (node->isFuncDef || (node->isVarDef && node->nodeLevel == 3)) {
-        DFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+        DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
         return;
     }
 
-    path += node->getCode() + "\n";
-    DFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, maxMems, minMems);
+    decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+    DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxMems, minMems);
+    decisions.pop_back();
 }
 
 #include <iomanip>  // 注意：用于 setw 对齐
@@ -1337,7 +1356,7 @@ void SyntaxNamePrinter::printBranchMatrix() {
 }
 void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                              std::vector<bool>& pathCoverage,
-                             std::string& path,
+                             std::vector<PathDecision>& decisions,
                              int depth,
                              int& pathCount,
                              int maxloop)
@@ -1375,25 +1394,28 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
     // 叶子：return 或 无后继（将当前节点代码补入，再判可行）
     if (node->isReturn || !node->getNextNode()) {
-        std::string full = vartemp + path;
+        bool pushed = false;
         if (!node->isLoop && !node->isIf && !node->isFuncDef && !(node->isVarDef && node->nodeLevel == 3)) {
             const std::string code = node->getCode();
-            if (!code.empty()) full += code + "\n";
+            if (!code.empty()) {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+                pushed = true;
+            }
         }
-        auto ep = epat::Root::fromString(full);
-        auto sv = epat::Solver::create(std::move(ep));
-        int  mem      = sv->getMem();
-        bool feasible = (sv->feasible() == result::feasible);
-        if (feasible) {
-            if (mem > maxmem) maxmem = mem;
-            if (mem < minmem) minmem = mem;
+        EpatRunner runner(vartemp);
+        auto eval = runner.solve(decisions);
+        if (eval.status == result::feasible) {
+            if (eval.mem > maxmem) maxmem = eval.mem;
+            if (eval.mem < minmem) minmem = eval.mem;
         }
 
         // 关键修复：叶子处将覆盖向量统一补齐到 2*maxdepth 列，保证输出矩阵行对齐
         pad_to_full_cols(pathCoverage);
 
-        processPathResult2(full, pathCoverage, pathCount, depth);
+        auto script = runner.render(decisions);
+        processPathResult2(eval, script, pathCoverage, pathCount, depth);
         ++pathCount;
+        if (pushed) decisions.pop_back();
         return;
     }
 
@@ -1407,20 +1429,12 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             for (int k = d + 1, sz = (int)loopCount.size(); k < sz; ++k) loopCount[k] = 0;
         }
 
-        // 首次进入 for：只在本路径第一次到达该循环头时输出 init
-        std::string basePath = path;
-        if (loopCount[d] == 0 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
-            basePath += node->initstmt_str + "\n";
-        }
-
         // 为 T/F 分支分别保存快照
-        const std::string        snap_path = basePath;
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < maxloop) {
-            std::string p_t   = snap_path + "@(" + node->cond_str + ");\n";
             auto        cov_t = snap_cov;
             auto        lc_t  = snap_lc;
 
@@ -1435,18 +1449,29 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             // 下钻（用 True 的 loop 计数）
             auto saved = loopCount;
             loopCount  = lc_t;
-            DFS2(node->getNextNode(), cov_t, p_t, depth + 1, pathCount, maxloop);
+            if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
+            }
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
+            decisions.pop_back();
+            if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+                decisions.pop_back();
+            }
             loopCount = saved;
         }
 
         // False：@(!(cond)) → 走 CFG 的 false 边（join/end）
         {
-            std::string p_f   = snap_path + "@(!(" + node->cond_str + "));\n";
             auto        cov_f = snap_cov;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
 
-            DFS2(node->getNextFalseNode(), cov_f, p_f, depth + 1, pathCount, maxloop);
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
         }
         return;
     }
@@ -1462,13 +1487,11 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         }
 
         // 为 T/F 分支保存快照
-        const std::string        snap_path = path;
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < maxloop) {
-            std::string p_t   = snap_path + "@(" + node->cond_str + ");\n";
             auto        cov_t = snap_cov;
             auto        lc_t  = snap_lc;
 
@@ -1480,18 +1503,21 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
             auto saved = loopCount;
             loopCount  = lc_t;
-            DFS2(node->getNextNode(), cov_t, p_t, depth + 1, pathCount, maxloop);
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
             loopCount = saved;
         }
 
         // False：@(!(cond)) → 走 CFG 的 false 边（join/end）
         {
-            std::string p_f   = snap_path + "@(!(" + node->cond_str + "));\n";
             auto        cov_f = snap_cov;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
 
-            DFS2(node->getNextFalseNode(), cov_f, p_f, depth + 1, pathCount, maxloop);
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
         }
         return;
     }
@@ -1502,44 +1528,45 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const int idx = (d < 1000 ? d : 999); // 兼容你已有的固定槽位
 
         // 保存快照到固定数组槽位
-        temp_path[idx]         = path;
         temp_pathCoverage[idx] = pathCoverage;
         temp_loopCount[idx]    = loopCount;
 
         // True
         {
-            std::string p_t   = path + "@(" + node->cond_str + ");\n";
             auto        cov_t = pathCoverage;
             ensure_cov_vec(cov_t, d);
             cov_t[2 * d] = true;
 
-            DFS2(node->getNextNode(), cov_t, p_t, depth + 1, pathCount, maxloop);
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
         }
 
         // False（恢复快照再走）
         {
-            path         = temp_path[idx];
             pathCoverage = temp_pathCoverage[idx];
             loopCount    = temp_loopCount[idx];
 
-            std::string p_f   = path + "@(!(" + node->cond_str + "));\n";
             auto        cov_f = pathCoverage;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
 
-            DFS2(node->getNextFalseNode(), cov_f, p_f, depth + 1, pathCount, maxloop);
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            decisions.pop_back();
         }
         return;
     }
 
     // ===================== 其它顺序节点 =====================
     if (node->isFuncDef || (node->isVarDef && node->nodeLevel == 3)) {
-        DFS2(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop);
+        DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop);
         return;
     }
 
-    path += node->getCode() + "\n";
-    DFS2(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop);
+    decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+    DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop);
+    decisions.pop_back();
 }
 
 
@@ -1891,7 +1918,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS() {
 void SyntaxNamePrinter::GreedyDFS(
     std::shared_ptr<CFGNode> node,
     std::vector<bool>& pathCoverage,
-    std::string path,
+    std::vector<PathDecision> decisions,
     int depth,
     int& pathCount,
     int maxloop,
@@ -1903,40 +1930,45 @@ void SyntaxNamePrinter::GreedyDFS(
     if (node->depth >= 0) pathCoverage[node->depth] = true;
     currentMem += node->getMem(vartemp);
 
+    auto leafEval = [&](bool includeCode) {
+        bool pushed = false;
+        if (includeCode && !node->isLoop && !node->isIf && !node->isFuncDef && !(node->isVarDef && node->nodeLevel == 3)) {
+            decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+            pushed = true;
+        }
+        EpatRunner runner(vartemp);
+        auto eval = runner.solve(decisions);
+        if (eval.status == result::feasible && currentMem > bestMem) {
+            bestMem = currentMem;
+            bestPath = runner.render(decisions);
+            processPathResult(eval, bestPath, pathCoverage, pathCount, depth);
+        }
+        ++pathCount;
+        if (pushed) decisions.pop_back();
+    };
+
     // 终结节点
     if (node->isReturn || !node->getNextNode()) {
-        auto epat = epat::Root::fromString(vartemp + path + node->getCode() + "\n");
-        auto solver = epat::Solver::create(std::move(epat));
-        if (solver->feasible() == result::feasible) {
-            if (currentMem > bestMem) {
-                bestMem = currentMem;
-                bestPath = vartemp + path + node->getCode() + "\n";
-                processPathResult(bestPath, pathCoverage, pathCount, depth);
-            }
-        }
-        pathCount++;
+        leafEval(true);
         return;
     }
 
     // If分支
     if (node->isIf) {
-        std::string temp_path = path;
-        int temp_depth = depth;
         auto temp_pathcoverage = pathCoverage;
         temp_loopCount[depth] = loopCount;
 
-        // True分支
-        path += "@(" + node->cond_str + ");\n";
-        GreedyDFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+        GreedyDFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.pop_back();
 
-        // False分支
         for (int i = node->depth + 1; i < maxdepth; i++)
             pathCoverage[i] = false;
         pathCoverage = temp_pathcoverage;
         loopCount = temp_loopCount[depth];
-        path = temp_path + "@(!(" + node->cond_str + "));\n";
-        depth = temp_depth;
-        GreedyDFS(node->getNextFalseNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+        GreedyDFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.pop_back();
         return;
     }
 
@@ -1945,45 +1977,35 @@ void SyntaxNamePrinter::GreedyDFS(
         if (node->isFor) {
             pathCoverage[node->depth + 1] = true;
             if (loopCount[node->depth] >= maxloop) {
-                path += "@(!(" + node->cond_str + "));\n";
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                GreedyDFS(node->getNextFalseNode()->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                GreedyDFS(node->getNextFalseNode()->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                decisions.pop_back();
             } else {
-                if (loopCount[node->depth] == 0) {
-                    if (node->initstmt_str != ";")
-                        path += node->initstmt_str + "\n";
+                if (loopCount[node->depth] == 0 && node->initstmt_str != ";") {
+                    decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
                 }
-                std::string tempPath = path;
-                path += "@(" + node->cond_str + ");\n" + node->expr_str + ";\n";
-                auto epat = epat::Root::fromString(vartemp + path);
-                auto solver = epat::Solver::create(std::move(epat));
-                if (solver->feasible() == result::feasible) {
-                    loopCount[node->depth]++;
-                    GreedyDFS(node->getNextNode()->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
-                } else {
-                    path = tempPath + "@(!(" + node->cond_str + "));\n";
-                    loopCount[node->depth] = 0;
-                    GreedyDFS(node->getNextFalseNode()->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
-                }
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+                if (!node->expr_str.empty()) decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
+                auto epatDecisions = decisions;
+                loopCount[node->depth]++;
+                GreedyDFS(node->getNextNode()->getNextNode(), pathCoverage, epatDecisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                if (!node->expr_str.empty()) decisions.pop_back();
+                decisions.pop_back();
+                if (loopCount[node->depth] == 1 && node->initstmt_str != ";") decisions.pop_back();
             }
             return;
         } else if (node->isWhile) {
             if (loopCount[node->depth] >= maxloop) {
-                path += "@(!(" + node->cond_str + "));\n";
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                GreedyDFS(node->getNextFalseNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                GreedyDFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                decisions.pop_back();
             } else {
                 loopCount[node->depth]++;
-                std::string tempPath = path;
-                path += "@(" + node->cond_str + ");\n";
-                auto epat = epat::Root::fromString(vartemp + path);
-                auto solver = epat::Solver::create(std::move(epat));
-                if (solver->feasible() == result::feasible) {
-                    GreedyDFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
-                } else {
-                    path = tempPath + "@(!(" + node->cond_str + "));\n";
-                    GreedyDFS(node->getNextFalseNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
-                }
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+                GreedyDFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+                decisions.pop_back();
             }
             return;
         }
@@ -1991,18 +2013,18 @@ void SyntaxNamePrinter::GreedyDFS(
 
     // 变量定义/函数定义节点：只递归，不加内容到path
     else if (node->isFuncDef || (node->isVarDef && node->nodeLevel == 3)) {
-        GreedyDFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        GreedyDFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
         return;
     }
 
     // 其它普通节点：把内容加入path
     else {
-        path += node->getCode() + "\n";
-        GreedyDFS(node->getNextNode(), pathCoverage, path, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+        GreedyDFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, currentMem, bestPath, bestMem);
+        decisions.pop_back();
         return;
     }
 }
-
 
 // 估算指定分支或循环下最大mems（仅贪心用，不检查可行性！）
 int SyntaxNamePrinter::EvaluateBranchMem(std::shared_ptr<CFGNode> node, int maxloop, int nodelevel) {
@@ -2036,475 +2058,156 @@ int SyntaxNamePrinter::EvaluateBranchMem(std::shared_ptr<CFGNode> node, int maxl
 //包含剪枝的宽度优先搜索
 
 void SyntaxNamePrinter::printCFG_BFS() {
-
-    int pathCount = 0;
-
-    std::string matrixFileName = "matrix.txt";   
-
-
-
-    for (auto& funcNode : funcDefStack_) {
-
-        std::vector<bool> pathCoverage(maxdepth, false);
-
-        std::string path;
-
-        std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
-
-        ofs.close();
-
-
-
-        BFS(funcNode, pathCoverage, path, pathCount);
-
-        cout << "[MATRIX]:" << endl;
-
-
-
-        printMatrixFileContent(matrixFileName);
-
-        auto coverageMatrix = ReadCoverageMatrix(matrixFileName);
-
-        SolveLinearProgram(coverageMatrix);
-
-    }
-
+    std::cout << "[INFO] BFS traversal is temporarily disabled for node-based epat integration." << std::endl;
 }
 
-
-
-void SyntaxNamePrinter::BFS(std::shared_ptr<CFGNode> startNode, std::vector<bool>& pathCoverage, std::string& path, int& pathCount) {
-
-    std::queue<std::tuple<std::shared_ptr<CFGNode>, std::vector<bool>, std::string>> q;
-
-    q.push(std::make_tuple(startNode, pathCoverage, path));
-
-
-
-    while (!q.empty()) {
-
-        auto [node, currentCoverage, currentPath] = q.front();
-
-        q.pop();
-
-
-
-        if (!node) continue;
-
-        currentCoverage[node->depth] = true;
-
-        currentPath += node->getCode() + "\n";
-
-
-
-        // Check feasibility at conditional nodes
-
-        if (node->isCondition || node->isLoop) {
-
-            auto epat = epat::Root::fromString(currentPath);
-
-            auto solver = epat::Solver::create(std::move(epat));
-
-            if (solver->feasible() != result::feasible) {
-
-                continue; // Prune the infeasible path
-
-            }
-
-            /*if (dr->parseString(path)) {
-
-                bool feasible = dr->feasible();
-
-                if (feasible) 
-
-                    continue; // Prune the infeasible path
-
-            }*/
-
-        }
-
-
-
-        if (node->isReturn) {
-
-            processPathResult(currentPath, currentCoverage, pathCount,1);
-
-            pathCount++;
-
-        } else {
-
-            // Enqueue next nodes
-
-            if (node->getNextNode()) {
-
-                q.push(std::make_tuple(node->getNextNode(), currentCoverage, currentPath));
-
-            }
-
-            if (node->getNextFalseNode()) {
-
-                q.push(std::make_tuple(node->getNextFalseNode(), currentCoverage, currentPath));
-
-            }
-
-        }
-
-    }
-
+void SyntaxNamePrinter::BFS(std::shared_ptr<CFGNode> /*startNode*/,
+                            std::vector<bool>& /*pathCoverage*/,
+                            std::vector<PathDecision> /*decisions*/,
+                            int& /*pathCount*/) {
+    // Intentionally left blank.
 }
-
-
 
 //输出结果用的函数
 
-void SyntaxNamePrinter::processPathResult(const std::string& path, std::vector<bool>& pathCoverage, int pathCount,int depth) {
+void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
+                                          const std::string& path,
+                                          std::vector<bool>& pathCoverage,
+                                          int pathCount,
+                                          int depth) {
 
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
-
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
-
     std::string smtFileName = "smt" + std::to_string(pathCount) + ".txt";
-
     std::string matrixFileName = "matrix.txt";
 
-
-
     std::ofstream pathFile(pathFileName);
-
     std::ofstream resultFile(resultFileName);
-
     std::ofstream smtFile(smtFileName);
-
     std::ofstream matrixFile(matrixFileName, std::ios::app);
 
-
-
     // 写入路径
-
     pathFile << path;
-
     cout<<"Path:"<<path<<endl;
 
+    const bool feasible = eval.status == result::feasible;
+    resultFile << (feasible ? "feasible" : (eval.status == result::infeasible ? "infeasible" : "unknown")) << "\n";
 
-
-    // 使用 solver 检查路径的可行性
-
-    auto epat = epat::Root::fromString(path);
-
-    auto solver = epat::Solver::create(std::move(epat));
-
-
-
-
-
-    // 写入结果
-
-    //if (!dr->parseString(path)) {
-
-        //bool feasible = dr->feasible();
-
-        /*if (!feasible)
-
-        {
-
-            std::fill(pathCoverage.begin(), pathCoverage.end(), false);  // 将路径覆盖矩阵元素全部置为0
-
-        }*/
-
-            //resultFile << (feasible ? "feasible" : "infeasible") << "\n";
-
-    bool feasible;
-
-    if (solver->feasible() == result::feasible) {
-
-        feasible = true;
-
-        resultFile << "feasible\n";
-
-    } else if (solver->feasible() == result::infeasible) {
-
-        feasible = false;
-
-        resultFile << "infeasible\n";
-
-    } else {
-
-        resultFile << "unknown\n";
-
+    if (!feasible) {
+        std::fill(pathCoverage.begin(), pathCoverage.end(), false);  // 将路径覆盖矩阵元素全部置为0
     }
-
-
-
-    if (!feasible)
-
-    {
-
-         std::fill(pathCoverage.begin(), pathCoverage.end(), false);  // 将路径覆盖矩阵元素全部置为0
-
-    }
-
     resultFile << (feasible ? "feasible" : "infeasible") << "\n";
 
-
-
     // 写入 SMT 表达式和内存使用情况
-
-    std::string smt2 = solver->getSMT2();
-
-    int mem = solver->getMem();
+    const std::string& smt2 = eval.smt;
+    const int mem = eval.mem;
 
     if (feasible)
-
     {
-
         cout<<"feasible!!!"<<endl;
-
-        std::string model= solver->getModel();
-
-        //std::string smt2 = dr->getSMT2();
-
-        //int mem = dr->getMem();
-
-        //std::string model= dr->getModel();
+        const std::string& model= eval.model;
 
         smtFile << smt2 << "\n";
-
-        //cout<<"SMT2:"<<smt2<<endl;
-
         resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
-
         cout<<"[averagemem]:"<<mem/depth<<endl;
-
         cout<<"modelL"<<model<<endl;
 
-        
-
-
-
         // 写入覆盖矩阵
-
         for (bool covered : pathCoverage) {
-
             matrixFile << (covered ? "1" : "0") << " ";
-            //cout <<(covered ? "1" : "0") << " ";
         }
-
         matrixFile << "\n";
-        //cout<<endl;
-
-
 
         // 关闭文件
-
         pathFile.close();
-
         resultFile.close();
-
         smtFile.close();
-
         matrixFile.close();
 
-
-
         // 将路径覆盖信息添加到总覆盖矩阵中
-
         allPathsCoverage.push_back(pathCoverage);        
 
     }
-
     else
-
     {
-
         cout<<"infeasible!!!"<<endl;
 
-        //std::string smt2 = dr->getSMT2();
-
-        //int mem = dr->getMem();
-
-        //std::string model= dr->getModel();
-
         smtFile << smt2 << "\n";
-
-        //cout<<"SMT2:"<<smt2<<endl;
-
         resultFile <<"\n"<<"[mem]:" << mem << "\n";
-
         cout<<"[mem]:"<<mem<<endl;
-
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-
         for (bool covered : pathCoverage) {
-
             matrixFile <<"0"<< " ";
         }
-
         matrixFile << "\n";
 
     }
-
 
 
 }
 
-
-void SyntaxNamePrinter::processPathResult2(const std::string& path, std::vector<bool>& pathCoverage, int pathCount,int depth) {
+void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
+                                          const std::string& path,
+                                          std::vector<bool>& pathCoverage,
+                                          int pathCount,
+                                          int depth) {
 
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
-
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
-
     std::string smtFileName = "smt" + std::to_string(pathCount) + ".txt";
-
     std::string matrixFileName = "matrix2.txt";
 
-
-
     std::ofstream pathFile(pathFileName);
-
     std::ofstream resultFile(resultFileName);
-
     std::ofstream smtFile(smtFileName);
-
     std::ofstream matrixFile(matrixFileName, std::ios::app);
 
-
-
     // 写入路径
-
     pathFile << path;
-
     cout<<"Path:"<<path<<endl;
 
-
-
-    // 使用 solver 检查路径的可行性
-
-    auto epat = epat::Root::fromString(path);
-
-    auto solver = epat::Solver::create(std::move(epat));
-
-
-
-
-
-    // 写入结果
-
-    //if (!dr->parseString(path)) {
-
-        //bool feasible = dr->feasible();
-
-        /*if (!feasible)
-
-        {
-
-            std::fill(pathCoverage.begin(), pathCoverage.end(), false);  // 将路径覆盖矩阵元素全部置为0
-
-        }*/
-
-            //resultFile << (feasible ? "feasible" : "infeasible") << "\n";
-
-    bool feasible;
-
-    if (solver->feasible() == result::feasible) {
-
-        feasible = true;
-
-        resultFile << "feasible\n";
-
-    } else if (solver->feasible() == result::infeasible) {
-
-        feasible = false;
-
-        resultFile << "infeasible\n";
-
-    } else {
-
-        resultFile << "unknown\n";
-
-    }
-
-
+    const bool feasible = eval.status == result::feasible;
+    resultFile << (feasible ? "feasible" : (eval.status == result::infeasible ? "infeasible" : "unknown")) << "\n";
 
     if (!feasible)
-
     {
-
          std::fill(pathCoverage.begin(), pathCoverage.end(), false);  // 将路径覆盖矩阵元素全部置为0
-
     }
-
     resultFile << (feasible ? "feasible" : "infeasible") << "\n";
 
-
-
     // 写入 SMT 表达式和内存使用情况
-
-    std::string smt2 = solver->getSMT2();
-
-    int mem = solver->getMem();
+    const std::string& smt2 = eval.smt;
+    const int mem = eval.mem;
 
     if (feasible)
-
     {
-
         cout<<"feasible!!!"<<endl;
-
-        std::string model= solver->getModel();
-
-        //std::string smt2 = dr->getSMT2();
-
-        //int mem = dr->getMem();
-
-        //std::string model= dr->getModel();
+        const std::string& model= eval.model;
 
         smtFile << smt2 << "\n";
-
-        //cout<<"SMT2:"<<smt2<<endl;
-
         resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
-
         cout<<"[averagemem]:"<<mem/depth<<endl;
-
         cout<<"modelL"<<model<<endl;
 
-        
-
-
-
         // 写入覆盖矩阵
-
         for (bool covered : pathCoverage) {
-
             matrixFile << (covered ? "1" : "0") << " ";
-            //cout <<(covered ? "1" : "0") << " ";
         }
-
         matrixFile << "\n";
-        //cout<<endl;
-
-
 
         // 关闭文件
-
         pathFile.close();
-
         resultFile.close();
-
         smtFile.close();
-
         matrixFile.close();
 
-
-
         // 将路径覆盖信息添加到总覆盖矩阵中
-
         allPathsCoverage.push_back(pathCoverage);        
 
     }
@@ -2512,40 +2215,23 @@ void SyntaxNamePrinter::processPathResult2(const std::string& path, std::vector<
     else
 
     {
-
         cout<<"infeasible!!!"<<endl;
 
-        //std::string smt2 = dr->getSMT2();
-
-        //int mem = dr->getMem();
-
-        //std::string model= dr->getModel();
-
         smtFile << smt2 << "\n";
-
-        //cout<<"SMT2:"<<smt2<<endl;
-
         resultFile <<"\n"<<"[mem]:" << mem << "\n";
-
         cout<<"[mem]:"<<mem<<endl;
-
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-
         for (bool covered : pathCoverage) {
-
             matrixFile <<"0"<< " ";
         }
-
         matrixFile << "\n";
 
     }
 
 
-
 }
-
 
 std::vector<std::vector<int>> SyntaxNamePrinter::ReadCoverageMatrix(const std::string& filename) {
 
@@ -2662,4 +2348,3 @@ void SyntaxNamePrinter::SolveLinearProgram(const std::vector<std::vector<int>>& 
     }
     outputFile.close();  // 关闭文件流
 }
-

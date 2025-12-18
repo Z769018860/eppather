@@ -57,6 +57,8 @@ set(CFE_SOURCES
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxLexeme_StringLiteral.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxLexeme_StringLiteral.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxLexeme_ALL.h
+    ${PROJECT_SOURCE_DIR}/syntax/EpatRunner.h
+    ${PROJECT_SOURCE_DIR}/syntax/EpatRunner.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNode.cpp
@@ -270,7 +272,7 @@ include_directories(
 set(LIBRARY psychecfe)
 add_library(${LIBRARY} SHARED ${CFE_SOURCES} ${PLUGIN_SOURCES})
 
-target_link_libraries(${LIBRARY} psychecommon ClpSolver Clp)
+target_link_libraries(${LIBRARY} psychecommon)
 
 # Install setup
 install(TARGETS ${LIBRARY} DESTINATION ${PROJECT_SOURCE_DIR}/../../../Deliverable)
