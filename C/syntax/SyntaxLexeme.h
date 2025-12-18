@@ -28,6 +28,7 @@
 #include "../common/text/TextElement.h"
 
 #include <string>
+#include <cstdint>
 
 namespace psy {
 namespace C {

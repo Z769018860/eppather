@@ -37,11 +37,10 @@
 #include <set>
 #include <queue>
 #include <sstream>
-#include <ClpSimplex.hpp>
-#include <CoinPackedVector.hpp>  // 确保包含此头文件
 #include <stack>
 #include <tuple>
 #include <functional>
+#include "EpatRunner.h"
 
 //using namespace tool;
 
@@ -193,17 +192,17 @@ public:
     void printCFG_greedyDFS();
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
-        std::string& path,
+        std::vector<PathDecision>& decisions,
         int depth,
         int& pathCount,
         int maxloop,
         int& maxMems,
         int& minMems
     );
-    void DFS2(std::shared_ptr<CFGNode> node, std::vector<bool>& pathCoverage, std::string& path, int depth, int& pathCount, int maxloop);
+    void DFS2(std::shared_ptr<CFGNode> node, std::vector<bool>& pathCoverage, std::vector<PathDecision>& decisions, int depth, int& pathCount, int maxloop);
     void GreedyDFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
-        std::string path,
+        std::vector<PathDecision> decisions,
         int depth,
         int& pathCount,
         int maxloop,
@@ -223,18 +222,25 @@ public:
     //std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp);
 
     void printCFG_BFS();
-    void BFS(std::shared_ptr<CFGNode> startNode, std::vector<bool>& pathCoverage, std::string& path, int& pathCount);
-    void processPathResult(const std::string& path, std::vector<bool>& pathCoverage, int pathCount,int depth);
-    void processPathResult2(const std::string& path, std::vector<bool>& pathCoverage, int pathCount,int depth);
+    void BFS(std::shared_ptr<CFGNode> startNode, std::vector<bool>& pathCoverage, std::vector<PathDecision> decisions, int& pathCount);
+    void processPathResult(const EpatResult& eval,
+                           const std::string& path,
+                           std::vector<bool>& pathCoverage,
+                           int pathCount,
+                           int depth);
+    void processPathResult2(const EpatResult& eval,
+                            const std::string& path,
+                            std::vector<bool>& pathCoverage,
+                            int pathCount,
+                            int depth);
     void collectGlobalVariables(const SyntaxNode* rootNode);
     void startBranchMatrix();
     void pushBranchRow(const std::vector<bool>& row);
     void printBranchMatrix();
 
     bool isPathFeasible(const std::string& pathExpr) {
-        auto epat = epat::Root::fromString(pathExpr);
-        auto solver = epat::Solver::create(std::move(epat));
-        return solver->feasible() == result::feasible;
+        EpatRunner runner("");
+        return runner.solveScript(pathExpr).status == result::feasible;
     }
     std::shared_ptr<CFGNode> createEndNode() {
         auto endNode = std::make_shared<CFGNode>();
@@ -261,8 +267,6 @@ private:
     std::vector<int> loopCount;
     std::vector<int> temp_depth;
     std::vector<int> temp_loopCount[1000];
-    // 新增的全局快照槽（按 depth 使用）
-    std::string temp_path[1000];
     std::vector<bool> temp_pathCoverage[1000];
 
     std::shared_ptr<CFGNode> lastNode = std::make_shared<CFGNode>();
