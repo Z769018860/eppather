@@ -80,6 +80,9 @@ struct PathInfo {
     PathInfo(int m, std::string p, bool f): mems(m), path(std::move(p)), feasible(f) {}
 };
 
+// 全局可行性缓存
+extern std::unordered_map<std::string, bool> feasCache;
+
 
 class FunctionParameterExtractor : public SyntaxVisitor {
 public:
@@ -118,22 +121,30 @@ public:
 
     CFGNode()
         : isCondition(false),
-          isLoop(false),
-          isIf(false),
-          isFor(false),
           isWhile(false),
+          isLoop(false),
+          isFor(false),
+          isIf(false),
+          isReturn(false),
           isFuncDef(false),
           isVarDef(false),
-          isReturn(false),
           hasCallExpr(false),
+          isCovered(false),
           setmem(false),
+          depth(0),
           nodeLevel(-1),
-          cfgCode_(""),
-          memUsage(0),
           loopCount(0),
+          memUsage(0),
+          cond_(nullptr),
+          initstmt_(nullptr),
+          expr_(nullptr),
+          cond_str(),
+          initstmt_str(),
+          expr_str(),
+          kind_(SyntaxKind::UnknownSyntax),
+          cfgCode_(),
           nextNode_(nullptr),
           nextFalseNode_(nullptr),
-          kind_(SyntaxKind::UnknownSyntax),
           syntaxNode_(nullptr) {}
 
     void setKind(SyntaxKind kind) { kind_ = kind; }
@@ -213,11 +224,12 @@ public:
 
     std::unordered_map<const CFGNode*, PathInfo> memo;
     PathInfo MaxMemsDP(
-    const std::shared_ptr<CFGNode>& entry,
-    int maxloop,
-    std::string pathPrefix,  // raw path 前缀（不含 vartemp）
-    int depth,
-    std::unordered_map<CFGNode*, int>& loopUnrollMap
+        const std::shared_ptr<CFGNode>& entry,
+        int maxloop,
+        std::string pathPrefix,  // raw path 前缀（不含 vartemp）
+        int depth,
+        std::unordered_map<CFGNode*, int>& loopUnrollMap,
+        std::vector<PathDecision> decisions
     );
     //std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp);
 
@@ -238,9 +250,21 @@ public:
     void pushBranchRow(const std::vector<bool>& row);
     void printBranchMatrix();
 
+    bool isPathFeasible(const std::vector<PathDecision>& decisions, const std::string& pathExpr) {
+        auto cacheKey = vartemp + pathExpr;
+        auto it       = feasCache.find(cacheKey);
+        if (it != feasCache.end()) return it->second;
+
+        EpatRunner runner(vartemp);
+        bool ok = runner.solve(decisions).status == result::feasible;
+        feasCache.emplace(std::move(cacheKey), ok);
+        return ok;
+    }
+
+    // 兼容仅有路径串的判定需求
     bool isPathFeasible(const std::string& pathExpr) {
-        EpatRunner runner("");
-        return runner.solveScript(pathExpr).status == result::feasible;
+        std::vector<PathDecision> emptyDecisions;
+        return isPathFeasible(emptyDecisions, pathExpr);
     }
     std::shared_ptr<CFGNode> createEndNode() {
         auto endNode = std::make_shared<CFGNode>();
