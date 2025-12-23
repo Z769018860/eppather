@@ -40,11 +40,43 @@ epat::smt::result epat::smt::Solver::solve()
     }
 }
 
+namespace {
+std::string formatValue(const z3::expr& value)
+{
+    try {
+        if (value.is_bool()) {
+            switch (Z3_get_bool_value(value.ctx(), value)) {
+            case Z3_L_TRUE:
+                return "true";
+            case Z3_L_FALSE:
+                return "false";
+            default:
+                return "unknown";
+            }
+        }
+        if (value.is_numeral())
+            return Z3_get_numeral_string(value.ctx(), value);
+    }
+    catch (z3::exception& e) {
+        std::cout << e << std::endl;
+        return value.to_string();
+    }
+
+    return value.to_string();
+}
+} // namespace
+
 std::string epat::smt::Solver::getModel()
 {
     try {
-        // TODO: 改写
-        return impl_->z3solver.get_model().to_string();
+        auto model = impl_->z3solver.get_model();
+        std::ostringstream oss;
+        for (unsigned i = 0; i < model.size(); ++i) {
+            auto decl = model[i];
+            auto value = model.get_const_interp(decl);
+            oss << decl.name() << " = " << formatValue(value) << '\n';
+        }
+        return oss.str();
     }
     catch (z3::exception& e) {
         std::cout << e << std::endl;
