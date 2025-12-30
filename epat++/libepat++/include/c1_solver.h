@@ -94,6 +94,28 @@ namespace epat {
         }
         using field_record_map = std::map<FieldDecl const*, int>;
         field_record_map field_record_map_;
+        std::string buildModelVarName(const VarDecl& vard, int slot_index, int slot_count)
+        {
+            std::string name = vard.getName();
+            if (vard.getType().isArray() || vard.getType().isPointer()) {
+                name += "[" + std::to_string(slot_index) + "]";
+            }
+            else if (slot_count > 1) {
+                name += "@" + std::to_string(slot_index);
+            }
+            return name;
+        }
+        std::string buildModelVarNameForArray(const VarDecl& vard,
+                                              int array_index,
+                                              int element_slot,
+                                              int element_slot_count)
+        {
+            std::string name = vard.getName() + "[" + std::to_string(array_index) + "]";
+            if (element_slot_count > 1) {
+                name += "@" + std::to_string(element_slot);
+            }
+            return name;
+        }
         int getOffset(FieldDecl const& fd)
         {
             // XXX: 效率优化
@@ -401,13 +423,44 @@ namespace epat {
                     auto name = this->getUniqueName(vard);
                     if (isComplete) {
                         // TODO: 完整类型会赋初值，不完整类型待定
-                        auto types = vard.getType().getContents(true);
-                        for (int i = 0, n = (int)types.size(); i < n; ++i) {
-                            auto const& t = types[i];
-                            auto sort = smt::type2sort(t);
-                            auto new_name = name + "@" + std::to_string(i);
-                            auto v = gc.constant(new_name.c_str(), sort);
-                            this->mem_.set((l + i).simplify(), v);
+                        if (vard.getType().isArray()) {
+                            auto elem_type = vard.getType().getElement();
+                            auto element_types = elem_type.getContents(true);
+                            if (element_types.empty())
+                                element_types.push_back(elem_type);
+                            int elem_size = elem_type.getSize();
+                            int total_size = vard.getType().getSize();
+                            if (elem_size > 0 && total_size > 0) {
+                                int length = total_size / elem_size;
+                                int element_slot_count = (int)element_types.size();
+                                for (int idx = 0; idx < length; ++idx) {
+                                    for (int slot = 0; slot < element_slot_count; ++slot) {
+                                        int offset = idx * element_slot_count + slot;
+                                        auto const& t = element_types[slot];
+                                        auto sort = smt::type2sort(t);
+                                        auto new_name = name + "@" + std::to_string(offset);
+                                        auto v = gc.constant(new_name.c_str(), sort);
+                                        auto display_name = buildModelVarNameForArray(
+                                            vard, idx, slot, element_slot_count);
+                                        this->registerModelVar(new_name,
+                                                               t.getDeclCode(display_name));
+                                        this->mem_.set((l + offset).simplify(), v);
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            auto types = vard.getType().getContents(true);
+                            for (int i = 0, n = (int)types.size(); i < n; ++i) {
+                                auto const& t = types[i];
+                                auto sort = smt::type2sort(t);
+                                auto new_name = name + "@" + std::to_string(i);
+                                auto v = gc.constant(new_name.c_str(), sort);
+                                auto display_name =
+                                    buildModelVarName(vard, i, (int)types.size());
+                                this->registerModelVar(new_name, t.getDeclCode(display_name));
+                                this->mem_.set((l + i).simplify(), v);
+                            }
                         }
                     }
                 }
