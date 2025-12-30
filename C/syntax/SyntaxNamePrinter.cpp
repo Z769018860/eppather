@@ -2147,11 +2147,12 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
         const std::string& model= eval.model;
 
         smtFile << smt2 << "\n";
-        resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
+        resultFile << "[testcase]:" << "\n" << model << "\n"
+                   << "[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
         cout<<"[averagemem]:"<<mem/depth<<endl;
-        cout<<"modelL"<<model<<endl;
+        cout<<"[testcase]:"<<endl<<model<<endl;
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
@@ -2228,11 +2229,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         const std::string& model= eval.model;
 
         smtFile << smt2 << "\n";
-        resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
+        resultFile << "[testcase]:" << "\n" << model << "\n"
+                   << "[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
         cout<<"[averagemem]:"<<mem/depth<<endl;
-        cout<<"modelL"<<model<<endl;
+        cout<<"[testcase]:"<<endl<<model<<endl;
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
