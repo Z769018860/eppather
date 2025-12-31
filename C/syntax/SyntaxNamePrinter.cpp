@@ -43,20 +43,20 @@
 
 
 #include <algorithm>
-
-#include <iostream>
-
-#include <stdlib.h>
-
-#include <unordered_map>
-
+#include <chrono>
+#include <cstdio>
 #include <fstream>
-
+#include <iostream>
+#include <optional>
+#include <unordered_set>
+#include <stdlib.h>
 #include <string>
+#include <unordered_map>
 
 
 #include "lp_lib.h"
 #include "SyntaxNode.h"
+#include "z3.h"
 
 //#include "stmt.h"
 
@@ -70,6 +70,136 @@ using namespace std;
 using namespace psy;
 
 using namespace C;
+
+namespace {
+constexpr int kVolceLowerBound = -15;
+constexpr int kVolceUpperBound = 16;
+
+struct VolceResult {
+    std::string output;
+    std::optional<std::string> count;
+};
+
+bool isZeroArity(Z3_context ctx, Z3_func_decl decl) {
+    return Z3_get_arity(ctx, decl) == 0;
+}
+
+bool isBv32(Z3_context ctx, Z3_sort sort) {
+    if (Z3_get_sort_kind(ctx, sort) != Z3_BV_SORT) {
+        return false;
+    }
+    return Z3_get_bv_sort_size(ctx, sort) == 32;
+}
+
+void collectFromAst(Z3_context ctx,
+                    Z3_ast ast,
+                    std::unordered_set<unsigned>& seen,
+                    std::vector<Z3_func_decl>& decls) {
+    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) {
+        return;
+    }
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    if (Z3_get_decl_kind(ctx, decl) == Z3_OP_UNINTERPRETED && isZeroArity(ctx, decl) &&
+        isBv32(ctx, Z3_get_range(ctx, decl))) {
+        unsigned id = Z3_get_ast_id(ctx, Z3_func_decl_to_ast(ctx, decl));
+        if (seen.insert(id).second) {
+            decls.push_back(decl);
+        }
+    }
+    unsigned argc = Z3_get_app_num_args(ctx, app);
+    for (unsigned i = 0; i < argc; ++i) {
+        collectFromAst(ctx, Z3_get_app_arg(ctx, app, i), seen, decls);
+    }
+}
+
+std::vector<Z3_func_decl> collectZeroArityDecls(Z3_context ctx, Z3_ast_vector vec) {
+    std::vector<Z3_func_decl> decls;
+    std::unordered_set<unsigned> seen;
+    unsigned num = Z3_ast_vector_size(ctx, vec);
+    for (unsigned i = 0; i < num; ++i) {
+        collectFromAst(ctx, Z3_ast_vector_get(ctx, vec, i), seen, decls);
+    }
+    return decls;
+}
+
+Z3_ast mkSignedBound(Z3_context ctx, int value) {
+    Z3_sort bv32 = Z3_mk_bv_sort(ctx, 32);
+    return Z3_mk_int64(ctx, value, bv32);
+}
+
+void assertBound(Z3_context ctx, Z3_solver solver, Z3_ast var, int lower, int upper) {
+    Z3_ast lowerAst = mkSignedBound(ctx, lower);
+    Z3_ast upperAst = mkSignedBound(ctx, upper);
+    Z3_ast ge = Z3_mk_bvsge(ctx, var, lowerAst);
+    Z3_ast le = Z3_mk_bvsle(ctx, var, upperAst);
+    Z3_ast bounds[2] = {ge, le};
+    Z3_solver_assert(ctx, solver, Z3_mk_and(ctx, 2, bounds));
+}
+
+std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3_func_decl>& decls) {
+    std::uint64_t count = 0;
+    while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
+        Z3_model model = Z3_solver_get_model(ctx, solver);
+        if (!model) {
+            break;
+        }
+        Z3_model_inc_ref(ctx, model);
+        std::vector<Z3_ast> equalities;
+        equalities.reserve(decls.size());
+        for (auto decl : decls) {
+            Z3_ast value = nullptr;
+            Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
+            if (Z3_model_eval(ctx, model, var, true, &value) == Z3_L_TRUE && value) {
+                equalities.push_back(Z3_mk_eq(ctx, var, value));
+            }
+        }
+        Z3_model_dec_ref(ctx, model);
+        if (equalities.empty()) {
+            ++count;
+            break;
+        }
+        Z3_ast all = Z3_mk_and(ctx, static_cast<unsigned>(equalities.size()), equalities.data());
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, all));
+        ++count;
+    }
+    return count;
+}
+
+std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int upperBound) {
+    if (smt2.empty()) {
+        return std::nullopt;
+    }
+
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    unsigned num = Z3_ast_vector_size(ctx, vec);
+    for (unsigned i = 0; i < num; ++i) {
+        Z3_solver_assert(ctx, solver, Z3_ast_vector_get(ctx, vec, i));
+    }
+
+    const auto decls = collectZeroArityDecls(ctx, vec);
+    for (auto decl : decls) {
+        Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
+        assertBound(ctx, solver, var, lowerBound, upperBound);
+    }
+
+    std::uint64_t count = countModels(ctx, solver, decls);
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
+
+    VolceResult result;
+    result.output = std::to_string(count);
+    result.count = std::to_string(count);
+    return result;
+}
+}  // namespace
 
 
 
@@ -1942,9 +2072,18 @@ void SyntaxNamePrinter::printCFG_greedyDFS() {
             // 如需查看组合出的路径，可取消下一行注释
             // std::cout << fullPath << "\n";
             std::cout << "MEMS: -1" << std::endl;
+            std::cout << "[VolCE] N/A" << std::endl;
         } else {
+            const auto eval = EpatRunner("").solveScript(fullPath);
+            const auto volceResult = runVolce(eval.smt, kVolceLowerBound, kVolceUpperBound);
             std::cout << fullPath << std::endl;
             std::cout << "MEMS: " << result.mems << std::endl;
+            if (volceResult) {
+                std::cout << "[VolCE]" << std::endl;
+                std::cout << volceResult->output << std::endl;
+            } else {
+                std::cout << "[VolCE] N/A" << std::endl;
+            }
         }
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }

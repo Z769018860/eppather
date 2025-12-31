@@ -81,6 +81,8 @@ set(CFE_SOURCES
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxVisitor.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxWriterDOTFormat.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxWriterDOTFormat.cpp
+    ${PROJECT_SOURCE_DIR}/../utility/Process.h
+    ${PROJECT_SOURCE_DIR}/../utility/Process.cpp
 
     # Parser
     ${PROJECT_SOURCE_DIR}/parser/DiagnosticsReporter_Lexer.cpp

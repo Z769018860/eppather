@@ -112,6 +112,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/epat++/libepat++/include
     ${PROJECT_SOURCE_DIR}/epat++/
     ${PROJECT_SOURCE_DIR}/lpsolve/
+    ${Z3_INCLUDE_DIR}
     #${PROJECT_SOURCE_DIR}/libParser
     /usr/include/coin/
 )
@@ -119,6 +120,11 @@ include_directories(
 set(GENERATOR cnip)
 add_executable(${GENERATOR} ${CNIPPET_SOURCES})
 target_link_libraries(${GENERATOR} psychecfe psychecommon dl epat-protocol libepat++ ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
+
+# VolCE model counting utility
+add_executable(volce_tool ${PROJECT_SOURCE_DIR}/volce/main.cpp)
+set_target_properties(volce_tool PROPERTIES OUTPUT_NAME volce_bin)
+target_link_libraries(volce_tool ${Z3_LIB})
 
 #if (NOT WIN32 AND NOT MINGW)
     set(PSYCHE_TESTS test-suite)
@@ -128,6 +134,11 @@ target_link_libraries(${GENERATOR} psychecfe psychecommon dl epat-protocol libep
 
 # Install setup
 install(TARGETS ${GENERATOR}
+    DESTINATION ${PROJECT_SOURCE_DIR}
+	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+	            GROUP_EXECUTE GROUP_READ
+		        WORLD_EXECUTE WORLD_READ)
+install(TARGETS volce_tool
     DESTINATION ${PROJECT_SOURCE_DIR}
 	PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
 	            GROUP_EXECUTE GROUP_READ
