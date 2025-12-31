@@ -49,5 +49,8 @@ if(MSVC)
 endif()
 
 # 测试
-enable_testing()
-add_subdirectory("test")
+option(EPAT_PROTOCOL_BUILD_TESTS "Build epat-protocol tests" OFF)
+if(EPAT_PROTOCOL_BUILD_TESTS)
+  enable_testing()
+  add_subdirectory("test")
+endif()
