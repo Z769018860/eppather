@@ -80,6 +80,13 @@ namespace epat {
          */
         virtual std::string getModel() const;
         /**
+         * @brief 获取求解器原始模型输出
+         * @note 返回为SMT2格式。使用前需要先调用\ref feasible。
+         * @see feasible
+         * @return 表示原始模型的SMT2格式字符串
+         */
+        virtual std::string getRawModel() const;
+        /**
          * @brief 打印可行输入的解空间
          * @note 需要先调用\ref feasible。
          * @see feasible

@@ -9,7 +9,7 @@ using namespace epat;
 namespace {
     class SolverImpl : public epat::Solver {
         epat::Root::ptr ast_;
-        std::string model_, smt2_;
+        std::string model_, raw_model_, smt2_;
         epat::result result_ = epat::result::unknown;
         explicit SolverImpl(epat::Root::ptr ast) : Solver(), ast_(move(ast)) {}
     public:
@@ -32,10 +32,14 @@ namespace {
             }
             C1Solver<LinearMemoryLv> solver(*ast_);
             result_ = solver.feasible();
-            if (epat::result::feasible == result_)
+            if (epat::result::feasible == result_) {
                 model_ = solver.getModel();
-            else
+                raw_model_ = solver.getRawModel();
+            }
+            else {
                 model_ = "; no model available.";
+                raw_model_ = model_;
+            }
             smt2_ = solver.getSMT2();
             return result_;
 
@@ -67,6 +71,7 @@ namespace {
             // return solver_->feasible();
         }
         virtual std::string getModel() const override { return model_; }
+        virtual std::string getRawModel() const override { return raw_model_; }
         virtual std::string getSMT2() const override { return smt2_; }
         virtual int getMem() const override { return MemVisitor::getMem(*ast_); }
     };
@@ -94,6 +99,11 @@ void epat::Solver::printModel(std::ostream& os) const
 std::string epat::Solver::getModel() const
 {
     return "the method \"getModel\" is unfinished.";
+}
+
+std::string epat::Solver::getRawModel() const
+{
+    return "the method \"getRawModel\" is unfinished.";
 }
 
 void epat::Solver::printSMT2(std::ostream& os) const

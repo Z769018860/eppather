@@ -1943,8 +1943,16 @@ void SyntaxNamePrinter::printCFG_greedyDFS() {
             // std::cout << fullPath << "\n";
             std::cout << "MEMS: -1" << std::endl;
         } else {
+            EpatRunner runner(vartemp);
+            auto eval = runner.solveScript(fullPath);
             std::cout << fullPath << std::endl;
             std::cout << "MEMS: " << result.mems << std::endl;
+            if (eval.status != result::infeasible) {
+                std::cout << "[testcase]:" << std::endl;
+                std::cout << eval.model << std::endl;
+                std::cout << "[model_raw]:" << std::endl;
+                std::cout << eval.raw_model << std::endl;
+            }
         }
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
@@ -2145,13 +2153,17 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
     {
         cout<<"feasible!!!"<<endl;
         const std::string& model= eval.model;
+        const std::string& raw_model = eval.raw_model;
 
         smtFile << smt2 << "\n";
-        resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
+        resultFile << "[testcase]:" << "\n" << model << "\n"
+                   << "[model_raw]:" << "\n" << raw_model << "\n"
+                   << "[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
         cout<<"[averagemem]:"<<mem/depth<<endl;
-        cout<<"modelL"<<model<<endl;
+        cout<<"[testcase]:"<<endl<<model<<endl;
+        cout<<"[model_raw]:"<<endl<<raw_model<<endl;
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
@@ -2226,13 +2238,17 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
     {
         cout<<"feasible!!!"<<endl;
         const std::string& model= eval.model;
+        const std::string& raw_model = eval.raw_model;
 
         smtFile << smt2 << "\n";
-        resultFile << model<<"\n"<<"[mem]:" << mem << "\n";
+        resultFile << "[testcase]:" << "\n" << model << "\n"
+                   << "[model_raw]:" << "\n" << raw_model << "\n"
+                   << "[mem]:" << mem << "\n";
 
         cout<<"[mem]:"<<mem<<endl;
         cout<<"[averagemem]:"<<mem/depth<<endl;
-        cout<<"modelL"<<model<<endl;
+        cout<<"[testcase]:"<<endl<<model<<endl;
+        cout<<"[model_raw]:"<<endl<<raw_model<<endl;
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
