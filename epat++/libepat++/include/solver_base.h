@@ -75,6 +75,7 @@ namespace epat {
             }
             return oss.str();
         }
+        virtual std::string getRawModel() { return smt_.getModel(); }
         virtual std::string getSMT2() { return smt_.getSMT2(); }
         // std::ostringstream& smt() { return smtsolver_.oss(); }
 

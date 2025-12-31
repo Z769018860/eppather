@@ -33,6 +33,7 @@ struct EpatResult {
     int mem{0};
     std::string smt;
     std::string model;
+    std::string raw_model;
 };
 
 class EpatRunner {

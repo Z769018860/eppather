@@ -442,8 +442,11 @@ namespace epat {
                                         auto v = gc.constant(new_name.c_str(), sort);
                                         auto display_name = buildModelVarNameForArray(
                                             vard, idx, slot, element_slot_count);
+                                        auto decl_type = t;
+                                        if (decl_type.isPointer())
+                                            decl_type = decl_type.getElement();
                                         this->registerModelVar(new_name,
-                                                               t.getDeclCode(display_name));
+                                                               decl_type.getDeclCode(display_name));
                                         this->mem_.set((l + offset).simplify(), v);
                                     }
                                 }
@@ -458,7 +461,11 @@ namespace epat {
                                 auto v = gc.constant(new_name.c_str(), sort);
                                 auto display_name =
                                     buildModelVarName(vard, i, (int)types.size());
-                                this->registerModelVar(new_name, t.getDeclCode(display_name));
+                                auto decl_type = t;
+                                if (decl_type.isPointer())
+                                    decl_type = decl_type.getElement();
+                                this->registerModelVar(new_name,
+                                                       decl_type.getDeclCode(display_name));
                                 this->mem_.set((l + i).simplify(), v);
                             }
                         }

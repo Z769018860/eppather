@@ -77,6 +77,7 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
     result.mem = solver->getMem();
     result.smt = solver->getSMT2();
     result.model = solver->getModel();
+    result.raw_model = solver->getRawModel();
     return result;
 }
 
