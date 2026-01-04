@@ -122,7 +122,10 @@ add_executable(${GENERATOR} ${CNIPPET_SOURCES})
 target_link_libraries(${GENERATOR} psychecfe psychecommon dl epat-protocol libepat++ ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
 
 # VolCE model counting utility
-add_executable(volce_tool ${PROJECT_SOURCE_DIR}/volce/main.cpp)
+add_executable(volce_tool
+    ${PROJECT_SOURCE_DIR}/volce/main.cpp
+    ${PROJECT_SOURCE_DIR}/volce/volce_api.cpp
+)
 set_target_properties(volce_tool PROPERTIES OUTPUT_NAME volce_bin)
 target_link_libraries(volce_tool ${Z3_LIB})
 
