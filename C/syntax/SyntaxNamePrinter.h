@@ -200,7 +200,7 @@ public:
     void printCFG();
     void printCFG_DFS();
     void printCFG_DFS2();
-    void printCFG_greedyDFS();
+    void printCFG_greedyDFS(bool enableVolce);
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
         std::vector<PathDecision>& decisions,
