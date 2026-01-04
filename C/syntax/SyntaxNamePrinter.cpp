@@ -2053,7 +2053,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
 // ========== 驱动：与 DFS2 保持同样的 maxloop 和输出 ==========
 // 改动：无可行路径时输出 "MEMS: -1"
-void SyntaxNamePrinter::printCFG_greedyDFS() {
+void SyntaxNamePrinter::printCFG_greedyDFS(bool enableVolce) {
     int maxloop = 3;
     for (const auto& funcNode : funcDefStack_) {
         dpMemo.clear();  // 每个函数入口前清空 memo
@@ -2074,13 +2074,17 @@ void SyntaxNamePrinter::printCFG_greedyDFS() {
             std::cout << "MEMS: -1" << std::endl;
             std::cout << "[VolCE] N/A" << std::endl;
         } else {
-            const auto eval = EpatRunner("").solveScript(fullPath);
-            const auto volceResult = runVolce(eval.smt, kVolceLowerBound, kVolceUpperBound);
             std::cout << fullPath << std::endl;
             std::cout << "MEMS: " << result.mems << std::endl;
-            if (volceResult) {
-                std::cout << "[VolCE]" << std::endl;
-                std::cout << volceResult->output << std::endl;
+            if (enableVolce) {
+                const auto eval = EpatRunner("").solveScript(fullPath);
+                const auto volceResult = runVolce(eval.smt, kVolceLowerBound, kVolceUpperBound);
+                if (volceResult) {
+                    std::cout << "[VolCE]" << std::endl;
+                    std::cout << volceResult->output << std::endl;
+                } else {
+                    std::cout << "[VolCE] N/A" << std::endl;
+                }
             } else {
                 std::cout << "[VolCE] N/A" << std::endl;
             }

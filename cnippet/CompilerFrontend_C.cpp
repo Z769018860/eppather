@@ -178,7 +178,7 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         std::cout << "MaxMemDP is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_greedyDFS();
+        transformer.printCFG_greedyDFS(config_->enableVolce);
     }
 
     if (config_->dumpBFS) {
