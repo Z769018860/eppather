@@ -72,8 +72,8 @@ using namespace psy;
 using namespace C;
 
 namespace {
-constexpr int kVolceLowerBound = -15;
-constexpr int kVolceUpperBound = 16;
+constexpr int kVolceLowerBound = -256;
+constexpr int kVolceUpperBound = 256;
 
 struct VolceResult {
     std::string output;
@@ -1300,7 +1300,7 @@ void SyntaxNamePrinter::printCFG_DFS() {
     }
 }
 // ===== printCFG_DFS2：可按需把 pathCount 挪到函数内重置 =====
-void SyntaxNamePrinter::printCFG_DFS2() {
+void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
     std::string matrixFileName = "matrix2.txt";
 
     for (auto& funcNode : funcDefStack_) {
@@ -1318,7 +1318,7 @@ void SyntaxNamePrinter::printCFG_DFS2() {
         minmem = std::numeric_limits<int>::max();
 
         auto start = std::chrono::high_resolution_clock::now();
-        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, 3);
+        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, 3, enableVolce);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
@@ -1489,7 +1489,8 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                              std::vector<PathDecision>& decisions,
                              int depth,
                              int& pathCount,
-                             int maxloop)
+                             int maxloop,
+                             bool enableVolce)
 {
     if (pathCount > 1000) return;
     if (!node) return;
@@ -1543,7 +1544,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         pad_to_full_cols(pathCoverage);
 
         auto script = runner.render(decisions);
-        processPathResult2(eval, script, pathCoverage, pathCount, depth);
+        processPathResult2(eval, script, pathCoverage, pathCount, depth, enableVolce);
         ++pathCount;
         if (pushed) decisions.pop_back();
         return;
@@ -1584,7 +1585,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
             decisions.pop_back();
             if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
@@ -1600,7 +1601,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -1634,7 +1635,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             auto saved = loopCount;
             loopCount  = lc_t;
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
             loopCount = saved;
         }
@@ -1646,7 +1647,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -1668,7 +1669,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_t[2 * d] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
         }
 
@@ -1682,7 +1683,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop);
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -1690,12 +1691,12 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
     // ===================== 其它顺序节点 =====================
     if (node->isFuncDef || (node->isVarDef && node->nodeLevel == 3)) {
-        DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop);
+        DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, enableVolce);
         return;
     }
 
     decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
-    DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop);
+    DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, enableVolce);
     decisions.pop_back();
 }
 
@@ -2337,7 +2338,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                                           const std::string& path,
                                           std::vector<bool>& pathCoverage,
                                           int pathCount,
-                                          int depth) {
+                                          int depth,
+                                          bool enableVolce) {
 
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
@@ -2378,6 +2380,17 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"[mem]:"<<mem<<endl;
         cout<<"[averagemem]:"<<mem/depth<<endl;
         cout<<"[testcase]:"<<endl<<model<<endl;
+        if (enableVolce) {
+            const auto volceResult = runVolce(smt2, kVolceLowerBound, kVolceUpperBound);
+            if (volceResult) {
+                resultFile << "[volce]:" << volceResult->output << "\n";
+                cout << "[VolCE]" << endl;
+                cout << volceResult->output << endl;
+            } else {
+                resultFile << "[volce]: N/A\n";
+                cout << "[VolCE] N/A" << endl;
+            }
+        }
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {

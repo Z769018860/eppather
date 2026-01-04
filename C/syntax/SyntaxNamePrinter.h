@@ -199,7 +199,7 @@ public:
     void getCFG(const SyntaxNode* node);
     void printCFG();
     void printCFG_DFS();
-    void printCFG_DFS2();
+    void printCFG_DFS2(bool enableVolce);
     void printCFG_greedyDFS(bool enableVolce);
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
@@ -210,7 +210,13 @@ public:
         int& maxMems,
         int& minMems
     );
-    void DFS2(std::shared_ptr<CFGNode> node, std::vector<bool>& pathCoverage, std::vector<PathDecision>& decisions, int depth, int& pathCount, int maxloop);
+    void DFS2(std::shared_ptr<CFGNode> node,
+              std::vector<bool>& pathCoverage,
+              std::vector<PathDecision>& decisions,
+              int depth,
+              int& pathCount,
+              int maxloop,
+              bool enableVolce);
     void GreedyDFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
         std::vector<PathDecision> decisions,
@@ -244,7 +250,8 @@ public:
                             const std::string& path,
                             std::vector<bool>& pathCoverage,
                             int pathCount,
-                            int depth);
+                            int depth,
+                            bool enableVolce);
     void collectGlobalVariables(const SyntaxNode* rootNode);
     void startBranchMatrix();
     void pushBranchRow(const std::vector<bool>& row);
