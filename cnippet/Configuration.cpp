@@ -32,5 +32,7 @@ Configuration::Configuration(const cxxopts::ParseResult& parsedCmdLine)
     , dumpDFS2(parsedCmdLine.count("dump-DFS2"))
     , dumpMaxMemDP(parsedCmdLine.count("dump-MaxMemDP"))
     , dumpBFS(parsedCmdLine.count("dump-BFS"))
+    , enableVolce(parsedCmdLine.count("volce"))
     , WIP_(parsedCmdLine.count("WIP"))
+    , maxLoop(parsedCmdLine["maxloop"].as<int>())
 {}
