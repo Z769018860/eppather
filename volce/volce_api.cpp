@@ -1,11 +1,16 @@
 #include "volce/volce_api.h"
 
+#include <cctype>
+#include <fstream>
 #include <limits>
+#include <string_view>
 #include <unordered_set>
 
 #include "z3.h"
 
 namespace {
+
+constexpr volce::Range kVolceWordRange{-8, 8};
 
 bool isZeroArity(const Z3_context ctx, Z3_func_decl decl) {
     return Z3_get_arity(ctx, decl) == 0;
@@ -85,6 +90,202 @@ std::vector<Z3_func_decl> collectZeroArityDecls(Z3_context ctx, Z3_ast_vector ve
     return decls;
 }
 
+struct DeclInfo {
+    std::string name;
+    unsigned bits;
+};
+
+void skipSpaceAndComments(std::string_view text, size_t& pos) {
+    while (pos < text.size()) {
+        char c = text[pos];
+        if (std::isspace(static_cast<unsigned char>(c)) != 0) {
+            ++pos;
+            continue;
+        }
+        if (c == ';') {
+            while (pos < text.size() && text[pos] != '\n') {
+                ++pos;
+            }
+            continue;
+        }
+        break;
+    }
+}
+
+bool consumeChar(std::string_view text, size_t& pos, char expected) {
+    skipSpaceAndComments(text, pos);
+    if (pos < text.size() && text[pos] == expected) {
+        ++pos;
+        return true;
+    }
+    return false;
+}
+
+bool consumeToken(std::string_view text, size_t& pos, std::string_view token) {
+    skipSpaceAndComments(text, pos);
+    if (text.substr(pos, token.size()) == token) {
+        pos += token.size();
+        return true;
+    }
+    return false;
+}
+
+std::optional<std::string> parseSymbol(std::string_view text, size_t& pos) {
+    skipSpaceAndComments(text, pos);
+    if (pos >= text.size()) {
+        return std::nullopt;
+    }
+    if (text[pos] == '|') {
+        ++pos;
+        size_t start = pos;
+        while (pos < text.size() && text[pos] != '|') {
+            ++pos;
+        }
+        if (pos >= text.size()) {
+            return std::nullopt;
+        }
+        std::string symbol(text.substr(start, pos - start));
+        ++pos;
+        return symbol;
+    }
+    size_t start = pos;
+    while (pos < text.size()) {
+        char c = text[pos];
+        if (std::isspace(static_cast<unsigned char>(c)) != 0 || c == '(' || c == ')') {
+            break;
+        }
+        ++pos;
+    }
+    if (pos == start) {
+        return std::nullopt;
+    }
+    return std::string(text.substr(start, pos - start));
+}
+
+std::optional<unsigned> parseUnsigned(std::string_view text, size_t& pos) {
+    skipSpaceAndComments(text, pos);
+    size_t start = pos;
+    while (pos < text.size() && std::isdigit(static_cast<unsigned char>(text[pos])) != 0) {
+        ++pos;
+    }
+    if (pos == start) {
+        return std::nullopt;
+    }
+    return static_cast<unsigned>(std::stoul(std::string(text.substr(start, pos - start))));
+}
+
+std::optional<unsigned> parseBitVectorSort(std::string_view text, size_t& pos) {
+    if (!consumeChar(text, pos, '(')) {
+        return std::nullopt;
+    }
+    if (!consumeToken(text, pos, "_")) {
+        return std::nullopt;
+    }
+    if (!consumeToken(text, pos, "BitVec")) {
+        return std::nullopt;
+    }
+    auto bits = parseUnsigned(text, pos);
+    if (!bits) {
+        return std::nullopt;
+    }
+    if (!consumeChar(text, pos, ')')) {
+        return std::nullopt;
+    }
+    return bits;
+}
+
+std::optional<DeclInfo> parseDeclareFun(std::string_view text, size_t& pos) {
+    if (!consumeChar(text, pos, '(')) {
+        return std::nullopt;
+    }
+    if (!consumeToken(text, pos, "declare-fun")) {
+        return std::nullopt;
+    }
+    auto name = parseSymbol(text, pos);
+    if (!name) {
+        return std::nullopt;
+    }
+    if (!consumeChar(text, pos, '(') || !consumeChar(text, pos, ')')) {
+        return std::nullopt;
+    }
+    auto bits = parseBitVectorSort(text, pos);
+    if (!bits) {
+        return std::nullopt;
+    }
+    consumeChar(text, pos, ')');
+    return DeclInfo{std::move(*name), *bits};
+}
+
+std::optional<DeclInfo> parseDeclareConst(std::string_view text, size_t& pos) {
+    if (!consumeChar(text, pos, '(')) {
+        return std::nullopt;
+    }
+    if (!consumeToken(text, pos, "declare-const")) {
+        return std::nullopt;
+    }
+    auto name = parseSymbol(text, pos);
+    if (!name) {
+        return std::nullopt;
+    }
+    auto bits = parseBitVectorSort(text, pos);
+    if (!bits) {
+        return std::nullopt;
+    }
+    consumeChar(text, pos, ')');
+    return DeclInfo{std::move(*name), *bits};
+}
+
+std::vector<DeclInfo> parseBitVectorDecls(std::string_view text) {
+    std::vector<DeclInfo> decls;
+    size_t pos = 0;
+    while (pos < text.size()) {
+        skipSpaceAndComments(text, pos);
+        if (pos >= text.size()) {
+            break;
+        }
+        if (text[pos] != '(') {
+            ++pos;
+            continue;
+        }
+        size_t probe = pos;
+        if (auto decl = parseDeclareFun(text, probe)) {
+            decls.push_back(std::move(*decl));
+            pos = probe;
+            continue;
+        }
+        probe = pos;
+        if (auto decl = parseDeclareConst(text, probe)) {
+            decls.push_back(std::move(*decl));
+            pos = probe;
+            continue;
+        }
+        ++pos;
+    }
+    return decls;
+}
+
+void addDeclaredBitVectors(Z3_context ctx,
+                           const std::vector<DeclInfo>& parsed,
+                           std::vector<Z3_func_decl>& decls) {
+    std::unordered_set<std::string> seen;
+    seen.reserve(decls.size() + parsed.size());
+    for (auto decl : decls) {
+        const char* name = Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+        if (name) {
+            seen.insert(name);
+        }
+    }
+    for (const auto& info : parsed) {
+        if (!seen.insert(info.name).second) {
+            continue;
+        }
+        Z3_sort sort = Z3_mk_bv_sort(ctx, info.bits);
+        Z3_symbol symbol = Z3_mk_string_symbol(ctx, info.name.c_str());
+        Z3_ast var = Z3_mk_const(ctx, symbol, sort);
+        decls.push_back(Z3_get_app_decl(ctx, Z3_to_app(ctx, var)));
+    }
+}
+
 std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3_func_decl>& decls) {
     std::uint64_t count = 0;
     while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
@@ -121,17 +322,22 @@ std::optional<volce::Range> lookupRange(const std::string& name,
     if (it != ranges.end()) {
         return it->second;
     }
-    return default_range;
+    if (default_range) {
+        return default_range;
+    }
+    return kVolceWordRange;
 }
 
 std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                Z3_solver solver,
                                                Z3_ast_vector vec,
+                                               const std::vector<DeclInfo>& parsed_decls,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range) {
     assertParsedFormulas(ctx, solver, vec);
 
-    const auto decls = collectZeroArityDecls(ctx, vec);
+    auto decls = collectZeroArityDecls(ctx, vec);
+    addDeclaredBitVectors(ctx, parsed_decls, decls);
     std::vector<std::string> bounded_vars;
     bounded_vars.reserve(decls.size());
 
@@ -171,6 +377,7 @@ std::optional<CountResult> countModelsFromSmt2(
         return std::nullopt;
     }
 
+    const auto parsed_decls = parseBitVectorDecls(smt2);
     Z3_config config = Z3_mk_config();
     Z3_context ctx = Z3_mk_context(config);
     Z3_del_config(config);
@@ -179,7 +386,7 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver_inc_ref(ctx, solver);
 
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, ranges, default_range);
+    auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
@@ -195,6 +402,13 @@ std::optional<CountResult> countModelsFromSmt2File(
         return std::nullopt;
     }
 
+    std::ifstream file(smt2_path);
+    if (!file) {
+        return std::nullopt;
+    }
+    std::string smt2((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    const auto parsed_decls = parseBitVectorDecls(smt2);
+
     Z3_config config = Z3_mk_config();
     Z3_context ctx = Z3_mk_context(config);
     Z3_del_config(config);
@@ -202,8 +416,8 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
 
-    Z3_ast_vector vec = Z3_parse_smtlib2_file(ctx, smt2_path.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, ranges, default_range);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);

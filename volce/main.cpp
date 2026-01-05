@@ -11,7 +11,7 @@
 namespace {
 struct Options {
     std::string smtFile;
-    std::optional<volce::Range> defaultRange = volce::Range{-1023, 1024};
+    std::optional<volce::Range> defaultRange = volce::Range{-8, 8};
     std::unordered_map<std::string, volce::Range> namedRanges;
 };
 

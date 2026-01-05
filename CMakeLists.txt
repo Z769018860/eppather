@@ -84,6 +84,7 @@ set(CNIPPET_SOURCES
     ${PROJECT_SOURCE_DIR}/cnippet/Driver.cpp
     ${PROJECT_SOURCE_DIR}/cnippet/Plugin.h
     ${PROJECT_SOURCE_DIR}/cnippet/Plugin.cpp
+    ${PROJECT_SOURCE_DIR}/volce/volce_api.cpp
 )
 
 set(PSYCHE_TESTS_SOURCES

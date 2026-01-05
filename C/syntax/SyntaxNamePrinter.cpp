@@ -47,8 +47,8 @@
 #include <cstdio>
 #include <fstream>
 #include <iostream>
+#include <limits>
 #include <optional>
-#include <unordered_set>
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
@@ -56,7 +56,7 @@
 
 #include "lp_lib.h"
 #include "SyntaxNode.h"
-#include "z3.h"
+#include "volce/volce_api.h"
 
 //#include "stmt.h"
 
@@ -72,98 +72,34 @@ using namespace psy;
 using namespace C;
 
 namespace {
-constexpr int kVolceLowerBound = -256;
-constexpr int kVolceUpperBound = 256;
+constexpr int kVolceLowerBound = -8;
+constexpr int kVolceUpperBound = 8;
 
 struct VolceResult {
     std::string output;
     std::optional<std::string> count;
 };
 
-bool isZeroArity(Z3_context ctx, Z3_func_decl decl) {
-    return Z3_get_arity(ctx, decl) == 0;
-}
-
-bool isBv32(Z3_context ctx, Z3_sort sort) {
-    if (Z3_get_sort_kind(ctx, sort) != Z3_BV_SORT) {
-        return false;
+std::optional<std::uint64_t> parseVolceCount(const std::optional<VolceResult>& result) {
+    if (!result || !result->count) {
+        return std::nullopt;
     }
-    return Z3_get_bv_sort_size(ctx, sort) == 32;
-}
-
-void collectFromAst(Z3_context ctx,
-                    Z3_ast ast,
-                    std::unordered_set<unsigned>& seen,
-                    std::vector<Z3_func_decl>& decls) {
-    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) {
-        return;
+    const std::string& text = *result->count;
+    if (text.empty()) {
+        return std::nullopt;
     }
-    Z3_app app = Z3_to_app(ctx, ast);
-    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
-    if (Z3_get_decl_kind(ctx, decl) == Z3_OP_UNINTERPRETED && isZeroArity(ctx, decl) &&
-        isBv32(ctx, Z3_get_range(ctx, decl))) {
-        unsigned id = Z3_get_ast_id(ctx, Z3_func_decl_to_ast(ctx, decl));
-        if (seen.insert(id).second) {
-            decls.push_back(decl);
+    std::uint64_t value = 0;
+    for (char ch : text) {
+        if (ch < '0' || ch > '9') {
+            return std::nullopt;
         }
-    }
-    unsigned argc = Z3_get_app_num_args(ctx, app);
-    for (unsigned i = 0; i < argc; ++i) {
-        collectFromAst(ctx, Z3_get_app_arg(ctx, app, i), seen, decls);
-    }
-}
-
-std::vector<Z3_func_decl> collectZeroArityDecls(Z3_context ctx, Z3_ast_vector vec) {
-    std::vector<Z3_func_decl> decls;
-    std::unordered_set<unsigned> seen;
-    unsigned num = Z3_ast_vector_size(ctx, vec);
-    for (unsigned i = 0; i < num; ++i) {
-        collectFromAst(ctx, Z3_ast_vector_get(ctx, vec, i), seen, decls);
-    }
-    return decls;
-}
-
-Z3_ast mkSignedBound(Z3_context ctx, int value) {
-    Z3_sort bv32 = Z3_mk_bv_sort(ctx, 32);
-    return Z3_mk_int64(ctx, value, bv32);
-}
-
-void assertBound(Z3_context ctx, Z3_solver solver, Z3_ast var, int lower, int upper) {
-    Z3_ast lowerAst = mkSignedBound(ctx, lower);
-    Z3_ast upperAst = mkSignedBound(ctx, upper);
-    Z3_ast ge = Z3_mk_bvsge(ctx, var, lowerAst);
-    Z3_ast le = Z3_mk_bvsle(ctx, var, upperAst);
-    Z3_ast bounds[2] = {ge, le};
-    Z3_solver_assert(ctx, solver, Z3_mk_and(ctx, 2, bounds));
-}
-
-std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3_func_decl>& decls) {
-    std::uint64_t count = 0;
-    while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
-        Z3_model model = Z3_solver_get_model(ctx, solver);
-        if (!model) {
-            break;
+        const std::uint64_t digit = static_cast<std::uint64_t>(ch - '0');
+        if (value > (std::numeric_limits<std::uint64_t>::max() - digit) / 10) {
+            return std::nullopt;
         }
-        Z3_model_inc_ref(ctx, model);
-        std::vector<Z3_ast> equalities;
-        equalities.reserve(decls.size());
-        for (auto decl : decls) {
-            Z3_ast value = nullptr;
-            Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
-            if (Z3_model_eval(ctx, model, var, true, &value) == Z3_L_TRUE && value) {
-                equalities.push_back(Z3_mk_eq(ctx, var, value));
-            }
-        }
-        Z3_model_dec_ref(ctx, model);
-        if (equalities.empty()) {
-            ++count;
-            break;
-        }
-        Z3_ast all = Z3_mk_and(ctx, static_cast<unsigned>(equalities.size()), equalities.data());
-        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, all));
-        ++count;
+        value = value * 10 + digit;
     }
-    return count;
+    return value;
 }
 
 std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int upperBound) {
@@ -171,32 +107,15 @@ std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int
         return std::nullopt;
     }
 
-    Z3_config config = Z3_mk_config();
-    Z3_context ctx = Z3_mk_context(config);
-    Z3_del_config(config);
-
-    Z3_solver solver = Z3_mk_solver(ctx);
-    Z3_solver_inc_ref(ctx, solver);
-
-    Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    unsigned num = Z3_ast_vector_size(ctx, vec);
-    for (unsigned i = 0; i < num; ++i) {
-        Z3_solver_assert(ctx, solver, Z3_ast_vector_get(ctx, vec, i));
+    const volce::Range range{lowerBound, upperBound};
+    const auto countResult = volce::countModelsFromSmt2(smt2, {}, range);
+    if (!countResult) {
+        return std::nullopt;
     }
-
-    const auto decls = collectZeroArityDecls(ctx, vec);
-    for (auto decl : decls) {
-        Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
-        assertBound(ctx, solver, var, lowerBound, upperBound);
-    }
-
-    std::uint64_t count = countModels(ctx, solver, decls);
-    Z3_solver_dec_ref(ctx, solver);
-    Z3_del_context(ctx);
 
     VolceResult result;
-    result.output = std::to_string(count);
-    result.count = std::to_string(count);
+    result.output = std::to_string(countResult->count);
+    result.count = result.output;
     return result;
 }
 }  // namespace
@@ -1314,6 +1233,9 @@ void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
         std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
         ofs.close();
 
+        feasiblePaths_.clear();
+        totalVolceCount_ = 0;
+
         maxmem = -1;
         minmem = std::numeric_limits<int>::max();
 
@@ -1323,6 +1245,7 @@ void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
         std::chrono::duration<double> diff = end - start;
 
         std::cout << "[DFS TIME COST]: " << diff.count() << " seconds" << std::endl;
+        printFeasiblePathSummary(enableVolce);
         std::cout << "[MATRIX]:" << std::endl;
         printMatrixFileContent(matrixFileName);
         std::cout << "[DFS MAX MEMS]: " << maxmem << std::endl;
@@ -1331,6 +1254,68 @@ void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
 
         auto coverageMatrix = ReadCoverageMatrix(matrixFileName);
         SolveLinearProgram(coverageMatrix);
+    }
+}
+
+void SyntaxNamePrinter::recordFeasiblePath(int pathIndex,
+                                           int mem,
+                                           const std::string& path,
+                                           const std::optional<std::uint64_t>& volceCount) {
+    feasiblePaths_.push_back(FeasiblePathSummary{pathIndex, mem, path, volceCount});
+    if (volceCount) {
+        totalVolceCount_ += *volceCount;
+    }
+}
+
+void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
+    std::cout << "[FEASIBLE PATHS]:" << std::endl;
+    if (feasiblePaths_.empty()) {
+        std::cout << "  (none)" << std::endl;
+        return;
+    }
+
+    double weightedMemSum = 0.0;
+    double probSum = 0.0;
+    double probWeightedByMemSum = 0.0;
+    double memSumForProb = 0.0;
+
+    for (const auto& info : feasiblePaths_) {
+        std::cout << "  [path " << info.pathIndex << "] mem=" << info.mem;
+        if (enableVolce) {
+            if (info.volceCount) {
+                const double prob = totalVolceCount_ > 0
+                                        ? static_cast<double>(*info.volceCount)
+                                              / static_cast<double>(totalVolceCount_)
+                                        : 0.0;
+                std::cout << " volce=" << *info.volceCount << " prob=" << prob;
+                weightedMemSum += static_cast<double>(info.mem) * prob;
+                probSum += prob;
+                probWeightedByMemSum += prob * static_cast<double>(info.mem);
+                memSumForProb += static_cast<double>(info.mem);
+            } else {
+                std::cout << " volce=N/A prob=N/A";
+            }
+        }
+        std::cout << std::endl;
+        std::cout << "    path=" << info.path << std::endl;
+    }
+
+    if (enableVolce && totalVolceCount_ > 0) {
+        if (probSum > 0.0) {
+            const double avgMemWeightedByProb = weightedMemSum / probSum;
+            std::cout << "[WEIGHTED AVG MEMS BY PROB]: " << avgMemWeightedByProb << std::endl;
+        } else {
+            std::cout << "[WEIGHTED AVG MEMS BY PROB]: N/A" << std::endl;
+        }
+        if (memSumForProb > 0.0) {
+            const double avgProbWeightedByMem = probWeightedByMemSum / memSumForProb;
+            std::cout << "[WEIGHTED AVG PROB BY MEMS]: " << avgProbWeightedByMem << std::endl;
+        } else {
+            std::cout << "[WEIGHTED AVG PROB BY MEMS]: N/A" << std::endl;
+        }
+    } else if (enableVolce) {
+        std::cout << "[WEIGHTED AVG MEMS BY PROB]: N/A" << std::endl;
+        std::cout << "[WEIGHTED AVG PROB BY MEMS]: N/A" << std::endl;
     }
 }
 
@@ -2289,6 +2274,7 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
     {
         cout<<"feasible!!!"<<endl;
         const std::string& model= eval.model;
+        std::optional<std::uint64_t> volceCount;
 
         smtFile << smt2 << "\n";
         resultFile << "[testcase]:" << "\n" << model << "\n"
@@ -2372,6 +2358,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
     {
         cout<<"feasible!!!"<<endl;
         const std::string& model= eval.model;
+        std::optional<std::uint64_t> volceCount;
 
         smtFile << smt2 << "\n";
         resultFile << "[testcase]:" << "\n" << model << "\n"
@@ -2383,6 +2370,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         if (enableVolce) {
             const auto volceResult = runVolce(smt2, kVolceLowerBound, kVolceUpperBound);
             if (volceResult) {
+                volceCount = parseVolceCount(volceResult);
                 resultFile << "[volce]:" << volceResult->output << "\n";
                 cout << "[VolCE]" << endl;
                 cout << volceResult->output << endl;
@@ -2391,6 +2379,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VolCE] N/A" << endl;
             }
         }
+        recordFeasiblePath(pathCount, mem, path, volceCount);
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {

@@ -27,6 +27,8 @@
 #include <limits>
 #include <chrono>
 #include <iomanip>
+#include <optional>
+#include <cstdint>
 
 #include "API.h"
 #include "SyntaxDumper.h"
@@ -257,6 +259,13 @@ public:
     void pushBranchRow(const std::vector<bool>& row);
     void printBranchMatrix();
 
+    struct FeasiblePathSummary {
+        int pathIndex{0};
+        int mem{0};
+        std::string path;
+        std::optional<std::uint64_t> volceCount;
+    };
+
     bool isPathFeasible(const std::vector<PathDecision>& decisions, const std::string& pathExpr) {
         auto cacheKey = vartemp + pathExpr;
         auto it       = feasCache.find(cacheKey);
@@ -282,6 +291,11 @@ public:
 
 private:
     virtual void nonterminal(const SyntaxNode* node) override;
+    void recordFeasiblePath(int pathIndex,
+                            int mem,
+                            const std::string& path,
+                            const std::optional<std::uint64_t>& volceCount);
+    void printFeasiblePathSummary(bool enableVolce) const;
     std::vector<std::vector<int>> ReadCoverageMatrix(const std::string& filename);
     void SolveLinearProgram(const std::vector<std::vector<int>>& coverageMatrix);
 
@@ -294,6 +308,9 @@ private:
     std::vector<std::shared_ptr<CFGNode>> elseNodes;
     std::vector<std::pair<std::shared_ptr<CFGNode>, bool>> loopPairStack_;
     std::vector<std::vector<std::shared_ptr<CFGNode>>> breakStmtsStack_;
+
+    std::vector<FeasiblePathSummary> feasiblePaths_;
+    std::uint64_t totalVolceCount_{0};
 
     std::vector<int> loopCount;
     std::vector<int> temp_depth;
