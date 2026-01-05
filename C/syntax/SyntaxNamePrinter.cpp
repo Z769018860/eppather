@@ -1183,7 +1183,7 @@ void printMatrixFileContent(const std::string& filename) {
 
 
 
-void SyntaxNamePrinter::printCFG_DFS() {
+void SyntaxNamePrinter::printCFG_DFS(int maxloop) {
     int pathCount = 0;
     std::string matrixFileName = "matrix.txt";   
 
@@ -1202,7 +1202,7 @@ void SyntaxNamePrinter::printCFG_DFS() {
 
         auto start = std::chrono::high_resolution_clock::now();
 
-        DFS(funcNode, pathCoverage, decisions, 0, pathCount, 3, maxMems, minMems);
+        DFS(funcNode, pathCoverage, decisions, 0, pathCount, maxloop, maxMems, minMems);
 
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
@@ -1219,7 +1219,7 @@ void SyntaxNamePrinter::printCFG_DFS() {
     }
 }
 // ===== printCFG_DFS2：可按需把 pathCount 挪到函数内重置 =====
-void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
+void SyntaxNamePrinter::printCFG_DFS2(int maxloop, bool enableVolce) {
     std::string matrixFileName = "matrix2.txt";
 
     for (auto& funcNode : funcDefStack_) {
@@ -1240,7 +1240,7 @@ void SyntaxNamePrinter::printCFG_DFS2(bool enableVolce) {
         minmem = std::numeric_limits<int>::max();
 
         auto start = std::chrono::high_resolution_clock::now();
-        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, 3, enableVolce);
+        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, maxloop, enableVolce);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
@@ -2039,8 +2039,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
 // ========== 驱动：与 DFS2 保持同样的 maxloop 和输出 ==========
 // 改动：无可行路径时输出 "MEMS: -1"
-void SyntaxNamePrinter::printCFG_greedyDFS(bool enableVolce) {
-    int maxloop = 3;
+void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, bool enableVolce) {
     for (const auto& funcNode : funcDefStack_) {
         dpMemo.clear();  // 每个函数入口前清空 memo
 

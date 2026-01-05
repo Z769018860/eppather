@@ -42,6 +42,7 @@ public:
     bool dumpBFS;
     bool enableVolce;
     bool WIP_;
+    int maxLoop;
 
 protected:
     Configuration(const cxxopts::ParseResult& parsedCmdLine);

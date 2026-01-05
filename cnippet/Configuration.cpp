@@ -34,4 +34,5 @@ Configuration::Configuration(const cxxopts::ParseResult& parsedCmdLine)
     , dumpBFS(parsedCmdLine.count("dump-BFS"))
     , enableVolce(parsedCmdLine.count("volce"))
     , WIP_(parsedCmdLine.count("WIP"))
+    , maxLoop(parsedCmdLine["maxloop"].as<int>())
 {}

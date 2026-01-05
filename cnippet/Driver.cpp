@@ -33,6 +33,7 @@
 #include <iterator>
 #include <sstream>
 #include <cstring>
+#include <cctype>
 #include <vector>
 
 using namespace psy;
@@ -82,6 +83,9 @@ int Driver::execute(int argc, char* argv[])
                 cxxopts::value<bool>(DEBUG::globalDebugEnabled))
             ("volce",
                 "Enable VolCE model counting.")
+            ("maxloop",
+                "Set loop unroll upper bound.",
+                cxxopts::value<int>()->default_value("3"))
             ("p,plugin",
                 "Load plugin with the given name.",
                 cxxopts::value<std::string>())
@@ -104,6 +108,20 @@ int Driver::execute(int argc, char* argv[])
                 normalizedArgs.emplace_back("--volce");
             } else {
                 normalizedArgs.emplace_back(argv[i]);
+            }
+        }
+        if (normalizedArgs.size() > 2) {
+            const std::string& lastArg = normalizedArgs.back();
+            const bool isNumber = !lastArg.empty() &&
+                                  std::all_of(lastArg.begin(), lastArg.end(),
+                                              [](unsigned char ch) { return std::isdigit(ch); });
+            const bool hasMaxLoop = std::find(normalizedArgs.begin(),
+                                              normalizedArgs.end(),
+                                              "--maxloop") != normalizedArgs.end();
+            if (isNumber && !hasMaxLoop) {
+                normalizedArgs.pop_back();
+                normalizedArgs.emplace_back("--maxloop");
+                normalizedArgs.emplace_back(lastArg);
             }
         }
         std::vector<char*> argPtrs;
@@ -130,8 +148,9 @@ int Driver::execute(int argc, char* argv[])
             }
         }
 
-        if (parsedCmdLine.count("file"))
+        if (parsedCmdLine.count("file")) {
             filesPaths = parsedCmdLine["file"].as<std::vector<std::string>>();
+        }
         else {
             std::cerr << kCnip << "no input file(s)" << std::endl;
             return ERROR_NoInputFile;

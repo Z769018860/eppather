@@ -200,9 +200,9 @@ public:
     void print(const SyntaxNode* node, Style style, std::ostream& os);
     void getCFG(const SyntaxNode* node);
     void printCFG();
-    void printCFG_DFS();
-    void printCFG_DFS2(bool enableVolce);
-    void printCFG_greedyDFS(bool enableVolce);
+    void printCFG_DFS(int maxloop);
+    void printCFG_DFS2(int maxloop, bool enableVolce);
+    void printCFG_greedyDFS(int maxloop, bool enableVolce);
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
         std::vector<PathDecision>& decisions,
