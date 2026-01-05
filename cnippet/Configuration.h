@@ -40,6 +40,7 @@ public:
     bool dumpDFS2;
     bool dumpMaxMemDP;
     bool dumpBFS;
+    bool enableVolce;
     bool WIP_;
 
 protected:

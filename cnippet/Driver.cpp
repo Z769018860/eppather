@@ -33,6 +33,7 @@
 #include <iterator>
 #include <sstream>
 #include <cstring>
+#include <vector>
 
 using namespace psy;
 using namespace cnip;
@@ -79,6 +80,8 @@ int Driver::execute(int argc, char* argv[])
             ("d,debug",
                 "Enable debugging.",
                 cxxopts::value<bool>(DEBUG::globalDebugEnabled))
+            ("volce",
+                "Enable VolCE model counting.")
             ("p,plugin",
                 "Load plugin with the given name.",
                 cxxopts::value<std::string>())
@@ -94,7 +97,24 @@ int Driver::execute(int argc, char* argv[])
     std::vector<std::string> filesPaths;
     try {
         cmdLineOpts.parse_positional(std::vector<std::string>{"file"});
-        auto parsedCmdLine = cmdLineOpts.parse(argc, argv);
+        std::vector<std::string> normalizedArgs;
+        normalizedArgs.reserve(static_cast<size_t>(argc));
+        for (int i = 0; i < argc; ++i) {
+            if (std::strcmp(argv[i], "-volce") == 0) {
+                normalizedArgs.emplace_back("--volce");
+            } else {
+                normalizedArgs.emplace_back(argv[i]);
+            }
+        }
+        std::vector<char*> argPtrs;
+        argPtrs.reserve(normalizedArgs.size());
+        for (auto& arg : normalizedArgs) {
+            argPtrs.push_back(const_cast<char*>(arg.c_str()));
+        }
+
+        int argcCopy = static_cast<int>(argPtrs.size());
+        auto argvCopy = argPtrs.data();
+        auto parsedCmdLine = cmdLineOpts.parse(argcCopy, argvCopy);
 
         if (parsedCmdLine.count("help")) {
             std::cout << cmdLineOpts.help({"", "Group"}) << std::endl;
