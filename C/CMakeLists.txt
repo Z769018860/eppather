@@ -61,6 +61,7 @@ set(CFE_SOURCES
     ${PROJECT_SOURCE_DIR}/syntax/EpatRunner.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.cpp
+    ${PROJECT_SOURCE_DIR}/../volce/volce_api.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNode.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNode.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNodeList.h
