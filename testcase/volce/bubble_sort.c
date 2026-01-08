@@ -1,14 +1,11 @@
 void bubbleSort(int arr[5]) {
-    int i, j, temp;
-    for (i = 0; i < 4; i = i + 1) {
-        for (j = 0; j < 4 - i; j = j + 1) {
-            if (arr[j] > arr[j + 1]) {
-                temp = arr[j];
-                arr[j] = arr[j + 1];
-                arr[j + 1] = temp;
-            }
-            ;
+    int i = 0;
+    while (i < 2) {
+        if (arr[i] > arr[i + 1]) {
+            int temp = arr[i];
+            arr[i] = arr[i + 1];
+            arr[i + 1] = temp;
         }
-        ;
+        i = i + 1;
     }
 }

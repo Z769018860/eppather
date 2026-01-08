@@ -111,7 +111,7 @@ int Driver::execute(int argc, char* argv[])
             }
         }
         if (normalizedArgs.size() > 2) {
-            const std::string& lastArg = normalizedArgs.back();
+            const std::string lastArg = normalizedArgs.back();
             const bool isNumber = !lastArg.empty() &&
                                   std::all_of(lastArg.begin(), lastArg.end(),
                                               [](unsigned char ch) { return std::isdigit(ch); });
@@ -120,8 +120,29 @@ int Driver::execute(int argc, char* argv[])
                                               "--maxloop") != normalizedArgs.end();
             if (isNumber && !hasMaxLoop) {
                 normalizedArgs.pop_back();
-                normalizedArgs.emplace_back("--maxloop");
-                normalizedArgs.emplace_back(lastArg);
+                size_t insertIndex = normalizedArgs.size();
+                auto dashDashIt = std::find(normalizedArgs.begin() + 1,
+                                            normalizedArgs.end(),
+                                            "--");
+                if (dashDashIt != normalizedArgs.end()) {
+                    insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
+                                                                    dashDashIt));
+                } else {
+                    auto positionalIt = std::find_if(normalizedArgs.begin() + 1,
+                                                     normalizedArgs.end(),
+                                                     [](const std::string& arg) {
+                                                         return arg.empty() || arg[0] != '-';
+                                                     });
+                    if (positionalIt != normalizedArgs.end()) {
+                        insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
+                                                                        positionalIt));
+                    }
+                }
+                if (insertIndex > normalizedArgs.size()) {
+                    insertIndex = normalizedArgs.size();
+                }
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex, "--maxloop");
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex + 1, lastArg);
             }
         }
         std::vector<char*> argPtrs;
