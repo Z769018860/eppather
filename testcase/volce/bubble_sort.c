@@ -1,4 +1,4 @@
-void bubbleSort(int arr[100]) {
+void bubbleSort(int arr[10]) {
     int i = 0;
     while (i < 10) {
         if (arr[i] > arr[i + 1]) {
