@@ -1,6 +1,6 @@
-void insertionSort(int arr[5]) {
+void insertionSort(int arr[100]) {
     int i = 1;
-    while (i < 3) {
+    while (i < 10) {
         int key = arr[i];
         if (arr[i - 1] > key) {
             arr[i] = arr[i - 1];
