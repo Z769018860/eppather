@@ -1,6 +1,6 @@
-void quickSort(int arr[5]) {
+void quickSort(int arr[10]) {
     int low = 0;
-    int high = 2;
+    int high = 10;
     int pivot = arr[high];
     int j = low;
     while (j < high) {
