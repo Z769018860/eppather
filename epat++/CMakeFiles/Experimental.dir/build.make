@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 # Utility rule file for Experimental.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 include epat++/CMakeFiles/Experimental.dir/progress.make
 
 epat++/CMakeFiles/Experimental:
-	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D Experimental
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D Experimental
 
 Experimental: epat++/CMakeFiles/Experimental
 Experimental: epat++/CMakeFiles/Experimental.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/Experimental.dir/build: Experimental
 .PHONY : epat++/CMakeFiles/Experimental.dir/build
 
 epat++/CMakeFiles/Experimental.dir/clean:
-	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/Experimental.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/Experimental.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/Experimental.dir/clean
 
 epat++/CMakeFiles/Experimental.dir/depend:
-	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/Experimental.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/Experimental.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/Experimental.dir/depend
 

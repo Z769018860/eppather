@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 # Utility rule file for NightlyMemCheck.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 include epat++/CMakeFiles/NightlyMemCheck.dir/progress.make
 
 epat++/CMakeFiles/NightlyMemCheck:
-	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D NightlyMemCheck
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D NightlyMemCheck
 
 NightlyMemCheck: epat++/CMakeFiles/NightlyMemCheck
 NightlyMemCheck: epat++/CMakeFiles/NightlyMemCheck.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/NightlyMemCheck.dir/build: NightlyMemCheck
 .PHONY : epat++/CMakeFiles/NightlyMemCheck.dir/build
 
 epat++/CMakeFiles/NightlyMemCheck.dir/clean:
-	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyMemCheck.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyMemCheck.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/NightlyMemCheck.dir/clean
 
 epat++/CMakeFiles/NightlyMemCheck.dir/depend:
-	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/NightlyMemCheck.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/NightlyMemCheck.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/NightlyMemCheck.dir/depend
 

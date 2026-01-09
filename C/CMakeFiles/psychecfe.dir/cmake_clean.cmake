@@ -1,5 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/psychecfe.dir/SyntaxTree.cpp.o"
+  "CMakeFiles/psychecfe.dir/__/utility/Process.cpp.o"
+  "CMakeFiles/psychecfe.dir/__/volce/volce_api.cpp.o"
   "CMakeFiles/psychecfe.dir/binder/Binder.cpp.o"
   "CMakeFiles/psychecfe.dir/binder/Binder_Declarators.cpp.o"
   "CMakeFiles/psychecfe.dir/binder/Binder_Specifiers.cpp.o"
@@ -59,6 +61,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/psychecfe.dir/symbols/ValueSymbol_Field.cpp.o"
   "CMakeFiles/psychecfe.dir/symbols/ValueSymbol_Parameter.cpp.o"
   "CMakeFiles/psychecfe.dir/symbols/ValueSymbol_Variable.cpp.o"
+  "CMakeFiles/psychecfe.dir/syntax/EpatRunner.cpp.o"
   "CMakeFiles/psychecfe.dir/syntax/SyntaxHolder.cpp.o"
   "CMakeFiles/psychecfe.dir/syntax/SyntaxLexeme.cpp.o"
   "CMakeFiles/psychecfe.dir/syntax/SyntaxLexeme_Constant.cpp.o"

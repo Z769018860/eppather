@@ -5,7 +5,7 @@ void selectionSort(int arr[10])
     {
         int min_idx = i;
         int j = i + 1;
-        while (j < 10)
+        while (j < 9)
         {
             if (arr[j] < arr[min_idx])
             {

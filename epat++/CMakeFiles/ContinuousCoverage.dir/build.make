@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 # Utility rule file for ContinuousCoverage.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 include epat++/CMakeFiles/ContinuousCoverage.dir/progress.make
 
 epat++/CMakeFiles/ContinuousCoverage:
-	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D ContinuousCoverage
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D ContinuousCoverage
 
 ContinuousCoverage: epat++/CMakeFiles/ContinuousCoverage
 ContinuousCoverage: epat++/CMakeFiles/ContinuousCoverage.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/ContinuousCoverage.dir/build: ContinuousCoverage
 .PHONY : epat++/CMakeFiles/ContinuousCoverage.dir/build
 
 epat++/CMakeFiles/ContinuousCoverage.dir/clean:
-	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/ContinuousCoverage.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/ContinuousCoverage.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/ContinuousCoverage.dir/clean
 
 epat++/CMakeFiles/ContinuousCoverage.dir/depend:
-	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/ContinuousCoverage.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/ContinuousCoverage.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/ContinuousCoverage.dir/depend
 

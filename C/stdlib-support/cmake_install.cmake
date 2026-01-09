@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhangliwei/eppather/C/stdlib-support
+# Install script for directory: /home/zhangliwei/eppather-master/eppather/C/stdlib-support
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,29 +38,29 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so"
          RPATH "$ORIGIN:@executable_path:@loader_path")
   endif()
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so")
+   "/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/home/zhangliwei/eppather/C/stdlib-support/.." TYPE SHARED_LIBRARY FILES "/home/zhangliwei/eppather/C/libpsychecstd.so")
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so")
+file(INSTALL DESTINATION "/home/zhangliwei/eppather-master/eppather/C/stdlib-support/.." TYPE SHARED_LIBRARY FILES "/home/zhangliwei/eppather-master/eppather/C/libpsychecstd.so")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so")
     file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so"
-         OLD_RPATH "/home/zhangliwei/eppather/C:/home/zhangliwei/eppather/common:"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so"
+         OLD_RPATH "/home/zhangliwei/eppather-master/eppather/C:/home/zhangliwei/eppather-master/eppather/common:"
          NEW_RPATH "$ORIGIN:@executable_path:@loader_path")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather/C/stdlib-support/../libpsychecstd.so")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/C/stdlib-support/../libpsychecstd.so")
     endif()
   endif()
 endif()

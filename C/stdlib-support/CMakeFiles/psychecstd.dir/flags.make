@@ -6,7 +6,7 @@ CXX_FLAGS = -fPIC   -std=gnu++17
 
 CXX_DEFINES = -Dpsychecstd_EXPORTS
 
-CXX_INCLUDES = -I/home/zhangliwei/eppather/C/stdlib-support -I/home/zhangliwei/eppather/C/stdlib-support/.. 
+CXX_INCLUDES = -I/home/zhangliwei/eppather-master/eppather/C/stdlib-support -I/home/zhangliwei/eppather-master/eppather/C/stdlib-support/.. 
 
 # Custom flags: C/stdlib-support/CMakeFiles/psychecstd.dir/CnippetPlugin.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API -DEXPORT_PLUGIN_API
 

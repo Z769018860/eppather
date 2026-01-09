@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhangliwei/eppather/epat++/epat-protocol/grammar/antlr4-runtime
+# Install script for directory: /home/zhangliwei/eppather-master/eppather/epat++/epat-protocol/grammar/antlr4-runtime
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

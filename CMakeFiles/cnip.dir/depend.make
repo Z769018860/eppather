@@ -14,30 +14,6 @@ CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: cnippet/Configuration.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: cnippet/Configuration_C.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: cnippet/Driver.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: cnippet/Plugin.h
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpConfig.h
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpMatrixBase.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpModel.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpObjective.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpPackedMatrix.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpParameters.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpPrimalColumnPivot.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpPrimalColumnSteepest.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpSimplex.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/ClpSolve.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinDistance.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinError.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinFinite.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinHelperFunctions.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinIndexedVector.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinMessageHandler.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinPackedMatrix.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinPackedVector.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinPackedVectorBase.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinPragma.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinShallowPackedVector.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinSort.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinTypes.hpp
-CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: /usr/include/coin/CoinUtilsConfig.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/API.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/Fwds.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/SyntaxTree.h
@@ -54,6 +30,7 @@ CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/parser/TextCompleteness.
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/parser/TextPreprocessingState.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/plugin-api/PluginConfig.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/plugin-api/SourceInspector.h
+CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/syntax/EpatRunner.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/syntax/SyntaxDumper.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/syntax/SyntaxHolder.h
 CMakeFiles/cnip.dir/cnippet/CompilerFrontend_C.cpp.o: C/syntax/SyntaxKind.h
@@ -173,4 +150,18 @@ CMakeFiles/cnip.dir/utility/IO.cpp.o: utility/IO.h
 
 CMakeFiles/cnip.dir/utility/Process.cpp.o: utility/Process.cpp
 CMakeFiles/cnip.dir/utility/Process.cpp.o: utility/Process.h
+
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: volce/volce_api.cpp
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_algebraic.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_api.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_ast_containers.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_fixedpoint.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_fpa.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_macros.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_optimization.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_polynomial.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_rcf.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: epat++/libz3/z3-4.12.2-x64-glibc-2.31/include/z3_spacer.h
+CMakeFiles/cnip.dir/volce/volce_api.cpp.o: volce/volce_api.h
 

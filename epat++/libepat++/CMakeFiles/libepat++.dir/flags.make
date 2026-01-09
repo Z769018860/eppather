@@ -6,5 +6,5 @@ CXX_FLAGS =   -std=gnu++17
 
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I/home/zhangliwei/eppather/epat++/libepat++/include -I/home/zhangliwei/eppather/epat++/libepat++/utils -I/home/zhangliwei/eppather/epat++/libepat++/../epat-protocol/utils -I/home/zhangliwei/eppather/epat++/libepat++/../epat-protocol/include -I/home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/include -I/home/zhangliwei/eppather/epat++/epat-protocol/include 
+CXX_INCLUDES = -I/home/zhangliwei/eppather-master/eppather/epat++/libepat++/include -I/home/zhangliwei/eppather-master/eppather/epat++/libepat++/utils -I/home/zhangliwei/eppather-master/eppather/epat++/libepat++/../epat-protocol/utils -I/home/zhangliwei/eppather-master/eppather/epat++/libepat++/../epat-protocol/include -I/home/zhangliwei/eppather-master/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/include -I/home/zhangliwei/eppather-master/eppather/epat++/epat-protocol/include 
 

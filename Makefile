@@ -48,10 +48,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -67,18 +67,6 @@ install/strip/fast: preinstall/fast
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
 	/usr/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
 .PHONY : install/strip/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
 
 # Special rule for the target install
 install: preinstall
@@ -124,11 +112,23 @@ edit_cache/fast: edit_cache
 
 .PHONY : edit_cache/fast
 
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
+	/usr/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangliwei/eppather/CMakeFiles /home/zhangliwei/eppather/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangliwei/eppather-master/eppather/CMakeFiles /home/zhangliwei/eppather-master/eppather/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangliwei/eppather/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/zhangliwei/eppather-master/eppather/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -168,6 +168,19 @@ test-suite: cmake_check_build_system
 test-suite/fast:
 	$(MAKE) -f CMakeFiles/test-suite.dir/build.make CMakeFiles/test-suite.dir/build
 .PHONY : test-suite/fast
+
+#=============================================================================
+# Target rules for targets named volce_tool
+
+# Build rule for target.
+volce_tool: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 volce_tool
+.PHONY : volce_tool
+
+# fast build rule for target.
+volce_tool/fast:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/build
+.PHONY : volce_tool/fast
 
 #=============================================================================
 # Target rules for targets named cnip
@@ -610,71 +623,6 @@ antlr4-runtime: cmake_check_build_system
 antlr4-runtime/fast:
 	$(MAKE) -f epat++/epat-protocol/grammar/antlr4-runtime/CMakeFiles/antlr4-runtime.dir/build.make epat++/epat-protocol/grammar/antlr4-runtime/CMakeFiles/antlr4-runtime.dir/build
 .PHONY : antlr4-runtime/fast
-
-#=============================================================================
-# Target rules for targets named epat-protocol-from_string
-
-# Build rule for target.
-epat-protocol-from_string: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 epat-protocol-from_string
-.PHONY : epat-protocol-from_string
-
-# fast build rule for target.
-epat-protocol-from_string/fast:
-	$(MAKE) -f epat++/epat-protocol/test/CMakeFiles/epat-protocol-from_string.dir/build.make epat++/epat-protocol/test/CMakeFiles/epat-protocol-from_string.dir/build
-.PHONY : epat-protocol-from_string/fast
-
-#=============================================================================
-# Target rules for targets named epat-protocol-from_file
-
-# Build rule for target.
-epat-protocol-from_file: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 epat-protocol-from_file
-.PHONY : epat-protocol-from_file
-
-# fast build rule for target.
-epat-protocol-from_file/fast:
-	$(MAKE) -f epat++/epat-protocol/test/CMakeFiles/epat-protocol-from_file.dir/build.make epat++/epat-protocol/test/CMakeFiles/epat-protocol-from_file.dir/build
-.PHONY : epat-protocol-from_file/fast
-
-#=============================================================================
-# Target rules for targets named epat-protocol-c11_path
-
-# Build rule for target.
-epat-protocol-c11_path: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 epat-protocol-c11_path
-.PHONY : epat-protocol-c11_path
-
-# fast build rule for target.
-epat-protocol-c11_path/fast:
-	$(MAKE) -f epat++/epat-protocol/test/CMakeFiles/epat-protocol-c11_path.dir/build.make epat++/epat-protocol/test/CMakeFiles/epat-protocol-c11_path.dir/build
-.PHONY : epat-protocol-c11_path/fast
-
-#=============================================================================
-# Target rules for targets named epat-protocol-print_type
-
-# Build rule for target.
-epat-protocol-print_type: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 epat-protocol-print_type
-.PHONY : epat-protocol-print_type
-
-# fast build rule for target.
-epat-protocol-print_type/fast:
-	$(MAKE) -f epat++/epat-protocol/test/CMakeFiles/epat-protocol-print_type.dir/build.make epat++/epat-protocol/test/CMakeFiles/epat-protocol-print_type.dir/build
-.PHONY : epat-protocol-print_type/fast
-
-#=============================================================================
-# Target rules for targets named epat-protocol-build_ast
-
-# Build rule for target.
-epat-protocol-build_ast: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 epat-protocol-build_ast
-.PHONY : epat-protocol-build_ast
-
-# fast build rule for target.
-epat-protocol-build_ast/fast:
-	$(MAKE) -f epat++/epat-protocol/test/CMakeFiles/epat-protocol-build_ast.dir/build.make epat++/epat-protocol/test/CMakeFiles/epat-protocol-build_ast.dir/build
-.PHONY : epat-protocol-build_ast/fast
 
 #=============================================================================
 # Target rules for targets named libepat++
@@ -1132,6 +1080,63 @@ utility/Process.cpp.s:
 	$(MAKE) -f CMakeFiles/cnip.dir/build.make CMakeFiles/cnip.dir/utility/Process.cpp.s
 .PHONY : utility/Process.cpp.s
 
+volce/main.o: volce/main.cpp.o
+
+.PHONY : volce/main.o
+
+# target to build an object file
+volce/main.cpp.o:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/main.cpp.o
+.PHONY : volce/main.cpp.o
+
+volce/main.i: volce/main.cpp.i
+
+.PHONY : volce/main.i
+
+# target to preprocess a source file
+volce/main.cpp.i:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/main.cpp.i
+.PHONY : volce/main.cpp.i
+
+volce/main.s: volce/main.cpp.s
+
+.PHONY : volce/main.s
+
+# target to generate assembly for a file
+volce/main.cpp.s:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/main.cpp.s
+.PHONY : volce/main.cpp.s
+
+volce/volce_api.o: volce/volce_api.cpp.o
+
+.PHONY : volce/volce_api.o
+
+# target to build an object file
+volce/volce_api.cpp.o:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/volce_api.cpp.o
+	$(MAKE) -f CMakeFiles/cnip.dir/build.make CMakeFiles/cnip.dir/volce/volce_api.cpp.o
+.PHONY : volce/volce_api.cpp.o
+
+volce/volce_api.i: volce/volce_api.cpp.i
+
+.PHONY : volce/volce_api.i
+
+# target to preprocess a source file
+volce/volce_api.cpp.i:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/volce_api.cpp.i
+	$(MAKE) -f CMakeFiles/cnip.dir/build.make CMakeFiles/cnip.dir/volce/volce_api.cpp.i
+.PHONY : volce/volce_api.cpp.i
+
+volce/volce_api.s: volce/volce_api.cpp.s
+
+.PHONY : volce/volce_api.s
+
+# target to generate assembly for a file
+volce/volce_api.cpp.s:
+	$(MAKE) -f CMakeFiles/volce_tool.dir/build.make CMakeFiles/volce_tool.dir/volce/volce_api.cpp.s
+	$(MAKE) -f CMakeFiles/cnip.dir/build.make CMakeFiles/cnip.dir/volce/volce_api.cpp.s
+.PHONY : volce/volce_api.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -1139,12 +1144,13 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... install/strip"
-	@echo "... install/local"
 	@echo "... install"
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... test-suite"
+	@echo "... install/local"
+	@echo "... volce_tool"
 	@echo "... cnip"
 	@echo "... psychecommon"
 	@echo "... psychecfe"
@@ -1179,11 +1185,6 @@ help:
 	@echo "... NightlyMemCheck"
 	@echo "... epat-protocol"
 	@echo "... antlr4-runtime"
-	@echo "... epat-protocol-from_string"
-	@echo "... epat-protocol-from_file"
-	@echo "... epat-protocol-c11_path"
-	@echo "... epat-protocol-print_type"
-	@echo "... epat-protocol-build_ast"
 	@echo "... libepat++"
 	@echo "... epat-hello_world"
 	@echo "... epat-reg_test"
@@ -1232,6 +1233,12 @@ help:
 	@echo "... utility/Process.o"
 	@echo "... utility/Process.i"
 	@echo "... utility/Process.s"
+	@echo "... volce/main.o"
+	@echo "... volce/main.i"
+	@echo "... volce/main.s"
+	@echo "... volce/volce_api.o"
+	@echo "... volce/volce_api.i"
+	@echo "... volce/volce_api.s"
 .PHONY : help
 
 

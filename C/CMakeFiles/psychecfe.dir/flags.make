@@ -6,7 +6,7 @@ CXX_FLAGS = -fPIC   -std=gnu++17
 
 CXX_DEFINES = -Dpsychecfe_EXPORTS
 
-CXX_INCLUDES = -I/home/zhangliwei/eppather/C -I/home/zhangliwei/eppather/C/.. -I/home/zhangliwei/eppather/C/../epat++/epat-protocol/include -I/usr/include/coin -I/home/zhangliwei/eppather/C/../epat++/libepat++/include -I/home/zhangliwei/eppather/C/../epat++/test/include -I/home/zhangliwei/eppather/C/../epat++ -I/home/zhangliwei/eppather/C/../lpsolve 
+CXX_INCLUDES = -I/home/zhangliwei/eppather-master/eppather/C -I/home/zhangliwei/eppather-master/eppather/C/.. -I/home/zhangliwei/eppather-master/eppather/C/../epat++/epat-protocol/include -I/usr/include/coin -I/home/zhangliwei/eppather-master/eppather/C/../epat++/libepat++/include -I/home/zhangliwei/eppather-master/eppather/C/../epat++/test/include -I/home/zhangliwei/eppather-master/eppather/C/../epat++ -I/home/zhangliwei/eppather-master/eppather/C/../lpsolve 
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/SyntaxTree.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
@@ -24,7 +24,11 @@ CXX_INCLUDES = -I/home/zhangliwei/eppather/C -I/home/zhangliwei/eppather/C/.. -I
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/syntax/SyntaxLexeme_StringLiteral.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
+# Custom flags: C/CMakeFiles/psychecfe.dir/syntax/EpatRunner.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
+
 # Custom flags: C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
+
+# Custom flags: C/CMakeFiles/psychecfe.dir/__/volce/volce_api.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/syntax/SyntaxNode.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
@@ -39,6 +43,8 @@ CXX_INCLUDES = -I/home/zhangliwei/eppather/C -I/home/zhangliwei/eppather/C/.. -I
 # Custom flags: C/CMakeFiles/psychecfe.dir/syntax/SyntaxVisitor.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/syntax/SyntaxWriterDOTFormat.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
+
+# Custom flags: C/CMakeFiles/psychecfe.dir/__/utility/Process.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/parser/DiagnosticsReporter_Lexer.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 

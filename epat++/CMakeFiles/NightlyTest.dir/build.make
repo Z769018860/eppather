@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 # Utility rule file for NightlyTest.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 include epat++/CMakeFiles/NightlyTest.dir/progress.make
 
 epat++/CMakeFiles/NightlyTest:
-	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D NightlyTest
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D NightlyTest
 
 NightlyTest: epat++/CMakeFiles/NightlyTest
 NightlyTest: epat++/CMakeFiles/NightlyTest.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/NightlyTest.dir/build: NightlyTest
 .PHONY : epat++/CMakeFiles/NightlyTest.dir/build
 
 epat++/CMakeFiles/NightlyTest.dir/clean:
-	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyTest.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyTest.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/NightlyTest.dir/clean
 
 epat++/CMakeFiles/NightlyTest.dir/depend:
-	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/NightlyTest.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/NightlyTest.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/NightlyTest.dir/depend
 

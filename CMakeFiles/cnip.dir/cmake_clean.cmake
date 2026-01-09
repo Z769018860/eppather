@@ -11,6 +11,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/cnip.dir/utility/FileInfo.cpp.o"
   "CMakeFiles/cnip.dir/utility/IO.cpp.o"
   "CMakeFiles/cnip.dir/utility/Process.cpp.o"
+  "CMakeFiles/cnip.dir/volce/volce_api.cpp.o"
   "cnip"
   "cnip.pdb"
 )

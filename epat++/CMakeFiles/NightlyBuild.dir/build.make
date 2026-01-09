@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 
 # Utility rule file for NightlyBuild.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 include epat++/CMakeFiles/NightlyBuild.dir/progress.make
 
 epat++/CMakeFiles/NightlyBuild:
-	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D NightlyBuild
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D NightlyBuild
 
 NightlyBuild: epat++/CMakeFiles/NightlyBuild
 NightlyBuild: epat++/CMakeFiles/NightlyBuild.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/NightlyBuild.dir/build: NightlyBuild
 .PHONY : epat++/CMakeFiles/NightlyBuild.dir/build
 
 epat++/CMakeFiles/NightlyBuild.dir/clean:
-	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyBuild.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/NightlyBuild.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/NightlyBuild.dir/clean
 
 epat++/CMakeFiles/NightlyBuild.dir/depend:
-	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/NightlyBuild.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/NightlyBuild.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/NightlyBuild.dir/depend
 
