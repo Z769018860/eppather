@@ -1,4 +1,4 @@
-void insertionSort(int arr[100]) {
+void insertionSort(int arr[10]) {
     int i = 1;
     while (i < 10) {
         int key = arr[i];
