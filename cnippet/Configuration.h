@@ -40,7 +40,9 @@ public:
     bool dumpDFS2;
     bool dumpMaxMemDP;
     bool dumpBFS;
+    bool enableVolce;
     bool WIP_;
+    int maxLoop;
 
 protected:
     Configuration(const cxxopts::ParseResult& parsedCmdLine);

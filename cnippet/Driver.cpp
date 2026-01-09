@@ -33,6 +33,8 @@
 #include <iterator>
 #include <sstream>
 #include <cstring>
+#include <cctype>
+#include <vector>
 
 using namespace psy;
 using namespace cnip;
@@ -79,6 +81,11 @@ int Driver::execute(int argc, char* argv[])
             ("d,debug",
                 "Enable debugging.",
                 cxxopts::value<bool>(DEBUG::globalDebugEnabled))
+            ("volce",
+                "Enable VolCE model counting.")
+            ("maxloop",
+                "Set loop unroll upper bound.",
+                cxxopts::value<int>()->default_value("3"))
             ("p,plugin",
                 "Load plugin with the given name.",
                 cxxopts::value<std::string>())
@@ -94,7 +101,59 @@ int Driver::execute(int argc, char* argv[])
     std::vector<std::string> filesPaths;
     try {
         cmdLineOpts.parse_positional(std::vector<std::string>{"file"});
-        auto parsedCmdLine = cmdLineOpts.parse(argc, argv);
+        std::vector<std::string> normalizedArgs;
+        normalizedArgs.reserve(static_cast<size_t>(argc));
+        for (int i = 0; i < argc; ++i) {
+            if (std::strcmp(argv[i], "-volce") == 0) {
+                normalizedArgs.emplace_back("--volce");
+            } else {
+                normalizedArgs.emplace_back(argv[i]);
+            }
+        }
+        if (normalizedArgs.size() > 2) {
+            const std::string lastArg = normalizedArgs.back();
+            const bool isNumber = !lastArg.empty() &&
+                                  std::all_of(lastArg.begin(), lastArg.end(),
+                                              [](unsigned char ch) { return std::isdigit(ch); });
+            const bool hasMaxLoop = std::find(normalizedArgs.begin(),
+                                              normalizedArgs.end(),
+                                              "--maxloop") != normalizedArgs.end();
+            if (isNumber && !hasMaxLoop) {
+                normalizedArgs.pop_back();
+                size_t insertIndex = normalizedArgs.size();
+                auto dashDashIt = std::find(normalizedArgs.begin() + 1,
+                                            normalizedArgs.end(),
+                                            "--");
+                if (dashDashIt != normalizedArgs.end()) {
+                    insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
+                                                                    dashDashIt));
+                } else {
+                    auto positionalIt = std::find_if(normalizedArgs.begin() + 1,
+                                                     normalizedArgs.end(),
+                                                     [](const std::string& arg) {
+                                                         return arg.empty() || arg[0] != '-';
+                                                     });
+                    if (positionalIt != normalizedArgs.end()) {
+                        insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
+                                                                        positionalIt));
+                    }
+                }
+                if (insertIndex > normalizedArgs.size()) {
+                    insertIndex = normalizedArgs.size();
+                }
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex, "--maxloop");
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex + 1, lastArg);
+            }
+        }
+        std::vector<char*> argPtrs;
+        argPtrs.reserve(normalizedArgs.size());
+        for (auto& arg : normalizedArgs) {
+            argPtrs.push_back(const_cast<char*>(arg.c_str()));
+        }
+
+        int argcCopy = static_cast<int>(argPtrs.size());
+        auto argvCopy = argPtrs.data();
+        auto parsedCmdLine = cmdLineOpts.parse(argcCopy, argvCopy);
 
         if (parsedCmdLine.count("help")) {
             std::cout << cmdLineOpts.help({"", "Group"}) << std::endl;
@@ -110,8 +169,9 @@ int Driver::execute(int argc, char* argv[])
             }
         }
 
-        if (parsedCmdLine.count("file"))
+        if (parsedCmdLine.count("file")) {
             filesPaths = parsedCmdLine["file"].as<std::vector<std::string>>();
+        }
         else {
             std::cerr << kCnip << "no input file(s)" << std::endl;
             return ERROR_NoInputFile;
