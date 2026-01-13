@@ -200,15 +200,16 @@ public:
     void print(const SyntaxNode* node, Style style, std::ostream& os);
     void getCFG(const SyntaxNode* node);
     void printCFG();
-    void printCFG_DFS(int maxloop);
-    void printCFG_DFS2(int maxloop, bool enableVolce);
-    void printCFG_greedyDFS(int maxloop, bool enableVolce);
+    void printCFG_DFS(int maxloop, int maxpaths);
+    void printCFG_DFS2(int maxloop, int maxpaths, bool enableVolce);
+    void printCFG_greedyDFS(int maxloop, int maxpaths, bool enableVolce);
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
         std::vector<PathDecision>& decisions,
         int depth,
         int& pathCount,
         int maxloop,
+        int maxpaths,
         int& maxMems,
         int& minMems
     );
@@ -218,6 +219,7 @@ public:
               int depth,
               int& pathCount,
               int maxloop,
+              int maxpaths,
               bool enableVolce);
     void GreedyDFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
@@ -225,6 +227,7 @@ public:
         int depth,
         int& pathCount,
         int maxloop,
+        int maxpaths,
         int currentMem,
         std::string& bestPath,
         int& bestMem);

@@ -43,6 +43,7 @@ public:
     bool enableVolce;
     bool WIP_;
     int maxLoop;
+    int maxPaths;
 
 protected:
     Configuration(const cxxopts::ParseResult& parsedCmdLine);
