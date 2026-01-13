@@ -86,6 +86,9 @@ int Driver::execute(int argc, char* argv[])
             ("maxloop",
                 "Set loop unroll upper bound.",
                 cxxopts::value<int>()->default_value("3"))
+            ("maxpaths",
+                "Set maximum path count.",
+                cxxopts::value<int>()->default_value("1000"))
             ("p,plugin",
                 "Load plugin with the given name.",
                 cxxopts::value<std::string>())
@@ -111,15 +114,28 @@ int Driver::execute(int argc, char* argv[])
             }
         }
         if (normalizedArgs.size() > 2) {
-            const std::string lastArg = normalizedArgs.back();
-            const bool isNumber = !lastArg.empty() &&
-                                  std::all_of(lastArg.begin(), lastArg.end(),
-                                              [](unsigned char ch) { return std::isdigit(ch); });
+            auto isNumber = [](const std::string& value) {
+                return !value.empty() &&
+                       std::all_of(value.begin(), value.end(),
+                                   [](unsigned char ch) { return std::isdigit(ch); });
+            };
             const bool hasMaxLoop = std::find(normalizedArgs.begin(),
                                               normalizedArgs.end(),
                                               "--maxloop") != normalizedArgs.end();
-            if (isNumber && !hasMaxLoop) {
-                normalizedArgs.pop_back();
+            const bool hasMaxPaths = std::find(normalizedArgs.begin(),
+                                               normalizedArgs.end(),
+                                               "--maxpaths") != normalizedArgs.end();
+            std::vector<std::string> trailingNumbers;
+            for (int i = static_cast<int>(normalizedArgs.size()) - 1; i > 0; --i) {
+                const std::string& arg = normalizedArgs[static_cast<size_t>(i)];
+                if (arg == "--") break;
+                if (isNumber(arg)) {
+                    trailingNumbers.push_back(arg);
+                } else {
+                    break;
+                }
+            }
+            auto findInsertIndex = [&]() {
                 size_t insertIndex = normalizedArgs.size();
                 auto dashDashIt = std::find(normalizedArgs.begin() + 1,
                                             normalizedArgs.end(),
@@ -141,8 +157,36 @@ int Driver::execute(int argc, char* argv[])
                 if (insertIndex > normalizedArgs.size()) {
                     insertIndex = normalizedArgs.size();
                 }
-                normalizedArgs.insert(normalizedArgs.begin() + insertIndex, "--maxloop");
-                normalizedArgs.insert(normalizedArgs.begin() + insertIndex + 1, lastArg);
+                return insertIndex;
+            };
+            auto insertOption = [&](const std::string& option, const std::string& value) {
+                size_t insertIndex = findInsertIndex();
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex, option);
+                normalizedArgs.insert(normalizedArgs.begin() + insertIndex + 1, value);
+            };
+            if (!trailingNumbers.empty()) {
+                size_t consumed = 0;
+                if (trailingNumbers.size() == 1) {
+                    if (!hasMaxLoop) {
+                        insertOption("--maxloop", trailingNumbers[0]);
+                        consumed = 1;
+                    } else if (!hasMaxPaths) {
+                        insertOption("--maxpaths", trailingNumbers[0]);
+                        consumed = 1;
+                    }
+                } else {
+                    if (!hasMaxPaths) {
+                        insertOption("--maxpaths", trailingNumbers[0]);
+                        consumed += 1;
+                    }
+                    if (!hasMaxLoop && consumed < trailingNumbers.size()) {
+                        insertOption("--maxloop", trailingNumbers[consumed]);
+                        consumed += 1;
+                    }
+                }
+                for (size_t i = 0; i < consumed; ++i) {
+                    normalizedArgs.pop_back();
+                }
             }
         }
         std::vector<char*> argPtrs;
