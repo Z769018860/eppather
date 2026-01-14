@@ -83,6 +83,9 @@ Usage:
   -g, --dump-MaxMemDP           Dump the worst MEMS path using DP.
   -b, --dump-BFS                Dump the program's path in the BFS mode.
   -d, --debug                   Enable debugging.
+      --volce                   Enable VolCE model counting.
+      --maxloop arg             Set loop unroll upper bound (default: 3).
+      --maxpaths arg            Set maximum path count (default: 1000).
   -p, --plugin arg              Load plugin with the given name.
   -w, --WIP                     Enable Work-In-Progress features.
   -h, --help                    Print instructions.
@@ -159,6 +162,25 @@ MEMS: 18
 ```
 
 其中参数 `5` 表示循环体的最大展开次数为 5。
+
+---
+
+### 路径数量上限控制
+
+默认情况下，DFS/DFS2 路径枚举的最大路径数为 **1000**。  
+你可以通过 `--maxpaths` 指定更严格或更宽松的上限：
+
+```bash
+./cnip -q --maxpaths 200 test2.c
+```
+
+如果同时想调整循环展开次数与路径上限，也可以通过位置参数传入：
+
+```bash
+./cnip -q test2.c 5 200
+```
+
+以上示例会将最大循环展开次数设置为 5，并将最大路径数上限设置为 200。
 
 ---
 
@@ -468,4 +490,3 @@ The results are saved in CSV files, which are mainly used to:
 
 - Verify the consistency between DP-based analysis and full path enumeration  
 - Compare the efficiency of different path exploration algorithms  
-

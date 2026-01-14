@@ -164,21 +164,21 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         std::cout << "DFS is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_DFS(config_->maxLoop);
+        transformer.printCFG_DFS(config_->maxLoop, config_->maxPaths);
     }
 
     if (config_->dumpDFS2) {
         std::cout << "DFS2 is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_DFS2(config_->maxLoop, config_->enableVolce);
+        transformer.printCFG_DFS2(config_->maxLoop, config_->maxPaths, config_->enableVolce);
     }
 
     if (config_->dumpMaxMemDP) {
         std::cout << "MaxMemDP is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_greedyDFS(config_->maxLoop, true);
+        transformer.printCFG_greedyDFS(config_->maxLoop, config_->maxPaths, true);
     }
 
     if (config_->dumpBFS) {
