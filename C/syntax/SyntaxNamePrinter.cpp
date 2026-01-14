@@ -1269,17 +1269,17 @@ void SyntaxNamePrinter::recordFeasiblePath(int pathIndex,
 
 void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
     std::cout << "[FEASIBLE PATHS]:" << std::endl;
-    if (feasiblePaths_.empty()) {
-        std::cout << "  (none)" << std::endl;
-        return;
-    }
-
     std::ofstream csvFile;
     if (enableVolce) {
         csvFile.open("volce_paths.csv", std::ios::out | std::ios::trunc);
         if (csvFile.is_open()) {
             csvFile << "path_index,mems,volce,probability\n";
         }
+    }
+
+    if (feasiblePaths_.empty()) {
+        std::cout << "  (none)" << std::endl;
+        return;
     }
 
     double weightedMemSum = 0.0;
@@ -1526,9 +1526,8 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
     };
     auto is_branch_feasible = [&](const std::vector<PathDecision>& branchDecisions) {
         EpatRunner runner(vartemp);
-        std::string script = runner.render(branchDecisions);
-        std::string pathExpr = script.substr(vartemp.size());
-        return isPathFeasible(branchDecisions, pathExpr);
+        auto eval = runner.solve(branchDecisions);
+        return eval.status == result::feasible;
     };
 
     // 非条件普通语句：同时打 T/F 覆盖位
