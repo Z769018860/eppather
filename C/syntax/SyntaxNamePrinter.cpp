@@ -1524,6 +1524,12 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         int want = 2 * std::max(0, maxdepth);
         if ((int)vec.size() < want) vec.resize(want, false);
     };
+    auto is_branch_feasible = [&](const std::vector<PathDecision>& branchDecisions) {
+        EpatRunner runner(vartemp);
+        std::string script = runner.render(branchDecisions);
+        std::string pathExpr = script.substr(vartemp.size());
+        return isPathFeasible(branchDecisions, pathExpr);
+    };
 
     // 非条件普通语句：同时打 T/F 覆盖位
     if (node->depth >= 0 && !node->isCondition) {
