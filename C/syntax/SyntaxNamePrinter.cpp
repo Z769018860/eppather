@@ -1599,9 +1599,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
             decisions.pop_back();
             if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
@@ -1617,9 +1615,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -1653,9 +1649,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             auto saved = loopCount;
             loopCount  = lc_t;
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
             loopCount = saved;
         }
@@ -1667,9 +1661,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -1691,9 +1683,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_t[2 * d] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
         }
 
@@ -1707,9 +1697,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            if (is_branch_feasible(decisions)) {
-                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
-            }
+            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             decisions.pop_back();
         }
         return;
@@ -2285,6 +2273,22 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
                                           int pathCount,
                                           int depth) {
 
+    auto formatPath = [](const std::string& rawPath) {
+        std::string formatted;
+        formatted.reserve(rawPath.size());
+        for (size_t i = 0; i < rawPath.size(); ++i) {
+            const char ch = rawPath[i];
+            formatted.push_back(ch);
+            if (ch == ';') {
+                if (i + 1 >= rawPath.size() || rawPath[i + 1] != '\n') {
+                    formatted.push_back('\n');
+                }
+            }
+        }
+        return formatted;
+    };
+
+    const std::string formattedPath = formatPath(path);
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
     std::string smtFileName = "smt" + std::to_string(pathCount) + ".txt";
@@ -2296,8 +2300,8 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
     std::ofstream matrixFile(matrixFileName, std::ios::app);
 
     // 写入路径
-    pathFile << path;
-    cout<<"Path:"<<path<<endl;
+    pathFile << formattedPath;
+    cout<<"Path:"<<formattedPath<<endl;
 
     const bool feasible = eval.status == result::feasible;
     resultFile << (feasible ? "feasible" : (eval.status == result::infeasible ? "infeasible" : "unknown")) << "\n";
@@ -2351,7 +2355,7 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
             matrixFile <<"0"<< " ";
         }
         matrixFile << "\n";
@@ -2368,6 +2372,22 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                                           int depth,
                                           bool enableVolce) {
 
+    auto formatPath = [](const std::string& rawPath) {
+        std::string formatted;
+        formatted.reserve(rawPath.size());
+        for (size_t i = 0; i < rawPath.size(); ++i) {
+            const char ch = rawPath[i];
+            formatted.push_back(ch);
+            if (ch == ';') {
+                if (i + 1 >= rawPath.size() || rawPath[i + 1] != '\n') {
+                    formatted.push_back('\n');
+                }
+            }
+        }
+        return formatted;
+    };
+
+    const std::string formattedPath = formatPath(path);
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
     std::string smtFileName = "smt" + std::to_string(pathCount) + ".txt";
@@ -2379,8 +2399,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
     std::ofstream matrixFile(matrixFileName, std::ios::app);
 
     // 写入路径
-    pathFile << path;
-    cout<<"Path:"<<path<<endl;
+    pathFile << formattedPath;
+    cout<<"Path:"<<formattedPath<<endl;
 
     const bool feasible = eval.status == result::feasible;
     resultFile << (feasible ? "feasible" : (eval.status == result::infeasible ? "infeasible" : "unknown")) << "\n";
@@ -2420,7 +2440,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VolCE] N/A" << endl;
             }
         }
-        recordFeasiblePath(pathCount, mem, path, volceCount);
+        recordFeasiblePath(pathCount, mem, formattedPath, volceCount);
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
@@ -2450,7 +2470,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
             matrixFile <<"0"<< " ";
         }
         matrixFile << "\n";
