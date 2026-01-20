@@ -11,6 +11,8 @@
 namespace {
 
 constexpr volce::Range kVolceWordRange{-8, 8};
+constexpr unsigned kVolceSolverTimeoutMs = 1000;
+constexpr std::uint64_t kVolceMaxModels = 100;
 
 bool isZeroArity(const Z3_context ctx, Z3_func_decl decl) {
     return Z3_get_arity(ctx, decl) == 0;
@@ -49,6 +51,15 @@ void assertBound(Z3_context ctx, Z3_solver solver, Z3_ast var, const volce::Rang
     Z3_ast le = Z3_mk_bvsle(ctx, var, upperAst);
     Z3_ast bounds[2] = {ge, le};
     Z3_solver_assert(ctx, solver, Z3_mk_and(ctx, 2, bounds));
+}
+
+void setSolverTimeout(Z3_context ctx, Z3_solver solver) {
+    Z3_params params = Z3_mk_params(ctx);
+    Z3_params_inc_ref(ctx, params);
+    Z3_symbol timeoutSym = Z3_mk_string_symbol(ctx, "timeout");
+    Z3_params_set_uint(ctx, params, timeoutSym, kVolceSolverTimeoutMs);
+    Z3_solver_set_params(ctx, solver, params);
+    Z3_params_dec_ref(ctx, params);
 }
 
 void assertParsedFormulas(Z3_context ctx, Z3_solver solver, Z3_ast_vector vec) {
@@ -286,9 +297,15 @@ void addDeclaredBitVectors(Z3_context ctx,
     }
 }
 
-std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3_func_decl>& decls) {
+std::uint64_t countModels(Z3_context ctx,
+                          Z3_solver solver,
+                          const std::vector<Z3_func_decl>& decls) {
     std::uint64_t count = 0;
-    while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
+    while (true) {
+        Z3_lbool status = Z3_solver_check(ctx, solver);
+        if (status != Z3_L_TRUE) {
+            break;
+        }
         Z3_model model = Z3_solver_get_model(ctx, solver);
         if (!model) {
             break;
@@ -311,6 +328,9 @@ std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3
         Z3_ast all = Z3_mk_and(ctx, static_cast<unsigned>(equalities.size()), equalities.data());
         Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, all));
         ++count;
+        if (count >= kVolceMaxModels) {
+            break;
+        }
     }
     return count;
 }
@@ -384,6 +404,7 @@ std::optional<CountResult> countModelsFromSmt2(
 
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
+    setSolverTimeout(ctx, solver);
 
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
@@ -415,6 +436,7 @@ std::optional<CountResult> countModelsFromSmt2File(
 
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
+    setSolverTimeout(ctx, solver);
 
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
