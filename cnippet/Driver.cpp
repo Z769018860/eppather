@@ -126,10 +126,6 @@ int Driver::execute(int argc, char* argv[])
             const bool hasMaxPaths = std::find(normalizedArgs.begin(),
                                                normalizedArgs.end(),
                                                "--maxpaths") != normalizedArgs.end();
-            const bool hasVolce = std::find(normalizedArgs.begin(),
-                                            normalizedArgs.end(),
-                                            "--volce") != normalizedArgs.end();
-            bool insertedMaxPaths = false;
             std::vector<std::string> trailingNumbers;
             for (int i = static_cast<int>(normalizedArgs.size()) - 1; i > 0; --i) {
                 const std::string& arg = normalizedArgs[static_cast<size_t>(i)];
@@ -200,7 +196,6 @@ int Driver::execute(int argc, char* argv[])
                 } else {
                     if (!hasMaxPaths) {
                         insertOption("--maxpaths", trailingNumbers[0]);
-                        insertedMaxPaths = true;
                         consumed += 1;
                     }
                     if (!hasMaxLoop && consumed < trailingNumbers.size()) {
@@ -211,9 +206,6 @@ int Driver::execute(int argc, char* argv[])
                 for (size_t i = 0; i < consumed; ++i) {
                     normalizedArgs.pop_back();
                 }
-            }
-            if (hasVolce && !hasMaxPaths && !insertedMaxPaths) {
-                insertOption("--maxpaths", "1");
             }
         }
         std::vector<char*> argPtrs;
