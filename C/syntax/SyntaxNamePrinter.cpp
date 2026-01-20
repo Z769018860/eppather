@@ -114,8 +114,9 @@ std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int
     }
 
     VolceResult result;
-    result.output = std::to_string(countResult->count);
-    result.count = result.output;
+    const std::string countString = std::to_string(countResult->count);
+    result.output = "the total count (LattE): " + countString;
+    result.count = countString;
     return result;
 }
 }  // namespace
@@ -1274,13 +1275,12 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
     if (enableVolce) {
         csvFile.open("volce_paths.csv", std::ios::out | std::ios::trunc);
         if (csvFile.is_open()) {
-            csvFile << "path_index,mems,volce,probability\n";
+            csvFile << "path_index,path,mems,volce,probability\n";
         }
     }
 
     if (feasiblePaths_.empty()) {
         std::cout << "  (none)" << std::endl;
-        return;
     }
 
     double weightedMemSum = 0.0;
@@ -1311,7 +1311,13 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
         std::cout << "    path=" << info.path << std::endl;
 
         if (enableVolce && csvFile.is_open()) {
-            csvFile << info.pathIndex << "," << info.mem << ",";
+            std::string escapedPath = info.path;
+            size_t pos = 0;
+            while ((pos = escapedPath.find('"', pos)) != std::string::npos) {
+                escapedPath.replace(pos, 1, "\"\"");
+                pos += 2;
+            }
+            csvFile << info.pathIndex << ",\"" << escapedPath << "\"," << info.mem << ",";
             if (info.volceCount) {
                 csvFile << *info.volceCount;
             }
@@ -1321,6 +1327,10 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
             }
             csvFile << "\n";
         }
+    }
+
+    if (enableVolce) {
+        std::cout << "[VOLCE TOTAL COUNT (LattE)]: " << totalVolceCount_ << std::endl;
     }
 
     if (enableVolce && totalVolceCount_ > 0) {
@@ -1525,6 +1535,11 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         int want = 2 * std::max(0, maxdepth);
         if ((int)vec.size() < want) vec.resize(want, false);
     };
+    auto is_decision_feasible = [&](const std::vector<PathDecision>& nextDecisions) {
+        static const EpatRunner rawRunner("");
+        const std::string rawPath = rawRunner.render(nextDecisions);
+        return isPathFeasible(nextDecisions, rawPath);
+    };
     // 非条件普通语句：同时打 T/F 覆盖位
     if (node->depth >= 0 && !node->isCondition) {
         ensure_cov(node->depth);
@@ -1544,10 +1559,13 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         }
         EpatRunner runner(vartemp);
         auto eval = runner.solve(decisions);
-        if (eval.status == result::feasible) {
-            if (eval.mem > maxmem) maxmem = eval.mem;
-            if (eval.mem < minmem) minmem = eval.mem;
+        const bool feasible = eval.status == result::feasible;
+        if (!feasible) {
+            if (pushed) decisions.pop_back();
+            return;
         }
+        if (eval.mem > maxmem) maxmem = eval.mem;
+        if (eval.mem < minmem) minmem = eval.mem;
 
         // 关键修复：叶子处将覆盖向量统一补齐到 2*maxdepth 列，保证输出矩阵行对齐
         pad_to_full_cols(pathCoverage);
@@ -1594,7 +1612,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
             decisions.pop_back();
             if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
@@ -1610,7 +1630,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
         }
         return;
@@ -1644,7 +1666,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             auto saved = loopCount;
             loopCount  = lc_t;
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
             loopCount = saved;
         }
@@ -1656,7 +1680,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
         }
         return;
@@ -1678,7 +1704,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_t[2 * d] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
         }
 
@@ -1692,7 +1720,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             cov_f[2 * d + 1] = true;
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            if (is_decision_feasible(decisions)) {
+                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
+            }
             decisions.pop_back();
         }
         return;
