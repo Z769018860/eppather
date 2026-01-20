@@ -34,6 +34,7 @@
 #include <sstream>
 #include <cstring>
 #include <cctype>
+#include <unordered_set>
 #include <vector>
 
 using namespace psy;
@@ -144,14 +145,32 @@ int Driver::execute(int argc, char* argv[])
                     insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
                                                                     dashDashIt));
                 } else {
-                    auto positionalIt = std::find_if(normalizedArgs.begin() + 1,
-                                                     normalizedArgs.end(),
-                                                     [](const std::string& arg) {
-                                                         return arg.empty() || arg[0] != '-';
-                                                     });
-                    if (positionalIt != normalizedArgs.end()) {
-                        insertIndex = static_cast<size_t>(std::distance(normalizedArgs.begin(),
-                                                                        positionalIt));
+                    const auto& valueOptions = []() -> const std::unordered_set<std::string>& {
+                        static const std::unordered_set<std::string> options = {
+                            "--maxloop",
+                            "--maxpaths",
+                            "--lang",
+                            "--plugin",
+                            "--output",
+                            "--c-std",
+                            "--host-cc",
+                            "--cpp-D",
+                            "--cpp-U",
+                            "--cpp-I",
+                            "--C-ParseOptions-TreatmentOfAmbiguities"
+                        };
+                        return options;
+                    }();
+                    for (size_t i = 1; i < normalizedArgs.size(); ++i) {
+                        const std::string& arg = normalizedArgs[i];
+                        if (!arg.empty() && arg[0] == '-') {
+                            if (valueOptions.count(arg) && i + 1 < normalizedArgs.size()) {
+                                ++i;
+                            }
+                            continue;
+                        }
+                        insertIndex = i;
+                        break;
                     }
                 }
                 if (insertIndex > normalizedArgs.size()) {

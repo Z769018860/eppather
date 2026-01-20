@@ -286,9 +286,15 @@ void addDeclaredBitVectors(Z3_context ctx,
     }
 }
 
-std::uint64_t countModels(Z3_context ctx, Z3_solver solver, const std::vector<Z3_func_decl>& decls) {
+std::uint64_t countModels(Z3_context ctx,
+                          Z3_solver solver,
+                          const std::vector<Z3_func_decl>& decls) {
     std::uint64_t count = 0;
-    while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
+    while (true) {
+        Z3_lbool status = Z3_solver_check(ctx, solver);
+        if (status != Z3_L_TRUE) {
+            break;
+        }
         Z3_model model = Z3_solver_get_model(ctx, solver);
         if (!model) {
             break;
@@ -384,7 +390,6 @@ std::optional<CountResult> countModelsFromSmt2(
 
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
-
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
 
@@ -415,7 +420,6 @@ std::optional<CountResult> countModelsFromSmt2File(
 
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
-
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
 
