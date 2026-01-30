@@ -269,6 +269,21 @@ public:
         std::optional<std::uint64_t> volceCount;
     };
 
+    struct SummaryCase {
+        size_t guardHash{0};
+        int mems{0};
+        std::optional<double> prob;
+    };
+
+    struct FunctionSummary {
+        std::string name;
+        std::vector<SummaryCase> cases;
+        int worstMems{-1};
+        double avgMems{-1.0};
+    };
+
+    void dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce);
+
     bool isPathFeasible(const std::vector<PathDecision>& decisions, const std::string& pathExpr) {
         auto cacheKey = vartemp + pathExpr;
         auto it       = feasCache.find(cacheKey);
