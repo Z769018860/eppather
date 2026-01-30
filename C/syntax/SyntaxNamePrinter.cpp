@@ -1441,7 +1441,8 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
     std::cout << "[FUNCTION SUMMARIES]" << std::endl;
     for (const auto& summary : summaries) {
-        std::cout << "Function " << summary.name << ":" << std::endl;
+        std::cout << "Function " << extractFunctionName(summary.name) << ":" << std::endl;
+        std::cout << "signature: " << summary.name << std::endl;
         std::cout << "#cases: " << summary.cases.size() << std::endl;
         std::cout << "worst_mems: " << summary.worstMems << std::endl;
         if (summary.avgMems < 0) {
@@ -2497,8 +2498,8 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
-            matrixFile <<"0"<< " ";
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
+            matrixFile << "0 ";
         }
         matrixFile << "\n";
 
@@ -2596,8 +2597,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
-            matrixFile <<"0"<< " ";
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
+            matrixFile << "0 ";
         }
         matrixFile << "\n";
 
