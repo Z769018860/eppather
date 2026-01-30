@@ -188,6 +188,13 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         transformer.printCFG_BFS();
     }
 
+    if (config_->dumpSummary) {
+        std::cout << "Function summaries are ready to dump ~" << std::endl;
+        SyntaxNamePrinter transformer(tree.get());
+        transformer.getCFG(TU);
+        transformer.dumpFunctionSummaries(config_->maxLoop, config_->maxPaths, config_->enableVolce);
+    }
+
     if (config_->dumpAst) {
         std::ostringstream ossTree;
         SyntaxNamePrinter printer(tree.get());

@@ -44,6 +44,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
@@ -1352,6 +1353,139 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce) const {
     }
 }
 
+namespace {
+std::string extractFunctionName(const std::string& signature) {
+    auto lparen = signature.find('(');
+    if (lparen == std::string::npos) {
+        return signature;
+    }
+    auto before = signature.substr(0, lparen);
+    size_t end = before.find_last_not_of(" \t\n\r");
+    if (end == std::string::npos) {
+        return signature;
+    }
+    size_t start = end;
+    while (start > 0) {
+        char c = before[start - 1];
+        if (!(std::isalnum(static_cast<unsigned char>(c)) || c == '_')) {
+            break;
+        }
+        --start;
+    }
+    auto name = before.substr(start, end - start + 1);
+    return name.empty() ? signature : name;
+}
+}  // namespace
+
+void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce) {
+    std::vector<FunctionSummary> summaries;
+    summaries.reserve(funcDefStack_.size());
+
+    for (const auto& funcNode : funcDefStack_) {
+        int pathCount = 0;
+        loopCount.clear();
+        loopCount.resize(maxdepth, 0);
+
+        std::vector<bool> pathCoverage(maxdepth, false);
+        std::vector<PathDecision> decisions;
+
+        feasiblePaths_.clear();
+        totalVolceCount_ = 0;
+        feasCache.clear();
+        maxmem = -1;
+        minmem = std::numeric_limits<int>::max();
+
+        DFS2(funcNode, pathCoverage, decisions, 0, pathCount, maxloop, maxpaths, enableVolce);
+
+        FunctionSummary summary;
+        const std::string signature = funcNode->getCode();
+        summary.name = signature.empty() ? "unknown" : signature;
+
+        int worst = -1;
+        double avg = -1.0;
+        double sum = 0.0;
+        double weightedSum = 0.0;
+        std::uint64_t totalCount = totalVolceCount_;
+        size_t probCases = 0;
+
+        summary.cases.reserve(feasiblePaths_.size());
+        for (const auto& info : feasiblePaths_) {
+            SummaryCase caseSummary;
+            caseSummary.guardHash = std::hash<std::string>{}(info.path);
+            caseSummary.mems = info.mem;
+            if (enableVolce && info.volceCount && totalCount > 0) {
+                caseSummary.prob = static_cast<double>(*info.volceCount)
+                                   / static_cast<double>(totalCount);
+                weightedSum += static_cast<double>(info.mem) * *caseSummary.prob;
+                ++probCases;
+            }
+            sum += static_cast<double>(info.mem);
+            if (info.mem > worst) {
+                worst = info.mem;
+            }
+            summary.cases.push_back(caseSummary);
+        }
+
+        if (!summary.cases.empty()) {
+            if (enableVolce && totalCount > 0 && probCases == summary.cases.size()) {
+                avg = weightedSum;
+            } else {
+                avg = sum / static_cast<double>(summary.cases.size());
+            }
+        }
+
+        summary.worstMems = worst;
+        summary.avgMems = avg;
+        summaries.push_back(summary);
+    }
+
+    std::cout << "[FUNCTION SUMMARIES]" << std::endl;
+    for (const auto& summary : summaries) {
+        std::cout << "Function " << extractFunctionName(summary.name) << ":" << std::endl;
+        std::cout << "signature: " << summary.name << std::endl;
+        std::cout << "#cases: " << summary.cases.size() << std::endl;
+        std::cout << "worst_mems: " << summary.worstMems << std::endl;
+        if (summary.avgMems < 0) {
+            std::cout << "avg_mems: N/A" << std::endl;
+        } else {
+            std::cout << "avg_mems: " << summary.avgMems << std::endl;
+        }
+        for (size_t i = 0; i < summary.cases.size(); ++i) {
+            const auto& caseSummary = summary.cases[i];
+            std::cout << "  [case " << i << "] guard_hash=" << caseSummary.guardHash
+                      << " mems=" << caseSummary.mems;
+            if (caseSummary.prob) {
+                std::cout << " prob=" << *caseSummary.prob;
+            } else {
+                std::cout << " prob=N/A";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+    const std::string entryName = "main";
+    auto entryIt = std::find_if(summaries.begin(), summaries.end(),
+                                [&](const FunctionSummary& summary) {
+                                    return extractFunctionName(summary.name) == entryName;
+                                });
+    if (entryIt != summaries.end()) {
+        std::cout << "[SUMMARY COMPOSED ENTRY] " << entryName << std::endl;
+        std::cout << "worst_mems: " << entryIt->worstMems << std::endl;
+        if (entryIt->avgMems < 0) {
+            std::cout << "avg_mems: N/A" << std::endl;
+        } else {
+            std::cout << "avg_mems: " << entryIt->avgMems << std::endl;
+        }
+        std::cout << "[DIRECT ENTRY] " << entryName << std::endl;
+        std::cout << "worst_mems: " << entryIt->worstMems << std::endl;
+        if (entryIt->avgMems < 0) {
+            std::cout << "avg_mems: N/A" << std::endl;
+        } else {
+            std::cout << "avg_mems: " << entryIt->avgMems << std::endl;
+        }
+    }
+}
+
 
 void SyntaxNamePrinter::DFS(
     std::shared_ptr<CFGNode> node,
@@ -2364,8 +2498,8 @@ void SyntaxNamePrinter::processPathResult(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
-            matrixFile <<"0"<< " ";
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
+            matrixFile << "0 ";
         }
         matrixFile << "\n";
 
@@ -2463,8 +2597,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"[averagemem]:"<<mem/depth<<endl;
 
         // 写入覆盖矩阵
-        for (bool covered : pathCoverage) {
-            matrixFile <<"0"<< " ";
+        for (size_t i = 0; i < pathCoverage.size(); ++i) {
+            matrixFile << "0 ";
         }
         matrixFile << "\n";
 

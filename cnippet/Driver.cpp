@@ -79,6 +79,8 @@ int Driver::execute(int argc, char* argv[])
               "Dump the program's worst path in the DP mode to the console.")
             ("b,dump-BFS",
               "Dump the program's path in the BFS mode to the console.")
+            ("s,dump-summary",
+              "Dump function summaries to the console.")
             ("d,debug",
                 "Enable debugging.",
                 cxxopts::value<bool>(DEBUG::globalDebugEnabled))

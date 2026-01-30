@@ -82,6 +82,7 @@ Usage:
   -q, --dump-DFS2               Dump the program's path in the DFS mode (bcov).
   -g, --dump-MaxMemDP           Dump the worst MEMS path using DP.
   -b, --dump-BFS                Dump the program's path in the BFS mode.
+  -s, --dump-summary            Dump function summaries to the console.
   -d, --debug                   Enable debugging.
       --volce                   Enable VolCE model counting.
       --maxloop arg             Set loop unroll upper bound (default: 3).

@@ -40,6 +40,7 @@ public:
     bool dumpDFS2;
     bool dumpMaxMemDP;
     bool dumpBFS;
+    bool dumpSummary;
     bool enableVolce;
     bool WIP_;
     int maxLoop;
