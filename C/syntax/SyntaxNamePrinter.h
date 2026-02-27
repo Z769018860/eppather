@@ -107,6 +107,7 @@ public:
     bool isFuncDef;
     bool isVarDef;
     bool hasCallExpr;
+    std::vector<std::string> calleeNames;
     bool isCovered;
     bool setmem;
     int depth;
@@ -131,6 +132,7 @@ public:
           isFuncDef(false),
           isVarDef(false),
           hasCallExpr(false),
+          calleeNames(),
           isCovered(false),
           setmem(false),
           depth(0),
@@ -256,7 +258,8 @@ public:
                             std::vector<bool>& pathCoverage,
                             int pathCount,
                             int depth,
-                            bool enableVolce);
+                            bool enableVolce,
+                            const std::vector<std::string>& callees);
     void collectGlobalVariables(const SyntaxNode* rootNode);
     void startBranchMatrix();
     void pushBranchRow(const std::vector<bool>& row);
@@ -266,12 +269,15 @@ public:
         int pathIndex{0};
         int mem{0};
         std::string path;
+        std::vector<std::string> callees;
         std::optional<std::uint64_t> volceCount;
     };
 
     struct SummaryCase {
         size_t guardHash{0};
         int mems{0};
+        int composedMems{0};
+        std::vector<std::string> callees;
         std::optional<double> prob;
     };
 
@@ -312,6 +318,7 @@ private:
     void recordFeasiblePath(int pathIndex,
                             int mem,
                             const std::string& path,
+                            const std::vector<std::string>& callees,
                             const std::optional<std::uint64_t>& volceCount);
     void printFeasiblePathSummary(bool enableVolce) const;
     std::vector<std::vector<int>> ReadCoverageMatrix(const std::string& filename);
@@ -334,6 +341,7 @@ private:
     std::vector<int> temp_depth;
     std::vector<int> temp_loopCount[1000];
     std::vector<bool> temp_pathCoverage[1000];
+    std::vector<std::string> currentPathCallees_;
 
     std::shared_ptr<CFGNode> lastNode = std::make_shared<CFGNode>();
     std::vector<std::vector<bool>> allPathsCoverage;
