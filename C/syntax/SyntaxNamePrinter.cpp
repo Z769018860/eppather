@@ -53,6 +53,7 @@
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 
 #include "lp_lib.h"
@@ -1375,11 +1376,50 @@ std::string extractFunctionName(const std::string& signature) {
     auto name = before.substr(start, end - start + 1);
     return name.empty() ? signature : name;
 }
+
+std::unordered_set<std::string> extractCalleesFromSnippet(
+    const std::string& snippet,
+    const std::unordered_set<std::string>& knownFunctions)
+{
+    std::unordered_set<std::string> callees;
+    const size_t n = snippet.size();
+    size_t i = 0;
+    while (i < n) {
+        if (!(std::isalpha(static_cast<unsigned char>(snippet[i])) || snippet[i] == '_')) {
+            ++i;
+            continue;
+        }
+        size_t start = i;
+        ++i;
+        while (i < n && (std::isalnum(static_cast<unsigned char>(snippet[i])) || snippet[i] == '_')) {
+            ++i;
+        }
+        const std::string ident = snippet.substr(start, i - start);
+
+        size_t j = i;
+        while (j < n && std::isspace(static_cast<unsigned char>(snippet[j]))) {
+            ++j;
+        }
+
+        if (j < n && snippet[j] == '(' && knownFunctions.find(ident) != knownFunctions.end()) {
+            callees.insert(ident);
+        }
+    }
+    return callees;
+}
 }  // namespace
 
 void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce) {
     std::vector<FunctionSummary> summaries;
     summaries.reserve(funcDefStack_.size());
+
+    std::unordered_set<std::string> knownFunctions;
+    for (const auto& funcNode : funcDefStack_) {
+        knownFunctions.insert(extractFunctionName(funcNode->getCode()));
+    }
+
+    std::unordered_map<std::string, FunctionSummary> directSummaries;
+    std::unordered_map<std::string, std::unordered_set<std::string>> callGraph;
 
     for (const auto& funcNode : funcDefStack_) {
         int pathCount = 0;
@@ -1437,18 +1477,100 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         summary.worstMems = worst;
         summary.avgMems = avg;
         summaries.push_back(summary);
+
+        const std::string normalizedName = extractFunctionName(summary.name);
+        directSummaries[normalizedName] = summary;
+
+        std::unordered_set<std::string> calleeSet;
+        std::unordered_set<const CFGNode*> visited;
+        std::vector<std::shared_ptr<CFGNode>> worklist;
+        if (funcNode && funcNode->getNextNode()) {
+            worklist.push_back(funcNode->getNextNode());
+        }
+        while (!worklist.empty()) {
+            auto cur = worklist.back();
+            worklist.pop_back();
+            if (!cur || !visited.insert(cur.get()).second) {
+                continue;
+            }
+
+            if (cur->hasCallExpr) {
+                auto parsed = extractCalleesFromSnippet(cur->getCode(), knownFunctions);
+                calleeSet.insert(parsed.begin(), parsed.end());
+            }
+
+            auto next = cur->getNextNode();
+            auto nextFalse = cur->getNextFalseNode();
+            if (next) {
+                worklist.push_back(next);
+            }
+            if (nextFalse) {
+                worklist.push_back(nextFalse);
+            }
+        }
+        calleeSet.erase(normalizedName);
+        callGraph[normalizedName] = std::move(calleeSet);
+    }
+
+    auto composedSummaries = directSummaries;
+    const size_t iterationLimit = std::max<size_t>(1, directSummaries.size() * 2);
+    for (size_t iter = 0; iter < iterationLimit; ++iter) {
+        bool changed = false;
+        for (const auto& [caller, direct] : directSummaries) {
+            int worst = direct.worstMems;
+            double avg = direct.avgMems;
+
+            auto cgIt = callGraph.find(caller);
+            if (cgIt != callGraph.end()) {
+                for (const auto& callee : cgIt->second) {
+                    auto calleeIt = composedSummaries.find(callee);
+                    if (calleeIt == composedSummaries.end()) {
+                        continue;
+                    }
+                    if (calleeIt->second.worstMems >= 0) {
+                        worst = std::max(0, worst) + calleeIt->second.worstMems;
+                    }
+                    if (calleeIt->second.avgMems >= 0) {
+                        avg = (avg < 0 ? 0.0 : avg) + calleeIt->second.avgMems;
+                    }
+                }
+            }
+
+            auto composedIt = composedSummaries.find(caller);
+            if (composedIt != composedSummaries.end() &&
+                (composedIt->second.worstMems != worst || composedIt->second.avgMems != avg)) {
+                composedIt->second.worstMems = worst;
+                composedIt->second.avgMems = avg;
+                changed = true;
+            }
+        }
+        if (!changed) {
+            break;
+        }
     }
 
     std::cout << "[FUNCTION SUMMARIES]" << std::endl;
     for (const auto& summary : summaries) {
-        std::cout << "Function " << extractFunctionName(summary.name) << ":" << std::endl;
+        const auto functionName = extractFunctionName(summary.name);
+        const auto composedIt = composedSummaries.find(functionName);
+
+        std::cout << "Function " << functionName << ":" << std::endl;
         std::cout << "signature: " << summary.name << std::endl;
         std::cout << "#cases: " << summary.cases.size() << std::endl;
-        std::cout << "worst_mems: " << summary.worstMems << std::endl;
+        std::cout << "DIRECT worst_mems: " << summary.worstMems << std::endl;
         if (summary.avgMems < 0) {
-            std::cout << "avg_mems: N/A" << std::endl;
+            std::cout << "DIRECT avg_mems: N/A" << std::endl;
         } else {
-            std::cout << "avg_mems: " << summary.avgMems << std::endl;
+            std::cout << "DIRECT avg_mems: " << summary.avgMems << std::endl;
+        }
+
+        if (composedIt != composedSummaries.end()) {
+            std::cout << "COMPOSED worst_mems: " << composedIt->second.worstMems << std::endl;
+            if (composedIt->second.avgMems < 0) {
+                std::cout << "COMPOSED avg_mems: N/A" << std::endl;
+            } else {
+                std::cout << "COMPOSED avg_mems: " << composedIt->second.avgMems << std::endl;
+            }
         }
         for (size_t i = 0; i < summary.cases.size(); ++i) {
             const auto& caseSummary = summary.cases[i];
@@ -1464,24 +1586,22 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
     }
 
     const std::string entryName = "main";
-    auto entryIt = std::find_if(summaries.begin(), summaries.end(),
-                                [&](const FunctionSummary& summary) {
-                                    return extractFunctionName(summary.name) == entryName;
-                                });
-    if (entryIt != summaries.end()) {
+    auto entryDirectIt = directSummaries.find(entryName);
+    auto entryComposedIt = composedSummaries.find(entryName);
+    if (entryDirectIt != directSummaries.end() && entryComposedIt != composedSummaries.end()) {
         std::cout << "[SUMMARY COMPOSED ENTRY] " << entryName << std::endl;
-        std::cout << "worst_mems: " << entryIt->worstMems << std::endl;
-        if (entryIt->avgMems < 0) {
+        std::cout << "worst_mems: " << entryComposedIt->second.worstMems << std::endl;
+        if (entryComposedIt->second.avgMems < 0) {
             std::cout << "avg_mems: N/A" << std::endl;
         } else {
-            std::cout << "avg_mems: " << entryIt->avgMems << std::endl;
+            std::cout << "avg_mems: " << entryComposedIt->second.avgMems << std::endl;
         }
         std::cout << "[DIRECT ENTRY] " << entryName << std::endl;
-        std::cout << "worst_mems: " << entryIt->worstMems << std::endl;
-        if (entryIt->avgMems < 0) {
+        std::cout << "worst_mems: " << entryDirectIt->second.worstMems << std::endl;
+        if (entryDirectIt->second.avgMems < 0) {
             std::cout << "avg_mems: N/A" << std::endl;
         } else {
-            std::cout << "avg_mems: " << entryIt->avgMems << std::endl;
+            std::cout << "avg_mems: " << entryDirectIt->second.avgMems << std::endl;
         }
     }
 }
