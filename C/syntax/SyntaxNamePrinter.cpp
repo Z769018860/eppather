@@ -82,6 +82,8 @@ struct VolceResult {
     std::optional<std::string> count;
 };
 
+std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::string& snippet);
+
 std::optional<std::uint64_t> parseVolceCount(const std::optional<VolceResult>& result) {
     if (!result || !result->count) {
         return std::nullopt;
@@ -842,7 +844,10 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             for (auto& jn : pendingLoopJoinsToOutside) jn->setNextNode(n);
 
             // 默认顺序边（未收束且未进入 else 首句时才连接）
-            if (callExprFlag && lastNode) { lastNode->hasCallExpr = true; callExprFlag = false; }
+            if (callExprFlag && lastNode) {
+                lastNode->hasCallExpr = true;
+                callExprFlag = false;
+            }
             if (!funcDefStack_.empty()) {
                 auto head = funcDefStack_.back();
                 if (head && !head->getNextNode()) {
@@ -963,7 +968,19 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             lastNode = n;
         }
 
-        if (syn->kind() == SyntaxKind::CallExpression) callExprFlag = true;
+        if (syn->kind() == SyntaxKind::CallExpression) {
+            callExprFlag = true;
+            if (lastNode) {
+                lastNode->hasCallExpr = true;
+                auto callCallees = extractDirectCalleesFromCallExprSnippet(snippet);
+                for (const auto& callee : callCallees) {
+                    if (std::find(lastNode->calleeNames.begin(), lastNode->calleeNames.end(), callee)
+                        == lastNode->calleeNames.end()) {
+                        lastNode->calleeNames.push_back(callee);
+                    }
+                }
+            }
+        }
     }
 
     // 文件尾兜底：收束未关闭的 if / loop
@@ -1244,6 +1261,7 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
         minmem = std::numeric_limits<int>::max();
 
         auto start = std::chrono::high_resolution_clock::now();
+        currentPathCallees_.clear();
         DFS2(funcNode, pathCoverage, decisions, 0, pathCount, maxloop, maxpaths, enableVolce);
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
@@ -1264,8 +1282,9 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
 void SyntaxNamePrinter::recordFeasiblePath(int pathIndex,
                                            int mem,
                                            const std::string& path,
+                                           const std::vector<std::string>& callees,
                                            const std::optional<std::uint64_t>& volceCount) {
-    feasiblePaths_.push_back(FeasiblePathSummary{pathIndex, mem, path, volceCount});
+    feasiblePaths_.push_back(FeasiblePathSummary{pathIndex, mem, path, callees, volceCount});
     if (volceCount) {
         totalVolceCount_ += *volceCount;
     }
@@ -1377,11 +1396,11 @@ std::string extractFunctionName(const std::string& signature) {
     return name.empty() ? signature : name;
 }
 
-std::unordered_set<std::string> extractCalleesFromSnippet(
-    const std::string& snippet,
-    const std::unordered_set<std::string>& knownFunctions)
-{
-    std::unordered_set<std::string> callees;
+std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::string& snippet) {
+    std::vector<std::string> callees;
+    const std::unordered_set<std::string> excludedKeywords{
+        "if", "while", "for", "switch", "return", "sizeof"
+    };
     const size_t n = snippet.size();
     size_t i = 0;
     while (i < n) {
@@ -1389,7 +1408,7 @@ std::unordered_set<std::string> extractCalleesFromSnippet(
             ++i;
             continue;
         }
-        size_t start = i;
+        const size_t start = i;
         ++i;
         while (i < n && (std::isalnum(static_cast<unsigned char>(snippet[i])) || snippet[i] == '_')) {
             ++i;
@@ -1400,9 +1419,11 @@ std::unordered_set<std::string> extractCalleesFromSnippet(
         while (j < n && std::isspace(static_cast<unsigned char>(snippet[j]))) {
             ++j;
         }
-
-        if (j < n && snippet[j] == '(' && knownFunctions.find(ident) != knownFunctions.end()) {
-            callees.insert(ident);
+        if (j < n && snippet[j] == '(') {
+            if (excludedKeywords.find(ident) == excludedKeywords.end()
+                && std::find(callees.begin(), callees.end(), ident) == callees.end()) {
+                callees.push_back(ident);
+            }
         }
     }
     return callees;
@@ -1435,6 +1456,7 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         maxmem = -1;
         minmem = std::numeric_limits<int>::max();
 
+        currentPathCallees_.clear();
         DFS2(funcNode, pathCoverage, decisions, 0, pathCount, maxloop, maxpaths, enableVolce);
 
         FunctionSummary summary;
@@ -1453,6 +1475,8 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
             SummaryCase caseSummary;
             caseSummary.guardHash = std::hash<std::string>{}(info.path);
             caseSummary.mems = info.mem;
+            caseSummary.composedMems = info.mem;
+            caseSummary.callees = info.callees;
             if (enableVolce && info.volceCount && totalCount > 0) {
                 caseSummary.prob = static_cast<double>(*info.volceCount)
                                    / static_cast<double>(totalCount);
@@ -1476,40 +1500,28 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
         summary.worstMems = worst;
         summary.avgMems = avg;
-        summaries.push_back(summary);
 
         const std::string normalizedName = extractFunctionName(summary.name);
         directSummaries[normalizedName] = summary;
 
         std::unordered_set<std::string> calleeSet;
-        std::unordered_set<const CFGNode*> visited;
-        std::vector<std::shared_ptr<CFGNode>> worklist;
-        if (funcNode && funcNode->getNextNode()) {
-            worklist.push_back(funcNode->getNextNode());
-        }
-        while (!worklist.empty()) {
-            auto cur = worklist.back();
-            worklist.pop_back();
-            if (!cur || !visited.insert(cur.get()).second) {
-                continue;
+        for (auto& caseSummary : summary.cases) {
+            int composedMems = caseSummary.mems;
+            for (const auto& callee : caseSummary.callees) {
+                if (knownFunctions.find(callee) == knownFunctions.end()) {
+                    continue;
+                }
+                calleeSet.insert(callee);
+                auto directCallee = directSummaries.find(callee);
+                if (directCallee != directSummaries.end() && directCallee->second.worstMems >= 0) {
+                    composedMems += directCallee->second.worstMems;
+                }
             }
-
-            if (cur->hasCallExpr) {
-                auto parsed = extractCalleesFromSnippet(cur->getCode(), knownFunctions);
-                calleeSet.insert(parsed.begin(), parsed.end());
-            }
-
-            auto next = cur->getNextNode();
-            auto nextFalse = cur->getNextFalseNode();
-            if (next) {
-                worklist.push_back(next);
-            }
-            if (nextFalse) {
-                worklist.push_back(nextFalse);
-            }
+            caseSummary.composedMems = composedMems;
         }
         calleeSet.erase(normalizedName);
         callGraph[normalizedName] = std::move(calleeSet);
+        summaries.push_back(summary);
     }
 
     auto composedSummaries = directSummaries;
@@ -1575,12 +1587,21 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         for (size_t i = 0; i < summary.cases.size(); ++i) {
             const auto& caseSummary = summary.cases[i];
             std::cout << "  [case " << i << "] guard_hash=" << caseSummary.guardHash
-                      << " mems=" << caseSummary.mems;
+                      << " mems=" << caseSummary.mems
+                      << " composed_mems=" << caseSummary.composedMems;
             if (caseSummary.prob) {
                 std::cout << " prob=" << *caseSummary.prob;
             } else {
                 std::cout << " prob=N/A";
             }
+            std::cout << " callees=[";
+            for (size_t calleeIdx = 0; calleeIdx < caseSummary.callees.size(); ++calleeIdx) {
+                if (calleeIdx > 0) {
+                    std::cout << ",";
+                }
+                std::cout << caseSummary.callees[calleeIdx];
+            }
+            std::cout << "]";
             std::cout << std::endl;
         }
     }
@@ -1769,6 +1790,20 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
     if (maxpaths > 0 && pathCount >= maxpaths) return;
     if (!node) return;
 
+    struct CalleeRestore {
+        std::vector<std::string>& ref;
+        std::vector<std::string> old;
+        explicit CalleeRestore(std::vector<std::string>& r) : ref(r), old(r) {}
+        ~CalleeRestore() { ref = std::move(old); }
+    } restore(currentPathCallees_);
+
+    for (const auto& callee : node->calleeNames) {
+        if (std::find(currentPathCallees_.begin(), currentPathCallees_.end(), callee) == currentPathCallees_.end()) {
+            currentPathCallees_.push_back(callee);
+        }
+    }
+    const auto baseCallees = currentPathCallees_;
+
     // 原有：按当前 pathCoverage 扩容
     auto ensure_cov = [&](int d){
         int need = 2 * d + 2;
@@ -1825,7 +1860,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         pad_to_full_cols(pathCoverage);
 
         auto script = runner.render(decisions);
-        processPathResult2(eval, script, pathCoverage, pathCount, depth, enableVolce);
+        processPathResult2(eval, script, pathCoverage, pathCount, depth, enableVolce, currentPathCallees_);
         ++pathCount;
         if (pushed) decisions.pop_back();
         return;
@@ -1867,6 +1902,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1885,6 +1921,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1921,6 +1958,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             loopCount  = lc_t;
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1935,6 +1973,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1959,6 +1998,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1975,6 +2015,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
+                currentPathCallees_ = baseCallees;
                 DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
             }
             decisions.pop_back();
@@ -1984,11 +2025,13 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
     // ===================== 其它顺序节点 =====================
     if (node->isFuncDef || (node->isVarDef && node->nodeLevel == 3)) {
+        currentPathCallees_ = baseCallees;
         DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
         return;
     }
 
     decisions.push_back(PathDecision{node.get(), PathDecisionKind::Code});
+    currentPathCallees_ = baseCallees;
     DFS2(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce);
     decisions.pop_back();
 }
@@ -2633,7 +2676,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                                           std::vector<bool>& pathCoverage,
                                           int pathCount,
                                           int depth,
-                                          bool enableVolce) {
+                                          bool enableVolce,
+                                          const std::vector<std::string>& callees) {
 
     std::string pathFileName = "path" + std::to_string(pathCount) + ".txt";
     std::string resultFileName = "result" + std::to_string(pathCount) + ".txt";
@@ -2687,7 +2731,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VolCE] N/A" << endl;
             }
         }
-        recordFeasiblePath(pathCount, mem, path, volceCount);
+        recordFeasiblePath(pathCount, mem, path, callees, volceCount);
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {
