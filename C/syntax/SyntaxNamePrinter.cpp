@@ -58,6 +58,7 @@
 
 #include "lp_lib.h"
 #include "SyntaxNode.h"
+#include "SyntaxUtilities.h"
 #include "volce/volce_api.h"
 
 //#include "stmt.h"
@@ -73,6 +74,10 @@ using namespace psy;
 
 using namespace C;
 
+namespace DEBUG {
+extern bool globalDebugEnabled;
+}
+
 namespace {
 constexpr int kVolceLowerBound = -8;
 constexpr int kVolceUpperBound = 8;
@@ -83,6 +88,66 @@ struct VolceResult {
 };
 
 std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::string& snippet);
+std::string extractFunctionName(const std::string& signature);
+std::optional<std::string> extractFunctionIdentifierFromDeclarator(const DeclaratorSyntax* declarator);
+std::optional<std::string> extractCallIdentifierFromExpression(const ExpressionSyntax* expression);
+
+bool shouldEmitDebugWarning() {
+    return DEBUG::globalDebugEnabled;
+}
+
+std::string normalizeIdentifier(std::string ident) {
+    size_t start = 0;
+    while (start < ident.size() && std::isspace(static_cast<unsigned char>(ident[start]))) {
+        ++start;
+    }
+    size_t end = ident.size();
+    while (end > start && std::isspace(static_cast<unsigned char>(ident[end - 1]))) {
+        --end;
+    }
+    return ident.substr(start, end - start);
+}
+
+std::optional<std::string> extractFunctionIdentifierFromDeclarator(const DeclaratorSyntax* declarator) {
+    if (!declarator) {
+        return std::nullopt;
+    }
+    const auto* inner = SyntaxUtilities::innermostDeclaratorOrSelf(declarator);
+    if (!inner || inner->kind() != SyntaxKind::IdentifierDeclarator) {
+        return std::nullopt;
+    }
+    auto token = inner->asIdentifierDeclarator()->identifierToken();
+    if (!token.isValid()) {
+        return std::nullopt;
+    }
+    std::string name = normalizeIdentifier(token.valueText());
+    if (name.empty()) {
+        return std::nullopt;
+    }
+    return name;
+}
+
+std::optional<std::string> extractCallIdentifierFromExpression(const ExpressionSyntax* expression) {
+    if (!expression) {
+        return std::nullopt;
+    }
+    const auto kind = expression->kind();
+    if (kind == SyntaxKind::IdentifierName) {
+        auto token = expression->asIdentifierName()->identifierToken();
+        if (!token.isValid()) {
+            return std::nullopt;
+        }
+        std::string name = normalizeIdentifier(token.valueText());
+        if (name.empty()) {
+            return std::nullopt;
+        }
+        return name;
+    }
+    if (kind == SyntaxKind::ParenthesizedExpression) {
+        return extractCallIdentifierFromExpression(expression->asParenthesizedExpression()->expression());
+    }
+    return std::nullopt;
+}
 
 std::optional<std::uint64_t> parseVolceCount(const std::optional<VolceResult>& result) {
     if (!result || !result->count) {
@@ -713,8 +778,18 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             if (declarator) {
                 auto dend = source.c_str() + declarator->lastToken().span().end();
                 signature = std::string(fstart, dend - fstart);
+                if (auto name = extractFunctionIdentifierFromDeclarator(declarator)) {
+                    f->functionName = *name;
+                }
             } else {
                 signature = std::string(fstart, source.c_str() + lastTk.span().end() - fstart);
+            }
+            if (f->functionName.empty()) {
+                f->functionName = extractFunctionName(formatSnippet(signature, false));
+                if (shouldEmitDebugWarning()) {
+                    std::cerr << "[DEBUG][summary] fallback extractFunctionName() used for function definition signature: "
+                              << formatSnippet(signature, false) << std::endl;
+                }
             }
             f->setCode(formatSnippet(signature, false));
             funcDefStack_.push_back(f);
@@ -972,11 +1047,32 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             callExprFlag = true;
             if (lastNode) {
                 lastNode->hasCallExpr = true;
-                auto callCallees = extractDirectCalleesFromCallExprSnippet(snippet);
-                for (const auto& callee : callCallees) {
-                    if (std::find(lastNode->calleeNames.begin(), lastNode->calleeNames.end(), callee)
-                        == lastNode->calleeNames.end()) {
-                        lastNode->calleeNames.push_back(callee);
+                const auto* callExpr = syn->asCallExpression();
+                bool usedFallback = false;
+                if (callExpr) {
+                    if (auto calleeName = extractCallIdentifierFromExpression(callExpr->expression())) {
+                        if (std::find(lastNode->calleeNames.begin(), lastNode->calleeNames.end(), *calleeName)
+                            == lastNode->calleeNames.end()) {
+                            lastNode->calleeNames.push_back(*calleeName);
+                        }
+                    } else {
+                        usedFallback = true;
+                    }
+                } else {
+                    usedFallback = true;
+                }
+
+                if (usedFallback) {
+                    auto callCallees = extractDirectCalleesFromCallExprSnippet(snippet);
+                    if (shouldEmitDebugWarning()) {
+                        std::cerr << "[DEBUG][summary] fallback extractFunctionName/call-snippet used for call expression: "
+                                  << formatSnippet(snippet) << std::endl;
+                    }
+                    for (const auto& callee : callCallees) {
+                        if (std::find(lastNode->calleeNames.begin(), lastNode->calleeNames.end(), callee)
+                            == lastNode->calleeNames.end()) {
+                            lastNode->calleeNames.push_back(callee);
+                        }
                     }
                 }
             }
@@ -1436,7 +1532,9 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
     std::unordered_set<std::string> knownFunctions;
     for (const auto& funcNode : funcDefStack_) {
-        knownFunctions.insert(extractFunctionName(funcNode->getCode()));
+        if (!funcNode->functionName.empty()) {
+            knownFunctions.insert(funcNode->functionName);
+        }
     }
 
     std::unordered_map<std::string, FunctionSummary> directSummaries;
@@ -1461,7 +1559,8 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
         FunctionSummary summary;
         const std::string signature = funcNode->getCode();
-        summary.name = signature.empty() ? "unknown" : signature;
+        summary.name = funcNode->functionName.empty() ? "unknown" : funcNode->functionName;
+        summary.signature = signature.empty() ? "unknown" : signature;
 
         int worst = -1;
         double avg = -1.0;
@@ -1501,8 +1600,7 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         summary.worstMems = worst;
         summary.avgMems = avg;
 
-        const std::string normalizedName = extractFunctionName(summary.name);
-        directSummaries[normalizedName] = summary;
+        directSummaries[summary.name] = summary;
 
         std::unordered_set<std::string> calleeSet;
         for (auto& caseSummary : summary.cases) {
@@ -1519,8 +1617,8 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
             }
             caseSummary.composedMems = composedMems;
         }
-        calleeSet.erase(normalizedName);
-        callGraph[normalizedName] = std::move(calleeSet);
+        calleeSet.erase(summary.name);
+        callGraph[summary.name] = std::move(calleeSet);
         summaries.push_back(summary);
     }
 
@@ -1563,11 +1661,11 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
     std::cout << "[FUNCTION SUMMARIES]" << std::endl;
     for (const auto& summary : summaries) {
-        const auto functionName = extractFunctionName(summary.name);
+        const auto functionName = summary.name;
         const auto composedIt = composedSummaries.find(functionName);
 
         std::cout << "Function " << functionName << ":" << std::endl;
-        std::cout << "signature: " << summary.name << std::endl;
+        std::cout << "signature: " << summary.signature << std::endl;
         std::cout << "#cases: " << summary.cases.size() << std::endl;
         std::cout << "DIRECT worst_mems: " << summary.worstMems << std::endl;
         if (summary.avgMems < 0) {

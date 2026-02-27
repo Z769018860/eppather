@@ -108,6 +108,7 @@ public:
     bool isVarDef;
     bool hasCallExpr;
     std::vector<std::string> calleeNames;
+    std::string functionName;
     bool isCovered;
     bool setmem;
     int depth;
@@ -133,6 +134,7 @@ public:
           isVarDef(false),
           hasCallExpr(false),
           calleeNames(),
+          functionName(),
           isCovered(false),
           setmem(false),
           depth(0),
@@ -283,6 +285,7 @@ public:
 
     struct FunctionSummary {
         std::string name;
+        std::string signature;
         std::vector<SummaryCase> cases;
         int worstMems{-1};
         double avgMems{-1.0};
