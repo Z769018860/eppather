@@ -1548,6 +1548,18 @@ std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::stri
 }  // namespace
 
 void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce, int volceLower, int volceUpper) {
+    struct ExpandedProgramPath {
+        int mem{0};
+        double prob{1.0};
+        bool hasProb{true};
+        std::vector<std::string> sequence;
+        std::vector<std::string> notes;
+    };
+
+    const char* entryEnv = std::getenv("EPPATHER_ENTRY");
+    const std::string entryName = (entryEnv && *entryEnv) ? std::string(entryEnv) : std::string("main");
+    const int sccExpansionCap = 1;
+
     std::vector<FunctionSummary> summaries;
     summaries.reserve(funcDefStack_.size());
 
@@ -1559,6 +1571,7 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
     }
 
     std::unordered_map<std::string, FunctionSummary> directSummaries;
+    std::unordered_map<std::string, std::vector<SummaryCase>> functionPathTable;
     std::unordered_map<std::string, std::unordered_set<std::string>> callGraph;
 
     for (size_t funcIndex = 0; funcIndex < funcDefStack_.size(); ++funcIndex) {
@@ -1597,9 +1610,11 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         for (const auto& info : feasiblePaths_) {
             SummaryCase caseSummary;
             caseSummary.guardHash = std::hash<std::string>{}(info.path);
+            caseSummary.path = info.path;
             caseSummary.mems = info.mem;
             caseSummary.composedMems = info.mem;
             caseSummary.callees = info.callees;
+            caseSummary.volceCount = info.volceCount;
             if (enableVolce && info.volceCount && totalCount > 0) {
                 caseSummary.prob = static_cast<double>(*info.volceCount)
                                    / static_cast<double>(totalCount);
@@ -1625,92 +1640,226 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         summary.avgMems = avg;
 
         directSummaries[summary.name] = summary;
+        functionPathTable[summary.name] = summary.cases;
 
         std::unordered_set<std::string> calleeSet;
-        for (auto& caseSummary : summary.cases) {
-            int composedMems = caseSummary.mems;
+        for (const auto& caseSummary : summary.cases) {
             for (const auto& callee : caseSummary.callees) {
                 if (knownFunctions.find(callee) == knownFunctions.end()) {
                     continue;
                 }
                 calleeSet.insert(callee);
-                auto directCallee = directSummaries.find(callee);
-                if (directCallee != directSummaries.end() && directCallee->second.worstMems >= 0) {
-                    composedMems += directCallee->second.worstMems;
-                }
             }
-            caseSummary.composedMems = composedMems;
         }
-        calleeSet.erase(summary.name);
         callGraph[summary.name] = std::move(calleeSet);
         summaries.push_back(summary);
     }
 
-    auto composedSummaries = directSummaries;
-    const size_t iterationLimit = std::max<size_t>(1, directSummaries.size() * 2);
-    for (size_t iter = 0; iter < iterationLimit; ++iter) {
-        bool changed = false;
-        for (const auto& [caller, direct] : directSummaries) {
-            int worst = direct.worstMems;
-            double avg = direct.avgMems;
+    std::unordered_map<std::string, int> index;
+    std::unordered_map<std::string, int> lowlink;
+    std::unordered_map<std::string, bool> onStack;
+    std::unordered_map<std::string, int> nodeToScc;
+    std::vector<std::vector<std::string>> sccs;
+    std::vector<std::string> tarjanStack;
+    int tarjanIndex = 0;
 
-            auto cgIt = callGraph.find(caller);
-            if (cgIt != callGraph.end()) {
-                for (const auto& callee : cgIt->second) {
-                    auto calleeIt = composedSummaries.find(callee);
-                    if (calleeIt == composedSummaries.end()) {
-                        continue;
-                    }
-                    if (calleeIt->second.worstMems >= 0) {
-                        worst = std::max(0, worst) + calleeIt->second.worstMems;
-                    }
-                    if (calleeIt->second.avgMems >= 0) {
-                        avg = (avg < 0 ? 0.0 : avg) + calleeIt->second.avgMems;
-                    }
+    std::function<void(const std::string&)> strongConnect = [&](const std::string& v) {
+        index[v] = tarjanIndex;
+        lowlink[v] = tarjanIndex;
+        ++tarjanIndex;
+        tarjanStack.push_back(v);
+        onStack[v] = true;
+
+        auto it = callGraph.find(v);
+        if (it != callGraph.end()) {
+            for (const auto& w : it->second) {
+                if (index.find(w) == index.end()) {
+                    strongConnect(w);
+                    lowlink[v] = std::min(lowlink[v], lowlink[w]);
+                } else if (onStack[w]) {
+                    lowlink[v] = std::min(lowlink[v], index[w]);
+                }
+            }
+        }
+
+        if (lowlink[v] == index[v]) {
+            std::vector<std::string> component;
+            while (!tarjanStack.empty()) {
+                const std::string w = tarjanStack.back();
+                tarjanStack.pop_back();
+                onStack[w] = false;
+                nodeToScc[w] = static_cast<int>(sccs.size());
+                component.push_back(w);
+                if (w == v) {
+                    break;
+                }
+            }
+            sccs.push_back(component);
+        }
+    };
+
+    for (const auto& [name, _] : callGraph) {
+        if (index.find(name) == index.end()) {
+            strongConnect(name);
+        }
+    }
+
+    auto isRecursiveScc = [&](const std::string& name) {
+        auto sccIt = nodeToScc.find(name);
+        if (sccIt == nodeToScc.end()) {
+            return false;
+        }
+        const int sccId = sccIt->second;
+        if (sccId < 0 || static_cast<size_t>(sccId) >= sccs.size()) {
+            return false;
+        }
+        if (sccs[sccId].size() > 1) {
+            return true;
+        }
+        auto cgIt = callGraph.find(name);
+        return cgIt != callGraph.end() && cgIt->second.find(name) != cgIt->second.end();
+    };
+
+    std::function<std::vector<ExpandedProgramPath>(
+        const std::string&, std::vector<std::string>&, std::unordered_map<int, int>&)> expandFunction;
+
+    expandFunction = [&](const std::string& functionName,
+                         std::vector<std::string>& activeStack,
+                         std::unordered_map<int, int>& sccVisits) -> std::vector<ExpandedProgramPath> {
+        std::vector<ExpandedProgramPath> results;
+        auto tableIt = functionPathTable.find(functionName);
+        if (tableIt == functionPathTable.end() || tableIt->second.empty()) {
+            ExpandedProgramPath emptyPath;
+            emptyPath.hasProb = false;
+            emptyPath.notes.push_back("missing path summary for function=" + functionName);
+            results.push_back(emptyPath);
+            return results;
+        }
+
+        activeStack.push_back(functionName);
+
+        for (size_t caseIndex = 0; caseIndex < tableIt->second.size(); ++caseIndex) {
+            const auto& pathCase = tableIt->second[caseIndex];
+            std::vector<ExpandedProgramPath> partials(1);
+            partials[0].mem = pathCase.mems;
+            partials[0].sequence.push_back(functionName + "#" + std::to_string(caseIndex) + "{" + pathCase.path + "}");
+
+            if (enableVolce) {
+                if (pathCase.prob) {
+                    partials[0].prob = *pathCase.prob;
+                } else {
+                    partials[0].hasProb = false;
+                    partials[0].notes.push_back("missing volce probability for " + functionName + " path#" + std::to_string(caseIndex));
                 }
             }
 
-            auto composedIt = composedSummaries.find(caller);
-            if (composedIt != composedSummaries.end() &&
-                (composedIt->second.worstMems != worst || composedIt->second.avgMems != avg)) {
-                composedIt->second.worstMems = worst;
-                composedIt->second.avgMems = avg;
-                changed = true;
+            for (const auto& callee : pathCase.callees) {
+                std::vector<ExpandedProgramPath> nextPartials;
+                for (const auto& partial : partials) {
+                    if (knownFunctions.find(callee) == knownFunctions.end()) {
+                        ExpandedProgramPath external = partial;
+                        external.notes.push_back("external callee omitted=" + callee);
+                        nextPartials.push_back(std::move(external));
+                        continue;
+                    }
+
+                    const bool onCallStack = std::find(activeStack.begin(), activeStack.end(), callee) != activeStack.end();
+                    const auto sccIt = nodeToScc.find(callee);
+                    const int sccId = sccIt == nodeToScc.end() ? -1 : sccIt->second;
+                    const bool recursiveScc = isRecursiveScc(callee);
+                    const int visits = (sccId >= 0 && recursiveScc) ? sccVisits[sccId] : 0;
+
+                    if (onCallStack || (recursiveScc && visits >= sccExpansionCap)) {
+                        ExpandedProgramPath bounded = partial;
+                        const auto directIt = directSummaries.find(callee);
+                        if (directIt != directSummaries.end() && directIt->second.worstMems >= 0) {
+                            bounded.mem += directIt->second.worstMems;
+                            bounded.sequence.push_back(callee + "{SCC_CAPPED_DIRECT_WORST}");
+                            bounded.notes.push_back("recursive SCC capped for " + callee + " at cap="
+                                                    + std::to_string(sccExpansionCap));
+                        } else {
+                            bounded.hasProb = false;
+                            bounded.notes.push_back("recursive SCC capped but missing direct worst for " + callee);
+                        }
+                        nextPartials.push_back(std::move(bounded));
+                        continue;
+                    }
+
+                    if (sccId >= 0 && recursiveScc) {
+                        ++sccVisits[sccId];
+                    }
+                    auto childPaths = expandFunction(callee, activeStack, sccVisits);
+                    if (sccId >= 0 && recursiveScc) {
+                        --sccVisits[sccId];
+                    }
+
+                    if (childPaths.empty()) {
+                        ExpandedProgramPath missing = partial;
+                        missing.hasProb = false;
+                        missing.notes.push_back("callee expansion produced no path for " + callee);
+                        nextPartials.push_back(std::move(missing));
+                        continue;
+                    }
+
+                    for (const auto& child : childPaths) {
+                        ExpandedProgramPath combined = partial;
+                        combined.mem += child.mem;
+                        combined.sequence.insert(combined.sequence.end(), child.sequence.begin(), child.sequence.end());
+                        combined.notes.insert(combined.notes.end(), child.notes.begin(), child.notes.end());
+
+                        if (enableVolce) {
+                            if (combined.hasProb && child.hasProb) {
+                                combined.prob *= child.prob;
+                            } else {
+                                combined.hasProb = false;
+                            }
+                        }
+                        nextPartials.push_back(std::move(combined));
+                    }
+                }
+                partials = std::move(nextPartials);
             }
+
+            results.insert(results.end(), partials.begin(), partials.end());
         }
-        if (!changed) {
-            break;
-        }
+
+        activeStack.pop_back();
+        return results;
+    };
+
+    std::vector<std::string> activeStack;
+    std::unordered_map<int, int> sccVisits;
+    std::vector<ExpandedProgramPath> entryPaths;
+    if (knownFunctions.find(entryName) != knownFunctions.end()) {
+        entryPaths = expandFunction(entryName, activeStack, sccVisits);
     }
 
     std::cout << "[FUNCTION SUMMARIES]" << std::endl;
     for (const auto& summary : summaries) {
-        const auto functionName = summary.name;
-        const auto composedIt = composedSummaries.find(functionName);
-
-        std::cout << "Function " << functionName << ":" << std::endl;
+        std::cout << "Function " << summary.name << ":" << std::endl;
         std::cout << "signature: " << summary.signature << std::endl;
         std::cout << "#cases: " << summary.cases.size() << std::endl;
         std::cout << "DIRECT worst_mems: " << summary.worstMems << std::endl;
         if (summary.avgMems < 0) {
             std::cout << "DIRECT avg_mems: N/A" << std::endl;
         } else {
-            std::cout << "DIRECT avg_mems: " << summary.avgMems << std::endl;
-        }
-
-        if (composedIt != composedSummaries.end()) {
-            std::cout << "COMPOSED worst_mems: " << composedIt->second.worstMems << std::endl;
-            if (composedIt->second.avgMems < 0) {
-                std::cout << "COMPOSED avg_mems: N/A" << std::endl;
+            if (enableVolce) {
+                std::cout << "DIRECT weighted_avg_mems: " << summary.avgMems << std::endl;
             } else {
-                std::cout << "COMPOSED avg_mems: " << composedIt->second.avgMems << std::endl;
+                std::cout << "DIRECT avg_mems(equal-weight): " << summary.avgMems << std::endl;
             }
         }
+
         for (size_t i = 0; i < summary.cases.size(); ++i) {
             const auto& caseSummary = summary.cases[i];
             std::cout << "  [case " << i << "] guard_hash=" << caseSummary.guardHash
-                      << " mems=" << caseSummary.mems
-                      << " composed_mems=" << caseSummary.composedMems;
+                      << " path=\"" << caseSummary.path << "\""
+                      << " mems=" << caseSummary.mems;
+            if (caseSummary.volceCount) {
+                std::cout << " volce=" << *caseSummary.volceCount;
+            } else {
+                std::cout << " volce=N/A";
+            }
             if (caseSummary.prob) {
                 std::cout << " prob=" << *caseSummary.prob;
             } else {
@@ -1723,31 +1872,101 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
                 }
                 std::cout << caseSummary.callees[calleeIdx];
             }
-            std::cout << "]";
-            std::cout << std::endl;
+            std::cout << "]" << std::endl;
         }
     }
 
-    const std::string entryName = "main";
-    auto entryDirectIt = directSummaries.find(entryName);
-    auto entryComposedIt = composedSummaries.find(entryName);
-    if (entryDirectIt != directSummaries.end() && entryComposedIt != composedSummaries.end()) {
-        std::cout << "[SUMMARY COMPOSED ENTRY] " << entryName << std::endl;
-        std::cout << "worst_mems: " << entryComposedIt->second.worstMems << std::endl;
-        if (entryComposedIt->second.avgMems < 0) {
-            std::cout << "avg_mems: N/A" << std::endl;
-        } else {
-            std::cout << "avg_mems: " << entryComposedIt->second.avgMems << std::endl;
-        }
-        std::cout << "[DIRECT ENTRY] " << entryName << std::endl;
-        std::cout << "worst_mems: " << entryDirectIt->second.worstMems << std::endl;
-        if (entryDirectIt->second.avgMems < 0) {
-            std::cout << "avg_mems: N/A" << std::endl;
-        } else {
-            std::cout << "avg_mems: " << entryDirectIt->second.avgMems << std::endl;
+    std::cout << "[PROGRAM SUMMARY]" << std::endl;
+    std::cout << "entry=" << entryName << std::endl;
+    std::cout << "recursion_policy=SCC_CAPPED_DIRECT_WORST(cap=" << sccExpansionCap << ")" << std::endl;
+
+    if (knownFunctions.find(entryName) == knownFunctions.end()) {
+        std::cout << "worst_mems=N/A" << std::endl;
+        std::cout << "worst_path=N/A" << std::endl;
+        std::cout << "weighted_avg_mems=N/A" << std::endl;
+        std::cout << "reason=entry function not found" << std::endl;
+        return;
+    }
+
+    if (entryPaths.empty()) {
+        std::cout << "worst_mems=N/A" << std::endl;
+        std::cout << "worst_path=N/A" << std::endl;
+        std::cout << "weighted_avg_mems=N/A" << std::endl;
+        std::cout << "reason=entry function expansion produced no path" << std::endl;
+        return;
+    }
+
+    int worstMem = std::numeric_limits<int>::min();
+    std::vector<std::string> worstSeq;
+    for (const auto& p : entryPaths) {
+        if (p.mem > worstMem) {
+            worstMem = p.mem;
+            worstSeq = p.sequence;
         }
     }
+
+    std::cout << "worst_mems=" << worstMem << std::endl;
+    std::cout << "worst_path=";
+    for (size_t i = 0; i < worstSeq.size(); ++i) {
+        if (i > 0) {
+            std::cout << " -> ";
+        }
+        std::cout << worstSeq[i];
+    }
+    std::cout << std::endl;
+
+    std::unordered_set<std::string> reasonSet;
+    for (const auto& p : entryPaths) {
+        for (const auto& note : p.notes) {
+            reasonSet.insert(note);
+        }
+    }
+
+    if (enableVolce) {
+        double weightedAvg = 0.0;
+        double probTotal = 0.0;
+        bool hasMissingProb = false;
+        for (const auto& p : entryPaths) {
+            if (p.hasProb) {
+                weightedAvg += static_cast<double>(p.mem) * p.prob;
+                probTotal += p.prob;
+            } else {
+                hasMissingProb = true;
+            }
+        }
+        if (!hasMissingProb && probTotal > 0.0) {
+            std::cout << "weighted_avg_mems=" << weightedAvg << std::endl;
+        } else {
+            std::cout << "weighted_avg_mems=N/A" << std::endl;
+            if (hasMissingProb) {
+                reasonSet.insert("missing callee/path probability during composition");
+            }
+            if (probTotal <= 0.0) {
+                reasonSet.insert("total composed probability is zero");
+            }
+        }
+    } else {
+        double equalAvg = 0.0;
+        for (const auto& p : entryPaths) {
+            equalAvg += static_cast<double>(p.mem);
+        }
+        equalAvg /= static_cast<double>(entryPaths.size());
+        std::cout << "weighted_avg_mems=" << equalAvg << " (equal-weight; volce disabled)" << std::endl;
+    }
+
+    if (!reasonSet.empty()) {
+        std::cout << "notes=";
+        size_t idx = 0;
+        for (const auto& reason : reasonSet) {
+            if (idx++ > 0) {
+                std::cout << " | ";
+            }
+            std::cout << reason;
+        }
+        std::cout << std::endl;
+    }
 }
+
 
 
 void SyntaxNamePrinter::DFS(
