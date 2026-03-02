@@ -223,6 +223,35 @@ MEMS: 18
 
 ---
 
+### 一键功能验证脚本（新增）
+
+仓库提供了自动化脚本 `tools/run_feature_checks.sh`，用于一次性构建并验证以下能力：
+
+1. **DFS2 全路径遍历与可行性过滤**（检查 `path/smt/result` 产物数量一致性，并统计可行/不可行路径）；
+2. **`--volce` 运行与概率统计**（检查范围输出、模型计数、路径概率以及概率和约等于 1）；
+3. **多函数摘要分析**（检查程序级 `worst_mems` 与 `weighted_avg_mems` 输出）。
+
+运行方式：
+
+```bash
+./tools/run_feature_checks.sh
+```
+
+脚本会：
+
+- 自动执行 CMake 配置与编译；
+- 将详细日志写入 `/tmp/eppather_*.log`；
+- 输出汇总报告；
+- 若发现异常，打印 `[ISSUES DETECTED]` 并以非 0 退出（便于 CI 集成）。
+
+---
+
+### 函数摘要日志说明（更新）
+
+在解析阶段，未定义标识符仍会按“隐式函数”处理以保持兼容性，但不再打印冗余的 `find an undefined symbol ...` 调试信息，避免干扰摘要与自动化验证输出。
+
+---
+
 ### 中间结果输出功能
 
 #### AST（抽象语法树）
@@ -461,6 +490,35 @@ To change this limit, specify an additional parameter:
 ```
 
 Here, `5` indicates that the maximum loop unrolling count is 5.
+
+---
+
+### One-Command Feature Validation Script (New)
+
+The repository now includes `tools/run_feature_checks.sh`, which builds the project and validates these features end-to-end:
+
+1. **DFS2 full-path traversal with feasibility filtering** (checks `path/smt/result` artifact consistency and feasible/infeasible counts);
+2. **`--volce` execution and probability reporting** (checks range output, model count, path probabilities, and probability sum near 1);
+3. **multi-function summary analysis** (checks program-level `worst_mems` and `weighted_avg_mems`).
+
+Run it with:
+
+```bash
+./tools/run_feature_checks.sh
+```
+
+The script will:
+
+- run CMake configure/build automatically;
+- write detailed logs to `/tmp/eppather_*.log`;
+- print a compact report;
+- print `[ISSUES DETECTED]` and exit non-zero on failures (CI-friendly).
+
+---
+
+### Summary Logging Note (Updated)
+
+During parsing, undefined identifiers are still treated as implicit functions for compatibility, but the noisy `find an undefined symbol ...` debug line is no longer printed, so summary/automation output stays clean.
 
 ---
 
