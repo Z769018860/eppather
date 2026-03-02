@@ -35,7 +35,7 @@ using namespace psy;
 using namespace C;
 
 namespace DEBUG {
-bool globalDebugEnabled = false;
+extern bool globalDebugEnabled;
 }
 
 namespace {

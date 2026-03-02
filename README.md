@@ -132,6 +132,24 @@ feasible!!!
 
 ---
 
+### DFS2 跨函数输出说明（新增）
+
+当使用 `-q/--dump-DFS2` 时，工具会为每个函数生成稳定的 `functionTag`（优先函数名；为空时回退为 `func_<index>`，并做文件名安全化）。
+路径输出文件命名如下：
+
+- `path_<functionTag>_<n>.txt`
+- `smt_<functionTag>_<n>.txt`
+- `result_<functionTag>_<n>.txt`
+
+其中 `result_*` 内还会记录：
+
+- `[function_tag]:...`
+- `[global_path_id]:...`
+
+便于在跨函数 DFS 场景下追踪同一次分析中的全局路径编号。
+
+---
+
 ### 最坏情况路径分析（动态规划）
 
 使用 `-g` 参数，通过动态规划算法直接搜索 MEMS 最大的最坏情况路径：
@@ -371,6 +389,24 @@ feasible!!!
 [DFS MAX MEMS]: 18
 [DFS MIN MEMS]: 0
 ```
+
+---
+
+### DFS2 Cross-Function Output (New)
+
+With `-q/--dump-DFS2`, the tool now builds a stable `functionTag` per function (prefers function name; falls back to `func_<index>` and sanitizes it for filenames).
+Generated artifacts are named as:
+
+- `path_<functionTag>_<n>.txt`
+- `smt_<functionTag>_<n>.txt`
+- `result_<functionTag>_<n>.txt`
+
+Each `result_*` file also contains:
+
+- `[function_tag]:...`
+- `[global_path_id]:...`
+
+This helps trace paths globally across multi-function DFS runs.
 
 ---
 

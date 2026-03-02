@@ -224,7 +224,8 @@ public:
               int& pathCount,
               int maxloop,
               int maxpaths,
-              bool enableVolce);
+              bool enableVolce,
+              const std::string& functionTag);
     void GreedyDFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
         std::vector<PathDecision> decisions,
@@ -260,6 +261,7 @@ public:
                             std::vector<bool>& pathCoverage,
                             int pathCount,
                             int depth,
+                            const std::string& functionTag,
                             bool enableVolce,
                             const std::vector<std::string>& callees);
     void collectGlobalVariables(const SyntaxNode* rootNode);
