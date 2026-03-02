@@ -283,9 +283,11 @@ public:
 
     struct SummaryCase {
         size_t guardHash{0};
+        std::string path;
         int mems{0};
         int composedMems{0};
         std::vector<std::string> callees;
+        std::optional<std::uint64_t> volceCount;
         std::optional<double> prob;
     };
 
