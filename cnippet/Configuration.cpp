@@ -37,4 +37,6 @@ Configuration::Configuration(const cxxopts::ParseResult& parsedCmdLine)
     , WIP_(parsedCmdLine.count("WIP"))
     , maxLoop(parsedCmdLine["maxloop"].as<int>())
     , maxPaths(parsedCmdLine["maxpaths"].as<int>())
+    , volceLower(parsedCmdLine["volce-lower"].as<int>())
+    , volceUpper(parsedCmdLine["volce-upper"].as<int>())
 {}

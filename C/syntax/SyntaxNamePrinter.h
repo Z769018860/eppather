@@ -205,7 +205,7 @@ public:
     void getCFG(const SyntaxNode* node);
     void printCFG();
     void printCFG_DFS(int maxloop, int maxpaths);
-    void printCFG_DFS2(int maxloop, int maxpaths, bool enableVolce);
+    void printCFG_DFS2(int maxloop, int maxpaths, bool enableVolce, int volceLower, int volceUpper);
     void printCFG_greedyDFS(int maxloop, int maxpaths, bool enableVolce);
     void DFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
@@ -225,6 +225,8 @@ public:
               int maxloop,
               int maxpaths,
               bool enableVolce,
+              int volceLower,
+              int volceUpper,
               const std::string& functionTag);
     void GreedyDFS(std::shared_ptr<CFGNode> node,
         std::vector<bool>& pathCoverage,
@@ -263,6 +265,8 @@ public:
                             int depth,
                             const std::string& functionTag,
                             bool enableVolce,
+                            int volceLower,
+                            int volceUpper,
                             const std::vector<std::string>& callees);
     void collectGlobalVariables(const SyntaxNode* rootNode);
     void startBranchMatrix();
@@ -293,7 +297,7 @@ public:
         double avgMems{-1.0};
     };
 
-    void dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce);
+    void dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce, int volceLower, int volceUpper);
 
     bool isPathFeasible(const std::vector<PathDecision>& decisions, const std::string& pathExpr) {
         auto cacheKey = vartemp + pathExpr;
@@ -325,7 +329,7 @@ private:
                             const std::string& path,
                             const std::vector<std::string>& callees,
                             const std::optional<std::uint64_t>& volceCount);
-    void printFeasiblePathSummary(bool enableVolce) const;
+    void printFeasiblePathSummary(bool enableVolce, int volceLower, int volceUpper) const;
     std::vector<std::vector<int>> ReadCoverageMatrix(const std::string& filename);
     void SolveLinearProgram(const std::vector<std::vector<int>>& coverageMatrix);
 

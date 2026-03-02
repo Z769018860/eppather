@@ -171,7 +171,11 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         std::cout << "DFS2 is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_DFS2(config_->maxLoop, config_->maxPaths, config_->enableVolce);
+        transformer.printCFG_DFS2(config_->maxLoop,
+                              config_->maxPaths,
+                              config_->enableVolce,
+                              config_->volceLower,
+                              config_->volceUpper);
     }
 
     if (config_->dumpMaxMemDP) {
@@ -192,7 +196,11 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         std::cout << "Function summaries are ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.dumpFunctionSummaries(config_->maxLoop, config_->maxPaths, config_->enableVolce);
+        transformer.dumpFunctionSummaries(config_->maxLoop,
+                                          config_->maxPaths,
+                                          config_->enableVolce,
+                                          config_->volceLower,
+                                          config_->volceUpper);
     }
 
     if (config_->dumpAst) {
