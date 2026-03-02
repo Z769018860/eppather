@@ -159,8 +159,6 @@ void CParser::makeRef(const std::string& name)
     if (!vd) {
         // XXX: 未定义符号默认为函数
         // 允许未定义函数
-        std::cout << "find an undefined symbol: " << name
-                  << ", assuming it is a function." << std::endl;
         vd = FunctionDecl::createImplicit(name);
     }
     exprs_.push(DeclRefExpr::create(vd));
