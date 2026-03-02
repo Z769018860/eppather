@@ -92,6 +92,12 @@ int Driver::execute(int argc, char* argv[])
             ("maxpaths",
                 "Set maximum path count.",
                 cxxopts::value<int>()->default_value("1000"))
+            ("volce-lower",
+                "Set VolCE variable lower bound.",
+                cxxopts::value<int>()->default_value("-8"))
+            ("volce-upper",
+                "Set VolCE variable upper bound.",
+                cxxopts::value<int>()->default_value("8"))
             ("p,plugin",
                 "Load plugin with the given name.",
                 cxxopts::value<std::string>())
@@ -151,6 +157,8 @@ int Driver::execute(int argc, char* argv[])
                         static const std::unordered_set<std::string> options = {
                             "--maxloop",
                             "--maxpaths",
+                            "--volce-lower",
+                            "--volce-upper",
                             "--lang",
                             "--plugin",
                             "--output",

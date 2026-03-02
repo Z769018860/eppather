@@ -87,6 +87,8 @@ Usage:
       --volce                   Enable VolCE model counting.
       --maxloop arg             Set loop unroll upper bound (default: 3).
       --maxpaths arg            Set maximum path count (default: 1000).
+      --volce-lower arg         Set VolCE variable lower bound (default: -8).
+      --volce-upper arg         Set VolCE variable upper bound (default: 8).
   -p, --plugin arg              Load plugin with the given name.
   -w, --WIP                     Enable Work-In-Progress features.
   -h, --help                    Print instructions.
@@ -186,7 +188,7 @@ MEMS: 18
 
 ### 路径数量上限控制
 
-默认情况下，DFS/DFS2 路径枚举 **不限制路径数量**（即 `--maxpaths 0`）。  
+默认情况下，DFS/DFS2 路径枚举上限为 **1000**（即 `--maxpaths 1000`）。
 你可以通过 `--maxpaths` 指定更严格或更宽松的上限：
 
 ```bash
@@ -200,6 +202,24 @@ MEMS: 18
 ```
 
 以上示例会将最大循环展开次数设置为 5，并将最大路径数上限设置为 200。
+
+---
+
+
+### VolCE 计数范围控制（新增）
+
+开启 `--volce` 后，可通过以下参数控制整数变量取值范围：
+
+```bash
+./cnip -q --volce --volce-lower -16 --volce-upper 16 test2.c
+```
+
+未显式指定时，默认范围为 `[-8, 8]`（保持向后兼容）。
+
+为便于实验复现，输出会记录当前范围：
+
+- 控制台输出新增 `[VOLCE RANGE]: [lower, upper]`
+- `volce_paths.csv` 新增 `range` 列
 
 ---
 

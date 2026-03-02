@@ -45,6 +45,8 @@ public:
     bool WIP_;
     int maxLoop;
     int maxPaths;
+    int volceLower;
+    int volceUpper;
 
 protected:
     Configuration(const cxxopts::ParseResult& parsedCmdLine);
