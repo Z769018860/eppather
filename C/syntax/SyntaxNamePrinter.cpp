@@ -44,6 +44,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cctype>
 #include <cstdio>
 #include <fstream>
@@ -1548,17 +1549,8 @@ std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::stri
 }  // namespace
 
 void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool enableVolce, int volceLower, int volceUpper) {
-    struct ExpandedProgramPath {
-        int mem{0};
-        double prob{1.0};
-        bool hasProb{true};
-        std::vector<std::string> sequence;
-        std::vector<std::string> notes;
-    };
-
     const char* entryEnv = std::getenv("EPPATHER_ENTRY");
     const std::string entryName = (entryEnv && *entryEnv) ? std::string(entryEnv) : std::string("main");
-    const int sccExpansionCap = 1;
 
     std::vector<FunctionSummary> summaries;
     summaries.reserve(funcDefStack_.size());
@@ -1720,118 +1712,158 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         return cgIt != callGraph.end() && cgIt->second.find(name) != cgIt->second.end();
     };
 
-    std::function<std::vector<ExpandedProgramPath>(
-        const std::string&, std::vector<std::string>&, std::unordered_map<int, int>&)> expandFunction;
+    std::unordered_map<std::string, int> approxWorst;
+    std::unordered_map<std::string, double> approxAvg;
+    std::unordered_map<std::string, size_t> approxBestCase;
+    std::unordered_set<std::string> reasonSet;
+    constexpr int kFixpointMaxIters = 32;
 
-    expandFunction = [&](const std::string& functionName,
-                         std::vector<std::string>& activeStack,
-                         std::unordered_map<int, int>& sccVisits) -> std::vector<ExpandedProgramPath> {
-        std::vector<ExpandedProgramPath> results;
-        auto tableIt = functionPathTable.find(functionName);
-        if (tableIt == functionPathTable.end() || tableIt->second.empty()) {
-            ExpandedProgramPath emptyPath;
-            emptyPath.hasProb = false;
-            emptyPath.notes.push_back("missing path summary for function=" + functionName);
-            results.push_back(emptyPath);
-            return results;
+    for (const auto& [name, summary] : directSummaries) {
+        approxWorst[name] = std::max(0, summary.worstMems);
+        approxAvg[name] = summary.avgMems >= 0.0 ? summary.avgMems : 0.0;
+        approxBestCase[name] = 0;
+    }
+
+    int iterationsUsed = 0;
+    bool converged = false;
+    for (int iter = 0; iter < kFixpointMaxIters; ++iter) {
+        iterationsUsed = iter + 1;
+        const auto prevWorst = approxWorst;
+        const auto prevAvg = approxAvg;
+        bool changed = false;
+
+        for (const auto& [name, cases] : functionPathTable) {
+            if (cases.empty()) {
+                continue;
+            }
+
+            int newWorst = std::numeric_limits<int>::min();
+            size_t bestIdx = 0;
+            double newAvg = 0.0;
+            bool hasProbWeight = enableVolce;
+            double probSum = 0.0;
+
+            for (size_t i = 0; i < cases.size(); ++i) {
+                const auto& caseSummary = cases[i];
+                int composedWorst = caseSummary.mems;
+                double composedAvg = static_cast<double>(caseSummary.mems);
+
+                for (const auto& callee : caseSummary.callees) {
+                    if (knownFunctions.find(callee) == knownFunctions.end()) {
+                        reasonSet.insert("external callee omitted=" + callee);
+                        continue;
+                    }
+                    auto worstIt = prevWorst.find(callee);
+                    auto avgIt = prevAvg.find(callee);
+                    if (worstIt != prevWorst.end()) {
+                        composedWorst += worstIt->second;
+                    }
+                    if (avgIt != prevAvg.end()) {
+                        composedAvg += avgIt->second;
+                    }
+                }
+
+                if (composedWorst > newWorst) {
+                    newWorst = composedWorst;
+                    bestIdx = i;
+                }
+
+                if (enableVolce) {
+                    if (caseSummary.prob) {
+                        newAvg += composedAvg * *caseSummary.prob;
+                        probSum += *caseSummary.prob;
+                    } else {
+                        hasProbWeight = false;
+                    }
+                } else {
+                    newAvg += composedAvg;
+                }
+            }
+
+            if (!enableVolce) {
+                newAvg /= static_cast<double>(cases.size());
+            } else if (!hasProbWeight || probSum <= 0.0) {
+                newAvg = 0.0;
+                for (const auto& caseSummary : cases) {
+                    double composedAvg = static_cast<double>(caseSummary.mems);
+                    for (const auto& callee : caseSummary.callees) {
+                        auto avgIt = prevAvg.find(callee);
+                        if (avgIt != prevAvg.end()) {
+                            composedAvg += avgIt->second;
+                        }
+                    }
+                    newAvg += composedAvg;
+                }
+                newAvg /= static_cast<double>(cases.size());
+                reasonSet.insert("missing volce probability during fixpoint composition for " + name);
+            }
+
+            if (newWorst != approxWorst[name]) {
+                approxWorst[name] = newWorst;
+                changed = true;
+            }
+            if (std::abs(newAvg - approxAvg[name]) > 1e-9) {
+                approxAvg[name] = newAvg;
+                changed = true;
+            }
+            approxBestCase[name] = bestIdx;
         }
 
-        activeStack.push_back(functionName);
+        if (!changed) {
+            converged = true;
+            break;
+        }
+    }
 
-        for (size_t caseIndex = 0; caseIndex < tableIt->second.size(); ++caseIndex) {
-            const auto& pathCase = tableIt->second[caseIndex];
-            std::vector<ExpandedProgramPath> partials(1);
-            partials[0].mem = pathCase.mems;
-            partials[0].sequence.push_back(functionName + "#" + std::to_string(caseIndex) + "{" + pathCase.path + "}");
-
-            if (enableVolce) {
-                if (pathCase.prob) {
-                    partials[0].prob = *pathCase.prob;
-                } else {
-                    partials[0].hasProb = false;
-                    partials[0].notes.push_back("missing volce probability for " + functionName + " path#" + std::to_string(caseIndex));
+    for (auto& summary : summaries) {
+        auto tableIt = functionPathTable.find(summary.name);
+        if (tableIt != functionPathTable.end()) {
+            for (size_t i = 0; i < summary.cases.size() && i < tableIt->second.size(); ++i) {
+                int composed = tableIt->second[i].mems;
+                for (const auto& callee : tableIt->second[i].callees) {
+                    auto it = approxWorst.find(callee);
+                    if (it != approxWorst.end()) {
+                        composed += it->second;
+                    }
                 }
+                summary.cases[i].composedMems = composed;
+            }
+        }
+        if (approxWorst.find(summary.name) != approxWorst.end()) {
+            summary.worstMems = approxWorst[summary.name];
+            summary.avgMems = approxAvg[summary.name];
+        }
+    }
+
+    std::vector<std::string> worstSeq;
+    if (knownFunctions.find(entryName) != knownFunctions.end()) {
+        std::unordered_map<std::string, int> visitDepth;
+        std::function<void(const std::string&)> buildWorstPath = [&](const std::string& functionName) {
+            auto tableIt = functionPathTable.find(functionName);
+            if (tableIt == functionPathTable.end() || tableIt->second.empty()) {
+                reasonSet.insert("missing path summary for function=" + functionName);
+                return;
+            }
+            const size_t caseIdx = std::min(approxBestCase[functionName], tableIt->second.size() - 1);
+            const auto& pathCase = tableIt->second[caseIdx];
+            worstSeq.push_back(functionName + "#" + std::to_string(caseIdx) + "{" + pathCase.path + "}");
+
+            if (++visitDepth[functionName] > 1 && isRecursiveScc(functionName)) {
+                worstSeq.push_back(functionName + "{FIXPOINT_APPROX}");
+                reasonSet.insert("recursive SCC summarized by fixpoint at " + functionName);
+                --visitDepth[functionName];
+                return;
             }
 
             for (const auto& callee : pathCase.callees) {
-                std::vector<ExpandedProgramPath> nextPartials;
-                for (const auto& partial : partials) {
-                    if (knownFunctions.find(callee) == knownFunctions.end()) {
-                        ExpandedProgramPath external = partial;
-                        external.notes.push_back("external callee omitted=" + callee);
-                        nextPartials.push_back(std::move(external));
-                        continue;
-                    }
-
-                    const bool onCallStack = std::find(activeStack.begin(), activeStack.end(), callee) != activeStack.end();
-                    const auto sccIt = nodeToScc.find(callee);
-                    const int sccId = sccIt == nodeToScc.end() ? -1 : sccIt->second;
-                    const bool recursiveScc = isRecursiveScc(callee);
-                    const int visits = (sccId >= 0 && recursiveScc) ? sccVisits[sccId] : 0;
-
-                    if (onCallStack || (recursiveScc && visits >= sccExpansionCap)) {
-                        ExpandedProgramPath bounded = partial;
-                        const auto directIt = directSummaries.find(callee);
-                        if (directIt != directSummaries.end() && directIt->second.worstMems >= 0) {
-                            bounded.mem += directIt->second.worstMems;
-                            bounded.sequence.push_back(callee + "{SCC_CAPPED_DIRECT_WORST}");
-                            bounded.notes.push_back("recursive SCC capped for " + callee + " at cap="
-                                                    + std::to_string(sccExpansionCap));
-                        } else {
-                            bounded.hasProb = false;
-                            bounded.notes.push_back("recursive SCC capped but missing direct worst for " + callee);
-                        }
-                        nextPartials.push_back(std::move(bounded));
-                        continue;
-                    }
-
-                    if (sccId >= 0 && recursiveScc) {
-                        ++sccVisits[sccId];
-                    }
-                    auto childPaths = expandFunction(callee, activeStack, sccVisits);
-                    if (sccId >= 0 && recursiveScc) {
-                        --sccVisits[sccId];
-                    }
-
-                    if (childPaths.empty()) {
-                        ExpandedProgramPath missing = partial;
-                        missing.hasProb = false;
-                        missing.notes.push_back("callee expansion produced no path for " + callee);
-                        nextPartials.push_back(std::move(missing));
-                        continue;
-                    }
-
-                    for (const auto& child : childPaths) {
-                        ExpandedProgramPath combined = partial;
-                        combined.mem += child.mem;
-                        combined.sequence.insert(combined.sequence.end(), child.sequence.begin(), child.sequence.end());
-                        combined.notes.insert(combined.notes.end(), child.notes.begin(), child.notes.end());
-
-                        if (enableVolce) {
-                            if (combined.hasProb && child.hasProb) {
-                                combined.prob *= child.prob;
-                            } else {
-                                combined.hasProb = false;
-                            }
-                        }
-                        nextPartials.push_back(std::move(combined));
-                    }
+                if (knownFunctions.find(callee) == knownFunctions.end()) {
+                    continue;
                 }
-                partials = std::move(nextPartials);
+                buildWorstPath(callee);
             }
-
-            results.insert(results.end(), partials.begin(), partials.end());
-        }
-
-        activeStack.pop_back();
-        return results;
-    };
-
-    std::vector<std::string> activeStack;
-    std::unordered_map<int, int> sccVisits;
-    std::vector<ExpandedProgramPath> entryPaths;
-    if (knownFunctions.find(entryName) != knownFunctions.end()) {
-        entryPaths = expandFunction(entryName, activeStack, sccVisits);
+            --visitDepth[functionName];
+        };
+        buildWorstPath(entryName);
     }
 
     std::cout << "[FUNCTION SUMMARIES]" << std::endl;
@@ -1839,22 +1871,33 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         std::cout << "Function " << summary.name << ":" << std::endl;
         std::cout << "signature: " << summary.signature << std::endl;
         std::cout << "#cases: " << summary.cases.size() << std::endl;
-        std::cout << "DIRECT worst_mems: " << summary.worstMems << std::endl;
-        if (summary.avgMems < 0) {
+        const auto directIt = directSummaries.find(summary.name);
+        const int directWorst = (directIt != directSummaries.end() ? directIt->second.worstMems : -1);
+        const double directAvg = (directIt != directSummaries.end() ? directIt->second.avgMems : -1.0);
+        std::cout << "DIRECT worst_mems: " << directWorst << std::endl;
+        if (directAvg < 0) {
             std::cout << "DIRECT avg_mems: N/A" << std::endl;
+        } else if (enableVolce) {
+            std::cout << "DIRECT weighted_avg_mems: " << directAvg << std::endl;
         } else {
-            if (enableVolce) {
-                std::cout << "DIRECT weighted_avg_mems: " << summary.avgMems << std::endl;
-            } else {
-                std::cout << "DIRECT avg_mems(equal-weight): " << summary.avgMems << std::endl;
-            }
+            std::cout << "DIRECT avg_mems(equal-weight): " << directAvg << std::endl;
+        }
+
+        std::cout << "APPROX worst_mems: " << summary.worstMems << std::endl;
+        if (summary.avgMems < 0) {
+            std::cout << "APPROX avg_mems: N/A" << std::endl;
+        } else if (enableVolce) {
+            std::cout << "APPROX weighted_avg_mems: " << summary.avgMems << std::endl;
+        } else {
+            std::cout << "APPROX avg_mems(equal-weight): " << summary.avgMems << std::endl;
         }
 
         for (size_t i = 0; i < summary.cases.size(); ++i) {
             const auto& caseSummary = summary.cases[i];
             std::cout << "  [case " << i << "] guard_hash=" << caseSummary.guardHash
                       << " path=\"" << caseSummary.path << "\""
-                      << " mems=" << caseSummary.mems;
+                      << " mems=" << caseSummary.mems
+                      << " composed_mems=" << caseSummary.composedMems;
             if (caseSummary.volceCount) {
                 std::cout << " volce=" << *caseSummary.volceCount;
             } else {
@@ -1878,7 +1921,9 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
     std::cout << "[PROGRAM SUMMARY]" << std::endl;
     std::cout << "entry=" << entryName << std::endl;
-    std::cout << "recursion_policy=SCC_CAPPED_DIRECT_WORST(cap=" << sccExpansionCap << ")" << std::endl;
+    std::cout << "recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=" << kFixpointMaxIters
+              << ", used_iters=" << iterationsUsed
+              << ", converged=" << (converged ? "true" : "false") << ")" << std::endl;
 
     if (knownFunctions.find(entryName) == knownFunctions.end()) {
         std::cout << "worst_mems=N/A" << std::endl;
@@ -1888,22 +1933,15 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         return;
     }
 
-    if (entryPaths.empty()) {
+    if (worstSeq.empty()) {
         std::cout << "worst_mems=N/A" << std::endl;
         std::cout << "worst_path=N/A" << std::endl;
         std::cout << "weighted_avg_mems=N/A" << std::endl;
-        std::cout << "reason=entry function expansion produced no path" << std::endl;
+        std::cout << "reason=entry function has no available summary path" << std::endl;
         return;
     }
 
-    int worstMem = std::numeric_limits<int>::min();
-    std::vector<std::string> worstSeq;
-    for (const auto& p : entryPaths) {
-        if (p.mem > worstMem) {
-            worstMem = p.mem;
-            worstSeq = p.sequence;
-        }
-    }
+    const int worstMem = approxWorst[entryName];
 
     std::cout << "worst_mems=" << worstMem << std::endl;
     std::cout << "worst_path=";
@@ -1915,44 +1953,11 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
     }
     std::cout << std::endl;
 
-    std::unordered_set<std::string> reasonSet;
-    for (const auto& p : entryPaths) {
-        for (const auto& note : p.notes) {
-            reasonSet.insert(note);
-        }
+    std::cout << "weighted_avg_mems=" << approxAvg[entryName];
+    if (!enableVolce) {
+        std::cout << " (equal-weight; volce disabled)";
     }
-
-    if (enableVolce) {
-        double weightedAvg = 0.0;
-        double probTotal = 0.0;
-        bool hasMissingProb = false;
-        for (const auto& p : entryPaths) {
-            if (p.hasProb) {
-                weightedAvg += static_cast<double>(p.mem) * p.prob;
-                probTotal += p.prob;
-            } else {
-                hasMissingProb = true;
-            }
-        }
-        if (!hasMissingProb && probTotal > 0.0) {
-            std::cout << "weighted_avg_mems=" << weightedAvg << std::endl;
-        } else {
-            std::cout << "weighted_avg_mems=N/A" << std::endl;
-            if (hasMissingProb) {
-                reasonSet.insert("missing callee/path probability during composition");
-            }
-            if (probTotal <= 0.0) {
-                reasonSet.insert("total composed probability is zero");
-            }
-        }
-    } else {
-        double equalAvg = 0.0;
-        for (const auto& p : entryPaths) {
-            equalAvg += static_cast<double>(p.mem);
-        }
-        equalAvg /= static_cast<double>(entryPaths.size());
-        std::cout << "weighted_avg_mems=" << equalAvg << " (equal-weight; volce disabled)" << std::endl;
-    }
+    std::cout << std::endl;
 
     if (!reasonSet.empty()) {
         std::cout << "notes=";
