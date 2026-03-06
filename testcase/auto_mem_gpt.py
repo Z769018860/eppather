@@ -11,21 +11,40 @@ import requests
 from typing import Tuple, Optional, Dict, Any
 
 
-INPUT_FOLDER = "output_complete2"
-OUTPUT_TRUE_FOLDER = "output_true3"
-SUMMARY_CSV = "result_summary_true3.csv"
-SUMMARY_XLSX = "result_summary_true3.xlsx"
-TRUE_ONLY_CSV = "result_true_only3.csv"
-TRUE_ONLY_XLSX = "result_true_only3.xlsx"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
+
+INPUT_FOLDER = os.path.join(SCRIPT_DIR, "output_complete2")
+OUTPUT_TRUE_FOLDER = os.path.join(SCRIPT_DIR, "output_true3")
+SUMMARY_CSV = os.path.join(SCRIPT_DIR, "result_summary_true3.csv")
+SUMMARY_XLSX = os.path.join(SCRIPT_DIR, "result_summary_true3.xlsx")
+TRUE_ONLY_CSV = os.path.join(SCRIPT_DIR, "result_true_only3.csv")
+TRUE_ONLY_XLSX = os.path.join(SCRIPT_DIR, "result_true_only3.xlsx")
+
+INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
+MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
+
+CNIP_CANDIDATES = [
+    os.path.join(REPO_ROOT, "cnip"),
+    os.path.join(SCRIPT_DIR, "..", "cnip"),
+    "cnip",
+]
+CNIP_LIB_DIRS = [
+    os.path.join(REPO_ROOT, "C"),
+    os.path.join(REPO_ROOT, "common"),
+]
 
 
 # =========================
 # === GPT API 基本配置 ===
 # =========================
 # 优先 IFOPEN_*，其次 OPENAI_*（二选一）
-API_KEY = (os.getenv("IFOPEN_API_KEY") or os.getenv("OPENAI_API_KEY") or "sk-yq2oZ7K1VAVYBOT4qTICVThcaimfcRbc8UHm08K0guYWuq9s").strip()
+API_KEY = (os.getenv("IFOPEN_API_KEY") or os.getenv("OPENAI_API_KEY") or "").strip()
 BASE_URL = (os.getenv("IFOPEN_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.ifopen.ai/v1").strip()
-MODEL_NAME = (os.getenv("IFOPEN_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4-turbo").strip()
+MODEL_NAME = (os.getenv("IFOPEN_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
+MODEL_CANDIDATES_ENV = (
+    os.getenv("IFOPEN_MODEL_CANDIDATES") or os.getenv("OPENAI_MODEL_CANDIDATES") or ""
+).strip()
 
 # 可选：注入额外 headers（某些代理/网关需要）
 # 例：
@@ -57,24 +76,74 @@ def _load_extra_headers() -> Dict[str, str]:
     return {}
 
 
+def _load_model_candidates() -> list:
+    candidates = []
+    if MODEL_NAME:
+        candidates.append(MODEL_NAME)
+
+    if MODEL_CANDIDATES_ENV:
+        for item in MODEL_CANDIDATES_ENV.split(","):
+            m = item.strip()
+            if m:
+                candidates.append(m)
+
+    candidates.extend(["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-4.1"])
+
+    out = []
+    seen = set()
+    for m in candidates:
+        if m not in seen:
+            out.append(m)
+            seen.add(m)
+    return out
+
+
+MODEL_CANDIDATES = _load_model_candidates()
+
+
+def _resolve_cnip_path() -> str:
+    for p in CNIP_CANDIDATES:
+        if os.path.isfile(p) and os.access(p, os.X_OK):
+            return os.path.abspath(p)
+    return CNIP_CANDIDATES[0]
+
+
+def _build_run_env() -> Dict[str, str]:
+    env = os.environ.copy()
+    existing = env.get("LD_LIBRARY_PATH", "")
+    libs = [d for d in CNIP_LIB_DIRS if os.path.isdir(d)]
+    if libs:
+        env["LD_LIBRARY_PATH"] = ":".join(libs + ([existing] if existing else []))
+    return env
+
+
+CNIP_BIN = _resolve_cnip_path()
+RUN_ENV = _build_run_env()
+
+
 if not API_KEY:
     raise RuntimeError("Missing API key. Please set IFOPEN_API_KEY (preferred) or OPENAI_API_KEY in your environment.")
 
 print("==== API CONFIG ====")
 print(f"  BASE_URL : {BASE_URL}")
 print(f"  MODEL    : {MODEL_NAME}")
+print(f"  MODEL_CANDIDATES : {MODEL_CANDIDATES}")
 print(f"  API_KEY  : {_mask_key(API_KEY)}")
 if EXTRA_HEADERS_JSON:
     print("  EXTRA_HEADERS_JSON : [provided]")
 else:
     print("  EXTRA_HEADERS_JSON : [none]")
 print("====================\n")
+print("==== LOCAL TOOL CONFIG ====")
+print(f"  CNIP_BIN : {CNIP_BIN}")
+print(f"  LD_LIBRARY_PATH(add) : {':'.join([d for d in CNIP_LIB_DIRS if os.path.isdir(d)]) or '[none]'}")
+print("===========================\n")
 
 
-def run_with_timeout(cmd, timeout=80):
+def run_with_timeout(cmd, timeout=80, env=None):
     print(f"      [run] CMD: {' '.join(cmd)}")
     try:
-        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env)
         try:
             out, err = proc.communicate(timeout=timeout)
             returncode = proc.returncode
@@ -342,6 +411,19 @@ def _extract_content_from_response(data: Any) -> str:
     return ""
 
 
+def _is_model_access_error(resp_status: int, message: str, code: str) -> bool:
+    msg = (message or "").lower()
+    code_s = (code or "").lower()
+    if resp_status in (401, 403):
+        return True
+    keys = ["no access", "not allowed", "not found", "does not exist", "permission", "model"]
+    if any(k in msg for k in keys):
+        return True
+    if any(k in code_s for k in ["model", "permission", "access"]):
+        return True
+    return False
+
+
 def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90) -> Tuple[Optional[int], str, str]:
     url = f"{BASE_URL.rstrip('/')}/chat/completions"
     headers = {
@@ -350,56 +432,62 @@ def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90) ->
     }
     headers.update(_load_extra_headers())
 
-    payload = {
-        "model": MODEL_NAME,
-        "messages": [
-            {"role": "system", "content": build_system_prompt()},
-            {"role": "user", "content": build_user_prompt(code)},
-        ],
-        "temperature": 0.0,
-        "response_format": {"type": "text"},
-    }
-
     last_text = ""
-    for attempt in range(max_retries + 1):
-        try:
-            resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=timeout_sec)
-            if resp.status_code != 200:
-                err_info = _extract_api_error(resp.text)
-                msg = err_info.get("message", "")
-                typ = err_info.get("type", "")
-                code_ = err_info.get("code", "")
-                line = f"[HTTP {resp.status_code}] type={typ} code={code_} msg={msg}"
-                line = _sanitize_secrets(line)
-                print(f"      [GPT] HTTP error: {short_err(line, 380)}")
+    for model_name in MODEL_CANDIDATES:
+        print(f"      [GPT] trying model: {model_name}")
+        for attempt in range(max_retries + 1):
+            payload = {
+                "model": model_name,
+                "messages": [
+                    {"role": "system", "content": build_system_prompt()},
+                    {"role": "user", "content": build_user_prompt(code)},
+                ],
+                "temperature": 0.0,
+            }
 
-                if resp.status_code in (401, 403):
-                    return None, "", line
+            try:
+                resp = requests.post(url, headers=headers, data=json.dumps(payload), timeout=timeout_sec)
+                if resp.status_code != 200:
+                    err_info = _extract_api_error(resp.text)
+                    msg = err_info.get("message", "")
+                    typ = err_info.get("type", "")
+                    code_ = err_info.get("code", "")
+                    line = f"model={model_name} [HTTP {resp.status_code}] type={typ} code={code_} msg={msg}"
+                    line = _sanitize_secrets(line)
+                    print(f"      [GPT] HTTP error: {short_err(line, 380)}")
+
+                    if _is_model_access_error(resp.status_code, msg, code_):
+                        break
+
+                    last_text = line
+                    time.sleep(1.0)
+                    continue
+
+                data = resp.json()
+                text = _extract_content_from_response(data).strip()
+                last_text = text
+
+                mems, path_expr = parse_gpt_output(last_text)
+                if mems is not None and path_expr:
+                    return mems, path_expr, last_text
+
+                print("      [GPT] Parse failed, retrying...")
                 time.sleep(1.0)
-                continue
-
-            data = resp.json()
-            text = _extract_content_from_response(data).strip()
-            last_text = text
-
-            mems, path_expr = parse_gpt_output(last_text)
-            if mems is not None and path_expr:
-                return mems, path_expr, last_text
-
-            print("      [GPT] Parse failed, retrying...")
-            time.sleep(1.0)
-        except Exception as e:
-            last_text = _sanitize_secrets(f"[EXCEPTION] {repr(e)}\n{traceback.format_exc()}")
-            print(f"      [GPT] Exception: {short_err(last_text)}")
-            time.sleep(1.0)
+            except Exception as e:
+                last_text = _sanitize_secrets(f"[EXCEPTION] {repr(e)}\n{traceback.format_exc()}")
+                print(f"      [GPT] Exception: {short_err(last_text)}")
+                time.sleep(1.0)
 
     return None, "", last_text
 
 
 def main():
     print("==== 扫描目标文件夹 ====")
-    c_files = glob.glob(os.path.join(INPUT_FOLDER, "*.c"))
-    print(f"  {INPUT_FOLDER}: 找到 {len(c_files)} 个 .c 文件")
+    c_files = glob.glob(os.path.join(INPUT_FOLDER, INPUT_GLOB))
+    c_files.sort()
+    if MAX_FILES > 0:
+        c_files = c_files[:MAX_FILES]
+    print(f"  {INPUT_FOLDER}: 找到 {len(c_files)} 个 .c 文件 (glob={INPUT_GLOB}, max_files={MAX_FILES})")
 
     print(f"== 共 {len(c_files)} 个 C 文件将被处理 ==\n")
     if not c_files:
@@ -468,9 +556,9 @@ def main():
                 print(f"  [OK] GPT time: {entry['gpt_time']} | mems: {entry['gpt_mems']}")
                 success_gpt = True
 
-            print(f"  [2/2] 执行 DP/Greedy 路径分析: ../cnip -g {cfile}")
-            cmd_g = ["../cnip", "-g", cfile]
-            out_g, err_g, ret_g = run_with_timeout(cmd_g, timeout=180)
+            print(f"  [2/2] 执行 DP/Greedy 路径分析: {CNIP_BIN} -g {cfile}")
+            cmd_g = [CNIP_BIN, "-g", cfile]
+            out_g, err_g, ret_g = run_with_timeout(cmd_g, timeout=180, env=RUN_ENV)
             greedy_error, greedy_reason = error_status(
                 out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds"
             )
