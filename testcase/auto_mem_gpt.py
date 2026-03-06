@@ -8,7 +8,7 @@ import pandas as pd
 import subprocess
 import traceback
 import requests
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, List
 
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +23,8 @@ TRUE_ONLY_XLSX = os.path.join(SCRIPT_DIR, "result_true_only3.xlsx")
 
 INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
+MAX_LOOP = int((os.getenv("AUTO_MEM_MAX_LOOP") or "3").strip() or "3")
+MAX_INLINE = int((os.getenv("AUTO_MEM_MAX_INLINE") or "3").strip() or "3")
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -174,11 +176,68 @@ def error_status(output, error, retcode, time_tag_regex):
 
 
 def extract_greedy(output: str) -> Tuple[str, str]:
-    mems_match = re.search(r"MEMS:\s*(\d+)", output)
+    mems_match = re.search(r"MEMS:\s*(-?\d+)", output)
     mems_val = mems_match.group(1) if mems_match else ""
     time_match = re.search(r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds", output)
     time_val = time_match.group(1) if time_match else ""
     return mems_val, time_val
+
+
+def _to_test_input_expr(raw_path: str) -> str:
+    if not raw_path:
+        return ""
+    lines = []
+    for ln in raw_path.splitlines():
+        t = ln.strip()
+        if not t:
+            continue
+        if not t.endswith(';'):
+            t += ';'
+        lines.append(t)
+    if not lines:
+        return ""
+    return "[TEST INPUT PATH EXPR]:\n" + "\n".join(lines)
+
+
+def extract_dfs_summary(output: str) -> Dict[str, str]:
+    out: Dict[str, str] = {
+        "dfs_time": "",
+        "dfs_max_mems": "",
+        "dfs_min_mems": "",
+        "dfs_best_path": "",
+    }
+    m_time = re.search(r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds", output)
+    m_max = re.search(r"\[DFS MAX MEMS\]:\s*(-?\d+)", output)
+    m_min = re.search(r"\[DFS MIN MEMS\]:\s*(-?\d+)", output)
+    out["dfs_time"] = m_time.group(1) if m_time else ""
+    out["dfs_max_mems"] = m_max.group(1) if m_max else ""
+    out["dfs_min_mems"] = m_min.group(1) if m_min else ""
+
+    target_mem = int(out["dfs_max_mems"]) if re.fullmatch(r"-?\d+", out["dfs_max_mems"]) else None
+    best_mem = None
+    best_path = ""
+    fallback_mem = None
+    fallback_path = ""
+
+    for m in re.finditer(r"Path:(.*?)\nfeasible!!!\s*\n\[mem\]:\s*(-?\d+)", output, re.DOTALL):
+        path_block = m.group(1).strip()
+        mem = int(m.group(2))
+        if fallback_mem is None or mem > fallback_mem:
+            fallback_mem = mem
+            fallback_path = path_block
+        if target_mem is not None and mem == target_mem:
+            best_mem = mem
+            best_path = path_block
+            break
+
+    if not best_path and fallback_path:
+        best_mem = fallback_mem
+        best_path = fallback_path
+
+    if best_path:
+        out["dfs_best_path"] = _to_test_input_expr(best_path)
+
+    return out
 
 
 def short_err(err: str, length: int = 200) -> str:
@@ -328,47 +387,42 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
 
 def build_system_prompt() -> str:
     return (
-        "You are a static program analysis assistant for C code.\n"
-        "Goal: within at most 3 levels of function expansion (inline), find a FEASIBLE execution path "
-        "that maximizes MEMS.\n"
-        "The path must be executable under some concrete inputs (feasible).\n\n"
-        "MEMS counting rules (MUST follow exactly):\n"
-        "- MEMS = (#reads + #writes) of program objects along the path.\n"
-        "- Reading an object as rvalue counts +1. Writing an object counts +1.\n"
-        "- Objects include: locals/params/globals, array element arr[i], struct/union field s.f, "
-        "deref *p and p->f.\n"
-        "- In arr[i], reading index i counts as a read (+1) each time it is evaluated.\n"
-        "- In *p / p->f, reading pointer variable p counts as a read (+1) each time it is evaluated.\n"
-        "- Assignment L = E: count reads in E + 1 write for L.\n"
-        "- Compound assignment x += y: treat as x = x + y.\n"
-        "- ++x / x++ / --x / x--: read x + write x.\n"
-        "- Conditions: count reads in the condition expression. Respect short-circuit for && and ||.\n"
-        "- Function calls: inline-expand at most 3 levels. Count MEMS from expanded bodies. "
-        "Do NOT add ABI/call overhead. Still count reads inside argument expressions.\n"
-        "- Do NOT assume undefined behavior; ensure a plausible feasible path.\n\n"
-        "Return STRICT JSON ONLY with this exact schema (no prose):\n"
+        "You are a static-analysis assistant for C code.\n"
+        "Target: generate one FEASIBLE path with high MEMS that is as close as possible to cnip static analysis outputs.\n\n"
+        "MUST align with cnip assumptions:\n"
+        f"- Loop unrolling cap = {MAX_LOOP}. Never exceed this cap for each loop in a single path.\n"
+        f"- Function inline expansion cap = {MAX_INLINE} levels.\n"
+        "- For recursion/mutual recursion: use fixpoint-style approximation idea; do NOT do unbounded expansion.\n"
+        "- Respect path feasibility (no contradictory branch predicates).\n\n"
+        "MEMS definition (strict):\n"
+        "- MEMS = reads + writes along the chosen path.\n"
+        "- Read as rvalue => +1; write lvalue => +1.\n"
+        "- Include locals/params/globals, array subscripts, struct fields, pointer dereference expressions.\n"
+        "- Assignment L=E counts reads in E plus one write to L.\n"
+        "- ++/-- and compound assignments count both read and write.\n"
+        "- Conditions contribute reads; use short-circuit semantics for && and ||.\n"
+        "- Function-call arguments still contribute expression reads.\n"
+        "- Do not add external ABI overhead not present in static analyzer.\n\n"
+        "Output STRICT JSON only:\n"
         "{\n"
         '  "mems": <non-negative integer>,\n'
-        '  "test_input_path_expr": "<path steps in the EXACT format used below>",\n'
-        '  "reason": "<very brief note, one line>"\n'
+        '  "test_input_path_expr": "<exact path expr format>",\n'
+        '  "reason": "<one-line rationale tied to loop/recursion/feasibility assumptions>"\n'
         "}\n\n"
-        "The required path steps format is EXACTLY like:\n"
+        "Path format MUST be:\n"
         "[TEST INPUT PATH EXPR]:\n"
-        "@(cond1);\n"
-        "@(cond2);\n"
-        "x = y;\n"
-        "i = i - 1;\n"
+        "@(cond);\n"
+        "stmt;\n"
         "...\n"
-        "Every non-empty line after the title MUST end with ';'.\n"
-        "No extra sections. No code fences. No markdown."
+        "Every non-empty line after title must end with ';'."
     )
 
 
 def build_user_prompt(code: str) -> str:
     return (
-        "Given this C function (unit-style, single function), expand at most 3 times for any callee, "
-        "ensure a FEASIBLE path, and output the MAX-MEMS path and its MEMS. "
-        "Keep variable and control names consistent. Produce STRICT JSON per schema.\n\n"
+        "Given this C file content, estimate a feasible high-MEMS path under the same assumptions as cnip. "
+        f"Use loop cap={MAX_LOOP}, inline depth cap={MAX_INLINE}, recursion via fixpoint-style approximation. "
+        "Prioritize alignment with static analysis path style and MEMS counting.\n\n"
         "-----BEGIN C CODE-----\n"
         f"{code}\n"
         "-----END C CODE-----"
@@ -508,28 +562,39 @@ def main():
                     code_text = f.read()
             except Exception as e:
                 print(f"  [失败] 读取源码失败: {e}")
-                entry.update(
-                    {
-                        "gpt_time": "error",
-                        "gpt_mems": "error",
-                        "gpt_path": "",
-                        "gpt_error": "read_source_fail",
-                        "greedy_time": "error",
-                        "greedy_mems": "error",
-                        "greedy_path": "",
-                        "g_error": "read_source_fail",
-                        "success_gpt": False,
-                        "success_dp": False,
-                        "mems_equal": False,
-                        "is_true": False,
-                        "worst_mems": "",
-                        "worst_path": "",
-                    }
-                )
+                entry.update({
+                    "gpt_time": "error",
+                    "gpt_mems": "error",
+                    "gpt_path": "",
+                    "gpt_error": "read_source_fail",
+                    "dfs_time": "error",
+                    "dfs_max_mems": "error",
+                    "dfs_min_mems": "error",
+                    "dfs_best_path": "",
+                    "dfs_error": "read_source_fail",
+                    "dp_time": "error",
+                    "dp_mems": "error",
+                    "dp_path": "",
+                    "dp_error": "read_source_fail",
+                    "success_gpt": False,
+                    "success_dfs": False,
+                    "success_dp": False,
+                    "gpt_eq_dp_mems": False,
+                    "gpt_eq_dfs_mems": False,
+                    "dp_eq_dfs_mems": False,
+                    "gpt_dp_mems_diff": "",
+                    "gpt_dfs_mems_diff": "",
+                    "dp_dfs_mems_diff": "",
+                    "is_true": False,
+                    "worst_mems_dp": "",
+                    "worst_path_dp": "",
+                    "worst_mems_dfs": "",
+                    "worst_path_dfs": "",
+                })
                 results.append(entry)
                 continue
 
-            print("  [1/2] 调用 GPT 进行 3 次展开内的可行最大 MEMS 路径分析")
+            print(f"  [1/3] 调用 GPT 分析（loop cap={MAX_LOOP}, inline cap={MAX_INLINE}, 递归按不动点近似）")
             t0 = time.time()
             gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
             t1 = time.time()
@@ -537,77 +602,113 @@ def main():
 
             if gpt_mems is None or not gpt_path:
                 print("  [失败] GPT 阶段解析失败")
-                entry.update(
-                    {
-                        "gpt_mems": "error",
-                        "gpt_path": "",
-                        "gpt_error": short_err(_sanitize_secrets(gpt_raw), 300) or "parse_fail",
-                    }
-                )
+                entry.update({
+                    "gpt_mems": "error",
+                    "gpt_path": "",
+                    "gpt_error": short_err(_sanitize_secrets(gpt_raw), 300) or "parse_fail",
+                })
                 success_gpt = False
             else:
-                entry.update(
-                    {
-                        "gpt_mems": str(gpt_mems),
-                        "gpt_path": gpt_path,
-                        "gpt_error": "",
-                    }
-                )
+                entry.update({
+                    "gpt_mems": str(gpt_mems),
+                    "gpt_path": gpt_path,
+                    "gpt_error": "",
+                })
                 print(f"  [OK] GPT time: {entry['gpt_time']} | mems: {entry['gpt_mems']}")
                 success_gpt = True
 
-            print(f"  [2/2] 执行 DP/Greedy 路径分析: {CNIP_BIN} -g {cfile}")
+            print(f"  [2/3] 执行 DFS 完全遍历: {CNIP_BIN} -q {cfile}")
+            cmd_f = [CNIP_BIN, "-q", cfile]
+            out_f, err_f, ret_f = run_with_timeout(cmd_f, timeout=300, env=RUN_ENV)
+            dfs_error, dfs_reason = error_status(
+                out_f, err_f, ret_f, r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds"
+            )
+
+            if dfs_error:
+                print(f"  [失败] DFS 阶段错误类型: {dfs_reason}")
+                entry.update({
+                    "dfs_time": "error",
+                    "dfs_max_mems": "error",
+                    "dfs_min_mems": "error",
+                    "dfs_best_path": "",
+                    "dfs_error": dfs_reason,
+                })
+                success_dfs = False
+            else:
+                dfs_info = extract_dfs_summary(out_f)
+                entry.update({
+                    "dfs_time": dfs_info.get("dfs_time", ""),
+                    "dfs_max_mems": dfs_info.get("dfs_max_mems", ""),
+                    "dfs_min_mems": dfs_info.get("dfs_min_mems", ""),
+                    "dfs_best_path": dfs_info.get("dfs_best_path", ""),
+                    "dfs_error": "",
+                })
+                print(
+                    f"  [OK] DFS time: {entry['dfs_time']} | max mems: {entry['dfs_max_mems']} | min mems: {entry['dfs_min_mems']}"
+                )
+                success_dfs = True
+
+            print(f"  [3/3] 执行 DP/Greedy: {CNIP_BIN} -g {cfile}")
             cmd_g = [CNIP_BIN, "-g", cfile]
-            out_g, err_g, ret_g = run_with_timeout(cmd_g, timeout=180, env=RUN_ENV)
-            greedy_error, greedy_reason = error_status(
+            out_g, err_g, ret_g = run_with_timeout(cmd_g, timeout=300, env=RUN_ENV)
+            dp_error, dp_reason = error_status(
                 out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds"
             )
 
-            if greedy_error:
-                print(f"  [失败] DP 阶段错误类型: {greedy_reason}")
-                entry.update(
-                    {
-                        "greedy_time": "error",
-                        "greedy_mems": "error",
-                        "greedy_path": "",
-                        "g_error": greedy_reason,
-                    }
-                )
+            if dp_error:
+                print(f"  [失败] DP 阶段错误类型: {dp_reason}")
+                entry.update({
+                    "dp_time": "error",
+                    "dp_mems": "error",
+                    "dp_path": "",
+                    "dp_error": dp_reason,
+                })
                 success_dp = False
             else:
-                greedy_mems, greedy_time = extract_greedy(out_g)
-                entry["greedy_mems"] = greedy_mems
-                entry["greedy_time"] = greedy_time
-                entry["g_error"] = ""
+                dp_mems, dp_time = extract_greedy(out_g)
+                entry["dp_mems"] = dp_mems
+                entry["dp_time"] = dp_time
+                entry["dp_error"] = ""
                 path_match = re.search(
                     r"(\[TEST INPUT PATH EXPR\]:\s*[\s\S]+?)(?=\n*\[DP TIME COST\]:|\Z)", out_g
                 )
-                entry["greedy_path"] = path_match.group(1).strip() if path_match else ""
-                print(f"  [OK] DP time: {greedy_time} | mems: {greedy_mems}")
+                entry["dp_path"] = path_match.group(1).strip() if path_match else ""
+                print(f"  [OK] DP time: {dp_time} | mems: {dp_mems}")
                 success_dp = True
 
             entry["success_gpt"] = bool(success_gpt)
+            entry["success_dfs"] = bool(success_dfs)
             entry["success_dp"] = bool(success_dp)
 
-            gpt_mems_val = entry.get("gpt_mems", "")
-            dp_mems_val = entry.get("greedy_mems", "")
+            def to_int(sv: Any) -> Optional[int]:
+                if isinstance(sv, int):
+                    return sv
+                if isinstance(sv, str) and re.fullmatch(r"-?\d+", sv):
+                    return int(sv)
+                return None
 
-            mems_equal = (
-                success_gpt
-                and success_dp
-                and gpt_mems_val.isdigit()
-                and dp_mems_val.isdigit()
-                and int(gpt_mems_val) == int(dp_mems_val)
-            )
-            entry["mems_equal"] = bool(mems_equal)
+            gpt_mems_val = to_int(entry.get("gpt_mems", ""))
+            dp_mems_val = to_int(entry.get("dp_mems", ""))
+            dfs_mems_val = to_int(entry.get("dfs_max_mems", ""))
 
-            entry["worst_mems"] = entry["greedy_mems"] if success_dp else ""
-            entry["worst_path"] = entry["greedy_path"] if success_dp else ""
-            entry["is_true"] = bool(mems_equal)
+            entry["gpt_eq_dp_mems"] = bool(success_gpt and success_dp and gpt_mems_val is not None and dp_mems_val is not None and gpt_mems_val == dp_mems_val)
+            entry["gpt_eq_dfs_mems"] = bool(success_gpt and success_dfs and gpt_mems_val is not None and dfs_mems_val is not None and gpt_mems_val == dfs_mems_val)
+            entry["dp_eq_dfs_mems"] = bool(success_dp and success_dfs and dp_mems_val is not None and dfs_mems_val is not None and dp_mems_val == dfs_mems_val)
+
+            entry["gpt_dp_mems_diff"] = "" if (gpt_mems_val is None or dp_mems_val is None) else str(gpt_mems_val - dp_mems_val)
+            entry["gpt_dfs_mems_diff"] = "" if (gpt_mems_val is None or dfs_mems_val is None) else str(gpt_mems_val - dfs_mems_val)
+            entry["dp_dfs_mems_diff"] = "" if (dp_mems_val is None or dfs_mems_val is None) else str(dp_mems_val - dfs_mems_val)
+
+            entry["worst_mems_dp"] = entry["dp_mems"] if success_dp else ""
+            entry["worst_path_dp"] = entry["dp_path"] if success_dp else ""
+            entry["worst_mems_dfs"] = entry["dfs_max_mems"] if success_dfs else ""
+            entry["worst_path_dfs"] = entry["dfs_best_path"] if success_dfs else ""
+
+            entry["is_true"] = bool(entry["gpt_eq_dp_mems"] and entry["gpt_eq_dfs_mems"])
 
             print(
-                f"  [总结] GPT成功={entry['success_gpt']} | DP成功={entry['success_dp']} | "
-                f"mems一致={entry['mems_equal']} | TRUE保存={entry['is_true']}"
+                f"  [总结] GPT={entry['success_gpt']} DFS={entry['success_dfs']} DP={entry['success_dp']} | "
+                f"GPT=DP:{entry['gpt_eq_dp_mems']} GPT=DFS:{entry['gpt_eq_dfs_mems']} DP=DFS:{entry['dp_eq_dfs_mems']}"
             )
 
             if entry["is_true"]:
@@ -631,16 +732,29 @@ def main():
         "gpt_mems",
         "gpt_path",
         "gpt_error",
-        "greedy_time",
-        "greedy_mems",
-        "greedy_path",
-        "g_error",
+        "dfs_time",
+        "dfs_max_mems",
+        "dfs_min_mems",
+        "dfs_best_path",
+        "dfs_error",
+        "dp_time",
+        "dp_mems",
+        "dp_path",
+        "dp_error",
         "success_gpt",
+        "success_dfs",
         "success_dp",
-        "mems_equal",
+        "gpt_eq_dp_mems",
+        "gpt_eq_dfs_mems",
+        "dp_eq_dfs_mems",
+        "gpt_dp_mems_diff",
+        "gpt_dfs_mems_diff",
+        "dp_dfs_mems_diff",
         "is_true",
-        "worst_mems",
-        "worst_path",
+        "worst_mems_dp",
+        "worst_path_dp",
+        "worst_mems_dfs",
+        "worst_path_dfs",
     ]
 
     df = pd.DataFrame(results, columns=cols)
@@ -654,6 +768,7 @@ def main():
     total = len(df)
     true_count = int(df["is_true"].sum()) if total else 0
     dp_ok = int(df["success_dp"].sum()) if total else 0
+    dfs_ok = int(df["success_dfs"].sum()) if total else 0
     gpt_ok = int(df["success_gpt"].sum()) if total else 0
 
     print(f"  [表格] 汇总CSV: {SUMMARY_CSV}")
@@ -664,9 +779,13 @@ def main():
     print("\n==== 统计结果 ====")
     if total:
         print(f"  总文件数: {total}")
-        print(f"  GPT成功: {gpt_ok}/{total} ({gpt_ok/total:.2%})")
-        print(f"  DP成功:  {dp_ok}/{total} ({dp_ok/total:.2%})")
-        print(f"  TRUE(一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
+        print(f"  GPT成功:  {gpt_ok}/{total} ({gpt_ok/total:.2%})")
+        print(f"  DFS成功:  {dfs_ok}/{total} ({dfs_ok/total:.2%})")
+        print(f"  DP成功:   {dp_ok}/{total} ({dp_ok/total:.2%})")
+        print(f"  GPT=DP:   {int(df['gpt_eq_dp_mems'].sum())}/{total} ({df['gpt_eq_dp_mems'].mean():.2%})")
+        print(f"  GPT=DFS:  {int(df['gpt_eq_dfs_mems'].sum())}/{total} ({df['gpt_eq_dfs_mems'].mean():.2%})")
+        print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
+        print(f"  TRUE(三方一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
     else:
         print("  总文件数: 0")
 
