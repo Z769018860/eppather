@@ -41,7 +41,7 @@ CNIP_LIB_DIRS = [
 # 优先 IFOPEN_*，其次 OPENAI_*（二选一）
 API_KEY = (os.getenv("IFOPEN_API_KEY") or os.getenv("OPENAI_API_KEY") or "").strip()
 BASE_URL = (os.getenv("IFOPEN_BASE_URL") or os.getenv("OPENAI_BASE_URL") or "https://api.ifopen.ai/v1").strip()
-MODEL_NAME = (os.getenv("IFOPEN_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-4o-mini").strip()
+MODEL_NAME = (os.getenv("IFOPEN_MODEL") or os.getenv("OPENAI_MODEL") or "gpt-5-nano").strip()
 MODEL_CANDIDATES_ENV = (
     os.getenv("IFOPEN_MODEL_CANDIDATES") or os.getenv("OPENAI_MODEL_CANDIDATES") or ""
 ).strip()
