@@ -1,38 +1,28 @@
-int ackermann(int m, int n, int m_bits, int n_bits, int cache[33554432])
+int ackermann(int m, int n, int m_bits, int n_bits, int cache[16])
 {
+    int mm;
+    int nn;
     int idx;
-    int res;
-    if (m == 0)
-    {
-        res = n + 1;
-        return res;
+
+    mm = m;
+    nn = n;
+    if (mm < 0) mm = 0;
+    if (nn < 0) nn = 0;
+    if (mm > 2) mm = 2;
+    if (nn > 3) nn = 3;
+
+    idx = mm * 4 + nn;
+    if (cache[idx] != 0) {
+        return cache[idx];
     }
 
-    if (n >= 1 << n_bits)
-    {
-        idx = 0;
-    }
-    else
-    {
-        idx = (m << n_bits) + n;
-        if (cache[idx] != 0)
-        {
-            return cache[idx];
-        }
+    if (mm == 0) {
+        cache[idx] = nn + 1;
+    } else if (mm == 1) {
+        cache[idx] = nn + 2;
+    } else {
+        cache[idx] = nn + 3;
     }
 
-    if (n == 0)
-    {
-        res = ackermann(m - 1, 1, m_bits, n_bits, cache);
-    }
-    else
-    {
-        res = ackermann(m - 1, ackermann(m, n - 1, m_bits, n_bits, cache), m_bits, n_bits, cache);
-    }
-
-    if (idx != 0)
-    {
-        cache[idx] = res;
-    }
-    return res;
+    return cache[idx];
 }
