@@ -28,6 +28,7 @@
 #include "plugin-api/SourceInspector.h"
 #include "syntax/SyntaxNamePrinter.h"
 
+#include <exception>
 #include <iterator>
 
 using namespace cnip;
@@ -171,18 +172,44 @@ int CCompilerFrontend::constructSyntaxTree(const std::string& srcText, const psy
         std::cout << "DFS2 is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_DFS2(config_->maxLoop,
-                              config_->maxPaths,
-                              config_->enableVolce,
-                              config_->volceLower,
-                              config_->volceUpper);
+        try {
+            transformer.printCFG_DFS2(config_->maxLoop,
+                                  config_->maxPaths,
+                                  config_->enableVolce,
+                                  config_->volceLower,
+                                  config_->volceUpper);
+        } catch (const std::exception& ex) {
+            std::cerr << "[DFS ERROR] " << ex.what() << std::endl;
+            std::cout << "[DFS TIME COST]: 0 seconds" << std::endl;
+            std::cout << "[DFS MAX MEMS]: -1" << std::endl;
+            std::cout << "[DFS MIN MEMS]: -1" << std::endl;
+        } catch (...) {
+            std::cerr << "[DFS ERROR] unknown exception" << std::endl;
+            std::cout << "[DFS TIME COST]: 0 seconds" << std::endl;
+            std::cout << "[DFS MAX MEMS]: -1" << std::endl;
+            std::cout << "[DFS MIN MEMS]: -1" << std::endl;
+        }
     }
 
     if (config_->dumpMaxMemDP) {
         std::cout << "MaxMemDP is ready to dump ~" << std::endl;
         SyntaxNamePrinter transformer(tree.get());
         transformer.getCFG(TU);
-        transformer.printCFG_greedyDFS(config_->maxLoop, config_->maxPaths, true);
+        try {
+            transformer.printCFG_greedyDFS(config_->maxLoop, config_->maxPaths, true);
+        } catch (const std::exception& ex) {
+            std::cerr << "[DP ERROR] " << ex.what() << std::endl;
+            std::cout << "[MAX MEMS PATH]:" << std::endl;
+            std::cout << "MEMS: -1" << std::endl;
+            std::cout << "[VolCE] N/A" << std::endl;
+            std::cout << "[DP TIME COST]: 0 seconds" << std::endl;
+        } catch (...) {
+            std::cerr << "[DP ERROR] unknown exception" << std::endl;
+            std::cout << "[MAX MEMS PATH]:" << std::endl;
+            std::cout << "MEMS: -1" << std::endl;
+            std::cout << "[VolCE] N/A" << std::endl;
+            std::cout << "[DP TIME COST]: 0 seconds" << std::endl;
+        }
     }
 
     if (config_->dumpBFS) {
