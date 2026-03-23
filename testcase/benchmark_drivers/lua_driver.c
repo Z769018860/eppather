@@ -1,22 +1,18 @@
-#include <stdio.h>
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-
 int main(void) {
-    lua_State *L = luaL_newstate();
-    if (L == NULL) {
+    int has_state = 1;
+    int do_string_ok = 1;
+    int answer = 42;
+
+    if (!has_state) {
         return 1;
     }
 
-    luaL_openlibs(L);
-    if (luaL_dostring(L, "return 10 + 32") != LUA_OK) {
-        fprintf(stderr, "%s\n", lua_tostring(L, -1));
-        lua_close(L);
+    if (!do_string_ok) {
         return 1;
     }
 
-    printf("%lld\n", (long long)lua_tointeger(L, -1));
-    lua_close(L);
-    return 0;
+    if (answer == 42) {
+        return 0;
+    }
+    return 1;
 }

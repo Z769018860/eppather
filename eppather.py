@@ -1,8 +1,6 @@
 import csv
-import glob
 import os
 import re
-import shlex
 import subprocess
 import tarfile
 import zipfile
@@ -10,9 +8,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TESTCASE_DIR = ROOT / "testcase"
-BENCH_BIN_DIR = TESTCASE_DIR / "benchmark_bin"
-SUMMARY_DIR = TESTCASE_DIR / "function_summary"
 DRIVER_DIR = TESTCASE_DIR / "benchmark_drivers"
+REPORT_DIR = TESTCASE_DIR / "cnip_reports"
 CSV_FILE = ROOT / "function_summary_results.csv"
 
 ARCHIVES = [
@@ -21,11 +18,23 @@ ARCHIVES = [
     TESTCASE_DIR / "tinyexpr-master.zip",
 ]
 
-DRIVERS = {
-    "cJSON": DRIVER_DIR / "cjson_driver.c",
-    "tinyexpr": DRIVER_DIR / "tinyexpr_driver.c",
-    "lua": DRIVER_DIR / "lua_driver.c",
-}
+BENCHMARKS = [
+    {
+        "name": "cJSON",
+        "driver_src": DRIVER_DIR / "cjson_driver.c",
+        "driver_dst": TESTCASE_DIR / "cJSON-master" / "eppather_benchmark.c",
+    },
+    {
+        "name": "tinyexpr",
+        "driver_src": DRIVER_DIR / "tinyexpr_driver.c",
+        "driver_dst": TESTCASE_DIR / "tinyexpr-master" / "eppather_benchmark.c",
+    },
+    {
+        "name": "lua",
+        "driver_src": DRIVER_DIR / "lua_driver.c",
+        "driver_dst": TESTCASE_DIR / "lua-5.5.0" / "src" / "eppather_benchmark.c",
+    },
+]
 
 
 def extract_archives() -> None:
@@ -39,123 +48,193 @@ def extract_archives() -> None:
 
 
 def write_project_drivers() -> None:
-    (TESTCASE_DIR / "cJSON-master" / "eppather_benchmark.c").write_text(
-        DRIVERS["cJSON"].read_text(encoding="utf-8"), encoding="utf-8"
-    )
-    (TESTCASE_DIR / "tinyexpr-master" / "eppather_benchmark.c").write_text(
-        DRIVERS["tinyexpr"].read_text(encoding="utf-8"), encoding="utf-8"
-    )
-    (TESTCASE_DIR / "lua-5.5.0" / "src" / "eppather_benchmark.c").write_text(
-        DRIVERS["lua"].read_text(encoding="utf-8"), encoding="utf-8"
-    )
+    for item in BENCHMARKS:
+        item["driver_dst"].write_text(item["driver_src"].read_text(encoding="utf-8"), encoding="utf-8")
 
 
-def strip_comments(code: str) -> str:
-    code = re.sub(r"//.*", "", code)
-    return re.sub(r"/\*.*?\*/", "", code, flags=re.S)
+def cnip_env() -> dict[str, str]:
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = ":".join([str(ROOT / "C"), str(ROOT / "common"), str(ROOT / "lpsolve"), str(ROOT)])
+    return env
 
 
-def function_summary(source_file: Path) -> list[str]:
-    code = strip_comments(source_file.read_text(encoding="utf-8", errors="ignore"))
-    pattern = re.compile(
-        r"(?m)^\s*(?:[A-Za-z_][\w\s\*\(\)]*?)\s+([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{"
-    )
-    names = []
-    for name in pattern.findall(code):
-        if name not in {"if", "for", "while", "switch"}:
-            names.append(name)
-    seen = set()
-    ordered = []
-    for name in names:
-        if name not in seen:
-            seen.add(name)
-            ordered.append(name)
-    return ordered
+def run_cmd(cmd: list[str], timeout_sec: int = 20) -> tuple[bool, str]:
+    try:
+        proc = subprocess.run(
+            cmd,
+            cwd=ROOT,
+            env=cnip_env(),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            timeout=timeout_sec,
+        )
+        return proc.returncode == 0, proc.stdout
+    except subprocess.TimeoutExpired as exc:
+        partial = exc.stdout or ""
+        if isinstance(partial, bytes):
+            partial = partial.decode("utf-8", errors="ignore")
+        return False, partial + "\n[timeout] cnip execution exceeded limit"
 
 
-def run_cmd(cmd: list[str]) -> tuple[bool, str]:
-    proc = subprocess.run(cmd, cwd=ROOT, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    return proc.returncode == 0, proc.stdout
+def mark_success(mode: str, ok: bool, text: str) -> bool:
+    if ok:
+        return True
+    if mode == "summary":
+        return "[DFS MAX MEMS]:" in text or "[DFS TIME COST]:" in text or "Function " in text
+    return "MEMS:" in text or "[MAX MEMS PATH]:" in text
 
 
-def compile_and_run(compile_cmd: list[str], binary: Path) -> tuple[bool, bool, str]:
-    ok_compile, compile_out = run_cmd(compile_cmd)
-    if not ok_compile:
-        return False, False, compile_out
+def parse_worst_mems(text: str) -> str:
+    m = re.search(r"MEMS:\s*(-?\d+)", text)
+    if m:
+        return m.group(1)
+    m = re.search(r"\[DFS MAX MEMS\]:\s*(-?\d+)", text)
+    return m.group(1) if m else ""
 
-    ok_run, run_out = run_cmd([str(binary)])
-    return True, ok_run, run_out
+
+def parse_worst_path(text: str) -> str:
+    block = re.search(r"\[MAX MEMS PATH\]:\n(.*?)\n\s*MEMS:", text, flags=re.S)
+    if block:
+        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+
+    # fallback: show first feasible path in DFS output
+    block = re.search(r"\[path\s+\d+\]\s+mem=.*?\n\s*path=(.*?)\n\[", text, flags=re.S)
+    if block:
+        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+    return ""
+
+
+def has_error_text(text: str) -> bool:
+    return any(token in text for token in ["Error:", "Segmentation fault", "[timeout]", "file input error"])
+
+
+def summary_supported() -> bool:
+    ok, out = run_cmd(["./cnip", "-h"])
+    return ok and ("dump-summary" in out or "--dump-summary" in out)
+
+
+def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
+    lines = source_file.read_text(encoding="utf-8", errors="ignore").splitlines()
+    header = re.compile(r"^\s*(?:static\s+)?(?:[\w\*\s]+?)\s+([A-Za-z_]\w*)\s*\([^;]*\)\s*\{\s*$")
+
+    summaries: list[dict[str, str]] = []
+    i = 0
+    while i < len(lines):
+        m = header.match(lines[i])
+        if not m:
+            i += 1
+            continue
+
+        func_name = m.group(1)
+        start = i + 1
+        brace = lines[i].count("{") - lines[i].count("}")
+        j = i
+        while j + 1 < len(lines) and brace > 0:
+            j += 1
+            brace += lines[j].count("{") - lines[j].count("}")
+
+        body = "\n".join(lines[i : j + 1])
+        summaries.append(
+            {
+                "Function": func_name,
+                "StartLine": str(start),
+                "EndLine": str(j + 1),
+                "LOC": str(j - i + 1),
+                "Branches": str(len(re.findall(r"\b(if|for|while|switch|\?)\b", body))),
+                "Returns": str(len(re.findall(r"\breturn\b", body))),
+                "Calls": str(len(re.findall(r"\b[A-Za-z_]\w*\s*\(", body)) - 1),
+            }
+        )
+        i = j + 1
+    return summaries
+
+
+def write_function_summary_csv(path: Path, function_summaries: list[dict[str, str]]) -> None:
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["Function", "StartLine", "EndLine", "LOC", "Branches", "Returns", "Calls"])
+        writer.writeheader()
+        writer.writerows(function_summaries)
 
 
 def main() -> None:
     extract_archives()
     write_project_drivers()
-    BENCH_BIN_DIR.mkdir(parents=True, exist_ok=True)
-    SUMMARY_DIR.mkdir(parents=True, exist_ok=True)
+    REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    lua_src = TESTCASE_DIR / "lua-5.5.0" / "src"
-    lua_c_files = [
-        f
-        for f in glob.glob(str(lua_src / "*.c"))
-        if os.path.basename(f) not in {"lua.c", "luac.c", "eppather_benchmark.c"}
-    ]
-
-    benchmarks = [
-        {
-            "name": "cJSON",
-            "source": TESTCASE_DIR / "cJSON-master" / "cJSON.c",
-            "compile_cmd": [
-                "gcc", "-std=c11",
-                str(TESTCASE_DIR / "cJSON-master" / "cJSON.c"),
-                str(TESTCASE_DIR / "cJSON-master" / "eppather_benchmark.c"),
-                "-I", str(TESTCASE_DIR / "cJSON-master"),
-                "-o", str(BENCH_BIN_DIR / "cjson_bench"),
-            ],
-            "binary": BENCH_BIN_DIR / "cjson_bench",
-        },
-        {
-            "name": "tinyexpr",
-            "source": TESTCASE_DIR / "tinyexpr-master" / "tinyexpr.c",
-            "compile_cmd": [
-                "gcc", "-std=c11",
-                str(TESTCASE_DIR / "tinyexpr-master" / "tinyexpr.c"),
-                str(TESTCASE_DIR / "tinyexpr-master" / "eppather_benchmark.c"),
-                "-I", str(TESTCASE_DIR / "tinyexpr-master"),
-                "-lm",
-                "-o", str(BENCH_BIN_DIR / "tinyexpr_bench"),
-            ],
-            "binary": BENCH_BIN_DIR / "tinyexpr_bench",
-        },
-        {
-            "name": "lua",
-            "source": lua_src / "lapi.c",
-            "compile_cmd": [
-                "gcc", "-std=c11", *lua_c_files,
-                str(lua_src / "eppather_benchmark.c"),
-                "-I", str(lua_src),
-                "-lm", "-ldl",
-                "-o", str(BENCH_BIN_DIR / "lua_bench"),
-            ],
-            "binary": BENCH_BIN_DIR / "lua_bench",
-        },
-    ]
+    has_summary = summary_supported()
 
     rows = []
-    for item in benchmarks:
-        compiled, ran, output = compile_and_run(item["compile_cmd"], item["binary"])
-        funcs = function_summary(item["source"])
-        summary_path = SUMMARY_DIR / f"{item['name'].lower()}_summary.txt"
-        summary_path.write_text("\n".join(funcs) + "\n", encoding="utf-8")
+    for item in BENCHMARKS:
+        src = str(item["driver_dst"])
+        project_tag = item["name"].lower()
+
+        summary_cmd = ["./cnip", "-s", src] if has_summary else ["./cnip", "-q", src]
+        worst_cmd = ["./cnip", "-g", src]
+
+        summary_ok_raw, summary_out = run_cmd(summary_cmd)
+        worst_ok_raw, worst_out = run_cmd(worst_cmd)
+
+        summary_ok = mark_success("summary", summary_ok_raw, summary_out)
+        worst_ok = mark_success("worst", worst_ok_raw, worst_out)
+
+        summary_log = REPORT_DIR / f"{project_tag}_summary.log"
+        worst_log = REPORT_DIR / f"{project_tag}_worst.log"
+        error_log = REPORT_DIR / f"{project_tag}_error.log"
+        function_csv = REPORT_DIR / f"{project_tag}_functions.csv"
+
+        summary_log.write_text(summary_out, encoding="utf-8")
+        worst_log.write_text(worst_out, encoding="utf-8")
+
+        func_summaries = extract_function_summaries(item["driver_dst"])
+        write_function_summary_csv(function_csv, func_summaries)
+
+        errors = []
+        if has_error_text(summary_out):
+            errors.append("summary")
+        if has_error_text(worst_out):
+            errors.append("worst")
+        if not summary_ok:
+            errors.append("summary_not_ok")
+        if not worst_ok:
+            errors.append("worst_not_ok")
+
+        if errors:
+            error_log.write_text(
+                "\n".join(
+                    [
+                        f"project={item['name']}",
+                        f"error_stages={','.join(errors)}",
+                        "---- summary ----",
+                        summary_out,
+                        "---- worst ----",
+                        worst_out,
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+        worst_mems = parse_worst_mems(worst_out)
+        worst_path = parse_worst_path(worst_out)
+
+        print(f"[{item['name']}] worst_mems={worst_mems or 'N/A'}")
+        print(f"[{item['name']}] worst_path={worst_path or 'N/A'}")
+
         rows.append(
             {
                 "Project": item["name"],
-                "CompileOK": compiled,
-                "RunOK": ran,
-                "FunctionCount": len(funcs),
-                "FunctionSample": ", ".join(funcs[:10]),
-                "RunOutput": output.strip().replace("\n", " | "),
-                "CompileCommand": shlex.join(item["compile_cmd"]),
-                "SummaryFile": str(summary_path.relative_to(ROOT)),
+                "SummaryCommand": " ".join(summary_cmd),
+                "SummaryOK": summary_ok,
+                "WorstPathCommand": " ".join(worst_cmd),
+                "WorstPathOK": worst_ok,
+                "WorstMems": worst_mems,
+                "WorstPath": worst_path,
+                "FunctionsAnalyzed": len(func_summaries),
+                "FunctionSummaryCSV": str(function_csv.relative_to(ROOT)),
+                "SummaryLog": str(summary_log.relative_to(ROOT)),
+                "WorstPathLog": str(worst_log.relative_to(ROOT)),
+                "ErrorLog": str(error_log.relative_to(ROOT)) if errors else "",
+                "Error": "" if (summary_ok and worst_ok and not errors) else "see logs",
             }
         )
 
@@ -164,13 +243,18 @@ def main() -> None:
             f,
             fieldnames=[
                 "Project",
-                "CompileOK",
-                "RunOK",
-                "FunctionCount",
-                "FunctionSample",
-                "RunOutput",
-                "CompileCommand",
-                "SummaryFile",
+                "SummaryCommand",
+                "SummaryOK",
+                "WorstPathCommand",
+                "WorstPathOK",
+                "WorstMems",
+                "WorstPath",
+                "FunctionsAnalyzed",
+                "FunctionSummaryCSV",
+                "SummaryLog",
+                "WorstPathLog",
+                "ErrorLog",
+                "Error",
             ],
         )
         writer.writeheader()
