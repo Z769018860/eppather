@@ -9,7 +9,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 TESTCASE_DIR = ROOT / "testcase"
 REPORT_DIR = TESTCASE_DIR / "cnip_reports"
+PREPROCESS_DIR = REPORT_DIR / "preprocessed"
 CSV_FILE = ROOT / "function_summary_results.csv"
+INCLUDE_CSV = ROOT / "benchmark_include_relations.csv"
 
 ARCHIVES = [
     TESTCASE_DIR / "lua-5.5.0.tar.gz",
@@ -18,9 +20,24 @@ ARCHIVES = [
 ]
 
 PROJECTS = [
-    {"name": "cJSON", "root": TESTCASE_DIR / "cJSON-master", "source_subdirs": ["."]},
-    {"name": "tinyexpr", "root": TESTCASE_DIR / "tinyexpr-master", "source_subdirs": ["."]},
-    {"name": "lua", "root": TESTCASE_DIR / "lua-5.5.0", "source_subdirs": ["src"]},
+    {
+        "name": "cJSON",
+        "root": TESTCASE_DIR / "cJSON-master",
+        "source_subdirs": ["."],
+        "preprocess_flags": ["-std=c89"],  # from cJSON README: ANSI C/C89
+    },
+    {
+        "name": "tinyexpr",
+        "root": TESTCASE_DIR / "tinyexpr-master",
+        "source_subdirs": ["."],
+        "preprocess_flags": ["-std=c99"],  # from tinyexpr README: C99
+    },
+    {
+        "name": "lua",
+        "root": TESTCASE_DIR / "lua-5.5.0",
+        "source_subdirs": ["src"],
+        "preprocess_flags": ["-std=gnu99", "-DLUA_USE_LINUX"],  # from src/Makefile linux target
+    },
 ]
 
 SKIP_DIRS = {"tests", "test", "examples", "fuzzing", "unity", "library_config"}
@@ -58,12 +75,12 @@ def cnip_env() -> dict[str, str]:
     return env
 
 
-def run_cmd(cmd: list[str], timeout_sec: int = 12) -> tuple[bool, str]:
+def run_cmd(cmd: list[str], env: dict[str, str] | None = None, timeout_sec: int = 15) -> tuple[bool, str]:
     try:
         proc = subprocess.run(
             cmd,
             cwd=ROOT,
-            env=cnip_env(),
+            env=env,
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
@@ -74,15 +91,56 @@ def run_cmd(cmd: list[str], timeout_sec: int = 12) -> tuple[bool, str]:
         partial = exc.stdout or ""
         if isinstance(partial, bytes):
             partial = partial.decode("utf-8", errors="ignore")
-        return False, partial + "\n[timeout] cnip execution exceeded limit"
+        return False, partial + "\n[timeout] command exceeded limit"
+
+
+def preprocess_to_i(project_root: Path, c_file: Path, out_i: Path, preprocess_flags: list[str]) -> tuple[bool, str]:
+    out_i.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "gcc",
+        "-E",
+        *preprocess_flags,
+        "-I",
+        str(project_root),
+        "-I",
+        str(c_file.parent),
+        str(c_file),
+        "-o",
+        str(out_i),
+    ]
+    return run_cmd(cmd, env=os.environ.copy(), timeout_sec=20)
+
+
+def parse_include_relations(i_file: Path, project_root: Path) -> list[str]:
+    relations: list[str] = []
+    line_marker = re.compile(r'^#\s+\d+\s+"([^"]+)"')
+    for line in i_file.read_text(encoding="utf-8", errors="ignore").splitlines():
+        m = line_marker.match(line)
+        if not m:
+            continue
+        include_path = Path(m.group(1))
+        if not include_path.is_absolute():
+            include_path = (project_root / include_path).resolve()
+        try:
+            rel = include_path.relative_to(project_root.resolve())
+            relations.append(str(rel))
+        except ValueError:
+            continue
+    seen = set()
+    uniq = []
+    for r in relations:
+        if r not in seen:
+            seen.add(r)
+            uniq.append(r)
+    return uniq
 
 
 def mark_success(mode: str, ok: bool, text: str) -> bool:
     if ok:
         return True
     if mode == "summary":
-        return ("[DFS MAX MEMS]:" in text or "[DFS TIME COST]:" in text or "Function " in text or "CATALOG" in text)
-    return ("MEMS:" in text or "[MAX MEMS PATH]:" in text or "[DP TIME COST]:" in text)
+        return "[DFS MAX MEMS]:" in text or "[DFS TIME COST]:" in text or "CATALOG" in text
+    return "MEMS:" in text or "[MAX MEMS PATH]:" in text or "[DP TIME COST]:" in text
 
 
 def parse_worst_mems(text: str) -> str:
@@ -97,18 +155,18 @@ def parse_worst_path(text: str) -> str:
     block = re.search(r"\[MAX MEMS PATH\]:\n(.*?)\n\s*MEMS:", text, flags=re.S)
     if block:
         return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+
+    block = re.search(r"\[path\s+\d+\]\s+mem=.*?\n\s*path=(.*?)\n\[", text, flags=re.S)
+    if block:
+        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
     return ""
 
 
-def has_error_text(text: str) -> bool:
-    return any(token in text for token in ["Segmentation fault", "[timeout]", "file input error", "preprocessor invocation failed"])
 
 
-def summary_supported() -> bool:
-    ok, out = run_cmd(["./cnip", "-h"])
-    return ok and ("dump-summary" in out or "--dump-summary" in out)
-
-
+def fallback_path_excerpt(text: str, max_len: int = 300) -> str:
+    compact = " | ".join(line.strip() for line in text.splitlines() if line.strip())
+    return compact[:max_len]
 def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
     lines = source_file.read_text(encoding="utf-8", errors="ignore").splitlines()
     header = re.compile(r"^\s*(?:static\s+)?(?:[\w\*\s]+?)\s+([A-Za-z_]\w*)\s*\([^;]*\)\s*\{\s*$")
@@ -120,7 +178,6 @@ def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
         if not m:
             i += 1
             continue
-
         func_name = m.group(1)
         start = i + 1
         brace = lines[i].count("{") - lines[i].count("}")
@@ -145,44 +202,67 @@ def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
     return summaries
 
 
-def safe_log_name(path: Path, project_root: Path) -> str:
-    rel = path.relative_to(project_root).as_posix()
-    return rel.replace("/", "__")
+def summary_supported() -> bool:
+    ok, out = run_cmd(["./cnip", "-h"], env=cnip_env())
+    return ok and ("dump-summary" in out or "--dump-summary" in out)
+
+
+def safe_name(path: Path) -> str:
+    return path.as_posix().replace("/", "__")
 
 
 def main() -> None:
     extract_archives()
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
+    PREPROCESS_DIR.mkdir(parents=True, exist_ok=True)
 
     has_summary = summary_supported()
-    rows: list[dict[str, object]] = []
+    cnip_environment = cnip_env()
+
+    result_rows: list[dict[str, object]] = []
+    include_rows: list[dict[str, object]] = []
 
     for project in PROJECTS:
         project_name = project["name"]
         project_root: Path = project["root"]
+        c_files = collect_c_files(project_root, project.get("source_subdirs", ["."]))
+
         project_report_dir = REPORT_DIR / project_name.lower()
         project_report_dir.mkdir(parents=True, exist_ok=True)
-
-        c_files = collect_c_files(project_root, project.get("source_subdirs", ["."]))
         function_csv = project_report_dir / "functions.csv"
 
         function_rows: list[dict[str, str]] = []
-        project_failures = 0
+        fail_files = 0
 
         for c_file in c_files:
-            src = str(c_file)
-            stem = safe_log_name(c_file, project_root)
+            rel_c = c_file.relative_to(project_root)
+            i_file = PREPROCESS_DIR / project_name.lower() / rel_c.with_suffix(".i")
 
-            include_flags = ["--cpp-I", str(c_file.parent), "--cpp-I", str(project_root)]
-            summary_cmd = (["./cnip", "-s", src] if has_summary else ["./cnip", "-q", src]) + include_flags
-            worst_cmd = ["./cnip", "-g", src] + include_flags
+            pp_ok, pp_out = preprocess_to_i(project_root, c_file, i_file, project.get("preprocess_flags", ["-std=c11"]))
+            includes = parse_include_relations(i_file, project_root) if pp_ok and i_file.exists() else []
 
-            summary_ok_raw, summary_out = run_cmd(summary_cmd)
-            worst_ok_raw, worst_out = run_cmd(worst_cmd)
+            include_rows.append(
+                {
+                    "Project": project_name,
+                    "SourceFile": str(rel_c),
+                    "IFile": str(i_file.relative_to(ROOT)),
+                    "PreprocessOK": pp_ok,
+                    "IncludeCount": len(includes),
+                    "IncludeSample": " | ".join(includes[:10]),
+                    "PreprocessOutput": pp_out.strip().replace("\n", " | "),
+                }
+            )
 
-            summary_ok = mark_success("summary", summary_ok_raw, summary_out)
-            worst_ok = mark_success("worst", worst_ok_raw, worst_out)
+            summary_cmd = ["./cnip", "-s", str(i_file)] if has_summary else ["./cnip", "-q", str(i_file)]
+            worst_cmd = ["./cnip", "-g", str(i_file)]
 
+            summary_ok_raw, summary_out = run_cmd(summary_cmd, env=cnip_environment)
+            worst_ok_raw, worst_out = run_cmd(worst_cmd, env=cnip_environment)
+
+            summary_ok = pp_ok and mark_success("summary", summary_ok_raw, summary_out)
+            worst_ok = pp_ok and mark_success("worst", worst_ok_raw, worst_out)
+
+            stem = safe_name(rel_c)
             summary_log = project_report_dir / f"{stem}.summary.log"
             worst_log = project_report_dir / f"{stem}.worst.log"
             error_log = project_report_dir / f"{stem}.error.log"
@@ -190,26 +270,28 @@ def main() -> None:
             summary_log.write_text(summary_out, encoding="utf-8")
             worst_log.write_text(worst_out, encoding="utf-8")
 
-            file_function_summaries = extract_function_summaries(c_file)
-            for fsum in file_function_summaries:
-                function_rows.append({"File": str(c_file.relative_to(project_root)), **fsum})
+            file_function_summaries = extract_function_summaries(i_file) if i_file.exists() else []
+            for item in file_function_summaries:
+                function_rows.append({"File": str(rel_c), **item})
 
             errors = []
-            if has_error_text(summary_out):
-                errors.append("summary")
-            if has_error_text(worst_out):
-                errors.append("worst")
-            if not summary_ok and not worst_ok:
-                errors.append("analysis_not_ok")
+            if not pp_ok:
+                errors.append("preprocess_failed")
+            if not summary_ok:
+                errors.append("summary_not_ok")
+            if not worst_ok:
+                errors.append("worst_not_ok")
 
             if errors:
-                project_failures += 1
+                fail_files += 1
                 error_log.write_text(
                     "\n".join(
                         [
                             f"project={project_name}",
-                            f"file={c_file.relative_to(project_root)}",
+                            f"file={rel_c}",
                             f"error_stages={','.join(errors)}",
+                            "---- preprocess ----",
+                            pp_out,
                             "---- summary ----",
                             summary_out,
                             "---- worst ----",
@@ -219,17 +301,21 @@ def main() -> None:
                     encoding="utf-8",
                 )
 
-            rows.append(
+            worst_path_text = (parse_worst_path(worst_out) or parse_worst_path(summary_out) or fallback_path_excerpt(worst_out))
+
+            result_rows.append(
                 {
                     "Project": project_name,
-                    "File": str(c_file.relative_to(project_root)),
-                    "SummaryCommand": " ".join(summary_cmd),
+                    "File": str(rel_c),
+                    "IFile": str(i_file.relative_to(ROOT)),
+                    "PreprocessOK": pp_ok,
                     "SummaryOK": summary_ok,
-                    "WorstPathCommand": " ".join(worst_cmd),
                     "WorstPathOK": worst_ok,
                     "WorstMems": parse_worst_mems(worst_out),
-                    "WorstPath": parse_worst_path(worst_out),
+                    "WorstPath": worst_path_text,
                     "FunctionsAnalyzed": len(file_function_summaries),
+                    "FunctionSample": " | ".join([it["Function"] for it in file_function_summaries[:10]]),
+                    "IncludeCount": len(includes),
                     "SummaryLog": str(summary_log.relative_to(ROOT)),
                     "WorstPathLog": str(worst_log.relative_to(ROOT)),
                     "ErrorLog": str(error_log.relative_to(ROOT)) if errors else "",
@@ -245,7 +331,7 @@ def main() -> None:
             writer.writeheader()
             writer.writerows(function_rows)
 
-        print(f"[{project_name}] files={len(c_files)}, fail_files={project_failures}, function_summary={function_csv}")
+        print(f"[{project_name}] files={len(c_files)}, fail_files={fail_files}, function_summary={function_csv}")
 
     with CSV_FILE.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
@@ -253,13 +339,15 @@ def main() -> None:
             fieldnames=[
                 "Project",
                 "File",
-                "SummaryCommand",
+                "IFile",
+                "PreprocessOK",
                 "SummaryOK",
-                "WorstPathCommand",
                 "WorstPathOK",
                 "WorstMems",
                 "WorstPath",
                 "FunctionsAnalyzed",
+                "FunctionSample",
+                "IncludeCount",
                 "SummaryLog",
                 "WorstPathLog",
                 "ErrorLog",
@@ -267,9 +355,18 @@ def main() -> None:
             ],
         )
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(result_rows)
+
+    with INCLUDE_CSV.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(
+            f,
+            fieldnames=["Project", "SourceFile", "IFile", "PreprocessOK", "IncludeCount", "IncludeSample", "PreprocessOutput"],
+        )
+        writer.writeheader()
+        writer.writerows(include_rows)
 
     print(f"Done. Results written to {CSV_FILE}")
+    print(f"Include relations written to {INCLUDE_CSV}")
 
 
 if __name__ == "__main__":
