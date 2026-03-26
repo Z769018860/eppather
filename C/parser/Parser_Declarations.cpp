@@ -1706,9 +1706,6 @@ bool Parser::parseExtGNU_AttributeArgumentsLLVM(ExpressionListSyntax*& exprList)
                         consume();
                 }
 
-                CFGNode cfgNode;
-                std::string test_temp=cfgNode.ExpressionToString2(versionExpr);
-                std::cout<< "equals!!!!!"<< test_temp <<"!!!!"<<std::endl;
                 auto assign = makeNode<BinaryExpressionSyntax>(BasicAssignmentExpression);
                 assign->leftExpr_ = expr;
                 assign->oprtrTkIdx_ = equalsTkIdx_;
