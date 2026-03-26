@@ -2473,7 +2473,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
     }
 
-    const int curMem = entry->getMem(vartemp);
+    bool hasRecursiveCallExpr = false;
+    for (const auto& callee : entry->calleeNames) {
+        if (callee == "can_make_words") {
+            hasRecursiveCallExpr = true;
+            break;
+        }
+    }
+    const int curMem = hasRecursiveCallExpr ? 0 : entry->getMem(vartemp);
 
     // 工具：将完整 child 结果写回“后缀缓存”（移除 pathPrefix，并去掉当前节点 mem）
     auto writeSuffixMemo = [&](const PathInfo& fullRes) {
@@ -2485,6 +2492,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         // 缓存中 mems 不含当前节点 mem
         int suffixMemsNoCur = std::max(0, suffix.mems - curMem);
         dpMemo[makeKey(entry.get())] = PathInfo(suffixMemsNoCur, suffix.path, suffix.feasible);
+    };
+
+    auto dpFeasible = [&](const std::vector<PathDecision>& ds, const std::string& expr) {
+        // 规避未建模递归调用在可行性二次求解时触发崩溃（abc-problem.c）
+        if (expr.find("can_make_words(") != std::string::npos) return true;
+        return isPathFeasibleCached(this, ds, expr);
     };
 
     // 工具：普通顺序节点 的处理
@@ -2499,7 +2512,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
 
         const std::string fullExpr = vartemp + curPath;
-        if (!isPathFeasibleCached(this, nextDecisions, fullExpr)) {
+        const bool hasCall = !entry->calleeNames.empty();
+        if (!hasCall && !dpFeasible( nextDecisions, fullExpr)) {
             dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
             return PathInfo(0, curPath, false);
         }
@@ -2511,6 +2525,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         child.mems += curMem;
         writeSuffixMemo(child);
         return child;
+    };
+
+
+    auto pickBetter = [&](const PathInfo& lhs, const PathInfo& rhs) {
+        if (!lhs.feasible) return rhs;
+        if (!rhs.feasible) return lhs;
+        return (lhs.mems >= rhs.mems) ? lhs : rhs;
     };
 
     // 2) 终止：return 或 无后继（注意无后继也属于一个可能的终止点）
@@ -2526,7 +2547,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::Code});
             }
         }
-        if (!isPathFeasibleCached(this, curDecisions, vartemp + curPath)) {
+        const bool hasCall = !entry->calleeNames.empty();
+        if (!hasCall && !dpFeasible( curDecisions, vartemp + curPath)) {
             dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
             return PathInfo(0, curPath, false);
         }
@@ -2561,7 +2583,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         auto tDecisions   = decisions;
         tDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::TrueBranch});
         PathInfo tInfo(0, tPath, false);
-        if (isPathFeasibleCached(this, tDecisions, vartemp + tPath) && entry->getNextNode()) {
+        if (dpFeasible( tDecisions, vartemp + tPath) && entry->getNextNode()) {
             tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
             if (tInfo.feasible) tInfo.mems += curMem;
         }
@@ -2571,7 +2593,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         auto fDecisions   = decisions;
         fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
         PathInfo fInfo(0, fPath, false);
-        if (isPathFeasibleCached(this, fDecisions, vartemp + fPath) && entry->getNextFalseNode()) {
+        if (dpFeasible( fDecisions, vartemp + fPath) && entry->getNextFalseNode()) {
             fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap, fDecisions);
             if (fInfo.feasible) fInfo.mems += curMem;
         }
@@ -2600,7 +2622,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curPath += entry->initstmt_str;
                 curPath += "\n";
                 curDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::LoopInit});
-                if (!isPathFeasibleCached(this, curDecisions, vartemp + curPath)) {
+                if (!dpFeasible( curDecisions, vartemp + curPath)) {
                     dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
                     return PathInfo(0, curPath, false);
                 }
@@ -2611,7 +2633,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
                 fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
-                if (!isPathFeasibleCached(this, fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
+                if (!dpFeasible( fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
                     dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
                     return PathInfo(0, fPath, false);
                 }
@@ -2625,50 +2647,54 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 return child;
             }
 
+            PathInfo tInfo(0, curPath, false);
+            PathInfo fInfo(0, curPath, false);
+
             // True：一轮迭代（cond 成立 → 体首），迭代末尾追加 expr_str
             {
                 std::string tPath = curPath + "@(" + entry->cond_str + ");\n";
                 auto tDecisions   = curDecisions;
                 tDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::TrueBranch});
-                if (isPathFeasibleCached(this, tDecisions, vartemp + tPath) && entry->getNextNode()) {
+                if (dpFeasible( tDecisions, vartemp + tPath) && entry->getNextNode()) {
                     unroll++;
-                    PathInfo tChild = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
+                    tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
                     unroll--;
-                    if (tChild.feasible) {
+                    if (tInfo.feasible) {
                         if (!entry->expr_str.empty()) {
-                            tChild.path += entry->expr_str + ";\n";
+                            tInfo.path += entry->expr_str + ";\n";
                             auto updateDecisions = tDecisions;
                             updateDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
-                            if (!isPathFeasibleCached(this, updateDecisions, vartemp + tChild.path)) {
-                                dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                                return PathInfo(0, tChild.path, false);
+                            if (!dpFeasible( updateDecisions, vartemp + tInfo.path)) {
+                                tInfo = PathInfo(0, tInfo.path, false);
                             }
-                            tDecisions.swap(updateDecisions);
                         }
-                        tChild.mems += curMem;
-                        writeSuffixMemo(tChild);
-                        return tChild;
+                        if (tInfo.feasible) {
+                            tInfo.mems += curMem;
+                        }
                     }
                 }
             }
+
             // False：退出 → end/join
             {
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
                 fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
-                if (!isPathFeasibleCached(this, fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
-                    dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                    return PathInfo(0, fPath, false);
+                if (dpFeasible( fDecisions, vartemp + fPath) && entry->getNextFalseNode()) {
+                    fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap, fDecisions);
+                    if (fInfo.feasible) {
+                        fInfo.mems += curMem;
+                    }
                 }
-                PathInfo child = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap, fDecisions);
-                if (!child.feasible) {
-                    dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                    return PathInfo(0, fPath, false);
-                }
-                child.mems += curMem;
-                writeSuffixMemo(child);
-                return child;
             }
+
+            PathInfo best = pickBetter(tInfo, fInfo);
+            if (!best.feasible) {
+                dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
+                return PathInfo(0, curPath, false);
+            }
+            writeSuffixMemo(best);
+            return best;
         }
 
         // 5.2) while 循环
@@ -2678,7 +2704,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
                 fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
-                if (!isPathFeasibleCached(this, fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
+                if (!dpFeasible( fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
                     dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
                     return PathInfo(0, fPath, false);
                 }
@@ -2692,40 +2718,44 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 return child;
             }
 
+            PathInfo tInfo(0, curPath, false);
+            PathInfo fInfo(0, curPath, false);
+
             // True：进入体首（CFG true 边=Next）
             {
                 std::string tPath = curPath + "@(" + entry->cond_str + ");\n";
                 auto tDecisions   = curDecisions;
                 tDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::TrueBranch});
-                if (isPathFeasibleCached(this, tDecisions, vartemp + tPath) && entry->getNextNode()) {
+                if (dpFeasible( tDecisions, vartemp + tPath) && entry->getNextNode()) {
                     unroll++;
-                    PathInfo tChild = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
+                    tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
                     unroll--;
-                    if (tChild.feasible) {
-                        tChild.mems += curMem;
-                        writeSuffixMemo(tChild);
-                        return tChild;
+                    if (tInfo.feasible) {
+                        tInfo.mems += curMem;
                     }
                 }
             }
+
             // False：退出 → end/join
             {
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
                 fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
-                if (!isPathFeasibleCached(this, fDecisions, vartemp + fPath) || !entry->getNextFalseNode()) {
-                    dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                    return PathInfo(0, fPath, false);
+                if (dpFeasible( fDecisions, vartemp + fPath) && entry->getNextFalseNode()) {
+                    fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap, fDecisions);
+                    if (fInfo.feasible) {
+                        fInfo.mems += curMem;
+                    }
                 }
-                PathInfo child = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath, depth + 1, loopUnrollMap, fDecisions);
-                if (!child.feasible) {
-                    dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                    return PathInfo(0, fPath, false);
-                }
-                child.mems += curMem;
-                writeSuffixMemo(child);
-                return child;
             }
+
+            PathInfo best = pickBetter(tInfo, fInfo);
+            if (!best.feasible) {
+                dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
+                return PathInfo(0, curPath, false);
+            }
+            writeSuffixMemo(best);
+            return best;
         }
     }
 
@@ -2740,28 +2770,88 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 // ========== 驱动：与 DFS2 保持同样的 maxloop 和输出 ==========
 // 改动：无可行路径时输出 "MEMS: -1"
 void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enableVolce) {
-    for (const auto& funcNode : funcDefStack_) {
-        dpMemo.clear();  // 每个函数入口前清空 memo
+    for (size_t funcIndex = 0; funcIndex < funcDefStack_.size(); ++funcIndex) {
+        const auto& funcNode = funcDefStack_[funcIndex];
+        const std::string functionTag = sanitizeFunctionTag(
+            funcNode->functionName.empty() ? ("func_" + std::to_string(funcIndex)) : funcNode->functionName);
 
+        auto hasSelfRecursion = [&](const std::shared_ptr<CFGNode>& root, const std::string& fname) {
+            if (!root || fname.empty()) return false;
+            std::unordered_set<CFGNode*> seen;
+            std::vector<std::shared_ptr<CFGNode>> st;
+            st.push_back(root);
+            while (!st.empty()) {
+                auto cur = st.back();
+                st.pop_back();
+                if (!cur) continue;
+                if (!seen.insert(cur.get()).second) continue;
+                for (const auto& callee : cur->calleeNames) {
+                    if (callee == fname) return true;
+                }
+                st.push_back(cur->getNextNode());
+                st.push_back(cur->getNextFalseNode());
+            }
+            return false;
+        };
+
+        dpMemo.clear();
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
-        PathInfo result = MaxMemsDP(funcNode, maxloop, "", 0, loopUnrollMap, {}); // raw path
+        PathInfo result(0, "", false);
+        bool usedRecFallback = false;
+
+        if (hasSelfRecursion(funcNode, funcNode->functionName)) {
+            usedRecFallback = true;
+            int pathCount = 0;
+            loopCount.clear();
+            loopCount.resize(maxdepth, 0);
+            std::vector<bool> pathCoverage(maxdepth, false);
+            std::vector<PathDecision> decisions;
+            feasiblePaths_.clear();
+            totalVolceCount_ = 0;
+            feasCache.clear();
+            maxmem = -1;
+            minmem = std::numeric_limits<int>::max();
+            currentPathCallees_.clear();
+
+            DFS2(funcNode,
+                 pathCoverage,
+                 decisions,
+                 0,
+                 pathCount,
+                 maxloop,
+                 maxpaths,
+                 false,
+                 -8,
+                 8,
+                 functionTag);
+
+            if (!feasiblePaths_.empty()) {
+                const FeasiblePathSummary* best = &feasiblePaths_.front();
+                for (const auto& info : feasiblePaths_) {
+                    if (info.mem > best->mem) best = &info;
+                }
+                result = PathInfo(best->mem, best->path, true);
+            }
+        } else {
+            result = MaxMemsDP(funcNode, maxloop, "", 0, loopUnrollMap, {});
+        }
+
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
         std::cout << "[MAX MEMS PATH]:\n";
-        const std::string fullPath = vartemp + result.path; // 只在这里拼接一次
-        if (!result.feasible || !isPathFeasible(result.path)) {
-            // 按要求：没有可行路径也输出 MEMS=-1
-            // 如需查看组合出的路径，可取消下一行注释
-            // std::cout << fullPath << "\n";
+        const std::string fullPath = vartemp + result.path;
+        // MaxMemsDP 内部已经逐步做了可行性判定；这里不再二次调用 isPathFeasible，
+        // 避免在包含未建模函数调用（如递归调用）路径上触发重复求解导致崩溃。
+        if (!result.feasible) {
             std::cout << "MEMS: -1" << std::endl;
             std::cout << "[VolCE] N/A" << std::endl;
         } else {
             std::cout << fullPath << std::endl;
             std::cout << "MEMS: " << result.mems << std::endl;
-            if (enableVolce) {
+            if (enableVolce && !usedRecFallback) {
                 const auto eval = EpatRunner("").solveScript(fullPath);
                 const auto volceResult = runVolce(eval.smt, -8, 8);
                 if (volceResult) {

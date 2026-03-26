@@ -16,6 +16,7 @@ REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 
 INPUT_FOLDER = os.path.join(SCRIPT_DIR, "output_complete2")
 OUTPUT_TRUE_FOLDER = os.path.join(SCRIPT_DIR, "output_true3")
+OUTPUT_DP_EQ_DFS_FOLDER = os.path.join(SCRIPT_DIR, "dp=dfs")
 SUMMARY_CSV = os.path.join(SCRIPT_DIR, "result_summary_true3.csv")
 SUMMARY_XLSX = os.path.join(SCRIPT_DIR, "result_summary_true3.xlsx")
 TRUE_ONLY_CSV = os.path.join(SCRIPT_DIR, "result_true_only3.csv")
@@ -390,7 +391,7 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
 def build_system_prompt() -> str:
     return (
         "You are a static-analysis assistant for C code.\n"
-        "Target: generate one FEASIBLE path with MAX MEMS that matches cnip static analysis outputs as strictly as possible.\n\n"
+        "Target: generate one FEASIBLE path with MAX MEMS that matches cnip DFS/DP outputs as strictly as possible.\n\n"
         "MUST align with cnip assumptions:\n"
         f"- Loop unrolling cap = {MAX_LOOP}. Never exceed this cap for each loop in a single path.\n"
         f"- Function inline expansion cap = {MAX_INLINE} levels.\n"
@@ -411,6 +412,11 @@ def build_system_prompt() -> str:
         "- For loops, explicitly emit each taken iteration guard and a final not-taken guard.\n"
         "- Keep path statements close to source-level assignments/conditions only; avoid invented statements.\n"
         "- Final mems must be consistent with the emitted path; do a self-check before output.\n\n"
+        "Cross-check objective:\n"
+        "- Treat cnip DP output as primary target and cnip DFS max as consistency target under same loop cap.\n"
+        "- Assume final target should be equal (or very close, diff<=1) to BOTH cnip DP and cnip DFS max mems.\n"
+        "- Avoid over-estimation: MEMS must be the strict sum from the emitted statements only (no hidden/implicit extras).\n"
+        "- If uncertain, choose the conservative mems/path most likely to satisfy DP=DFS consensus.\n\n"
         "Output STRICT JSON only:\n"
         "{\n"
         '  "mems": <non-negative integer>,\n'
@@ -431,7 +437,7 @@ def build_user_prompt(code: str) -> str:
         "Given this C file content, estimate a feasible MAX-MEMS path under the same assumptions as cnip. "
         f"Use loop cap={MAX_LOOP}, inline depth cap={MAX_INLINE}, recursion via fixpoint-style approximation. "
         "Prioritize strict alignment with cnip DFS/DP path style and MEMS counting. "
-        "If multiple candidates exist, return the one most likely to match cnip output exactly.\n\n"
+        "If multiple candidates exist, return the one most likely to match cnip DP and DFS simultaneously.\n\n"
         "-----BEGIN C CODE-----\n"
         f"{code}\n"
         "-----END C CODE-----"
@@ -558,6 +564,7 @@ def main():
         return
 
     os.makedirs(OUTPUT_TRUE_FOLDER, exist_ok=True)
+    os.makedirs(OUTPUT_DP_EQ_DFS_FOLDER, exist_ok=True)
 
     results = []
     try:
@@ -728,6 +735,14 @@ def main():
                 except Exception as e:
                     print(f"  [保存失败] {e}")
 
+            if entry["dp_eq_dfs_mems"]:
+                try:
+                    dst = os.path.join(OUTPUT_DP_EQ_DFS_FOLDER, os.path.basename(cfile))
+                    shutil.copy2(cfile, dst)
+                    print(f"  [已保存 DP=DFS] {dst}")
+                except Exception as e:
+                    print(f"  [保存失败 DP=DFS] {e}")
+
             results.append(entry)
 
     except KeyboardInterrupt:
@@ -801,6 +816,7 @@ def main():
         print(f"  GPT=DP:   {int(df['gpt_eq_dp_mems'].sum())}/{total} ({df['gpt_eq_dp_mems'].mean():.2%})")
         print(f"  GPT=DFS:  {int(df['gpt_eq_dfs_mems'].sum())}/{total} ({df['gpt_eq_dfs_mems'].mean():.2%})")
         print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
+        print(f"  DP=DFS文件夹: {OUTPUT_DP_EQ_DFS_FOLDER}")
         print(f"  TRUE(三方一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
     else:
         print("  总文件数: 0")
