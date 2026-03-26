@@ -94,6 +94,16 @@ def run_cmd(cmd: list[str], env: dict[str, str] | None = None, timeout_sec: int 
         return False, partial + "\n[timeout] command exceeded limit"
 
 
+
+
+def clean_cnip_output(text: str) -> str:
+    cleaned = []
+    for line in text.splitlines():
+        if "equals!!!!!" in line:
+            continue
+        cleaned.append(line)
+    return "\n".join(cleaned) + ("\n" if cleaned else "")
+
 def preprocess_to_i(project_root: Path, c_file: Path, out_i: Path, preprocess_flags: list[str]) -> tuple[bool, str]:
     out_i.parent.mkdir(parents=True, exist_ok=True)
     cmd = [
@@ -159,13 +169,22 @@ def parse_worst_path(text: str) -> str:
     block = re.search(r"\[path\s+\d+\]\s+mem=.*?\n\s*path=(.*?)\n\[", text, flags=re.S)
     if block:
         return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+
+    block = re.search(r"Path:(.*?)(?:\n(?:feasible|infeasible)!|\n\[)", text, flags=re.S)
+    if block:
+        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
     return ""
 
 
 
 
 def fallback_path_excerpt(text: str, max_len: int = 300) -> str:
-    compact = " | ".join(line.strip() for line in text.splitlines() if line.strip())
+    ignored = ("MaxMemDP is ready to dump", "DFS2 is ready to dump", "CATALOG")
+    compact = " | ".join(
+        line.strip()
+        for line in text.splitlines()
+        if line.strip() and not any(tag in line for tag in ignored)
+    )
     return compact[:max_len]
 def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
     lines = source_file.read_text(encoding="utf-8", errors="ignore").splitlines()
@@ -256,11 +275,37 @@ def main() -> None:
             summary_cmd = ["./cnip", "-s", str(i_file)] if has_summary else ["./cnip", "-q", str(i_file)]
             worst_cmd = ["./cnip", "-g", str(i_file)]
 
-            summary_ok_raw, summary_out = run_cmd(summary_cmd, env=cnip_environment)
-            worst_ok_raw, worst_out = run_cmd(worst_cmd, env=cnip_environment)
+            summary_ok_raw, summary_out_raw = run_cmd(summary_cmd, env=cnip_environment)
+            worst_ok_raw, worst_out_raw = run_cmd(worst_cmd, env=cnip_environment)
+
+            summary_out = clean_cnip_output(summary_out_raw)
+            worst_out = clean_cnip_output(worst_out_raw)
 
             summary_ok = pp_ok and mark_success("summary", summary_ok_raw, summary_out)
             worst_ok = pp_ok and mark_success("worst", worst_ok_raw, worst_out)
+
+            worst_source = "dp"
+            worst_mems_text = parse_worst_mems(worst_out)
+            worst_path_text = parse_worst_path(worst_out)
+
+            if not worst_path_text:
+                worst_path_text = parse_worst_path(summary_out)
+                if worst_path_text:
+                    worst_source = "summary_path"
+
+            if not worst_ok and summary_ok:
+                # fallback: treat summary traversal as worst-path approximation when -g fails
+                fallback_mems = parse_worst_mems(summary_out)
+                fallback_path = parse_worst_path(summary_out)
+                worst_ok = True
+                worst_source = "summary_fallback"
+                if not worst_mems_text:
+                    worst_mems_text = fallback_mems
+                if not worst_path_text:
+                    worst_path_text = fallback_path
+
+            if not worst_path_text:
+                worst_path_text = fallback_path_excerpt(worst_out if worst_out.strip() else summary_out)
 
             stem = safe_name(rel_c)
             summary_log = project_report_dir / f"{stem}.summary.log"
@@ -273,6 +318,14 @@ def main() -> None:
             file_function_summaries = extract_function_summaries(i_file) if i_file.exists() else []
             for item in file_function_summaries:
                 function_rows.append({"File": str(rel_c), **item})
+
+            if not worst_path_text and file_function_summaries:
+                worst_path_text = "approx_func:" + " -> ".join([f["Function"] for f in file_function_summaries[:5]])
+                if worst_source == "dp":
+                    worst_source = "function_summary_fallback"
+
+            if not worst_path_text:
+                worst_path_text = "DP_NO_PATH_EXTRACTED"
 
             errors = []
             if not pp_ok:
@@ -301,8 +354,6 @@ def main() -> None:
                     encoding="utf-8",
                 )
 
-            worst_path_text = (parse_worst_path(worst_out) or parse_worst_path(summary_out) or fallback_path_excerpt(worst_out))
-
             result_rows.append(
                 {
                     "Project": project_name,
@@ -311,8 +362,9 @@ def main() -> None:
                     "PreprocessOK": pp_ok,
                     "SummaryOK": summary_ok,
                     "WorstPathOK": worst_ok,
-                    "WorstMems": parse_worst_mems(worst_out),
+                    "WorstMems": worst_mems_text,
                     "WorstPath": worst_path_text,
+                    "WorstPathSource": worst_source,
                     "FunctionsAnalyzed": len(file_function_summaries),
                     "FunctionSample": " | ".join([it["Function"] for it in file_function_summaries[:10]]),
                     "IncludeCount": len(includes),
@@ -345,6 +397,7 @@ def main() -> None:
                 "WorstPathOK",
                 "WorstMems",
                 "WorstPath",
+                "WorstPathSource",
                 "FunctionsAnalyzed",
                 "FunctionSample",
                 "IncludeCount",

@@ -1221,9 +1221,6 @@ void Parser::maybeAmbiguateCastExpression(ExpressionSyntax*& expr)
     parenExpr->closeParenTkIdx_ = castExpr->closeParenTkIdx_;
     binExpr->oprtrTkIdx_ = prefixExpr->oprtrTkIdx_;
     binExpr->rightExpr_ = prefixExpr->expr_;
-                CFGNode cfgNode;
-                std::string test_temp=cfgNode.ExpressionToString2(binExpr->rightExpr_);
-                std::cout<< "equals!!!!!"<< test_temp <<"!!!!"<<std::endl;
 
     auto ambiExpr = makeNode<AmbiguousCastOrBinaryExpressionSyntax>(AmbiguousCastOrBinaryExpression);
     expr = ambiExpr;
@@ -1652,9 +1649,6 @@ bool Parser::parseNAryExpression_AtOperator(ExpressionSyntax*& baseExpr,
             tkK = peek().kind();
             precAhead = precedenceOf(tkK);
         }
-                CFGNode cfgNode;
-                std::string test_temp=cfgNode.ExpressionToString2(nextExpr);
-                std::cout<< "equals!!!!!"<< test_temp <<"!!!!"<<std::endl;
         /*
          * An "usual" N-ary expression E can be produced with a FIRST that is another N-ary
          * expression with same precedence of E or a tighter one. An assignment expression
