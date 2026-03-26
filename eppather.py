@@ -8,7 +8,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 TESTCASE_DIR = ROOT / "testcase"
-DRIVER_DIR = TESTCASE_DIR / "benchmark_drivers"
 REPORT_DIR = TESTCASE_DIR / "cnip_reports"
 CSV_FILE = ROOT / "function_summary_results.csv"
 
@@ -18,23 +17,13 @@ ARCHIVES = [
     TESTCASE_DIR / "tinyexpr-master.zip",
 ]
 
-BENCHMARKS = [
-    {
-        "name": "cJSON",
-        "driver_src": DRIVER_DIR / "cjson_driver.c",
-        "driver_dst": TESTCASE_DIR / "cJSON-master" / "eppather_benchmark.c",
-    },
-    {
-        "name": "tinyexpr",
-        "driver_src": DRIVER_DIR / "tinyexpr_driver.c",
-        "driver_dst": TESTCASE_DIR / "tinyexpr-master" / "eppather_benchmark.c",
-    },
-    {
-        "name": "lua",
-        "driver_src": DRIVER_DIR / "lua_driver.c",
-        "driver_dst": TESTCASE_DIR / "lua-5.5.0" / "src" / "eppather_benchmark.c",
-    },
+PROJECTS = [
+    {"name": "cJSON", "root": TESTCASE_DIR / "cJSON-master", "source_subdirs": ["."]},
+    {"name": "tinyexpr", "root": TESTCASE_DIR / "tinyexpr-master", "source_subdirs": ["."]},
+    {"name": "lua", "root": TESTCASE_DIR / "lua-5.5.0", "source_subdirs": ["src"]},
 ]
+
+SKIP_DIRS = {"tests", "test", "examples", "fuzzing", "unity", "library_config"}
 
 
 def extract_archives() -> None:
@@ -47,9 +36,20 @@ def extract_archives() -> None:
                 tf.extractall(TESTCASE_DIR)
 
 
-def write_project_drivers() -> None:
-    for item in BENCHMARKS:
-        item["driver_dst"].write_text(item["driver_src"].read_text(encoding="utf-8"), encoding="utf-8")
+def collect_c_files(project_root: Path, source_subdirs: list[str]) -> list[Path]:
+    files: list[Path] = []
+    for sub in source_subdirs:
+        base = project_root / sub
+        if not base.exists():
+            continue
+        for p in base.rglob("*.c"):
+            if not p.is_file():
+                continue
+            rel_parts = set(p.relative_to(project_root).parts)
+            if rel_parts & SKIP_DIRS:
+                continue
+            files.append(p)
+    return sorted(set(files))
 
 
 def cnip_env() -> dict[str, str]:
@@ -58,7 +58,7 @@ def cnip_env() -> dict[str, str]:
     return env
 
 
-def run_cmd(cmd: list[str], timeout_sec: int = 20) -> tuple[bool, str]:
+def run_cmd(cmd: list[str], timeout_sec: int = 12) -> tuple[bool, str]:
     try:
         proc = subprocess.run(
             cmd,
@@ -81,8 +81,8 @@ def mark_success(mode: str, ok: bool, text: str) -> bool:
     if ok:
         return True
     if mode == "summary":
-        return "[DFS MAX MEMS]:" in text or "[DFS TIME COST]:" in text or "Function " in text
-    return "MEMS:" in text or "[MAX MEMS PATH]:" in text
+        return ("[DFS MAX MEMS]:" in text or "[DFS TIME COST]:" in text or "Function " in text or "CATALOG" in text)
+    return ("MEMS:" in text or "[MAX MEMS PATH]:" in text or "[DP TIME COST]:" in text)
 
 
 def parse_worst_mems(text: str) -> str:
@@ -97,16 +97,11 @@ def parse_worst_path(text: str) -> str:
     block = re.search(r"\[MAX MEMS PATH\]:\n(.*?)\n\s*MEMS:", text, flags=re.S)
     if block:
         return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
-
-    # fallback: show first feasible path in DFS output
-    block = re.search(r"\[path\s+\d+\]\s+mem=.*?\n\s*path=(.*?)\n\[", text, flags=re.S)
-    if block:
-        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
     return ""
 
 
 def has_error_text(text: str) -> bool:
-    return any(token in text for token in ["Error:", "Segmentation fault", "[timeout]", "file input error"])
+    return any(token in text for token in ["Segmentation fault", "[timeout]", "file input error", "preprocessor invocation failed"])
 
 
 def summary_supported() -> bool:
@@ -143,106 +138,121 @@ def extract_function_summaries(source_file: Path) -> list[dict[str, str]]:
                 "LOC": str(j - i + 1),
                 "Branches": str(len(re.findall(r"\b(if|for|while|switch|\?)\b", body))),
                 "Returns": str(len(re.findall(r"\breturn\b", body))),
-                "Calls": str(len(re.findall(r"\b[A-Za-z_]\w*\s*\(", body)) - 1),
+                "Calls": str(max(len(re.findall(r"\b[A-Za-z_]\w*\s*\(", body)) - 1, 0)),
             }
         )
         i = j + 1
     return summaries
 
 
-def write_function_summary_csv(path: Path, function_summaries: list[dict[str, str]]) -> None:
-    with path.open("w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=["Function", "StartLine", "EndLine", "LOC", "Branches", "Returns", "Calls"])
-        writer.writeheader()
-        writer.writerows(function_summaries)
+def safe_log_name(path: Path, project_root: Path) -> str:
+    rel = path.relative_to(project_root).as_posix()
+    return rel.replace("/", "__")
 
 
 def main() -> None:
     extract_archives()
-    write_project_drivers()
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
     has_summary = summary_supported()
+    rows: list[dict[str, object]] = []
 
-    rows = []
-    for item in BENCHMARKS:
-        src = str(item["driver_dst"])
-        project_tag = item["name"].lower()
+    for project in PROJECTS:
+        project_name = project["name"]
+        project_root: Path = project["root"]
+        project_report_dir = REPORT_DIR / project_name.lower()
+        project_report_dir.mkdir(parents=True, exist_ok=True)
 
-        summary_cmd = ["./cnip", "-s", src] if has_summary else ["./cnip", "-q", src]
-        worst_cmd = ["./cnip", "-g", src]
+        c_files = collect_c_files(project_root, project.get("source_subdirs", ["."]))
+        function_csv = project_report_dir / "functions.csv"
 
-        summary_ok_raw, summary_out = run_cmd(summary_cmd)
-        worst_ok_raw, worst_out = run_cmd(worst_cmd)
+        function_rows: list[dict[str, str]] = []
+        project_failures = 0
 
-        summary_ok = mark_success("summary", summary_ok_raw, summary_out)
-        worst_ok = mark_success("worst", worst_ok_raw, worst_out)
+        for c_file in c_files:
+            src = str(c_file)
+            stem = safe_log_name(c_file, project_root)
 
-        summary_log = REPORT_DIR / f"{project_tag}_summary.log"
-        worst_log = REPORT_DIR / f"{project_tag}_worst.log"
-        error_log = REPORT_DIR / f"{project_tag}_error.log"
-        function_csv = REPORT_DIR / f"{project_tag}_functions.csv"
+            include_flags = ["--cpp-I", str(c_file.parent), "--cpp-I", str(project_root)]
+            summary_cmd = (["./cnip", "-s", src] if has_summary else ["./cnip", "-q", src]) + include_flags
+            worst_cmd = ["./cnip", "-g", src] + include_flags
 
-        summary_log.write_text(summary_out, encoding="utf-8")
-        worst_log.write_text(worst_out, encoding="utf-8")
+            summary_ok_raw, summary_out = run_cmd(summary_cmd)
+            worst_ok_raw, worst_out = run_cmd(worst_cmd)
 
-        func_summaries = extract_function_summaries(item["driver_dst"])
-        write_function_summary_csv(function_csv, func_summaries)
+            summary_ok = mark_success("summary", summary_ok_raw, summary_out)
+            worst_ok = mark_success("worst", worst_ok_raw, worst_out)
 
-        errors = []
-        if has_error_text(summary_out):
-            errors.append("summary")
-        if has_error_text(worst_out):
-            errors.append("worst")
-        if not summary_ok:
-            errors.append("summary_not_ok")
-        if not worst_ok:
-            errors.append("worst_not_ok")
+            summary_log = project_report_dir / f"{stem}.summary.log"
+            worst_log = project_report_dir / f"{stem}.worst.log"
+            error_log = project_report_dir / f"{stem}.error.log"
 
-        if errors:
-            error_log.write_text(
-                "\n".join(
-                    [
-                        f"project={item['name']}",
-                        f"error_stages={','.join(errors)}",
-                        "---- summary ----",
-                        summary_out,
-                        "---- worst ----",
-                        worst_out,
-                    ]
-                ),
-                encoding="utf-8",
+            summary_log.write_text(summary_out, encoding="utf-8")
+            worst_log.write_text(worst_out, encoding="utf-8")
+
+            file_function_summaries = extract_function_summaries(c_file)
+            for fsum in file_function_summaries:
+                function_rows.append({"File": str(c_file.relative_to(project_root)), **fsum})
+
+            errors = []
+            if has_error_text(summary_out):
+                errors.append("summary")
+            if has_error_text(worst_out):
+                errors.append("worst")
+            if not summary_ok and not worst_ok:
+                errors.append("analysis_not_ok")
+
+            if errors:
+                project_failures += 1
+                error_log.write_text(
+                    "\n".join(
+                        [
+                            f"project={project_name}",
+                            f"file={c_file.relative_to(project_root)}",
+                            f"error_stages={','.join(errors)}",
+                            "---- summary ----",
+                            summary_out,
+                            "---- worst ----",
+                            worst_out,
+                        ]
+                    ),
+                    encoding="utf-8",
+                )
+
+            rows.append(
+                {
+                    "Project": project_name,
+                    "File": str(c_file.relative_to(project_root)),
+                    "SummaryCommand": " ".join(summary_cmd),
+                    "SummaryOK": summary_ok,
+                    "WorstPathCommand": " ".join(worst_cmd),
+                    "WorstPathOK": worst_ok,
+                    "WorstMems": parse_worst_mems(worst_out),
+                    "WorstPath": parse_worst_path(worst_out),
+                    "FunctionsAnalyzed": len(file_function_summaries),
+                    "SummaryLog": str(summary_log.relative_to(ROOT)),
+                    "WorstPathLog": str(worst_log.relative_to(ROOT)),
+                    "ErrorLog": str(error_log.relative_to(ROOT)) if errors else "",
+                    "Error": "" if not errors else "see logs",
+                }
             )
 
-        worst_mems = parse_worst_mems(worst_out)
-        worst_path = parse_worst_path(worst_out)
+        with function_csv.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=["File", "Function", "StartLine", "EndLine", "LOC", "Branches", "Returns", "Calls"],
+            )
+            writer.writeheader()
+            writer.writerows(function_rows)
 
-        print(f"[{item['name']}] worst_mems={worst_mems or 'N/A'}")
-        print(f"[{item['name']}] worst_path={worst_path or 'N/A'}")
-
-        rows.append(
-            {
-                "Project": item["name"],
-                "SummaryCommand": " ".join(summary_cmd),
-                "SummaryOK": summary_ok,
-                "WorstPathCommand": " ".join(worst_cmd),
-                "WorstPathOK": worst_ok,
-                "WorstMems": worst_mems,
-                "WorstPath": worst_path,
-                "FunctionsAnalyzed": len(func_summaries),
-                "FunctionSummaryCSV": str(function_csv.relative_to(ROOT)),
-                "SummaryLog": str(summary_log.relative_to(ROOT)),
-                "WorstPathLog": str(worst_log.relative_to(ROOT)),
-                "ErrorLog": str(error_log.relative_to(ROOT)) if errors else "",
-                "Error": "" if (summary_ok and worst_ok and not errors) else "see logs",
-            }
-        )
+        print(f"[{project_name}] files={len(c_files)}, fail_files={project_failures}, function_summary={function_csv}")
 
     with CSV_FILE.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
             fieldnames=[
                 "Project",
+                "File",
                 "SummaryCommand",
                 "SummaryOK",
                 "WorstPathCommand",
@@ -250,7 +260,6 @@ def main() -> None:
                 "WorstMems",
                 "WorstPath",
                 "FunctionsAnalyzed",
-                "FunctionSummaryCSV",
                 "SummaryLog",
                 "WorstPathLog",
                 "ErrorLog",
