@@ -48,8 +48,6 @@ SyntaxVisitor::Action NameCataloger::visitTranslationUnit(const TranslationUnitS
 
     catalog_->exitLevel();
 
-    std::cout << "CATALOG\n" << *catalog_ << std::endl;
-
     return Action::Skip;
 }
 
@@ -113,4 +111,3 @@ SyntaxVisitor::Action NameCataloger::visitAmbiguousExpressionOrDeclarationStatem
 
     return Action::Skip;
 }
-
