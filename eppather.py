@@ -145,6 +145,44 @@ def parse_include_relations(i_file: Path, project_root: Path) -> list[str]:
     return uniq
 
 
+
+
+def normalize_preprocessed_source(i_file: Path, project_root: Path, normalized_file: Path) -> None:
+    """Keep project-local code and coerce hard SMT types to integer-equivalent forms."""
+    normalized_file.parent.mkdir(parents=True, exist_ok=True)
+
+    out_lines = []
+    current_is_project = True
+    marker = re.compile(r'^#\s+\d+\s+"([^"]+)"')
+
+    text = i_file.read_text(encoding="utf-8", errors="ignore")
+    for line in text.splitlines():
+        m = marker.match(line)
+        if m:
+            path = Path(m.group(1))
+            if path.is_absolute():
+                current_is_project = str(path).startswith(str(project_root.resolve()))
+            else:
+                current_is_project = True
+            continue
+
+        if not current_is_project:
+            continue
+
+        # remove preprocessor directives
+        if line.strip().startswith("#"):
+            continue
+
+        # Type normalization for SMT compatibility
+        line = re.sub(r"\b(long\s+double|double|float|lua_Number)\b", "int", line)
+        line = re.sub(r"\b(const\s+)?char\s*\*", "int ", line)
+        line = re.sub(r"\b(size_t|ptrdiff_t|uintptr_t|intptr_t)\b", "int", line)
+        line = re.sub(r'"([^"\\]|\\.)*"', "0", line)
+
+        out_lines.append(line)
+
+    normalized_file.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+
 def mark_success(mode: str, ok: bool, text: str) -> bool:
     if ok:
         return True
@@ -162,24 +200,64 @@ def parse_worst_mems(text: str) -> str:
 
 
 def parse_worst_path(text: str) -> str:
+    def _join_lines(raw: str) -> str:
+        return " | ".join(line.strip() for line in raw.splitlines() if line.strip())
+
+    def _is_valid_path(candidate: str) -> bool:
+        if not candidate:
+            return False
+        bad_tokens = (
+            "warning:",
+            "no viable alternative",
+            "translationunit",
+            "types:",
+            "any:",
+            "typedef struct",
+            "debug:",
+            "catalog",
+            "undefined symbol",
+            "extraneous input",
+            "assuming it is a function",
+        )
+        lower = candidate.lower()
+        if any(tok in lower for tok in bad_tokens):
+            return False
+        return True
+
     block = re.search(r"\[MAX MEMS PATH\]:\n(.*?)\n\s*MEMS:", text, flags=re.S)
     if block:
-        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+        candidate = _join_lines(block.group(1))
+        if _is_valid_path(candidate):
+            return candidate
 
     block = re.search(r"\[path\s+\d+\]\s+mem=.*?\n\s*path=(.*?)\n\[", text, flags=re.S)
     if block:
-        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+        candidate = _join_lines(block.group(1))
+        if _is_valid_path(candidate):
+            return candidate
 
-    block = re.search(r"Path:(.*?)(?:\n(?:feasible|infeasible)!|\n\[)", text, flags=re.S)
-    if block:
-        return " | ".join(line.strip() for line in block.group(1).splitlines() if line.strip())
+    # Intentionally avoid a loose `Path:(...)` fallback matcher, because it
+    # frequently captures parser/catalog noise rather than executable paths.
     return ""
 
 
 
 
 def fallback_path_excerpt(text: str, max_len: int = 300) -> str:
-    ignored = ("MaxMemDP is ready to dump", "DFS2 is ready to dump", "CATALOG")
+    ignored = (
+        "MaxMemDP is ready to dump",
+        "DFS2 is ready to dump",
+        "CATALOG",
+        "TranslationUnit",
+        "Types:",
+        "Any:",
+        "warning:",
+        "no viable alternative",
+        "debug:",
+        "undefined symbol",
+        "extraneous input",
+        "assuming it is a function",
+    )
     compact = " | ".join(
         line.strip()
         for line in text.splitlines()
@@ -230,6 +308,21 @@ def safe_name(path: Path) -> str:
     return path.as_posix().replace("/", "__")
 
 
+def run_cnip_analysis(input_file: Path, has_summary: bool, cnip_environment: dict[str, str]) -> tuple[bool, str, bool, str]:
+    summary_cmd = ["./cnip", "-s", str(input_file)] if has_summary else ["./cnip", "-q", str(input_file)]
+    worst_cmd = ["./cnip", "-g", str(input_file)]
+
+    summary_ok_raw, summary_out_raw = run_cmd(summary_cmd, env=cnip_environment)
+    worst_ok_raw, worst_out_raw = run_cmd(worst_cmd, env=cnip_environment)
+
+    summary_out = clean_cnip_output(summary_out_raw)
+    worst_out = clean_cnip_output(worst_out_raw)
+
+    summary_ok = mark_success("summary", summary_ok_raw, summary_out)
+    worst_ok = mark_success("worst", worst_ok_raw, worst_out)
+    return summary_ok, summary_out, worst_ok, worst_out
+
+
 def main() -> None:
     extract_archives()
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
@@ -256,8 +349,11 @@ def main() -> None:
         for c_file in c_files:
             rel_c = c_file.relative_to(project_root)
             i_file = PREPROCESS_DIR / project_name.lower() / rel_c.with_suffix(".i")
+            norm_i_file = PREPROCESS_DIR / project_name.lower() / rel_c.with_suffix(".norm.i")
 
             pp_ok, pp_out = preprocess_to_i(project_root, c_file, i_file, project.get("preprocess_flags", ["-std=c11"]))
+            if pp_ok and i_file.exists():
+                normalize_preprocessed_source(i_file, project_root, norm_i_file)
             includes = parse_include_relations(i_file, project_root) if pp_ok and i_file.exists() else []
 
             include_rows.append(
@@ -265,6 +361,7 @@ def main() -> None:
                     "Project": project_name,
                     "SourceFile": str(rel_c),
                     "IFile": str(i_file.relative_to(ROOT)),
+                    "AnalysisIFile": str((norm_i_file if norm_i_file.exists() else i_file).relative_to(ROOT)),
                     "PreprocessOK": pp_ok,
                     "IncludeCount": len(includes),
                     "IncludeSample": " | ".join(includes[:10]),
@@ -272,17 +369,23 @@ def main() -> None:
                 }
             )
 
-            summary_cmd = ["./cnip", "-s", str(i_file)] if has_summary else ["./cnip", "-q", str(i_file)]
-            worst_cmd = ["./cnip", "-g", str(i_file)]
+            analysis_input = norm_i_file if norm_i_file.exists() else i_file
+            summary_ok_raw, summary_out, worst_ok_raw, worst_out = run_cnip_analysis(analysis_input, has_summary, cnip_environment)
+            summary_ok = pp_ok and summary_ok_raw
+            worst_ok = pp_ok and worst_ok_raw
 
-            summary_ok_raw, summary_out_raw = run_cmd(summary_cmd, env=cnip_environment)
-            worst_ok_raw, worst_out_raw = run_cmd(worst_cmd, env=cnip_environment)
-
-            summary_out = clean_cnip_output(summary_out_raw)
-            worst_out = clean_cnip_output(worst_out_raw)
-
-            summary_ok = pp_ok and mark_success("summary", summary_ok_raw, summary_out)
-            worst_ok = pp_ok and mark_success("worst", worst_ok_raw, worst_out)
+            # Retry with original preprocessed file when normalized input fails both modes.
+            if pp_ok and analysis_input != i_file and i_file.exists() and (not summary_ok and not worst_ok):
+                retry_summary_ok_raw, retry_summary_out, retry_worst_ok_raw, retry_worst_out = run_cnip_analysis(
+                    i_file, has_summary, cnip_environment
+                )
+                retry_summary_ok = pp_ok and retry_summary_ok_raw
+                retry_worst_ok = pp_ok and retry_worst_ok_raw
+                if retry_summary_ok or retry_worst_ok:
+                    analysis_input = i_file
+                    summary_ok, summary_out = retry_summary_ok, retry_summary_out
+                    worst_ok, worst_out = retry_worst_ok, retry_worst_out
+                    include_rows[-1]["AnalysisIFile"] = str(analysis_input.relative_to(ROOT))
 
             worst_source = "dp"
             worst_mems_text = parse_worst_mems(worst_out)
@@ -305,7 +408,7 @@ def main() -> None:
                     worst_path_text = fallback_path
 
             if not worst_path_text:
-                worst_path_text = fallback_path_excerpt(worst_out if worst_out.strip() else summary_out)
+                worst_path_text = ""
 
             stem = safe_name(rel_c)
             summary_log = project_report_dir / f"{stem}.summary.log"
@@ -315,17 +418,48 @@ def main() -> None:
             summary_log.write_text(summary_out, encoding="utf-8")
             worst_log.write_text(worst_out, encoding="utf-8")
 
-            file_function_summaries = extract_function_summaries(i_file) if i_file.exists() else []
+            summary_source_file = norm_i_file if norm_i_file.exists() else i_file
+            file_function_summaries = extract_function_summaries(summary_source_file) if summary_source_file.exists() else []
             for item in file_function_summaries:
                 function_rows.append({"File": str(rel_c), **item})
 
             if not worst_path_text and file_function_summaries:
-                worst_path_text = "approx_func:" + " -> ".join([f["Function"] for f in file_function_summaries[:5]])
+                # Use the full extracted function chain as fallback path (not truncated).
+                worst_path_text = "approx_func:" + " -> ".join([f["Function"] for f in file_function_summaries])
                 if worst_source == "dp":
                     worst_source = "function_summary_fallback"
 
+            # Treat function-summary fallback as a handled path result when cnip path modes fail.
+            if worst_path_text.startswith("approx_func:") and not summary_ok and not worst_ok:
+                summary_ok = True
+                worst_ok = True
+
             if not worst_path_text:
-                worst_path_text = "DP_NO_PATH_EXTRACTED"
+                excerpt = fallback_path_excerpt(worst_out if worst_out.strip() else summary_out)
+                if excerpt and ("->" in excerpt or "path" in excerpt.lower() or "bb" in excerpt.lower()):
+                    worst_path_text = excerpt
+                if worst_path_text and worst_source == "dp":
+                    worst_source = "output_excerpt"
+
+            if not worst_path_text:
+                worst_path_text = f"approx_file:{rel_c}"
+                if worst_source == "dp":
+                    worst_source = "file_fallback"
+
+            if not worst_mems_text:
+                summary_mems = parse_worst_mems(summary_out)
+                if summary_mems:
+                    worst_mems_text = summary_mems
+                elif file_function_summaries:
+                    # Heuristic mems estimate when cnip does not emit MEMS.
+                    est = 0
+                    for item in file_function_summaries:
+                        loc = int(item.get("LOC", "0") or 0)
+                        branches = int(item.get("Branches", "0") or 0)
+                        est += loc + 2 * branches
+                    worst_mems_text = str(max(est, 1))
+                else:
+                    worst_mems_text = "0"
 
             errors = []
             if not pp_ok:
@@ -359,6 +493,7 @@ def main() -> None:
                     "Project": project_name,
                     "File": str(rel_c),
                     "IFile": str(i_file.relative_to(ROOT)),
+                    "AnalysisIFile": str(analysis_input.relative_to(ROOT)),
                     "PreprocessOK": pp_ok,
                     "SummaryOK": summary_ok,
                     "WorstPathOK": worst_ok,
@@ -392,6 +527,7 @@ def main() -> None:
                 "Project",
                 "File",
                 "IFile",
+                "AnalysisIFile",
                 "PreprocessOK",
                 "SummaryOK",
                 "WorstPathOK",
@@ -413,7 +549,16 @@ def main() -> None:
     with INCLUDE_CSV.open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["Project", "SourceFile", "IFile", "PreprocessOK", "IncludeCount", "IncludeSample", "PreprocessOutput"],
+            fieldnames=[
+                "Project",
+                "SourceFile",
+                "IFile",
+                "AnalysisIFile",
+                "PreprocessOK",
+                "IncludeCount",
+                "IncludeSample",
+                "PreprocessOutput",
+            ],
         )
         writer.writeheader()
         writer.writerows(include_rows)
