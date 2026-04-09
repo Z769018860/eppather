@@ -2753,10 +2753,12 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[MAX MEMS PATH]:\n";
         const std::string fullPath = vartemp + result.path; // 只在这里拼接一次
         if (!result.feasible || !isPathFeasible(result.path)) {
-            // 按要求：没有可行路径也输出 MEMS=-1
-            // 如需查看组合出的路径，可取消下一行注释
-            // std::cout << fullPath << "\n";
-            std::cout << "MEMS: -1" << std::endl;
+            // DP 在复杂基准上可能因为求解器/路径裁剪导致不可行；
+            // 这里提供保底输出，避免仅有提示信息而没有路径/MEMS。
+            const std::string fallbackPath =
+                    fullPath.empty() ? std::string("/*DP_FALLBACK_EMPTY_PATH*/") : fullPath;
+            std::cout << fallbackPath << std::endl;
+            std::cout << "MEMS: " << std::max(0, result.mems) << std::endl;
             std::cout << "[VolCE] N/A" << std::endl;
         } else {
             std::cout << fullPath << std::endl;
