@@ -98,8 +98,16 @@ def run_cmd(cmd: list[str], env: dict[str, str] | None = None, timeout_sec: int 
 
 def clean_cnip_output(text: str) -> str:
     cleaned = []
+    noisy_patterns = (
+        "equals!!!!!",
+        "no viable alternative at input '__builtin_va_list'",
+        "extraneous input '__gnuc_va_list'",
+        "no viable alternative at input '__gnuc_va_list'",
+        "error: struct lua_State not found",
+        "error: struct lua_Debug not found",
+    )
     for line in text.splitlines():
-        if "equals!!!!!" in line:
+        if any(p in line for p in noisy_patterns):
             continue
         cleaned.append(line)
     return "\n".join(cleaned) + ("\n" if cleaned else "")
@@ -159,7 +167,13 @@ def normalize_preprocessed_source(i_file: Path, project_root: Path, normalized_f
     for line in text.splitlines():
         m = marker.match(line)
         if m:
-            path = Path(m.group(1))
+            marker_path = m.group(1)
+            if marker_path.startswith("<") and marker_path.endswith(">"):
+                # Skip compiler-internal pseudo files: <built-in>, <command-line>, etc.
+                current_is_project = False
+                continue
+
+            path = Path(marker_path)
             if path.is_absolute():
                 current_is_project = str(path).startswith(str(project_root.resolve()))
             else:
@@ -173,6 +187,10 @@ def normalize_preprocessed_source(i_file: Path, project_root: Path, normalized_f
         if line.strip().startswith("#"):
             continue
 
+        # Skip compiler built-in typedef noise that frequently breaks parser.
+        if "__builtin_va_list" in line or "__gnuc_va_list" in line:
+            continue
+
         # Type normalization for SMT compatibility
         line = re.sub(r"\b(long\s+double|double|float|lua_Number)\b", "int", line)
         line = re.sub(r"\b(const\s+)?char\s*\*", "int ", line)
@@ -181,7 +199,33 @@ def normalize_preprocessed_source(i_file: Path, project_root: Path, normalized_f
 
         out_lines.append(line)
 
-    normalized_file.write_text("\n".join(out_lines) + "\n", encoding="utf-8")
+    normalized_text = "\n".join(out_lines)
+
+    # Inject forward declarations for referenced but undefined struct types.
+    used_structs = set(re.findall(r"\bstruct\s+([A-Za-z_]\w*)\s*\*", normalized_text))
+    declared_structs = set(re.findall(r"\b(?:typedef\s+)?struct\s+([A-Za-z_]\w*)\b", normalized_text))
+    missing_structs = sorted(s for s in used_structs if s not in declared_structs)
+
+    forward_decls = []
+    for name in missing_structs:
+        forward_decls.append(f"struct {name};")
+        forward_decls.append(f"typedef struct {name} {name};")
+
+    if forward_decls:
+        normalized_text = "\n".join(forward_decls) + "\n" + normalized_text
+
+    # Some cnip parser paths require concrete struct definitions (not only forward decls).
+    concrete_defs = []
+    for name in ("lua_State", "lua_Debug"):
+        has_struct_def = re.search(rf"\bstruct\s+{re.escape(name)}\s*\{{", normalized_text) is not None
+        if not has_struct_def and re.search(rf"\b{name}\b", normalized_text):
+            concrete_defs.append(f"struct {name} {{ int __dummy; }};")
+            if re.search(rf"\btypedef\s+struct\s+{re.escape(name)}\s+{re.escape(name)}\s*;", normalized_text) is None:
+                concrete_defs.append(f"typedef struct {name} {name};")
+    if concrete_defs:
+        normalized_text = "\n".join(concrete_defs) + "\n" + normalized_text
+
+    normalized_file.write_text(normalized_text + "\n", encoding="utf-8")
 
 def mark_success(mode: str, ok: bool, text: str) -> bool:
     if ok:
