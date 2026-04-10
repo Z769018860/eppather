@@ -29,6 +29,11 @@ MAX_LOOP = int((os.getenv("AUTO_MEM_MAX_LOOP") or "3").strip() or "3")
 MAX_INLINE = int((os.getenv("AUTO_MEM_MAX_INLINE") or "3").strip() or "3")
 MAX_BACKTRACK_ROUNDS = int((os.getenv("AUTO_MEM_MAX_BACKTRACK_ROUNDS") or "5").strip() or "5")
 AUTO_BATCH_STAGES_ENV = (os.getenv("AUTO_MEM_BATCH_STAGES") or "5,10,20,100,1000").strip()
+REQUIRE_GPT_DP_MATCH = (
+    os.getenv("AUTO_MEM_REQUIRE_GPT_DP_MATCH")
+    or os.getenv("AUTO_MEM_REQUIRE_GPT_DFS_MATCH")
+    or "1"
+).strip() != "0"
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -393,13 +398,18 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
 def build_system_prompt() -> str:
     base = (
         "You are a static-analysis assistant for C code.\n"
-        "Target: generate one FEASIBLE worst-case path with MAX MEMS that matches cnip static analysis outputs as strictly as possible.\n\n"
+        "Target: generate one FEASIBLE worst-case path with MAX MEMS that matches cnip DP outputs as strictly as possible.\n\n"
+        "Primary objective priority:\n"
+        "1) Match DP MAX MEMS counting style.\n"
+        "2) Match DP path expression style and branch order.\n"
+        "3) Keep output strict JSON.\n\n"
         "You MUST follow a step-by-step method:\n"
         "Step 1) Build symbolic constraints for branches, loops, and calls under the given caps.\n"
         "Step 2) Enumerate feasible candidate paths (bounded) and reject contradictory constraints.\n"
-        "Step 3) For each feasible candidate, compute MEMS strictly by rules below.\n"
-        "Step 4) Choose the candidate with maximum MEMS.\n"
-        "Step 5) Self-verify the chosen path feasibility + MEMS consistency and output JSON only.\n\n"
+        "Step 3) For each feasible candidate, compute MEMS strictly by DP counting rules below.\n"
+        "Step 4) Choose the candidate with maximum MEMS (DP target principle).\n"
+        "Step 5) Self-verify: recompute MEMS from emitted path line-by-line and ensure exact consistency.\n"
+        "Step 6) Output JSON only.\n\n"
         "MUST align with cnip assumptions:\n"
         f"- Loop unrolling cap = {MAX_LOOP}. Never exceed this cap for each loop in a single path.\n"
         f"- Function inline expansion cap = {MAX_INLINE} levels.\n"
@@ -414,10 +424,14 @@ def build_system_prompt() -> str:
         "- Conditions contribute reads; use short-circuit semantics for && and ||.\n"
         "- Function-call arguments still contribute expression reads.\n"
         "- Do not add external ABI overhead not present in static analyzer.\n\n"
-        "Hard constraints to reduce mismatch with DFS/DP results:\n"
+        "Hard constraints to reduce mismatch with DP/DFS results:\n"
+        "- Treat DP output style as oracle target for worst-case path selection.\n"
         "- Prefer exact symbolic predicates from source conditions (keep operators and constants unchanged).\n"
         "- If unsure about branch feasibility, choose the conservative feasible branch with explicit guard in path.\n"
         "- For loops, explicitly emit each taken iteration guard and a final not-taken guard.\n"
+        "- Branch order in path must follow source execution order exactly.\n"
+        "- Include all MEMS-contributing statements on the chosen path; do not skip hidden reads in conditions/index/pointer expressions.\n"
+        "- Avoid undercounting from short-circuit logic; count only actually evaluated side under path predicates.\n"
         "- Keep path statements close to source-level assignments/conditions only; avoid invented statements.\n"
         "- Final mems must be consistent with the emitted path; do a self-check before output.\n\n"
         "Output STRICT JSON only:\n"
@@ -488,6 +502,11 @@ def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
             reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
         if not e.get("success_dp", False):
             reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
+        if e.get("success_gpt", False) and e.get("success_dp", False) and (not e.get("gpt_eq_dp_mems", False)):
+            reasons.append(
+                f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
+                "请严格按DP口径重算分支条件与循环展开。"
+            )
     if not reasons:
         reasons.append("批量执行出现失败，请提高路径可行性和 MEMS 计数一致性。")
     feedback = " | ".join(reasons[:5])
@@ -707,7 +726,7 @@ def main():
 
     results: List[Dict[str, Any]] = []
     stages = _parse_batch_stages(len(c_files))
-    print(f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}")
+    print(f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}, require_gpt_dp_match={REQUIRE_GPT_DP_MATCH}")
 
     try:
         round_idx = 0
@@ -719,7 +738,14 @@ def main():
                 subset = c_files[:stage]
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
-                failed = [x for x in stage_results if not (x["success_gpt"] and x["success_dfs"] and x["success_dp"])]
+                failed = []
+                for x in stage_results:
+                    base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
+                    if not base_ok:
+                        failed.append(x)
+                        continue
+                    if REQUIRE_GPT_DP_MATCH and (not x.get("gpt_eq_dp_mems", False)):
+                        failed.append(x)
                 if failed:
                     fb = _add_feedback_from_failures(failed)
                     print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
