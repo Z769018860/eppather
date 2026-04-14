@@ -1717,101 +1717,110 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
     std::unordered_map<std::string, size_t> approxBestCase;
     std::unordered_set<std::string> reasonSet;
     constexpr int kFixpointMaxIters = 32;
+    const bool crossFunctionMode = knownFunctions.size() > 1;
 
     for (const auto& [name, summary] : directSummaries) {
-        approxWorst[name] = std::max(0, summary.worstMems);
-        approxAvg[name] = summary.avgMems >= 0.0 ? summary.avgMems : 0.0;
+        approxWorst[name] = summary.worstMems;
+        approxAvg[name] = summary.avgMems;
         approxBestCase[name] = 0;
     }
 
     int iterationsUsed = 0;
-    bool converged = false;
-    for (int iter = 0; iter < kFixpointMaxIters; ++iter) {
-        iterationsUsed = iter + 1;
-        const auto prevWorst = approxWorst;
-        const auto prevAvg = approxAvg;
-        bool changed = false;
+    bool converged = !crossFunctionMode;
+    if (crossFunctionMode) {
+        // 跨函数阶段只用函数摘要做 MEMS 组合，不做符号执行拼接摘要条件的可行性判定。
+        for (const auto& [name, summary] : directSummaries) {
+            approxWorst[name] = std::max(0, summary.worstMems);
+            approxAvg[name] = summary.avgMems >= 0.0 ? summary.avgMems : 0.0;
+        }
 
-        for (const auto& [name, cases] : functionPathTable) {
-            if (cases.empty()) {
-                continue;
-            }
+        for (int iter = 0; iter < kFixpointMaxIters; ++iter) {
+            iterationsUsed = iter + 1;
+            const auto prevWorst = approxWorst;
+            const auto prevAvg = approxAvg;
+            bool changed = false;
 
-            int newWorst = std::numeric_limits<int>::min();
-            size_t bestIdx = 0;
-            double newAvg = 0.0;
-            bool hasProbWeight = enableVolce;
-            double probSum = 0.0;
-
-            for (size_t i = 0; i < cases.size(); ++i) {
-                const auto& caseSummary = cases[i];
-                int composedWorst = caseSummary.mems;
-                double composedAvg = static_cast<double>(caseSummary.mems);
-
-                for (const auto& callee : caseSummary.callees) {
-                    if (knownFunctions.find(callee) == knownFunctions.end()) {
-                        reasonSet.insert("external callee omitted=" + callee);
-                        continue;
-                    }
-                    auto worstIt = prevWorst.find(callee);
-                    auto avgIt = prevAvg.find(callee);
-                    if (worstIt != prevWorst.end()) {
-                        composedWorst += worstIt->second;
-                    }
-                    if (avgIt != prevAvg.end()) {
-                        composedAvg += avgIt->second;
-                    }
+            for (const auto& [name, cases] : functionPathTable) {
+                if (cases.empty()) {
+                    continue;
                 }
 
-                if (composedWorst > newWorst) {
-                    newWorst = composedWorst;
-                    bestIdx = i;
-                }
+                int newWorst = std::numeric_limits<int>::min();
+                size_t bestIdx = 0;
+                double newAvg = 0.0;
+                bool hasProbWeight = enableVolce;
+                double probSum = 0.0;
 
-                if (enableVolce) {
-                    if (caseSummary.prob) {
-                        newAvg += composedAvg * *caseSummary.prob;
-                        probSum += *caseSummary.prob;
-                    } else {
-                        hasProbWeight = false;
-                    }
-                } else {
-                    newAvg += composedAvg;
-                }
-            }
-
-            if (!enableVolce) {
-                newAvg /= static_cast<double>(cases.size());
-            } else if (!hasProbWeight || probSum <= 0.0) {
-                newAvg = 0.0;
-                for (const auto& caseSummary : cases) {
+                for (size_t i = 0; i < cases.size(); ++i) {
+                    const auto& caseSummary = cases[i];
+                    int composedWorst = caseSummary.mems;
                     double composedAvg = static_cast<double>(caseSummary.mems);
+
                     for (const auto& callee : caseSummary.callees) {
+                        if (knownFunctions.find(callee) == knownFunctions.end()) {
+                            reasonSet.insert("external callee omitted=" + callee);
+                            continue;
+                        }
+                        auto worstIt = prevWorst.find(callee);
                         auto avgIt = prevAvg.find(callee);
+                        if (worstIt != prevWorst.end()) {
+                            composedWorst += worstIt->second;
+                        }
                         if (avgIt != prevAvg.end()) {
                             composedAvg += avgIt->second;
                         }
                     }
-                    newAvg += composedAvg;
+
+                    if (composedWorst > newWorst) {
+                        newWorst = composedWorst;
+                        bestIdx = i;
+                    }
+
+                    if (enableVolce) {
+                        if (caseSummary.prob) {
+                            newAvg += composedAvg * *caseSummary.prob;
+                            probSum += *caseSummary.prob;
+                        } else {
+                            hasProbWeight = false;
+                        }
+                    } else {
+                        newAvg += composedAvg;
+                    }
                 }
-                newAvg /= static_cast<double>(cases.size());
-                reasonSet.insert("missing volce probability during fixpoint composition for " + name);
+
+                if (!enableVolce) {
+                    newAvg /= static_cast<double>(cases.size());
+                } else if (!hasProbWeight || probSum <= 0.0) {
+                    newAvg = 0.0;
+                    for (const auto& caseSummary : cases) {
+                        double composedAvg = static_cast<double>(caseSummary.mems);
+                        for (const auto& callee : caseSummary.callees) {
+                            auto avgIt = prevAvg.find(callee);
+                            if (avgIt != prevAvg.end()) {
+                                composedAvg += avgIt->second;
+                            }
+                        }
+                        newAvg += composedAvg;
+                    }
+                    newAvg /= static_cast<double>(cases.size());
+                    reasonSet.insert("missing volce probability during fixpoint composition for " + name);
+                }
+
+                if (newWorst != approxWorst[name]) {
+                    approxWorst[name] = newWorst;
+                    changed = true;
+                }
+                if (std::abs(newAvg - approxAvg[name]) > 1e-9) {
+                    approxAvg[name] = newAvg;
+                    changed = true;
+                }
+                approxBestCase[name] = bestIdx;
             }
 
-            if (newWorst != approxWorst[name]) {
-                approxWorst[name] = newWorst;
-                changed = true;
+            if (!changed) {
+                converged = true;
+                break;
             }
-            if (std::abs(newAvg - approxAvg[name]) > 1e-9) {
-                approxAvg[name] = newAvg;
-                changed = true;
-            }
-            approxBestCase[name] = bestIdx;
-        }
-
-        if (!changed) {
-            converged = true;
-            break;
         }
     }
 
@@ -1921,9 +1930,13 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
 
     std::cout << "[PROGRAM SUMMARY]" << std::endl;
     std::cout << "entry=" << entryName << std::endl;
-    std::cout << "recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=" << kFixpointMaxIters
-              << ", used_iters=" << iterationsUsed
-              << ", converged=" << (converged ? "true" : "false") << ")" << std::endl;
+    if (crossFunctionMode) {
+        std::cout << "recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=" << kFixpointMaxIters
+                  << ", used_iters=" << iterationsUsed
+                  << ", converged=" << (converged ? "true" : "false") << ")" << std::endl;
+    } else {
+        std::cout << "recursion_policy=SINGLE_FUNCTION_FEASIBLE_PATH_EXACT" << std::endl;
+    }
 
     if (knownFunctions.find(entryName) == knownFunctions.end()) {
         std::cout << "worst_mems=N/A" << std::endl;
