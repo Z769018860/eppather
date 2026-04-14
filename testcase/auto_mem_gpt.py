@@ -27,6 +27,13 @@ INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
 MAX_LOOP = int((os.getenv("AUTO_MEM_MAX_LOOP") or "3").strip() or "3")
 MAX_INLINE = int((os.getenv("AUTO_MEM_MAX_INLINE") or "3").strip() or "3")
+MAX_BACKTRACK_ROUNDS = int((os.getenv("AUTO_MEM_MAX_BACKTRACK_ROUNDS") or "5").strip() or "5")
+AUTO_BATCH_STAGES_ENV = (os.getenv("AUTO_MEM_BATCH_STAGES") or "5,10,20,100,1000").strip()
+REQUIRE_GPT_DP_MATCH = (
+    os.getenv("AUTO_MEM_REQUIRE_GPT_DP_MATCH")
+    or os.getenv("AUTO_MEM_REQUIRE_GPT_DFS_MATCH")
+    or "1"
+).strip() != "0"
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -123,6 +130,7 @@ def _build_run_env() -> Dict[str, str]:
 
 CNIP_BIN = _resolve_cnip_path()
 RUN_ENV = _build_run_env()
+PROMPT_FEEDBACK_HISTORY: List[str] = []
 
 
 if not API_KEY:
@@ -221,7 +229,8 @@ def extract_dfs_summary(output: str) -> Dict[str, str]:
     fallback_mem = None
     fallback_path = ""
 
-    for m in re.finditer(r"Path:(.*?)\nfeasible!!!\s*\n\[mem\]:\s*(-?\d+)", output, re.DOTALL):
+    feasible_matches = list(re.finditer(r"Path:(.*?)\nfeasible!!!\s*\n\[mem\]:\s*(-?\d+)", output, re.DOTALL))
+    for m in feasible_matches:
         path_block = m.group(1).strip()
         mem = int(m.group(2))
         if fallback_mem is None or mem > fallback_mem:
@@ -238,6 +247,12 @@ def extract_dfs_summary(output: str) -> Dict[str, str]:
 
     if best_path:
         out["dfs_best_path"] = _to_test_input_expr(best_path)
+    elif not feasible_matches:
+        if out["dfs_max_mems"] == "":
+            out["dfs_max_mems"] = "-1"
+        if out["dfs_min_mems"] == "":
+            out["dfs_min_mems"] = "-1"
+        out["dfs_best_path"] = "[NO FEASIBLE PATH]"
 
     return out
 
@@ -313,7 +328,11 @@ def _normalize_path_expr(path_expr: str) -> str:
 
 
 def _valid_mems_path(mems: Optional[int], path: str) -> bool:
-    if mems is None or (not isinstance(mems, int)) or mems < 0:
+    if mems is None or (not isinstance(mems, int)):
+        return False
+    if mems == -1:
+        return (path or "").strip() in ("", "[NO FEASIBLE PATH]")
+    if mems < 0:
         return False
     if not path or "[TEST INPUT PATH EXPR]:" not in path:
         return False
@@ -335,11 +354,18 @@ def _parse_json_payload(js_text: str) -> Tuple[Optional[int], str]:
     try:
         obj = json.loads(js_text)
         mems = obj.get("mems", None)
-        if isinstance(mems, str) and mems.isdigit():
+        if isinstance(mems, str) and re.fullmatch(r"-?\d+", mems):
             mems = int(mems)
-        if not isinstance(mems, int) or mems < 0:
+        if not isinstance(mems, int):
+            return None, ""
+        if mems < -1:
             return None, ""
         path_expr = obj.get("test_input_path_expr", "")
+        if mems == -1:
+            path_expr = str(path_expr or "").strip()
+            if path_expr not in ("", "[NO FEASIBLE PATH]"):
+                path_expr = "[NO FEASIBLE PATH]"
+            return mems, path_expr
         path_expr = _normalize_path_expr(path_expr)
         return mems, path_expr
     except Exception:
@@ -378,8 +404,10 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
         if _valid_mems_path(mems, path_expr):
             return mems, path_expr
 
-    mems_rgx = re.search(r'"?mems"?\s*[:=]\s*"?(\d+)"?', unfenced, re.IGNORECASE)
+    mems_rgx = re.search(r'"?mems"?\s*[:=]\s*"?(-?\d+)"?', unfenced, re.IGNORECASE)
     mems_val = int(mems_rgx.group(1)) if mems_rgx else None
+    if mems_val == -1:
+        return -1, "[NO FEASIBLE PATH]"
     path_block = _extract_path_block(unfenced)
     if _valid_mems_path(mems_val, path_block):
         return mems_val, path_block
@@ -388,32 +416,54 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
 
 
 def build_system_prompt() -> str:
-    return (
+    base = (
         "You are a static-analysis assistant for C code.\n"
-        "Target: generate one FEASIBLE path with MAX MEMS that matches cnip static analysis outputs as strictly as possible.\n\n"
+        "Target: generate one FEASIBLE worst-case path with MAX MEMS that matches cnip DP outputs as strictly as possible.\n\n"
+        "Primary objective priority:\n"
+        "1) Match DP MAX MEMS counting style.\n"
+        "2) Match DP path expression style and branch order.\n"
+        "3) Keep output strict JSON.\n\n"
+        "You MUST follow a step-by-step method:\n"
+        "Step 1) Build symbolic constraints for branches, loops, and calls under the given caps.\n"
+        "Step 2) Enumerate feasible candidate paths (bounded) and reject contradictory constraints.\n"
+        "Step 3) If NO feasible path exists, set mems=-1 and test_input_path_expr='[NO FEASIBLE PATH]'.\n"
+        "Step 4) Otherwise compute MEMS for each feasible candidate by DP counting rules below.\n"
+        "Step 5) Choose the feasible candidate with maximum MEMS (DP target principle).\n"
+        "Step 6) Self-verify: recompute MEMS from emitted path line-by-line and ensure exact consistency.\n"
+        "Step 7) Output JSON only.\n\n"
         "MUST align with cnip assumptions:\n"
         f"- Loop unrolling cap = {MAX_LOOP}. Never exceed this cap for each loop in a single path.\n"
         f"- Function inline expansion cap = {MAX_INLINE} levels.\n"
         "- For recursion/mutual recursion: use fixpoint-style approximation idea; do NOT do unbounded expansion.\n"
         "- Respect path feasibility (no contradictory branch predicates).\n\n"
         "MEMS definition (strict):\n"
-        "- MEMS = reads + writes along the chosen path.\n"
+        "- MEMS = variable-memory accesses along the chosen path.\n"
         "- Read as rvalue => +1; write lvalue => +1.\n"
         "- Include locals/params/globals, array subscripts, struct fields, pointer dereference expressions.\n"
         "- Assignment L=E counts reads in E plus one write to L.\n"
         "- ++/-- and compound assignments count both read and write.\n"
         "- Conditions contribute reads; use short-circuit semantics for && and ||.\n"
         "- Function-call arguments still contribute expression reads.\n"
+        "- Ignore non-memory tokens (types, keywords, punctuation, pure constants).\n"
+        "- Ignore declaration statements without actual read/write side effects.\n"
+        "- For 'return x;' count read of x; for 'return 0;' add nothing.\n"
         "- Do not add external ABI overhead not present in static analyzer.\n\n"
-        "Hard constraints to reduce mismatch with DFS/DP results:\n"
+        "Calibration hints (very important):\n"
+        "- For simple 'a+b' style programs, do NOT over-count temporaries or implicit steps.\n"
+        "- If DP-like count is small, prefer smaller count consistent with explicit variable accesses only.\n\n"
+        "Hard constraints to reduce mismatch with DP/DFS results:\n"
+        "- Treat DP output style as oracle target for worst-case path selection.\n"
         "- Prefer exact symbolic predicates from source conditions (keep operators and constants unchanged).\n"
         "- If unsure about branch feasibility, choose the conservative feasible branch with explicit guard in path.\n"
         "- For loops, explicitly emit each taken iteration guard and a final not-taken guard.\n"
+        "- Branch order in path must follow source execution order exactly.\n"
+        "- Include all MEMS-contributing statements on the chosen path; do not skip hidden reads in conditions/index/pointer expressions.\n"
+        "- Avoid undercounting from short-circuit logic; count only actually evaluated side under path predicates.\n"
         "- Keep path statements close to source-level assignments/conditions only; avoid invented statements.\n"
         "- Final mems must be consistent with the emitted path; do a self-check before output.\n\n"
         "Output STRICT JSON only:\n"
         "{\n"
-        '  "mems": <non-negative integer>,\n'
+        '  "mems": <integer; use -1 if and only if no feasible path>,\n'
         '  "test_input_path_expr": "<exact path expr format>",\n'
         '  "reason": "<one-line rationale tied to loop/recursion/feasibility assumptions>"\n'
         "}\n\n"
@@ -422,8 +472,15 @@ def build_system_prompt() -> str:
         "@(cond);\n"
         "stmt;\n"
         "...\n"
-        "Every non-empty line after title must end with ';'."
+        "Every non-empty line after title must end with ';'.\n"
+        "Special case for infeasible program: mems=-1 and test_input_path_expr='[NO FEASIBLE PATH]'."
     )
+    if PROMPT_FEEDBACK_HISTORY:
+        base += (
+            "\n\nRecent failure feedback from previous runs (must fix in current reasoning):\n"
+            + "\n".join(f"- {x}" for x in PROMPT_FEEDBACK_HISTORY[-6:])
+        )
+    return base
 
 
 def build_user_prompt(code: str) -> str:
@@ -432,10 +489,80 @@ def build_user_prompt(code: str) -> str:
         f"Use loop cap={MAX_LOOP}, inline depth cap={MAX_INLINE}, recursion via fixpoint-style approximation. "
         "Prioritize strict alignment with cnip DFS/DP path style and MEMS counting. "
         "If multiple candidates exist, return the one most likely to match cnip output exactly.\n\n"
+        "请按“先约束、再枚举、再计数、再验证”的分步过程完成，并输出最坏情况路径和对应 mems。\n\n"
         "-----BEGIN C CODE-----\n"
         f"{code}\n"
         "-----END C CODE-----"
     )
+
+
+def _parse_batch_stages(max_total: int) -> List[int]:
+    vals: List[int] = []
+    for part in AUTO_BATCH_STAGES_ENV.split(","):
+        t = part.strip()
+        if not t:
+            continue
+        if t.isdigit():
+            n = int(t)
+            if n > 0:
+                vals.append(n)
+    if not vals:
+        vals = [5, 10, 20, 100, 1000]
+    out: List[int] = []
+    seen = set()
+    for n in vals:
+        k = min(n, max_total)
+        if k > 0 and k not in seen:
+            out.append(k)
+            seen.add(k)
+    if max_total > 0 and max_total not in seen:
+        out.append(max_total)
+    return out
+
+
+def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
+    def _valid_dp_int(v: Any) -> bool:
+        if isinstance(v, int):
+            return v >= -1
+        if isinstance(v, str) and re.fullmatch(r"-?\d+", v):
+            return int(v) >= -1
+        return False
+
+    reasons: List[str] = []
+    for e in failed_entries[:10]:
+        name = e.get("basename", "")
+        if not e.get("success_gpt", False):
+            reasons.append(f"{name}: GPT失败({e.get('gpt_error', 'unknown')})，需要更严格输出 JSON + 可行路径。")
+        if not e.get("success_dfs", False):
+            reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
+        if not e.get("success_dp", False):
+            reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
+        if (
+            e.get("success_dp", False)
+            and str(e.get("dp_mems", "")).strip() == "-1"
+            and e.get("success_dfs", False)
+            and isinstance(e.get("dfs_max_mems", ""), str)
+            and re.fullmatch(r"-?\d+", e.get("dfs_max_mems", ""))
+            and int(e.get("dfs_max_mems", "0")) >= 0
+        ):
+            reasons.append(
+                f"{name}: DP给出-1(不可行)但DFS给出可行mems={e.get('dfs_max_mems','?')}，请优先怀疑DP结果异常并复核代码/工具输出。"
+            )
+        if (
+            e.get("success_gpt", False)
+            and e.get("success_dp", False)
+            and _valid_dp_int(e.get("dp_mems", ""))
+            and (not e.get("gpt_eq_dp_mems", False))
+        ):
+            reasons.append(
+                f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
+                "请严格按DP口径重算分支条件与循环展开。"
+            )
+    if not reasons:
+        reasons.append("批量执行出现失败，请提高路径可行性和 MEMS 计数一致性。")
+    feedback = " | ".join(reasons[:5])
+    PROMPT_FEEDBACK_HISTORY.append(feedback)
+    return feedback
 
 
 def _extract_api_error(resp_text: str) -> Dict[str, str]:
@@ -559,135 +686,63 @@ def main():
 
     os.makedirs(OUTPUT_TRUE_FOLDER, exist_ok=True)
 
-    results = []
-    try:
-        for idx, cfile in enumerate(c_files):
-            print(f"\n====== 文件 {idx+1}/{len(c_files)}: {cfile} ======")
-
+    def process_files(files: List[str]) -> List[Dict[str, Any]]:
+        local_results: List[Dict[str, Any]] = []
+        for idx, cfile in enumerate(files):
+            print(f"\n====== 文件 {idx+1}/{len(files)}: {cfile} ======")
             entry = {"filename": cfile, "basename": os.path.basename(cfile)}
-
             try:
                 with open(cfile, "r", encoding="utf-8", errors="ignore") as f:
                     code_text = f.read()
             except Exception as e:
                 print(f"  [失败] 读取源码失败: {e}")
-                entry.update({
-                    "gpt_time": "error",
-                    "gpt_mems": "error",
-                    "gpt_path": "",
-                    "gpt_error": "read_source_fail",
-                    "dfs_time": "error",
-                    "dfs_max_mems": "error",
-                    "dfs_min_mems": "error",
-                    "dfs_best_path": "",
-                    "dfs_error": "read_source_fail",
-                    "dp_time": "error",
-                    "dp_mems": "error",
-                    "dp_path": "",
-                    "dp_error": "read_source_fail",
-                    "success_gpt": False,
-                    "success_dfs": False,
-                    "success_dp": False,
-                    "gpt_eq_dp_mems": False,
-                    "gpt_eq_dfs_mems": False,
-                    "dp_eq_dfs_mems": False,
-                    "gpt_dp_mems_diff": "",
-                    "gpt_dfs_mems_diff": "",
-                    "dp_dfs_mems_diff": "",
-                    "is_true": False,
-                    "worst_mems_dp": "",
-                    "worst_path_dp": "",
-                    "worst_mems_dfs": "",
-                    "worst_path_dfs": "",
-                })
-                results.append(entry)
-                continue
-
-            print(f"  [1/3] 调用 GPT 分析（loop cap={MAX_LOOP}, inline cap={MAX_INLINE}, 递归按不动点近似）")
-            t0 = time.time()
-            gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
-            t1 = time.time()
-            entry["gpt_time"] = f"{t1 - t0:.4f}"
-
-            if gpt_mems is None or not gpt_path:
-                print("  [失败] GPT 阶段解析失败")
-                entry.update({
-                    "gpt_mems": "error",
-                    "gpt_path": "",
-                    "gpt_error": short_err(_sanitize_secrets(gpt_raw), 300) or "parse_fail",
-                })
-                success_gpt = False
+                entry.update({"gpt_time": "error", "gpt_mems": "error", "gpt_path": "", "gpt_error": "read_source_fail",
+                              "dfs_time": "error", "dfs_max_mems": "error", "dfs_min_mems": "error", "dfs_best_path": "", "dfs_error": "read_source_fail",
+                              "dp_time": "error", "dp_mems": "error", "dp_path": "", "dp_error": "read_source_fail"})
+                success_gpt, success_dfs, success_dp = False, False, False
             else:
-                entry.update({
-                    "gpt_mems": str(gpt_mems),
-                    "gpt_path": gpt_path,
-                    "gpt_error": "",
-                })
-                print(f"  [OK] GPT time: {entry['gpt_time']} | mems: {entry['gpt_mems']}")
-                success_gpt = True
+                print(f"  [1/3] 调用 GPT 分析（loop cap={MAX_LOOP}, inline cap={MAX_INLINE}, 递归按不动点近似）")
+                t0 = time.time()
+                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
+                entry["gpt_time"] = f"{time.time() - t0:.4f}"
+                if gpt_mems is None or not gpt_path:
+                    print("  [失败] GPT 阶段解析失败")
+                    entry.update({"gpt_mems": "error", "gpt_path": "", "gpt_error": short_err(_sanitize_secrets(gpt_raw), 300) or "parse_fail"})
+                    success_gpt = False
+                else:
+                    entry.update({"gpt_mems": str(gpt_mems), "gpt_path": gpt_path, "gpt_error": ""})
+                    print(f"  [OK] GPT time: {entry['gpt_time']} | mems: {entry['gpt_mems']}")
+                    success_gpt = True
 
-            print(f"  [2/3] 执行 DFS 完全遍历: {CNIP_BIN} -q {cfile}")
-            cmd_f = [CNIP_BIN, "-q", cfile]
-            out_f, err_f, ret_f = run_with_timeout(cmd_f, timeout=300, env=RUN_ENV)
-            dfs_error, dfs_reason = error_status(
-                out_f, err_f, ret_f, r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds"
-            )
+                print(f"  [2/3] 执行 DFS 完全遍历: {CNIP_BIN} -q {cfile}")
+                out_f, err_f, ret_f = run_with_timeout([CNIP_BIN, "-q", cfile], timeout=300, env=RUN_ENV)
+                dfs_error, dfs_reason = error_status(out_f, err_f, ret_f, r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds")
+                if dfs_error:
+                    print(f"  [失败] DFS 阶段错误类型: {dfs_reason}")
+                    entry.update({"dfs_time": "error", "dfs_max_mems": "error", "dfs_min_mems": "error", "dfs_best_path": "", "dfs_error": dfs_reason})
+                    success_dfs = False
+                else:
+                    dfs_info = extract_dfs_summary(out_f)
+                    entry.update({"dfs_time": dfs_info.get("dfs_time", ""), "dfs_max_mems": dfs_info.get("dfs_max_mems", ""),
+                                  "dfs_min_mems": dfs_info.get("dfs_min_mems", ""), "dfs_best_path": dfs_info.get("dfs_best_path", ""), "dfs_error": ""})
+                    print(f"  [OK] DFS time: {entry['dfs_time']} | max mems: {entry['dfs_max_mems']} | min mems: {entry['dfs_min_mems']}")
+                    success_dfs = True
 
-            if dfs_error:
-                print(f"  [失败] DFS 阶段错误类型: {dfs_reason}")
-                entry.update({
-                    "dfs_time": "error",
-                    "dfs_max_mems": "error",
-                    "dfs_min_mems": "error",
-                    "dfs_best_path": "",
-                    "dfs_error": dfs_reason,
-                })
-                success_dfs = False
-            else:
-                dfs_info = extract_dfs_summary(out_f)
-                entry.update({
-                    "dfs_time": dfs_info.get("dfs_time", ""),
-                    "dfs_max_mems": dfs_info.get("dfs_max_mems", ""),
-                    "dfs_min_mems": dfs_info.get("dfs_min_mems", ""),
-                    "dfs_best_path": dfs_info.get("dfs_best_path", ""),
-                    "dfs_error": "",
-                })
-                print(
-                    f"  [OK] DFS time: {entry['dfs_time']} | max mems: {entry['dfs_max_mems']} | min mems: {entry['dfs_min_mems']}"
-                )
-                success_dfs = True
+                print(f"  [3/3] 执行 DP/Greedy: {CNIP_BIN} -g {cfile}")
+                out_g, err_g, ret_g = run_with_timeout([CNIP_BIN, "-g", cfile], timeout=300, env=RUN_ENV)
+                dp_error, dp_reason = error_status(out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds")
+                if dp_error:
+                    print(f"  [失败] DP 阶段错误类型: {dp_reason}")
+                    entry.update({"dp_time": "error", "dp_mems": "error", "dp_path": "", "dp_error": dp_reason})
+                    success_dp = False
+                else:
+                    dp_mems, dp_time = extract_greedy(out_g)
+                    path_match = re.search(r"(\[TEST INPUT PATH EXPR\]:\s*[\s\S]+?)(?=\n*\[DP TIME COST\]:|\Z)", out_g)
+                    entry.update({"dp_mems": dp_mems, "dp_time": dp_time, "dp_error": "", "dp_path": path_match.group(1).strip() if path_match else ""})
+                    print(f"  [OK] DP time: {dp_time} | mems: {dp_mems}")
+                    success_dp = True
 
-            print(f"  [3/3] 执行 DP/Greedy: {CNIP_BIN} -g {cfile}")
-            cmd_g = [CNIP_BIN, "-g", cfile]
-            out_g, err_g, ret_g = run_with_timeout(cmd_g, timeout=300, env=RUN_ENV)
-            dp_error, dp_reason = error_status(
-                out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds"
-            )
-
-            if dp_error:
-                print(f"  [失败] DP 阶段错误类型: {dp_reason}")
-                entry.update({
-                    "dp_time": "error",
-                    "dp_mems": "error",
-                    "dp_path": "",
-                    "dp_error": dp_reason,
-                })
-                success_dp = False
-            else:
-                dp_mems, dp_time = extract_greedy(out_g)
-                entry["dp_mems"] = dp_mems
-                entry["dp_time"] = dp_time
-                entry["dp_error"] = ""
-                path_match = re.search(
-                    r"(\[TEST INPUT PATH EXPR\]:\s*[\s\S]+?)(?=\n*\[DP TIME COST\]:|\Z)", out_g
-                )
-                entry["dp_path"] = path_match.group(1).strip() if path_match else ""
-                print(f"  [OK] DP time: {dp_time} | mems: {dp_mems}")
-                success_dp = True
-
-            entry["success_gpt"] = bool(success_gpt)
-            entry["success_dfs"] = bool(success_dfs)
-            entry["success_dp"] = bool(success_dp)
+            entry["success_gpt"], entry["success_dfs"], entry["success_dp"] = bool(success_gpt), bool(success_dfs), bool(success_dp)
 
             def to_int(sv: Any) -> Optional[int]:
                 if isinstance(sv, int):
@@ -696,30 +751,20 @@ def main():
                     return int(sv)
                 return None
 
-            gpt_mems_val = to_int(entry.get("gpt_mems", ""))
-            dp_mems_val = to_int(entry.get("dp_mems", ""))
-            dfs_mems_val = to_int(entry.get("dfs_max_mems", ""))
-
+            gpt_mems_val, dp_mems_val, dfs_mems_val = to_int(entry.get("gpt_mems", "")), to_int(entry.get("dp_mems", "")), to_int(entry.get("dfs_max_mems", ""))
             entry["gpt_eq_dp_mems"] = bool(success_gpt and success_dp and gpt_mems_val is not None and dp_mems_val is not None and gpt_mems_val == dp_mems_val)
             entry["gpt_eq_dfs_mems"] = bool(success_gpt and success_dfs and gpt_mems_val is not None and dfs_mems_val is not None and gpt_mems_val == dfs_mems_val)
             entry["dp_eq_dfs_mems"] = bool(success_dp and success_dfs and dp_mems_val is not None and dfs_mems_val is not None and dp_mems_val == dfs_mems_val)
-
             entry["gpt_dp_mems_diff"] = "" if (gpt_mems_val is None or dp_mems_val is None) else str(gpt_mems_val - dp_mems_val)
             entry["gpt_dfs_mems_diff"] = "" if (gpt_mems_val is None or dfs_mems_val is None) else str(gpt_mems_val - dfs_mems_val)
             entry["dp_dfs_mems_diff"] = "" if (dp_mems_val is None or dfs_mems_val is None) else str(dp_mems_val - dfs_mems_val)
-
-            entry["worst_mems_dp"] = entry["dp_mems"] if success_dp else ""
-            entry["worst_path_dp"] = entry["dp_path"] if success_dp else ""
-            entry["worst_mems_dfs"] = entry["dfs_max_mems"] if success_dfs else ""
-            entry["worst_path_dfs"] = entry["dfs_best_path"] if success_dfs else ""
-
+            entry["worst_mems_dp"] = entry.get("dp_mems", "") if success_dp else ""
+            entry["worst_path_dp"] = entry.get("dp_path", "") if success_dp else ""
+            entry["worst_mems_dfs"] = entry.get("dfs_max_mems", "") if success_dfs else ""
+            entry["worst_path_dfs"] = entry.get("dfs_best_path", "") if success_dfs else ""
             entry["is_true"] = bool(entry["gpt_eq_dp_mems"] and entry["gpt_eq_dfs_mems"])
-
-            print(
-                f"  [总结] GPT={entry['success_gpt']} DFS={entry['success_dfs']} DP={entry['success_dp']} | "
-                f"GPT=DP:{entry['gpt_eq_dp_mems']} GPT=DFS:{entry['gpt_eq_dfs_mems']} DP=DFS:{entry['dp_eq_dfs_mems']}"
-            )
-
+            print(f"  [总结] GPT={entry['success_gpt']} DFS={entry['success_dfs']} DP={entry['success_dp']} | "
+                  f"GPT=DP:{entry['gpt_eq_dp_mems']} GPT=DFS:{entry['gpt_eq_dfs_mems']} DP=DFS:{entry['dp_eq_dfs_mems']}")
             if entry["is_true"]:
                 try:
                     dst = os.path.join(OUTPUT_TRUE_FOLDER, os.path.basename(cfile))
@@ -727,9 +772,51 @@ def main():
                     print(f"  [已保存] {dst}")
                 except Exception as e:
                     print(f"  [保存失败] {e}")
+            local_results.append(entry)
+        return local_results
 
-            results.append(entry)
+    results: List[Dict[str, Any]] = []
+    stages = _parse_batch_stages(len(c_files))
+    print(f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}, require_gpt_dp_match={REQUIRE_GPT_DP_MATCH}")
 
+    try:
+        round_idx = 0
+        while round_idx < MAX_BACKTRACK_ROUNDS:
+            round_idx += 1
+            print(f"\n==== 自动回溯轮次 {round_idx}/{MAX_BACKTRACK_ROUNDS} ====")
+            round_failed = False
+            for stage in stages:
+                subset = c_files[:stage]
+                print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
+                stage_results = process_files(subset)
+                failed = []
+                for x in stage_results:
+                    base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
+                    if not base_ok:
+                        failed.append(x)
+                        continue
+                    dp_mems_s = x.get("dp_mems", "")
+                    dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
+                    if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
+                        dp_mems_valid = int(dp_mems_s) >= -1
+                    if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
+                        failed.append(x)
+                if failed:
+                    fb = _add_feedback_from_failures(failed)
+                    print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
+                    round_failed = True
+                    break
+                results = stage_results
+                print(f"[阶段成功] 前 {stage} 个样例全部执行成功。")
+
+            if not round_failed:
+                print("[完成] 所有批量阶段均执行成功。")
+                break
+            if round_idx >= MAX_BACKTRACK_ROUNDS:
+                print(f"[停止] 已达到最大回溯轮次，保留最近一轮失败结果。")
+                results = stage_results
+            else:
+                print("[回溯] 已更新 prompt 反馈，重新从 5 个样例开始执行。")
     except KeyboardInterrupt:
         print("\n[用户中断] 提前退出，已保存已完成的数据。")
 
