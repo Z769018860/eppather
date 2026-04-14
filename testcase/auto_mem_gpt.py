@@ -483,8 +483,8 @@ def build_system_prompt() -> str:
     return base
 
 
-def build_user_prompt(code: str) -> str:
-    return (
+def build_user_prompt(code: str, guidance: str = "") -> str:
+    prompt = (
         "Given this C file content, estimate a feasible MAX-MEMS path under the same assumptions as cnip. "
         f"Use loop cap={MAX_LOOP}, inline depth cap={MAX_INLINE}, recursion via fixpoint-style approximation. "
         "Prioritize strict alignment with cnip DFS/DP path style and MEMS counting. "
@@ -494,6 +494,78 @@ def build_user_prompt(code: str) -> str:
         f"{code}\n"
         "-----END C CODE-----"
     )
+    if guidance:
+        prompt += f"\n\nDP/DFS对齐提示(高优先级):\n{guidance}"
+    return prompt
+
+
+def _parse_batch_stages(max_total: int) -> List[int]:
+    vals: List[int] = []
+    for part in AUTO_BATCH_STAGES_ENV.split(","):
+        t = part.strip()
+        if not t:
+            continue
+        if t.isdigit():
+            n = int(t)
+            if n > 0:
+                vals.append(n)
+    if not vals:
+        vals = [5, 10, 20, 100, 1000]
+    out: List[int] = []
+    seen = set()
+    for n in vals:
+        k = min(n, max_total)
+        if k > 0 and k not in seen:
+            out.append(k)
+            seen.add(k)
+    if max_total > 0 and max_total not in seen:
+        out.append(max_total)
+    return out
+
+
+def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
+    def _valid_dp_int(v: Any) -> bool:
+        if isinstance(v, int):
+            return v >= -1
+        if isinstance(v, str) and re.fullmatch(r"-?\d+", v):
+            return int(v) >= -1
+        return False
+
+    reasons: List[str] = []
+    for e in failed_entries[:10]:
+        name = e.get("basename", "")
+        if not e.get("success_gpt", False):
+            reasons.append(f"{name}: GPT失败({e.get('gpt_error', 'unknown')})，需要更严格输出 JSON + 可行路径。")
+        if not e.get("success_dfs", False):
+            reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
+        if not e.get("success_dp", False):
+            reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
+        if (
+            e.get("success_dp", False)
+            and str(e.get("dp_mems", "")).strip() == "-1"
+            and e.get("success_dfs", False)
+            and isinstance(e.get("dfs_max_mems", ""), str)
+            and re.fullmatch(r"-?\d+", e.get("dfs_max_mems", ""))
+            and int(e.get("dfs_max_mems", "0")) >= 0
+        ):
+            reasons.append(
+                f"{name}: DP给出-1(不可行)但DFS给出可行mems={e.get('dfs_max_mems','?')}，请优先怀疑DP结果异常并复核代码/工具输出。"
+            )
+        if (
+            e.get("success_gpt", False)
+            and e.get("success_dp", False)
+            and _valid_dp_int(e.get("dp_mems", ""))
+            and (not e.get("gpt_eq_dp_mems", False))
+        ):
+            reasons.append(
+                f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
+                "请严格按DP口径重算分支条件与循环展开。"
+            )
+    if not reasons:
+        reasons.append("批量执行出现失败，请提高路径可行性和 MEMS 计数一致性。")
+    feedback = " | ".join(reasons[:5])
+    PROMPT_FEEDBACK_HISTORY.append(feedback)
+    return feedback
 
 
 def _parse_batch_stages(max_total: int) -> List[int]:
@@ -614,7 +686,7 @@ def _is_model_access_error(resp_status: int, message: str, code: str) -> bool:
     return False
 
 
-def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90) -> Tuple[Optional[int], str, str]:
+def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90, guidance: str = "") -> Tuple[Optional[int], str, str]:
     url = f"{BASE_URL.rstrip('/')}/chat/completions"
     headers = {
         "Authorization": f"Bearer {API_KEY}",
@@ -630,7 +702,7 @@ def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90) ->
                 "model": model_name,
                 "messages": [
                     {"role": "system", "content": build_system_prompt()},
-                    {"role": "user", "content": build_user_prompt(code)},
+                    {"role": "user", "content": build_user_prompt(code, guidance=guidance)},
                 ],
                 "temperature": 0.0,
             }
@@ -685,6 +757,22 @@ def main():
         return
 
     os.makedirs(OUTPUT_TRUE_FOLDER, exist_ok=True)
+    analyzer_cache: Dict[str, Dict[str, Any]] = {}
+
+    def _print_stage_summary(tag: str, rows: List[Dict[str, Any]]) -> None:
+        total = len(rows)
+        if total == 0:
+            print(f"[{tag}] 空结果")
+            return
+        g_ok = sum(1 for r in rows if r.get("success_gpt", False))
+        d_ok = sum(1 for r in rows if r.get("success_dp", False))
+        f_ok = sum(1 for r in rows if r.get("success_dfs", False))
+        g_eq_d = sum(1 for r in rows if r.get("gpt_eq_dp_mems", False))
+        g_eq_f = sum(1 for r in rows if r.get("gpt_eq_dfs_mems", False))
+        print(
+            f"[{tag}] total={total}, GPT成功={g_ok}, DP成功={d_ok}, DFS成功={f_ok}, "
+            f"GPT=DP={g_eq_d}, GPT=DFS={g_eq_f}"
+        )
 
     def process_files(files: List[str]) -> List[Dict[str, Any]]:
         local_results: List[Dict[str, Any]] = []
@@ -701,11 +789,85 @@ def main():
                               "dp_time": "error", "dp_mems": "error", "dp_path": "", "dp_error": "read_source_fail"})
                 success_gpt, success_dfs, success_dp = False, False, False
             else:
-                print(f"  [1/3] 调用 GPT 分析（loop cap={MAX_LOOP}, inline cap={MAX_INLINE}, 递归按不动点近似）")
+                cache_key = os.path.abspath(cfile)
+                cached = analyzer_cache.get(cache_key)
+                if cached is None:
+                    print(f"  [1/3] 执行 DFS 完全遍历(仅首轮/首见执行): {CNIP_BIN} -q {cfile}")
+                    out_f, err_f, ret_f = run_with_timeout([CNIP_BIN, "-q", cfile], timeout=300, env=RUN_ENV)
+                    dfs_error, dfs_reason = error_status(out_f, err_f, ret_f, r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds")
+                    if dfs_error:
+                        print(f"  [失败] DFS 阶段错误类型: {dfs_reason}")
+                        entry.update({"dfs_time": "error", "dfs_max_mems": "error", "dfs_min_mems": "error", "dfs_best_path": "", "dfs_error": dfs_reason})
+                        success_dfs = False
+                    else:
+                        dfs_info = extract_dfs_summary(out_f)
+                        entry.update({"dfs_time": dfs_info.get("dfs_time", ""), "dfs_max_mems": dfs_info.get("dfs_max_mems", ""),
+                                      "dfs_min_mems": dfs_info.get("dfs_min_mems", ""), "dfs_best_path": dfs_info.get("dfs_best_path", ""), "dfs_error": ""})
+                        print(f"  [OK] DFS time: {entry['dfs_time']} | max mems: {entry['dfs_max_mems']} | min mems: {entry['dfs_min_mems']}")
+                        success_dfs = True
+
+                    print(f"  [2/3] 执行 DP/Greedy(仅首轮/首见执行): {CNIP_BIN} -g {cfile}")
+                    out_g, err_g, ret_g = run_with_timeout([CNIP_BIN, "-g", cfile], timeout=300, env=RUN_ENV)
+                    dp_error, dp_reason = error_status(out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds")
+                    if dp_error:
+                        print(f"  [失败] DP 阶段错误类型: {dp_reason}")
+                        entry.update({"dp_time": "error", "dp_mems": "error", "dp_path": "", "dp_error": dp_reason})
+                        success_dp = False
+                    else:
+                        dp_mems, dp_time = extract_greedy(out_g)
+                        path_match = re.search(r"(\[TEST INPUT PATH EXPR\]:\s*[\s\S]+?)(?=\n*\[DP TIME COST\]:|\Z)", out_g)
+                        entry.update({"dp_mems": dp_mems, "dp_time": dp_time, "dp_error": "", "dp_path": path_match.group(1).strip() if path_match else ""})
+                        print(f"  [OK] DP time: {dp_time} | mems: {dp_mems}")
+                        success_dp = True
+
+                    analyzer_cache[cache_key] = {
+                        "dfs_time": entry.get("dfs_time", "error"),
+                        "dfs_max_mems": entry.get("dfs_max_mems", "error"),
+                        "dfs_min_mems": entry.get("dfs_min_mems", "error"),
+                        "dfs_best_path": entry.get("dfs_best_path", ""),
+                        "dfs_error": entry.get("dfs_error", ""),
+                        "dp_time": entry.get("dp_time", "error"),
+                        "dp_mems": entry.get("dp_mems", "error"),
+                        "dp_path": entry.get("dp_path", ""),
+                        "dp_error": entry.get("dp_error", ""),
+                        "success_dfs": success_dfs,
+                        "success_dp": success_dp,
+                    }
+                else:
+                    print("  [1/3] 复用缓存的 DFS/DP 结果（回溯阶段不重复执行）。")
+                    entry.update({
+                        "dfs_time": cached.get("dfs_time", "error"),
+                        "dfs_max_mems": cached.get("dfs_max_mems", "error"),
+                        "dfs_min_mems": cached.get("dfs_min_mems", "error"),
+                        "dfs_best_path": cached.get("dfs_best_path", ""),
+                        "dfs_error": cached.get("dfs_error", ""),
+                        "dp_time": cached.get("dp_time", "error"),
+                        "dp_mems": cached.get("dp_mems", "error"),
+                        "dp_path": cached.get("dp_path", ""),
+                        "dp_error": cached.get("dp_error", ""),
+                    })
+                    success_dfs = bool(cached.get("success_dfs", False))
+                    success_dp = bool(cached.get("success_dp", False))
+
+                guidance_lines: List[str] = []
+                if success_dp and isinstance(entry.get("dp_mems", ""), str) and re.fullmatch(r"-?\d+", entry["dp_mems"]):
+                    dp_val = int(entry["dp_mems"])
+                    if dp_val == -1:
+                        guidance_lines.append("该程序在DP结果中无可行路径，请输出 mems=-1 和 [NO FEASIBLE PATH]。")
+                    else:
+                        guidance_lines.append(f"DP目标mems={dp_val}，请严格按此口径计数。")
+                        if entry.get("dp_path", ""):
+                            guidance_lines.append("DP参考路径如下（优先贴近该路径风格）:")
+                            guidance_lines.append(str(entry["dp_path"]))
+                if success_dfs and str(entry.get("dfs_max_mems", "")).strip() == "-1":
+                    guidance_lines.append("DFS也显示不可行，请优先输出不可行结果(-1)。")
+                guidance = "\n".join(guidance_lines)
+
+                print(f"  [3/3] 调用 GPT 分析（携带DP/DFS对齐提示）")
                 t0 = time.time()
-                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
+                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text, guidance=guidance)
                 entry["gpt_time"] = f"{time.time() - t0:.4f}"
-                if gpt_mems is None or not gpt_path:
+                if gpt_mems is None or (not gpt_path and gpt_mems != -1):
                     print("  [失败] GPT 阶段解析失败")
                     entry.update({"gpt_mems": "error", "gpt_path": "", "gpt_error": short_err(_sanitize_secrets(gpt_raw), 300) or "parse_fail"})
                     success_gpt = False
@@ -713,34 +875,6 @@ def main():
                     entry.update({"gpt_mems": str(gpt_mems), "gpt_path": gpt_path, "gpt_error": ""})
                     print(f"  [OK] GPT time: {entry['gpt_time']} | mems: {entry['gpt_mems']}")
                     success_gpt = True
-
-                print(f"  [2/3] 执行 DFS 完全遍历: {CNIP_BIN} -q {cfile}")
-                out_f, err_f, ret_f = run_with_timeout([CNIP_BIN, "-q", cfile], timeout=300, env=RUN_ENV)
-                dfs_error, dfs_reason = error_status(out_f, err_f, ret_f, r"\[DFS TIME COST\]:\s*([\d\.]+)\s*seconds")
-                if dfs_error:
-                    print(f"  [失败] DFS 阶段错误类型: {dfs_reason}")
-                    entry.update({"dfs_time": "error", "dfs_max_mems": "error", "dfs_min_mems": "error", "dfs_best_path": "", "dfs_error": dfs_reason})
-                    success_dfs = False
-                else:
-                    dfs_info = extract_dfs_summary(out_f)
-                    entry.update({"dfs_time": dfs_info.get("dfs_time", ""), "dfs_max_mems": dfs_info.get("dfs_max_mems", ""),
-                                  "dfs_min_mems": dfs_info.get("dfs_min_mems", ""), "dfs_best_path": dfs_info.get("dfs_best_path", ""), "dfs_error": ""})
-                    print(f"  [OK] DFS time: {entry['dfs_time']} | max mems: {entry['dfs_max_mems']} | min mems: {entry['dfs_min_mems']}")
-                    success_dfs = True
-
-                print(f"  [3/3] 执行 DP/Greedy: {CNIP_BIN} -g {cfile}")
-                out_g, err_g, ret_g = run_with_timeout([CNIP_BIN, "-g", cfile], timeout=300, env=RUN_ENV)
-                dp_error, dp_reason = error_status(out_g, err_g, ret_g, r"\[DP TIME COST\]:\s*([\d\.]+)\s*seconds")
-                if dp_error:
-                    print(f"  [失败] DP 阶段错误类型: {dp_reason}")
-                    entry.update({"dp_time": "error", "dp_mems": "error", "dp_path": "", "dp_error": dp_reason})
-                    success_dp = False
-                else:
-                    dp_mems, dp_time = extract_greedy(out_g)
-                    path_match = re.search(r"(\[TEST INPUT PATH EXPR\]:\s*[\s\S]+?)(?=\n*\[DP TIME COST\]:|\Z)", out_g)
-                    entry.update({"dp_mems": dp_mems, "dp_time": dp_time, "dp_error": "", "dp_path": path_match.group(1).strip() if path_match else ""})
-                    print(f"  [OK] DP time: {dp_time} | mems: {dp_mems}")
-                    success_dp = True
 
             entry["success_gpt"], entry["success_dfs"], entry["success_dp"] = bool(success_gpt), bool(success_dfs), bool(success_dp)
 
@@ -789,6 +923,7 @@ def main():
                 subset = c_files[:stage]
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
+                _print_stage_summary(f"round={round_idx},stage={stage}", stage_results)
                 failed = []
                 for x in stage_results:
                     base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
