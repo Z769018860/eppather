@@ -229,7 +229,8 @@ def extract_dfs_summary(output: str) -> Dict[str, str]:
     fallback_mem = None
     fallback_path = ""
 
-    for m in re.finditer(r"Path:(.*?)\nfeasible!!!\s*\n\[mem\]:\s*(-?\d+)", output, re.DOTALL):
+    feasible_matches = list(re.finditer(r"Path:(.*?)\nfeasible!!!\s*\n\[mem\]:\s*(-?\d+)", output, re.DOTALL))
+    for m in feasible_matches:
         path_block = m.group(1).strip()
         mem = int(m.group(2))
         if fallback_mem is None or mem > fallback_mem:
@@ -246,6 +247,12 @@ def extract_dfs_summary(output: str) -> Dict[str, str]:
 
     if best_path:
         out["dfs_best_path"] = _to_test_input_expr(best_path)
+    elif not feasible_matches:
+        if out["dfs_max_mems"] == "":
+            out["dfs_max_mems"] = "-1"
+        if out["dfs_min_mems"] == "":
+            out["dfs_min_mems"] = "-1"
+        out["dfs_best_path"] = "[NO FEASIBLE PATH]"
 
     return out
 
@@ -321,7 +328,11 @@ def _normalize_path_expr(path_expr: str) -> str:
 
 
 def _valid_mems_path(mems: Optional[int], path: str) -> bool:
-    if mems is None or (not isinstance(mems, int)) or mems < 0:
+    if mems is None or (not isinstance(mems, int)):
+        return False
+    if mems == -1:
+        return (path or "").strip() in ("", "[NO FEASIBLE PATH]")
+    if mems < 0:
         return False
     if not path or "[TEST INPUT PATH EXPR]:" not in path:
         return False
@@ -343,11 +354,18 @@ def _parse_json_payload(js_text: str) -> Tuple[Optional[int], str]:
     try:
         obj = json.loads(js_text)
         mems = obj.get("mems", None)
-        if isinstance(mems, str) and mems.isdigit():
+        if isinstance(mems, str) and re.fullmatch(r"-?\d+", mems):
             mems = int(mems)
-        if not isinstance(mems, int) or mems < 0:
+        if not isinstance(mems, int):
+            return None, ""
+        if mems < -1:
             return None, ""
         path_expr = obj.get("test_input_path_expr", "")
+        if mems == -1:
+            path_expr = str(path_expr or "").strip()
+            if path_expr not in ("", "[NO FEASIBLE PATH]"):
+                path_expr = "[NO FEASIBLE PATH]"
+            return mems, path_expr
         path_expr = _normalize_path_expr(path_expr)
         return mems, path_expr
     except Exception:
@@ -386,8 +404,10 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
         if _valid_mems_path(mems, path_expr):
             return mems, path_expr
 
-    mems_rgx = re.search(r'"?mems"?\s*[:=]\s*"?(\d+)"?', unfenced, re.IGNORECASE)
+    mems_rgx = re.search(r'"?mems"?\s*[:=]\s*"?(-?\d+)"?', unfenced, re.IGNORECASE)
     mems_val = int(mems_rgx.group(1)) if mems_rgx else None
+    if mems_val == -1:
+        return -1, "[NO FEASIBLE PATH]"
     path_block = _extract_path_block(unfenced)
     if _valid_mems_path(mems_val, path_block):
         return mems_val, path_block
@@ -406,24 +426,31 @@ def build_system_prompt() -> str:
         "You MUST follow a step-by-step method:\n"
         "Step 1) Build symbolic constraints for branches, loops, and calls under the given caps.\n"
         "Step 2) Enumerate feasible candidate paths (bounded) and reject contradictory constraints.\n"
-        "Step 3) For each feasible candidate, compute MEMS strictly by DP counting rules below.\n"
-        "Step 4) Choose the candidate with maximum MEMS (DP target principle).\n"
-        "Step 5) Self-verify: recompute MEMS from emitted path line-by-line and ensure exact consistency.\n"
-        "Step 6) Output JSON only.\n\n"
+        "Step 3) If NO feasible path exists, set mems=-1 and test_input_path_expr='[NO FEASIBLE PATH]'.\n"
+        "Step 4) Otherwise compute MEMS for each feasible candidate by DP counting rules below.\n"
+        "Step 5) Choose the feasible candidate with maximum MEMS (DP target principle).\n"
+        "Step 6) Self-verify: recompute MEMS from emitted path line-by-line and ensure exact consistency.\n"
+        "Step 7) Output JSON only.\n\n"
         "MUST align with cnip assumptions:\n"
         f"- Loop unrolling cap = {MAX_LOOP}. Never exceed this cap for each loop in a single path.\n"
         f"- Function inline expansion cap = {MAX_INLINE} levels.\n"
         "- For recursion/mutual recursion: use fixpoint-style approximation idea; do NOT do unbounded expansion.\n"
         "- Respect path feasibility (no contradictory branch predicates).\n\n"
         "MEMS definition (strict):\n"
-        "- MEMS = reads + writes along the chosen path.\n"
+        "- MEMS = variable-memory accesses along the chosen path.\n"
         "- Read as rvalue => +1; write lvalue => +1.\n"
         "- Include locals/params/globals, array subscripts, struct fields, pointer dereference expressions.\n"
         "- Assignment L=E counts reads in E plus one write to L.\n"
         "- ++/-- and compound assignments count both read and write.\n"
         "- Conditions contribute reads; use short-circuit semantics for && and ||.\n"
         "- Function-call arguments still contribute expression reads.\n"
+        "- Ignore non-memory tokens (types, keywords, punctuation, pure constants).\n"
+        "- Ignore declaration statements without actual read/write side effects.\n"
+        "- For 'return x;' count read of x; for 'return 0;' add nothing.\n"
         "- Do not add external ABI overhead not present in static analyzer.\n\n"
+        "Calibration hints (very important):\n"
+        "- For simple 'a+b' style programs, do NOT over-count temporaries or implicit steps.\n"
+        "- If DP-like count is small, prefer smaller count consistent with explicit variable accesses only.\n\n"
         "Hard constraints to reduce mismatch with DP/DFS results:\n"
         "- Treat DP output style as oracle target for worst-case path selection.\n"
         "- Prefer exact symbolic predicates from source conditions (keep operators and constants unchanged).\n"
@@ -436,7 +463,7 @@ def build_system_prompt() -> str:
         "- Final mems must be consistent with the emitted path; do a self-check before output.\n\n"
         "Output STRICT JSON only:\n"
         "{\n"
-        '  "mems": <non-negative integer>,\n'
+        '  "mems": <integer; use -1 if and only if no feasible path>,\n'
         '  "test_input_path_expr": "<exact path expr format>",\n'
         '  "reason": "<one-line rationale tied to loop/recursion/feasibility assumptions>"\n'
         "}\n\n"
@@ -445,7 +472,8 @@ def build_system_prompt() -> str:
         "@(cond);\n"
         "stmt;\n"
         "...\n"
-        "Every non-empty line after title must end with ';'."
+        "Every non-empty line after title must end with ';'.\n"
+        "Special case for infeasible program: mems=-1 and test_input_path_expr='[NO FEASIBLE PATH]'."
     )
     if PROMPT_FEEDBACK_HISTORY:
         base += (
@@ -493,6 +521,13 @@ def _parse_batch_stages(max_total: int) -> List[int]:
 
 
 def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
+    def _valid_dp_int(v: Any) -> bool:
+        if isinstance(v, int):
+            return v >= -1
+        if isinstance(v, str) and re.fullmatch(r"-?\d+", v):
+            return int(v) >= -1
+        return False
+
     reasons: List[str] = []
     for e in failed_entries[:10]:
         name = e.get("basename", "")
@@ -502,7 +537,23 @@ def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
             reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
         if not e.get("success_dp", False):
             reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
-        if e.get("success_gpt", False) and e.get("success_dp", False) and (not e.get("gpt_eq_dp_mems", False)):
+        if (
+            e.get("success_dp", False)
+            and str(e.get("dp_mems", "")).strip() == "-1"
+            and e.get("success_dfs", False)
+            and isinstance(e.get("dfs_max_mems", ""), str)
+            and re.fullmatch(r"-?\d+", e.get("dfs_max_mems", ""))
+            and int(e.get("dfs_max_mems", "0")) >= 0
+        ):
+            reasons.append(
+                f"{name}: DP给出-1(不可行)但DFS给出可行mems={e.get('dfs_max_mems','?')}，请优先怀疑DP结果异常并复核代码/工具输出。"
+            )
+        if (
+            e.get("success_gpt", False)
+            and e.get("success_dp", False)
+            and _valid_dp_int(e.get("dp_mems", ""))
+            and (not e.get("gpt_eq_dp_mems", False))
+        ):
             reasons.append(
                 f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
                 "请严格按DP口径重算分支条件与循环展开。"
@@ -744,7 +795,11 @@ def main():
                     if not base_ok:
                         failed.append(x)
                         continue
-                    if REQUIRE_GPT_DP_MATCH and (not x.get("gpt_eq_dp_mems", False)):
+                    dp_mems_s = x.get("dp_mems", "")
+                    dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
+                    if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
+                        dp_mems_valid = int(dp_mems_s) >= -1
+                    if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
                         failed.append(x)
                 if failed:
                     fb = _add_feedback_from_failures(failed)
