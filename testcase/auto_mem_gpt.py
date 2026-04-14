@@ -532,6 +532,7 @@ def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
         return False
 
     reasons: List[str] = []
+    examples: List[str] = []
     for e in failed_entries[:10]:
         name = e.get("basename", "")
         if not e.get("success_gpt", False):
@@ -561,78 +562,16 @@ def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
                 f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
                 "请严格按DP口径重算分支条件与循环展开。"
             )
+            if len(examples) < 2:
+                examples.append(
+                    f"示例{len(examples)+1}: {name} 中 GPT={e.get('gpt_mems','?')} 但 DP={e.get('dp_mems','?')}，"
+                    "下轮应减少隐含临时量计数，只保留显式变量读写。"
+                )
     if not reasons:
         reasons.append("批量执行出现失败，请提高路径可行性和 MEMS 计数一致性。")
     feedback = " | ".join(reasons[:5])
-    PROMPT_FEEDBACK_HISTORY.append(feedback)
-    return feedback
-
-
-def _parse_batch_stages(max_total: int) -> List[int]:
-    vals: List[int] = []
-    for part in AUTO_BATCH_STAGES_ENV.split(","):
-        t = part.strip()
-        if not t:
-            continue
-        if t.isdigit():
-            n = int(t)
-            if n > 0:
-                vals.append(n)
-    if not vals:
-        vals = [5, 10, 20, 100, 1000]
-    out: List[int] = []
-    seen = set()
-    for n in vals:
-        k = min(n, max_total)
-        if k > 0 and k not in seen:
-            out.append(k)
-            seen.add(k)
-    if max_total > 0 and max_total not in seen:
-        out.append(max_total)
-    return out
-
-
-def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
-    def _valid_dp_int(v: Any) -> bool:
-        if isinstance(v, int):
-            return v >= -1
-        if isinstance(v, str) and re.fullmatch(r"-?\d+", v):
-            return int(v) >= -1
-        return False
-
-    reasons: List[str] = []
-    for e in failed_entries[:10]:
-        name = e.get("basename", "")
-        if not e.get("success_gpt", False):
-            reasons.append(f"{name}: GPT失败({e.get('gpt_error', 'unknown')})，需要更严格输出 JSON + 可行路径。")
-        if not e.get("success_dfs", False):
-            reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
-        if not e.get("success_dp", False):
-            reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
-        if (
-            e.get("success_dp", False)
-            and str(e.get("dp_mems", "")).strip() == "-1"
-            and e.get("success_dfs", False)
-            and isinstance(e.get("dfs_max_mems", ""), str)
-            and re.fullmatch(r"-?\d+", e.get("dfs_max_mems", ""))
-            and int(e.get("dfs_max_mems", "0")) >= 0
-        ):
-            reasons.append(
-                f"{name}: DP给出-1(不可行)但DFS给出可行mems={e.get('dfs_max_mems','?')}，请优先怀疑DP结果异常并复核代码/工具输出。"
-            )
-        if (
-            e.get("success_gpt", False)
-            and e.get("success_dp", False)
-            and _valid_dp_int(e.get("dp_mems", ""))
-            and (not e.get("gpt_eq_dp_mems", False))
-        ):
-            reasons.append(
-                f"{name}: GPT与DP不一致(gpt={e.get('gpt_mems','?')}, dp={e.get('dp_mems','?')}, diff={e.get('gpt_dp_mems_diff','?')})，"
-                "请严格按DP口径重算分支条件与循环展开。"
-            )
-    if not reasons:
-        reasons.append("批量执行出现失败，请提高路径可行性和 MEMS 计数一致性。")
-    feedback = " | ".join(reasons[:5])
+    if examples:
+        feedback += " | " + " | ".join(examples)
     PROMPT_FEEDBACK_HISTORY.append(feedback)
     return feedback
 
@@ -849,23 +788,9 @@ def main():
                     success_dfs = bool(cached.get("success_dfs", False))
                     success_dp = bool(cached.get("success_dp", False))
 
-                guidance_lines: List[str] = []
-                if success_dp and isinstance(entry.get("dp_mems", ""), str) and re.fullmatch(r"-?\d+", entry["dp_mems"]):
-                    dp_val = int(entry["dp_mems"])
-                    if dp_val == -1:
-                        guidance_lines.append("该程序在DP结果中无可行路径，请输出 mems=-1 和 [NO FEASIBLE PATH]。")
-                    else:
-                        guidance_lines.append(f"DP目标mems={dp_val}，请严格按此口径计数。")
-                        if entry.get("dp_path", ""):
-                            guidance_lines.append("DP参考路径如下（优先贴近该路径风格）:")
-                            guidance_lines.append(str(entry["dp_path"]))
-                if success_dfs and str(entry.get("dfs_max_mems", "")).strip() == "-1":
-                    guidance_lines.append("DFS也显示不可行，请优先输出不可行结果(-1)。")
-                guidance = "\n".join(guidance_lines)
-
-                print(f"  [3/3] 调用 GPT 分析（携带DP/DFS对齐提示）")
+                print(f"  [3/3] 调用 GPT 分析（仅使用通用提示词与回溯示例，不注入当前文件答案）")
                 t0 = time.time()
-                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text, guidance=guidance)
+                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
                 entry["gpt_time"] = f"{time.time() - t0:.4f}"
                 if gpt_mems is None or (not gpt_path and gpt_mems != -1):
                     print("  [失败] GPT 阶段解析失败")
