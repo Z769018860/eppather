@@ -705,6 +705,26 @@ def _parse_batch_stages(max_total: int) -> List[int]:
     return out
 
 
+def _compute_gpt_baseline_accuracy(rows: List[Dict[str, Any]]) -> Tuple[float, int]:
+    valid = [
+        r for r in rows
+        if r.get("success_gpt", False)
+        and r.get("success_dp", False)
+        and isinstance(r.get("gpt_eq_dp_mems", None), bool)
+    ]
+    if not valid:
+        return 0.0, 0
+    acc = sum(1 for r in valid if r.get("gpt_eq_dp_mems", False)) / len(valid)
+    return acc, len(valid)
+
+
+def _safe_variance(values: List[float]) -> float:
+    if not values:
+        return 0.0
+    mean_v = sum(values) / len(values)
+    return sum((x - mean_v) ** 2 for x in values) / len(values)
+
+
 def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
     def _valid_dp_int(v: Any) -> bool:
         if isinstance(v, int):
@@ -1063,17 +1083,38 @@ def main():
         f"eppath_api={'on' if EPATH_FEASIBILITY_API else 'off(local_parser)'}"
     )
 
+    stage_accuracy_records: List[Dict[str, Any]] = []
+
     try:
         round_idx = 0
         while round_idx < MAX_BACKTRACK_ROUNDS:
             round_idx += 1
             print(f"\n==== 自动回溯轮次 {round_idx}/{MAX_BACKTRACK_ROUNDS} ====")
             round_failed = False
-            for stage in stages:
+            gated_stage_order = [s for s in (5, 20) if s in stages]
+            if len(gated_stage_order) < 2:
+                gated_stage_order = stages
+            gate_passed = False
+            stage_results: List[Dict[str, Any]] = []
+
+            for stage in gated_stage_order:
                 subset = c_files[:stage]
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
                 _print_stage_summary(f"round={round_idx},stage={stage}", stage_results)
+                stage_acc, valid_n = _compute_gpt_baseline_accuracy(stage_results)
+                stage_accuracy_records.append(
+                    {
+                        "round": round_idx,
+                        "stage": stage,
+                        "accuracy": stage_acc,
+                        "valid_count": valid_n,
+                    }
+                )
+                print(
+                    f"[baseline] stage={stage} 使用 GPT=DP 作为 baseline 准确率: "
+                    f"{stage_acc:.2%} (有效样本={valid_n})"
+                )
                 failed = []
                 for x in stage_results:
                     base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
@@ -1099,6 +1140,88 @@ def main():
                     break
                 results = stage_results
                 print(f"[阶段成功] 前 {stage} 个样例全部执行成功。")
+
+            if not round_failed and 5 in [r["stage"] for r in stage_accuracy_records if r["round"] == round_idx] and 20 in [r["stage"] for r in stage_accuracy_records if r["round"] == round_idx]:
+                round_stage_map = {
+                    r["stage"]: r for r in stage_accuracy_records if r["round"] == round_idx
+                }
+                acc5 = float(round_stage_map[5]["accuracy"])
+                acc20 = float(round_stage_map[20]["accuracy"])
+                if acc5 > 0.5 and acc20 > 0.5:
+                    print(
+                        f"[gate通过] 5样例准确率={acc5:.2%}, 20样例准确率={acc20:.2%}，"
+                        "触发全量样例批量执行。"
+                    )
+                    full_stage = len(c_files)
+                    full_results = process_files(c_files)
+                    _print_stage_summary(f"round={round_idx},stage=ALL({full_stage})", full_results)
+                    full_acc, full_valid_n = _compute_gpt_baseline_accuracy(full_results)
+                    stage_accuracy_records.append(
+                        {
+                            "round": round_idx,
+                            "stage": full_stage,
+                            "accuracy": full_acc,
+                            "valid_count": full_valid_n,
+                        }
+                    )
+                    print(
+                        f"[baseline] 全量 stage={full_stage} GPT=DP baseline 准确率: "
+                        f"{full_acc:.2%} (有效样本={full_valid_n})"
+                    )
+                    results = full_results
+                    gate_passed = True
+                else:
+                    print(
+                        f"[gate未通过] 5样例准确率={acc5:.2%}, 20样例准确率={acc20:.2%}。"
+                        "继续按原阶段策略执行。"
+                    )
+
+            if not round_failed and (not gate_passed):
+                for stage in stages:
+                    if stage in gated_stage_order:
+                        continue
+                    subset = c_files[:stage]
+                    print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
+                    stage_results = process_files(subset)
+                    _print_stage_summary(f"round={round_idx},stage={stage}", stage_results)
+                    stage_acc, valid_n = _compute_gpt_baseline_accuracy(stage_results)
+                    stage_accuracy_records.append(
+                        {
+                            "round": round_idx,
+                            "stage": stage,
+                            "accuracy": stage_acc,
+                            "valid_count": valid_n,
+                        }
+                    )
+                    print(
+                        f"[baseline] stage={stage} 使用 GPT=DP 作为 baseline 准确率: "
+                        f"{stage_acc:.2%} (有效样本={valid_n})"
+                    )
+                    failed = []
+                    for x in stage_results:
+                        base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
+                        if not base_ok:
+                            failed.append(x)
+                            continue
+                        dp_mems_s = x.get("dp_mems", "")
+                        dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
+                        if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
+                            dp_mems_valid = int(dp_mems_s) >= -1
+                        if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
+                            failed.append(x)
+                            continue
+                        if REQUIRE_EPATH_FEASIBLE and x.get("success_gpt", False) and str(x.get("gpt_mems", "")).strip() != "-1":
+                            if x.get("eppath_feasible", "unknown") != "true":
+                                failed.append(x)
+                    if failed:
+                        for fx in failed:
+                            _record_file_feedback(fx)
+                        fb = _add_feedback_from_failures(failed)
+                        print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
+                        round_failed = True
+                        break
+                    results = stage_results
+                    print(f"[阶段成功] 前 {stage} 个样例全部执行成功。")
 
             if not round_failed:
                 print("[完成] 所有批量阶段均执行成功。")
@@ -1166,6 +1289,12 @@ def main():
     dfs_ok = int(df["success_dfs"].sum()) if total else 0
     gpt_ok = int(df["success_gpt"].sum()) if total else 0
     eppath_ok = int((df["eppath_feasible"] == "true").sum()) if total and "eppath_feasible" in df.columns else 0
+    gpt_dp_diff_vals = pd.to_numeric(df["gpt_dp_mems_diff"], errors="coerce").dropna().astype(float).tolist() if total else []
+    gpt_dfs_diff_vals = pd.to_numeric(df["gpt_dfs_mems_diff"], errors="coerce").dropna().astype(float).tolist() if total else []
+    baseline_acc_vals = [float(x.get("accuracy", 0.0)) for x in stage_accuracy_records]
+    baseline_acc_var = _safe_variance(baseline_acc_vals)
+    gpt_dp_diff_var = _safe_variance(gpt_dp_diff_vals)
+    gpt_dfs_diff_var = _safe_variance(gpt_dfs_diff_vals)
 
     print(f"  [表格] 汇总CSV: {SUMMARY_CSV}")
     print(f"  [表格] 汇总XLSX: {SUMMARY_XLSX}")
@@ -1186,6 +1315,10 @@ def main():
         print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
         print(f"  eppather判定可行: {eppath_ok}/{total} ({eppath_ok/total:.2%})")
         print(f"  TRUE(三方一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
+        print("\n==== 稳定性方差 ====")
+        print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
+        print(f"  GPT-DP mems差值方差(file-level): {gpt_dp_diff_var:.6f}")
+        print(f"  GPT-DFS mems差值方差(file-level): {gpt_dfs_diff_var:.6f}")
     else:
         print("  总文件数: 0")
 
