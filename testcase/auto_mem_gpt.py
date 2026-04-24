@@ -22,6 +22,8 @@ TRUE_ONLY_CSV = os.path.join(SCRIPT_DIR, "result_true_only3.csv")
 TRUE_ONLY_XLSX = os.path.join(SCRIPT_DIR, "result_true_only3.xlsx")
 GPT_FAIL_CSV = os.path.join(SCRIPT_DIR, "result_gpt_fail3.csv")
 GPT_FAIL_XLSX = os.path.join(SCRIPT_DIR, "result_gpt_fail3.xlsx")
+PROMPT_HISTORY_JSON = os.path.join(SCRIPT_DIR, "prompt_backtrack_history_true3.json")
+FINAL_PROMPT_TXT = os.path.join(SCRIPT_DIR, "prompt_final_true3.txt")
 
 INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
@@ -135,6 +137,7 @@ CNIP_BIN = _resolve_cnip_path()
 RUN_ENV = _build_run_env()
 PROMPT_FEEDBACK_HISTORY: List[str] = []
 FILE_FEEDBACK_HISTORY: Dict[str, List[str]] = {}
+PROMPT_SNAPSHOTS: List[Dict[str, Any]] = []
 
 
 if not API_KEY:
@@ -636,6 +639,26 @@ def build_user_prompt(code: str, guidance: str = "") -> str:
     return prompt
 
 
+def record_prompt_snapshot(tag: str, note: str = "") -> None:
+    try:
+        snap = {
+            "tag": tag,
+            "note": note,
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": build_system_prompt(),
+        }
+        PROMPT_SNAPSHOTS.append(snap)
+    except Exception as e:
+        PROMPT_SNAPSHOTS.append({
+            "tag": tag,
+            "note": f"{note} | snapshot_error={e}",
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": "",
+        })
+
+
 def _format_file_guidance(entry: Dict[str, Any], filename: str) -> str:
     hints: List[str] = []
     base = os.path.basename(filename)
@@ -1087,9 +1110,11 @@ def main():
 
     try:
         round_idx = 0
+        record_prompt_snapshot("initial", "before_backtrack_loop")
         while round_idx < MAX_BACKTRACK_ROUNDS:
             round_idx += 1
             print(f"\n==== 自动回溯轮次 {round_idx}/{MAX_BACKTRACK_ROUNDS} ====")
+            record_prompt_snapshot(f"round_{round_idx}_start", "round_start")
             round_failed = False
             gated_stage_order = [s for s in (5, 20) if s in stages]
             if len(gated_stage_order) < 2:
@@ -1135,6 +1160,7 @@ def main():
                     for fx in failed:
                         _record_file_feedback(fx)
                     fb = _add_feedback_from_failures(failed)
+                    record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_feedback", fb)
                     print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
                     round_failed = True
                     break
@@ -1225,10 +1251,12 @@ def main():
 
             if not round_failed:
                 print("[完成] 所有批量阶段均执行成功。")
+                record_prompt_snapshot(f"round_{round_idx}_completed", "all_stages_success")
                 break
             if round_idx >= MAX_BACKTRACK_ROUNDS:
                 print(f"[停止] 已达到最大回溯轮次，保留最近一轮失败结果。")
                 results = stage_results
+                record_prompt_snapshot(f"round_{round_idx}_stopped", "max_backtrack_reached")
             else:
                 print("[回溯] 已更新 prompt 反馈，重新从 5 个样例开始执行。")
     except KeyboardInterrupt:
@@ -1296,12 +1324,24 @@ def main():
     gpt_dp_diff_var = _safe_variance(gpt_dp_diff_vals)
     gpt_dfs_diff_var = _safe_variance(gpt_dfs_diff_vals)
 
+    final_prompt = build_system_prompt()
+    with open(FINAL_PROMPT_TXT, "w", encoding="utf-8") as f:
+        f.write(final_prompt)
+        f.write("\n")
+
+    with open(PROMPT_HISTORY_JSON, "w", encoding="utf-8") as f:
+        json.dump(PROMPT_SNAPSHOTS, f, ensure_ascii=False, indent=2)
+
     print(f"  [表格] 汇总CSV: {SUMMARY_CSV}")
     print(f"  [表格] 汇总XLSX: {SUMMARY_XLSX}")
     print(f"  [表格] TRUE子集CSV: {TRUE_ONLY_CSV}")
     print(f"  [表格] TRUE子集XLSX: {TRUE_ONLY_XLSX}")
     print(f"  [表格] GPT失败子集CSV: {GPT_FAIL_CSV}")
     print(f"  [表格] GPT失败子集XLSX: {GPT_FAIL_XLSX}")
+    print(f"  [提示词] 回溯历史JSON: {PROMPT_HISTORY_JSON}")
+    print(f"  [提示词] 最终提示词TXT: {FINAL_PROMPT_TXT}")
+    print("\n==== 最终系统提示词（回溯后） ====")
+    print(final_prompt)
 
     print("\n==== 统计结果 ====")
     if total:
