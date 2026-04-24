@@ -22,6 +22,8 @@ TRUE_ONLY_CSV = os.path.join(SCRIPT_DIR, "result_true_only3.csv")
 TRUE_ONLY_XLSX = os.path.join(SCRIPT_DIR, "result_true_only3.xlsx")
 GPT_FAIL_CSV = os.path.join(SCRIPT_DIR, "result_gpt_fail3.csv")
 GPT_FAIL_XLSX = os.path.join(SCRIPT_DIR, "result_gpt_fail3.xlsx")
+PROMPT_HISTORY_JSON = os.path.join(SCRIPT_DIR, "prompt_backtrack_history_true3.json")
+FINAL_PROMPT_TXT = os.path.join(SCRIPT_DIR, "prompt_final_true3.txt")
 
 INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
@@ -37,6 +39,9 @@ REQUIRE_GPT_DP_MATCH = (
 REQUIRE_EPATH_FEASIBLE = (os.getenv("AUTO_MEM_REQUIRE_EPATH_FEASIBLE") or "1").strip() != "0"
 EPATH_FEASIBILITY_API = (os.getenv("AUTO_MEM_EPATH_FEASIBILITY_API") or "").strip()
 EPATH_FEASIBILITY_TIMEOUT = int((os.getenv("AUTO_MEM_EPATH_FEASIBILITY_TIMEOUT") or "20").strip() or "20")
+BASELINE_STAGE1 = int((os.getenv("AUTO_MEM_BASELINE_STAGE1") or "5").strip() or "5")
+BASELINE_STAGE2 = int((os.getenv("AUTO_MEM_BASELINE_STAGE2") or "20").strip() or "20")
+BASELINE_PASS_THRESHOLD = float((os.getenv("AUTO_MEM_BASELINE_PASS_THRESHOLD") or "0.5").strip() or "0.5")
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -135,6 +140,8 @@ CNIP_BIN = _resolve_cnip_path()
 RUN_ENV = _build_run_env()
 PROMPT_FEEDBACK_HISTORY: List[str] = []
 FILE_FEEDBACK_HISTORY: Dict[str, List[str]] = {}
+PROMPT_SNAPSHOTS: List[Dict[str, Any]] = []
+BASELINE_ACCURACY_HISTORY: Dict[int, List[float]] = {}
 
 
 if not API_KEY:
@@ -636,6 +643,26 @@ def build_user_prompt(code: str, guidance: str = "") -> str:
     return prompt
 
 
+def record_prompt_snapshot(tag: str, note: str = "") -> None:
+    try:
+        snap = {
+            "tag": tag,
+            "note": note,
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": build_system_prompt(),
+        }
+        PROMPT_SNAPSHOTS.append(snap)
+    except Exception as e:
+        PROMPT_SNAPSHOTS.append({
+            "tag": tag,
+            "note": f"{note} | snapshot_error={e}",
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": "",
+        })
+
+
 def _format_file_guidance(entry: Dict[str, Any], filename: str) -> str:
     hints: List[str] = []
     base = os.path.basename(filename)
@@ -705,24 +732,18 @@ def _parse_batch_stages(max_total: int) -> List[int]:
     return out
 
 
-def _compute_gpt_baseline_accuracy(rows: List[Dict[str, Any]]) -> Tuple[float, int]:
-    valid = [
-        r for r in rows
-        if r.get("success_gpt", False)
-        and r.get("success_dp", False)
-        and isinstance(r.get("gpt_eq_dp_mems", None), bool)
-    ]
-    if not valid:
-        return 0.0, 0
-    acc = sum(1 for r in valid if r.get("gpt_eq_dp_mems", False)) / len(valid)
-    return acc, len(valid)
-
-
-def _safe_variance(values: List[float]) -> float:
-    if not values:
+def _safe_variance(vals: List[float]) -> float:
+    if not vals or len(vals) <= 1:
         return 0.0
-    mean_v = sum(values) / len(values)
-    return sum((x - mean_v) ** 2 for x in values) / len(values)
+    mean = sum(vals) / len(vals)
+    return sum((x - mean) ** 2 for x in vals) / len(vals)
+
+
+def _stage_accuracy(rows: List[Dict[str, Any]]) -> float:
+    if not rows:
+        return 0.0
+    hits = sum(1 for r in rows if r.get("gpt_eq_dp_mems", False))
+    return hits / len(rows)
 
 
 def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
@@ -1077,67 +1098,87 @@ def main():
 
     results: List[Dict[str, Any]] = []
     stages = _parse_batch_stages(len(c_files))
+    checkpoint_5 = min(BASELINE_STAGE1, len(c_files)) if c_files else 0
+    checkpoint_20 = min(BASELINE_STAGE2, len(c_files)) if c_files else 0
+    baseline_checkpoints = []
+    for x in [checkpoint_5, checkpoint_20]:
+        if x > 0 and x not in baseline_checkpoints:
+            baseline_checkpoints.append(x)
+    max_baseline_checkpoint = max(baseline_checkpoints) if baseline_checkpoints else 0
+    baseline_passed: Dict[int, bool] = {cp: False for cp in baseline_checkpoints}
     print(
         f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}, "
         f"require_gpt_dp_match={REQUIRE_GPT_DP_MATCH}, require_eppath_feasible={REQUIRE_EPATH_FEASIBLE}, "
         f"eppath_api={'on' if EPATH_FEASIBILITY_API else 'off(local_parser)'}"
     )
-
-    stage_accuracy_records: List[Dict[str, Any]] = []
+    print(
+        f"[baseline门槛] checkpoints={baseline_checkpoints}, threshold>{BASELINE_PASS_THRESHOLD:.2%} "
+        "(指标=GPT=DP准确率)"
+    )
 
     try:
         round_idx = 0
+        record_prompt_snapshot("initial", "before_backtrack_loop")
         while round_idx < MAX_BACKTRACK_ROUNDS:
             round_idx += 1
             print(f"\n==== 自动回溯轮次 {round_idx}/{MAX_BACKTRACK_ROUNDS} ====")
+            record_prompt_snapshot(f"round_{round_idx}_start", "round_start")
             round_failed = False
-            gated_stage_order = [s for s in (5, 20) if s in stages]
-            if len(gated_stage_order) < 2:
-                gated_stage_order = stages
-            gate_passed = False
-            stage_results: List[Dict[str, Any]] = []
-
-            for stage in gated_stage_order:
+            baseline_passed = {cp: False for cp in baseline_checkpoints}
+            for stage in stages:
                 subset = c_files[:stage]
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
                 _print_stage_summary(f"round={round_idx},stage={stage}", stage_results)
-                stage_acc, valid_n = _compute_gpt_baseline_accuracy(stage_results)
-                stage_accuracy_records.append(
-                    {
-                        "round": round_idx,
-                        "stage": stage,
-                        "accuracy": stage_acc,
-                        "valid_count": valid_n,
-                    }
+                stage_acc = _stage_accuracy(stage_results)
+                print(f"[baseline] stage={stage} GPT=DP准确率={stage_acc:.2%}")
+                if stage in baseline_checkpoints:
+                    BASELINE_ACCURACY_HISTORY.setdefault(stage, []).append(stage_acc)
+                    baseline_passed[stage] = stage_acc > BASELINE_PASS_THRESHOLD
+                    if not baseline_passed[stage]:
+                        fb = (
+                            f"baseline未达标: stage={stage}, GPT=DP准确率={stage_acc:.2%} "
+                            f"<= {BASELINE_PASS_THRESHOLD:.2%}。请优先修正MEMS计数口径与路径可行性。"
+                        )
+                        PROMPT_FEEDBACK_HISTORY.append(fb)
+                        record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_baseline_fail", fb)
+                        print(f"[自动回溯] {fb}")
+                        round_failed = True
+                        break
+                strict_guard_enabled = (
+                    (max_baseline_checkpoint <= 0)
+                    or (stage > max_baseline_checkpoint and baseline_passed.get(max_baseline_checkpoint, False))
                 )
-                print(
-                    f"[baseline] stage={stage} 使用 GPT=DP 作为 baseline 准确率: "
-                    f"{stage_acc:.2%} (有效样本={valid_n})"
-                )
-                failed = []
-                for x in stage_results:
-                    base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
-                    if not base_ok:
-                        failed.append(x)
-                        continue
-                    dp_mems_s = x.get("dp_mems", "")
-                    dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
-                    if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
-                        dp_mems_valid = int(dp_mems_s) >= -1
-                    if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
-                        failed.append(x)
-                        continue
-                    if REQUIRE_EPATH_FEASIBLE and x.get("success_gpt", False) and str(x.get("gpt_mems", "")).strip() != "-1":
-                        if x.get("eppath_feasible", "unknown") != "true":
+                if strict_guard_enabled:
+                    failed = []
+                    for x in stage_results:
+                        base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
+                        if not base_ok:
                             failed.append(x)
-                if failed:
-                    for fx in failed:
-                        _record_file_feedback(fx)
-                    fb = _add_feedback_from_failures(failed)
-                    print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
-                    round_failed = True
-                    break
+                            continue
+                        dp_mems_s = x.get("dp_mems", "")
+                        dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
+                        if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
+                            dp_mems_valid = int(dp_mems_s) >= -1
+                        if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
+                            failed.append(x)
+                            continue
+                        if REQUIRE_EPATH_FEASIBLE and x.get("success_gpt", False) and str(x.get("gpt_mems", "")).strip() != "-1":
+                            if x.get("eppath_feasible", "unknown") != "true":
+                                failed.append(x)
+                    if failed:
+                        for fx in failed:
+                            _record_file_feedback(fx)
+                        fb = _add_feedback_from_failures(failed)
+                        record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_feedback", fb)
+                        print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
+                        round_failed = True
+                        break
+                else:
+                    print(
+                        f"[baseline推进] 阶段 {stage} 仅按基线准确率门槛推进，"
+                        "暂不启用逐样本严格失败拦截。"
+                    )
                 results = stage_results
                 print(f"[阶段成功] 前 {stage} 个样例全部执行成功。")
 
@@ -1225,10 +1266,12 @@ def main():
 
             if not round_failed:
                 print("[完成] 所有批量阶段均执行成功。")
+                record_prompt_snapshot(f"round_{round_idx}_completed", "all_stages_success")
                 break
             if round_idx >= MAX_BACKTRACK_ROUNDS:
                 print(f"[停止] 已达到最大回溯轮次，保留最近一轮失败结果。")
                 results = stage_results
+                record_prompt_snapshot(f"round_{round_idx}_stopped", "max_backtrack_reached")
             else:
                 print("[回溯] 已更新 prompt 反馈，重新从 5 个样例开始执行。")
     except KeyboardInterrupt:
@@ -1289,12 +1332,24 @@ def main():
     dfs_ok = int(df["success_dfs"].sum()) if total else 0
     gpt_ok = int(df["success_gpt"].sum()) if total else 0
     eppath_ok = int((df["eppath_feasible"] == "true").sum()) if total and "eppath_feasible" in df.columns else 0
-    gpt_dp_diff_vals = pd.to_numeric(df["gpt_dp_mems_diff"], errors="coerce").dropna().astype(float).tolist() if total else []
-    gpt_dfs_diff_vals = pd.to_numeric(df["gpt_dfs_mems_diff"], errors="coerce").dropna().astype(float).tolist() if total else []
-    baseline_acc_vals = [float(x.get("accuracy", 0.0)) for x in stage_accuracy_records]
-    baseline_acc_var = _safe_variance(baseline_acc_vals)
-    gpt_dp_diff_var = _safe_variance(gpt_dp_diff_vals)
-    gpt_dfs_diff_var = _safe_variance(gpt_dfs_diff_vals)
+    gpt_dp_diffs: List[float] = []
+    if total and "gpt_dp_mems_diff" in df.columns:
+        for v in df["gpt_dp_mems_diff"].tolist():
+            if isinstance(v, int):
+                gpt_dp_diffs.append(float(v))
+            elif isinstance(v, float):
+                gpt_dp_diffs.append(v)
+            elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
+                gpt_dp_diffs.append(float(v.strip()))
+    gpt_dp_var = _safe_variance(gpt_dp_diffs)
+
+    final_prompt = build_system_prompt()
+    with open(FINAL_PROMPT_TXT, "w", encoding="utf-8") as f:
+        f.write(final_prompt)
+        f.write("\n")
+
+    with open(PROMPT_HISTORY_JSON, "w", encoding="utf-8") as f:
+        json.dump(PROMPT_SNAPSHOTS, f, ensure_ascii=False, indent=2)
 
     print(f"  [表格] 汇总CSV: {SUMMARY_CSV}")
     print(f"  [表格] 汇总XLSX: {SUMMARY_XLSX}")
@@ -1302,6 +1357,10 @@ def main():
     print(f"  [表格] TRUE子集XLSX: {TRUE_ONLY_XLSX}")
     print(f"  [表格] GPT失败子集CSV: {GPT_FAIL_CSV}")
     print(f"  [表格] GPT失败子集XLSX: {GPT_FAIL_XLSX}")
+    print(f"  [提示词] 回溯历史JSON: {PROMPT_HISTORY_JSON}")
+    print(f"  [提示词] 最终提示词TXT: {FINAL_PROMPT_TXT}")
+    print("\n==== 最终系统提示词（回溯后） ====")
+    print(final_prompt)
 
     print("\n==== 统计结果 ====")
     if total:
@@ -1314,6 +1373,15 @@ def main():
         print(f"  GPT=DFS:  {int(df['gpt_eq_dfs_mems'].sum())}/{total} ({df['gpt_eq_dfs_mems'].mean():.2%})")
         print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
         print(f"  eppather判定可行: {eppath_ok}/{total} ({eppath_ok/total:.2%})")
+        print(f"  稳定性方差(gpt_dp_mems_diff): {gpt_dp_var:.6f}")
+        for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
+            vals = BASELINE_ACCURACY_HISTORY.get(cp, [])
+            var = _safe_variance(vals)
+            last = vals[-1] if vals else 0.0
+            print(
+                f"  稳定性方差(stage={cp}, GPT=DP准确率): {var:.6f} "
+                f"(latest={last:.2%}, rounds={len(vals)})"
+            )
         print(f"  TRUE(三方一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
         print("\n==== 稳定性方差 ====")
         print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
