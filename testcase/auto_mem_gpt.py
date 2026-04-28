@@ -1333,6 +1333,8 @@ def main():
     gpt_ok = int(df["success_gpt"].sum()) if total else 0
     eppath_ok = int((df["eppath_feasible"] == "true").sum()) if total and "eppath_feasible" in df.columns else 0
     gpt_dp_diffs: List[float] = []
+    gpt_dfs_diffs: List[float] = []
+    dp_dfs_diffs: List[float] = []
     if total and "gpt_dp_mems_diff" in df.columns:
         for v in df["gpt_dp_mems_diff"].tolist():
             if isinstance(v, int):
@@ -1341,9 +1343,29 @@ def main():
                 gpt_dp_diffs.append(v)
             elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
                 gpt_dp_diffs.append(float(v.strip()))
+    if total and "gpt_dfs_mems_diff" in df.columns:
+        for v in df["gpt_dfs_mems_diff"].tolist():
+            if isinstance(v, int):
+                gpt_dfs_diffs.append(float(v))
+            elif isinstance(v, float):
+                gpt_dfs_diffs.append(v)
+            elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
+                gpt_dfs_diffs.append(float(v.strip()))
+    if total and "dp_dfs_mems_diff" in df.columns:
+        for v in df["dp_dfs_mems_diff"].tolist():
+            if isinstance(v, int):
+                dp_dfs_diffs.append(float(v))
+            elif isinstance(v, float):
+                dp_dfs_diffs.append(v)
+            elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
+                dp_dfs_diffs.append(float(v.strip()))
     gpt_dp_var = _safe_variance(gpt_dp_diffs)
+    gpt_dfs_var = _safe_variance(gpt_dfs_diffs)
+    dp_dfs_var = _safe_variance(dp_dfs_diffs)
     # 兼容历史打印变量名，避免 NameError
     gpt_dp_diff_var = gpt_dp_var
+    gpt_dfs_diff_var = gpt_dfs_var
+    dp_dfs_diff_var = dp_dfs_var
     baseline_acc_samples: List[float] = []
     for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
         baseline_acc_samples.extend(BASELINE_ACCURACY_HISTORY.get(cp, []))
@@ -1401,6 +1423,8 @@ def main():
     print("\n==== 稳定性方差 ====")
     print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
     print(f"  GPT-DP mems差值方差(file-level): {gpt_dp_diff_var:.6f}")
+    print(f"  GPT-DFS mems差值方差(file-level): {gpt_dfs_diff_var:.6f}")
+    print(f"  DP-DFS mems差值方差(file-level): {dp_dfs_diff_var:.6f}")
 
 
 if __name__ == "__main__":
