@@ -1342,6 +1342,8 @@ def main():
             elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
                 gpt_dp_diffs.append(float(v.strip()))
     gpt_dp_var = _safe_variance(gpt_dp_diffs)
+    # 兼容历史打印变量名，避免 NameError
+    gpt_dp_diff_var = gpt_dp_var
     baseline_acc_samples: List[float] = []
     for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
         baseline_acc_samples.extend(BASELINE_ACCURACY_HISTORY.get(cp, []))
@@ -1394,6 +1396,11 @@ def main():
         print(f"  GPT-DFS mems差值方差(file-level): {gpt_dfs_diff_var:.6f}")
     else:
         print("  总文件数: 0")
+
+    # 额外稳定性区块（兼容旧日志格式）
+    print("\n==== 稳定性方差 ====")
+    print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
+    print(f"  GPT-DP mems差值方差(file-level): {gpt_dp_diff_var:.6f}")
 
 
 if __name__ == "__main__":
