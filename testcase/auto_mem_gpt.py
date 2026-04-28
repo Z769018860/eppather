@@ -1342,6 +1342,10 @@ def main():
             elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
                 gpt_dp_diffs.append(float(v.strip()))
     gpt_dp_var = _safe_variance(gpt_dp_diffs)
+    baseline_acc_samples: List[float] = []
+    for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
+        baseline_acc_samples.extend(BASELINE_ACCURACY_HISTORY.get(cp, []))
+    baseline_acc_var = _safe_variance(baseline_acc_samples)
 
     final_prompt = build_system_prompt()
     with open(FINAL_PROMPT_TXT, "w", encoding="utf-8") as f:
@@ -1374,6 +1378,7 @@ def main():
         print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
         print(f"  eppather判定可行: {eppath_ok}/{total} ({eppath_ok/total:.2%})")
         print(f"  稳定性方差(gpt_dp_mems_diff): {gpt_dp_var:.6f}")
+        print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
         for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
             vals = BASELINE_ACCURACY_HISTORY.get(cp, [])
             var = _safe_variance(vals)
