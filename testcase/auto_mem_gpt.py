@@ -22,6 +22,8 @@ TRUE_ONLY_CSV = os.path.join(SCRIPT_DIR, "result_true_only3.csv")
 TRUE_ONLY_XLSX = os.path.join(SCRIPT_DIR, "result_true_only3.xlsx")
 GPT_FAIL_CSV = os.path.join(SCRIPT_DIR, "result_gpt_fail3.csv")
 GPT_FAIL_XLSX = os.path.join(SCRIPT_DIR, "result_gpt_fail3.xlsx")
+PROMPT_HISTORY_JSON = os.path.join(SCRIPT_DIR, "prompt_backtrack_history_true3.json")
+FINAL_PROMPT_TXT = os.path.join(SCRIPT_DIR, "prompt_final_true3.txt")
 
 INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
@@ -34,6 +36,12 @@ REQUIRE_GPT_DP_MATCH = (
     or os.getenv("AUTO_MEM_REQUIRE_GPT_DFS_MATCH")
     or "1"
 ).strip() != "0"
+REQUIRE_EPATH_FEASIBLE = (os.getenv("AUTO_MEM_REQUIRE_EPATH_FEASIBLE") or "1").strip() != "0"
+EPATH_FEASIBILITY_API = (os.getenv("AUTO_MEM_EPATH_FEASIBILITY_API") or "").strip()
+EPATH_FEASIBILITY_TIMEOUT = int((os.getenv("AUTO_MEM_EPATH_FEASIBILITY_TIMEOUT") or "20").strip() or "20")
+BASELINE_STAGE1 = int((os.getenv("AUTO_MEM_BASELINE_STAGE1") or "5").strip() or "5")
+BASELINE_STAGE2 = int((os.getenv("AUTO_MEM_BASELINE_STAGE2") or "20").strip() or "20")
+BASELINE_PASS_THRESHOLD = float((os.getenv("AUTO_MEM_BASELINE_PASS_THRESHOLD") or "0.5").strip() or "0.5")
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -131,6 +139,9 @@ def _build_run_env() -> Dict[str, str]:
 CNIP_BIN = _resolve_cnip_path()
 RUN_ENV = _build_run_env()
 PROMPT_FEEDBACK_HISTORY: List[str] = []
+FILE_FEEDBACK_HISTORY: Dict[str, List[str]] = {}
+PROMPT_SNAPSHOTS: List[Dict[str, Any]] = []
+BASELINE_ACCURACY_HISTORY: Dict[int, List[float]] = {}
 
 
 if not API_KEY:
@@ -415,6 +426,130 @@ def parse_gpt_output(text: str) -> Tuple[Optional[int], str]:
     return None, ""
 
 
+def _extract_predicates_from_path(path_expr: str) -> List[str]:
+    out: List[str] = []
+    if not path_expr or "[TEST INPUT PATH EXPR]:" not in path_expr:
+        return out
+    for ln in path_expr.splitlines()[1:]:
+        t = ln.strip()
+        if t.startswith("@(") and t.endswith(");"):
+            out.append(t[2:-2].strip())
+    return out
+
+
+def _normalize_cond_text(cond: str) -> str:
+    return re.sub(r"\s+", "", cond or "")
+
+
+def _update_interval(interval: Dict[str, Any], op: str, val: int) -> bool:
+    lb = interval.get("lb", None)
+    ub = interval.get("ub", None)
+    eq = interval.get("eq", None)
+    neq = interval.setdefault("neq", set())
+
+    if op == "==":
+        if eq is not None and eq != val:
+            return False
+        if val in neq:
+            return False
+        if lb is not None and val < lb:
+            return False
+        if ub is not None and val > ub:
+            return False
+        interval["eq"] = val
+        return True
+    if op == "!=":
+        if eq is not None and eq == val:
+            return False
+        neq.add(val)
+        return True
+    if op == ">":
+        lb2 = val + 1
+        interval["lb"] = lb2 if lb is None else max(lb, lb2)
+    elif op == ">=":
+        interval["lb"] = val if lb is None else max(lb, val)
+    elif op == "<":
+        ub2 = val - 1
+        interval["ub"] = ub2 if ub is None else min(ub, ub2)
+    elif op == "<=":
+        interval["ub"] = val if ub is None else min(ub, val)
+
+    lb = interval.get("lb", None)
+    ub = interval.get("ub", None)
+    eq = interval.get("eq", None)
+    if lb is not None and ub is not None and lb > ub:
+        return False
+    if eq is not None and ((lb is not None and eq < lb) or (ub is not None and eq > ub) or (eq in neq)):
+        return False
+    return True
+
+
+def _judge_path_feasible_local(path_expr: str) -> Tuple[str, str]:
+    if not path_expr:
+        return "unknown", "empty_path"
+    p = path_expr.strip()
+    if p == "[NO FEASIBLE PATH]":
+        return "true", "explicit_no_feasible_path_marker"
+    if "[TEST INPUT PATH EXPR]:" not in p:
+        return "false", "missing_path_header"
+
+    predicates = _extract_predicates_from_path(p)
+    norms = {_normalize_cond_text(x) for x in predicates if x.strip()}
+    for n in list(norms):
+        if n.startswith("!") and n[1:] in norms:
+            return "false", f"contradictory_predicates:{n} vs {n[1:]}"
+        if ("!" + n) in norms:
+            return "false", f"contradictory_predicates:{n} vs !{n}"
+
+    var_constraints: Dict[str, Dict[str, Any]] = {}
+    atom_re = re.compile(r"^([A-Za-z_]\w*)\s*(==|!=|<=|>=|<|>)\s*(-?\d+)$")
+    for cond in predicates:
+        parts = re.split(r"&&|\|\|", cond)
+        for part in parts:
+            c = part.strip()
+            if c.startswith("(") and c.endswith(")"):
+                c = c[1:-1].strip()
+            m = atom_re.fullmatch(c)
+            if not m:
+                continue
+            vname, op, sval = m.group(1), m.group(2), int(m.group(3))
+            slot = var_constraints.setdefault(vname, {})
+            if not _update_interval(slot, op, sval):
+                return "false", f"numeric_constraint_conflict:{vname}"
+
+    return "true", "no_obvious_conflict_by_local_parser"
+
+
+def judge_path_feasibility(cfile: str, code_text: str, path_expr: str) -> Tuple[str, str, str]:
+    if EPATH_FEASIBILITY_API:
+        try:
+            resp = requests.post(
+                EPATH_FEASIBILITY_API,
+                json={
+                    "filename": os.path.basename(cfile),
+                    "code": code_text,
+                    "test_input_path_expr": path_expr,
+                },
+                timeout=EPATH_FEASIBILITY_TIMEOUT,
+            )
+            if resp.status_code == 200:
+                data = resp.json() if resp.text.strip() else {}
+                feasible_raw = str(
+                    data.get("feasible", data.get("is_feasible", data.get("result", data.get("status", "unknown"))))
+                ).strip().lower()
+                reason = str(data.get("reason", data.get("message", ""))).strip() or "api_ok"
+                if feasible_raw in ("true", "1", "yes", "feasible", "ok"):
+                    return "true", reason, "api"
+                if feasible_raw in ("false", "0", "no", "infeasible", "fail"):
+                    return "false", reason, "api"
+                return "unknown", reason, "api"
+            return "unknown", f"api_http_{resp.status_code}", "api"
+        except Exception as e:
+            return "unknown", f"api_exception:{short_err(str(e), 120)}", "api"
+    local_judge, local_reason = _judge_path_feasible_local(path_expr)
+    return local_judge, local_reason, "local_parser"
+
+
 def build_system_prompt() -> str:
     base = (
         "You are a static-analysis assistant for C code.\n"
@@ -450,7 +585,16 @@ def build_system_prompt() -> str:
         "- Do not add external ABI overhead not present in static analyzer.\n\n"
         "Calibration hints (very important):\n"
         "- For simple 'a+b' style programs, do NOT over-count temporaries or implicit steps.\n"
-        "- If DP-like count is small, prefer smaller count consistent with explicit variable accesses only.\n\n"
+        "- If DP-like count is small, prefer smaller count consistent with explicit variable accesses only.\n"
+        "- Never invent hidden temporaries/register moves; only count explicit source-level memory reads/writes.\n"
+        "- For expression trees, count variable occurrences that are actually evaluated on the chosen feasible path only.\n\n"
+        "Strict feasibility rules:\n"
+        "- If any chosen branch predicate contradicts earlier predicates, this path is INVALID and must be discarded.\n"
+        "- Do not report a path with mems>=0 unless every emitted predicate/statement can execute in one concrete run.\n"
+        "- If all bounded candidates are contradictory, return mems=-1 with [NO FEASIBLE PATH].\n\n"
+        "DP-first tie-break policy:\n"
+        "- When multiple feasible paths are close, prefer the path whose counting style is most conservative and DP-consistent.\n"
+        "- Prefer explicit variable access accounting over speculative hidden operations.\n\n"
         "Hard constraints to reduce mismatch with DP/DFS results:\n"
         "- Treat DP output style as oracle target for worst-case path selection.\n"
         "- Prefer exact symbolic predicates from source conditions (keep operators and constants unchanged).\n"
@@ -499,6 +643,71 @@ def build_user_prompt(code: str, guidance: str = "") -> str:
     return prompt
 
 
+def record_prompt_snapshot(tag: str, note: str = "") -> None:
+    try:
+        snap = {
+            "tag": tag,
+            "note": note,
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": build_system_prompt(),
+        }
+        PROMPT_SNAPSHOTS.append(snap)
+    except Exception as e:
+        PROMPT_SNAPSHOTS.append({
+            "tag": tag,
+            "note": f"{note} | snapshot_error={e}",
+            "feedback_count": len(PROMPT_FEEDBACK_HISTORY),
+            "feedback_tail": PROMPT_FEEDBACK_HISTORY[-6:],
+            "prompt": "",
+        })
+
+
+def _format_file_guidance(entry: Dict[str, Any], filename: str) -> str:
+    hints: List[str] = []
+    base = os.path.basename(filename)
+    if base in FILE_FEEDBACK_HISTORY and FILE_FEEDBACK_HISTORY[base]:
+        hints.extend(FILE_FEEDBACK_HISTORY[base][-3:])
+    if PROMPT_FEEDBACK_HISTORY:
+        hints.append("全局近期失败摘要: " + " || ".join(PROMPT_FEEDBACK_HISTORY[-2:]))
+
+    if entry.get("success_dp", False):
+        hints.append(
+            f"参考信号: cnip DP 已成功，dp_mems={entry.get('dp_mems','?')}。请优先收敛到与 DP 一致的计数口径。"
+        )
+    if entry.get("success_dfs", False):
+        hints.append(
+            f"参考信号: cnip DFS 已成功，dfs_max_mems={entry.get('dfs_max_mems','?')}。"
+            "若与 DP 冲突，以 DP 计数口径优先，但路径必须可行。"
+        )
+    if entry.get("success_dp", False) and entry.get("success_dfs", False):
+        hints.append("若 DP 与 DFS 不一致：优先与 DP mems 对齐，同时借助 DFS 可行路径约束避免不可行分支。")
+    return "\n".join(hints).strip()
+
+
+def _record_file_feedback(entry: Dict[str, Any]) -> None:
+    base = entry.get("basename", "")
+    if not base:
+        return
+    fb: List[str] = []
+    if entry.get("success_dp", False) and (not entry.get("gpt_eq_dp_mems", False)):
+        fb.append(
+            f"{base}: 上轮 GPT={entry.get('gpt_mems','?')} 与 DP={entry.get('dp_mems','?')} 不一致。"
+            "下轮必须只统计显式变量读写，重新逐行核对。"
+        )
+    if entry.get("success_dfs", False) and (not entry.get("gpt_eq_dfs_mems", False)):
+        fb.append(f"{base}: 上轮 GPT 与 DFS 最大 mems 不一致。请复查分支可行性和循环展开上限。")
+    if not entry.get("success_gpt", False):
+        fb.append(f"{base}: 上轮 GPT 输出解析失败，必须返回严格 JSON。")
+    if entry.get("success_gpt", False) and str(entry.get("gpt_mems", "")).strip() != "-1" and entry.get("eppath_feasible", "unknown") != "true":
+        fb.append(
+            f"{base}: 上轮路径被 eppather 判定为 {entry.get('eppath_feasible','unknown')}({entry.get('eppath_feasible_reason','')})。"
+            "下轮必须避免冲突谓词，确保单路径可执行。"
+        )
+    if fb:
+        FILE_FEEDBACK_HISTORY.setdefault(base, []).extend(fb[-2:])
+
+
 def _parse_batch_stages(max_total: int) -> List[int]:
     vals: List[int] = []
     for part in AUTO_BATCH_STAGES_ENV.split(","):
@@ -523,6 +732,20 @@ def _parse_batch_stages(max_total: int) -> List[int]:
     return out
 
 
+def _safe_variance(vals: List[float]) -> float:
+    if not vals or len(vals) <= 1:
+        return 0.0
+    mean = sum(vals) / len(vals)
+    return sum((x - mean) ** 2 for x in vals) / len(vals)
+
+
+def _stage_accuracy(rows: List[Dict[str, Any]]) -> float:
+    if not rows:
+        return 0.0
+    hits = sum(1 for r in rows if r.get("gpt_eq_dp_mems", False))
+    return hits / len(rows)
+
+
 def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
     def _valid_dp_int(v: Any) -> bool:
         if isinstance(v, int):
@@ -541,6 +764,11 @@ def _add_feedback_from_failures(failed_entries: List[Dict[str, Any]]) -> str:
             reasons.append(f"{name}: DFS失败({e.get('dfs_error', 'unknown')})，请避免不可行分支。")
         if not e.get("success_dp", False):
             reasons.append(f"{name}: DP失败({e.get('dp_error', 'unknown')})，请检查路径格式与语义一致性。")
+        if e.get("success_gpt", False) and str(e.get("gpt_mems", "")).strip() != "-1" and e.get("eppath_feasible", "unknown") != "true":
+            reasons.append(
+                f"{name}: eppather判定路径不可行/不确定({e.get('eppath_feasible','unknown')}:{e.get('eppath_feasible_reason','')})，"
+                "请修正分支谓词矛盾并确保路径可执行。"
+            )
         if (
             e.get("success_dp", False)
             and str(e.get("dp_mems", "")).strip() == "-1"
@@ -788,9 +1016,10 @@ def main():
                     success_dfs = bool(cached.get("success_dfs", False))
                     success_dp = bool(cached.get("success_dp", False))
 
-                print(f"  [3/3] 调用 GPT 分析（仅使用通用提示词与回溯示例，不注入当前文件答案）")
+                file_guidance = _format_file_guidance(entry, cfile)
+                print("  [3/3] 调用 GPT 分析（使用全局+文件级回溯提示以逼近 DP/DFS）")
                 t0 = time.time()
-                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text)
+                gpt_mems, gpt_path, gpt_raw = call_gpt_for_mems(code_text, guidance=file_guidance)
                 entry["gpt_time"] = f"{time.time() - t0:.4f}"
                 if gpt_mems is None or (not gpt_path and gpt_mems != -1):
                     print("  [失败] GPT 阶段解析失败")
@@ -813,10 +1042,42 @@ def main():
             gpt_mems_val, dp_mems_val, dfs_mems_val = to_int(entry.get("gpt_mems", "")), to_int(entry.get("dp_mems", "")), to_int(entry.get("dfs_max_mems", ""))
             entry["gpt_eq_dp_mems"] = bool(success_gpt and success_dp and gpt_mems_val is not None and dp_mems_val is not None and gpt_mems_val == dp_mems_val)
             entry["gpt_eq_dfs_mems"] = bool(success_gpt and success_dfs and gpt_mems_val is not None and dfs_mems_val is not None and gpt_mems_val == dfs_mems_val)
+
+            if success_gpt and success_dp and (not entry["gpt_eq_dp_mems"]):
+                retry_guidance = (
+                    f"{file_guidance}\n"
+                    f"本文件强制校准: 你上一版 gpt_mems={gpt_mems_val}, 目标 dp_mems={dp_mems_val}。\n"
+                    "请重新执行“约束→枚举→计数→自检”，并避免隐含临时量过计数。"
+                )
+                print("  [3/3-重试] GPT 与 DP 不一致，触发一次文件级强校准重试")
+                t1 = time.time()
+                rg_mems, rg_path, rg_raw = call_gpt_for_mems(code_text, guidance=retry_guidance)
+                entry["gpt_time"] = f"{(float(entry['gpt_time']) + (time.time() - t1)):.4f}"
+                if rg_mems is not None and (rg_path or rg_mems == -1):
+                    entry.update({"gpt_mems": str(rg_mems), "gpt_path": rg_path, "gpt_error": ""})
+                    gpt_mems_val = to_int(entry.get("gpt_mems", ""))
+                    entry["gpt_eq_dp_mems"] = bool(
+                        success_dp and gpt_mems_val is not None and dp_mems_val is not None and gpt_mems_val == dp_mems_val
+                    )
+                    entry["gpt_eq_dfs_mems"] = bool(
+                        success_dfs and gpt_mems_val is not None and dfs_mems_val is not None and gpt_mems_val == dfs_mems_val
+                    )
+                    print(f"  [重试结果] gpt_mems={entry['gpt_mems']} | 与DP一致={entry['gpt_eq_dp_mems']}")
+                else:
+                    entry["gpt_error"] = short_err(_sanitize_secrets(rg_raw), 300) or entry.get("gpt_error", "retry_parse_fail")
+                    print("  [重试结果] 解析失败，保留首轮 GPT 结果")
             entry["dp_eq_dfs_mems"] = bool(success_dp and success_dfs and dp_mems_val is not None and dfs_mems_val is not None and dp_mems_val == dfs_mems_val)
             entry["gpt_dp_mems_diff"] = "" if (gpt_mems_val is None or dp_mems_val is None) else str(gpt_mems_val - dp_mems_val)
             entry["gpt_dfs_mems_diff"] = "" if (gpt_mems_val is None or dfs_mems_val is None) else str(gpt_mems_val - dfs_mems_val)
             entry["dp_dfs_mems_diff"] = "" if (dp_mems_val is None or dfs_mems_val is None) else str(dp_mems_val - dfs_mems_val)
+            if success_gpt:
+                feas, feas_reason, feas_source = judge_path_feasibility(cfile, code_text, entry.get("gpt_path", ""))
+            else:
+                feas, feas_reason, feas_source = "unknown", "gpt_failed", "none"
+            entry["eppath_feasible"] = feas
+            entry["eppath_feasible_reason"] = feas_reason
+            entry["eppath_feasible_source"] = feas_source
+            entry["gpt_path_feasible_by_eppath"] = (feas == "true")
             entry["worst_mems_dp"] = entry.get("dp_mems", "") if success_dp else ""
             entry["worst_path_dp"] = entry.get("dp_path", "") if success_dp else ""
             entry["worst_mems_dfs"] = entry.get("dfs_max_mems", "") if success_dfs else ""
@@ -824,6 +1085,7 @@ def main():
             entry["is_true"] = bool(entry["gpt_eq_dp_mems"] and entry["gpt_eq_dfs_mems"])
             print(f"  [总结] GPT={entry['success_gpt']} DFS={entry['success_dfs']} DP={entry['success_dp']} | "
                   f"GPT=DP:{entry['gpt_eq_dp_mems']} GPT=DFS:{entry['gpt_eq_dfs_mems']} DP=DFS:{entry['dp_eq_dfs_mems']}")
+            print(f"  [可行性] eppather判定={entry['eppath_feasible']} ({entry['eppath_feasible_source']}:{entry['eppath_feasible_reason']})")
             if entry["is_true"]:
                 try:
                     dst = os.path.join(OUTPUT_TRUE_FOLDER, os.path.basename(cfile))
@@ -836,45 +1098,98 @@ def main():
 
     results: List[Dict[str, Any]] = []
     stages = _parse_batch_stages(len(c_files))
-    print(f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}, require_gpt_dp_match={REQUIRE_GPT_DP_MATCH}")
+    checkpoint_5 = min(BASELINE_STAGE1, len(c_files)) if c_files else 0
+    checkpoint_20 = min(BASELINE_STAGE2, len(c_files)) if c_files else 0
+    baseline_checkpoints = []
+    for x in [checkpoint_5, checkpoint_20]:
+        if x > 0 and x not in baseline_checkpoints:
+            baseline_checkpoints.append(x)
+    max_baseline_checkpoint = max(baseline_checkpoints) if baseline_checkpoints else 0
+    baseline_passed: Dict[int, bool] = {cp: False for cp in baseline_checkpoints}
+    print(
+        f"[批量策略] stages={stages}, max_backtrack_rounds={MAX_BACKTRACK_ROUNDS}, "
+        f"require_gpt_dp_match={REQUIRE_GPT_DP_MATCH}, require_eppath_feasible={REQUIRE_EPATH_FEASIBLE}, "
+        f"eppath_api={'on' if EPATH_FEASIBILITY_API else 'off(local_parser)'}"
+    )
+    print(
+        f"[baseline门槛] checkpoints={baseline_checkpoints}, threshold>{BASELINE_PASS_THRESHOLD:.2%} "
+        "(指标=GPT=DP准确率)"
+    )
 
     try:
         round_idx = 0
+        record_prompt_snapshot("initial", "before_backtrack_loop")
         while round_idx < MAX_BACKTRACK_ROUNDS:
             round_idx += 1
             print(f"\n==== 自动回溯轮次 {round_idx}/{MAX_BACKTRACK_ROUNDS} ====")
+            record_prompt_snapshot(f"round_{round_idx}_start", "round_start")
             round_failed = False
+            baseline_passed = {cp: False for cp in baseline_checkpoints}
             for stage in stages:
                 subset = c_files[:stage]
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
                 _print_stage_summary(f"round={round_idx},stage={stage}", stage_results)
-                failed = []
-                for x in stage_results:
-                    base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
-                    if not base_ok:
-                        failed.append(x)
-                        continue
-                    dp_mems_s = x.get("dp_mems", "")
-                    dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
-                    if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
-                        dp_mems_valid = int(dp_mems_s) >= -1
-                    if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
-                        failed.append(x)
-                if failed:
-                    fb = _add_feedback_from_failures(failed)
-                    print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
-                    round_failed = True
-                    break
+                stage_acc = _stage_accuracy(stage_results)
+                print(f"[baseline] stage={stage} GPT=DP准确率={stage_acc:.2%}")
+                if stage in baseline_checkpoints:
+                    BASELINE_ACCURACY_HISTORY.setdefault(stage, []).append(stage_acc)
+                    baseline_passed[stage] = stage_acc > BASELINE_PASS_THRESHOLD
+                    if not baseline_passed[stage]:
+                        fb = (
+                            f"baseline未达标: stage={stage}, GPT=DP准确率={stage_acc:.2%} "
+                            f"<= {BASELINE_PASS_THRESHOLD:.2%}。请优先修正MEMS计数口径与路径可行性。"
+                        )
+                        PROMPT_FEEDBACK_HISTORY.append(fb)
+                        record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_baseline_fail", fb)
+                        print(f"[自动回溯] {fb}")
+                        round_failed = True
+                        break
+                strict_guard_enabled = (
+                    (max_baseline_checkpoint <= 0)
+                    or (stage > max_baseline_checkpoint and baseline_passed.get(max_baseline_checkpoint, False))
+                )
+                if strict_guard_enabled:
+                    failed = []
+                    for x in stage_results:
+                        base_ok = x["success_gpt"] and x["success_dfs"] and x["success_dp"]
+                        if not base_ok:
+                            failed.append(x)
+                            continue
+                        dp_mems_s = x.get("dp_mems", "")
+                        dp_mems_valid = isinstance(dp_mems_s, int) and dp_mems_s >= -1
+                        if isinstance(dp_mems_s, str) and re.fullmatch(r"-?\d+", dp_mems_s):
+                            dp_mems_valid = int(dp_mems_s) >= -1
+                        if REQUIRE_GPT_DP_MATCH and dp_mems_valid and (not x.get("gpt_eq_dp_mems", False)):
+                            failed.append(x)
+                            continue
+                        if REQUIRE_EPATH_FEASIBLE and x.get("success_gpt", False) and str(x.get("gpt_mems", "")).strip() != "-1":
+                            if x.get("eppath_feasible", "unknown") != "true":
+                                failed.append(x)
+                    if failed:
+                        for fx in failed:
+                            _record_file_feedback(fx)
+                        fb = _add_feedback_from_failures(failed)
+                        record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_feedback", fb)
+                        print(f"[自动回溯] 阶段 {stage} 失败 {len(failed)} 个。错误摘要: {fb}")
+                        round_failed = True
+                        break
+                else:
+                    print(
+                        f"[baseline推进] 阶段 {stage} 仅按基线准确率门槛推进，"
+                        "暂不启用逐样本严格失败拦截。"
+                    )
                 results = stage_results
                 print(f"[阶段成功] 前 {stage} 个样例全部执行成功。")
 
             if not round_failed:
                 print("[完成] 所有批量阶段均执行成功。")
+                record_prompt_snapshot(f"round_{round_idx}_completed", "all_stages_success")
                 break
             if round_idx >= MAX_BACKTRACK_ROUNDS:
                 print(f"[停止] 已达到最大回溯轮次，保留最近一轮失败结果。")
                 results = stage_results
+                record_prompt_snapshot(f"round_{round_idx}_stopped", "max_backtrack_reached")
             else:
                 print("[回溯] 已更新 prompt 反馈，重新从 5 个样例开始执行。")
     except KeyboardInterrupt:
@@ -906,6 +1221,10 @@ def main():
         "gpt_dp_mems_diff",
         "gpt_dfs_mems_diff",
         "dp_dfs_mems_diff",
+        "eppath_feasible",
+        "eppath_feasible_reason",
+        "eppath_feasible_source",
+        "gpt_path_feasible_by_eppath",
         "is_true",
         "worst_mems_dp",
         "worst_path_dp",
@@ -930,6 +1249,31 @@ def main():
     dp_ok = int(df["success_dp"].sum()) if total else 0
     dfs_ok = int(df["success_dfs"].sum()) if total else 0
     gpt_ok = int(df["success_gpt"].sum()) if total else 0
+    eppath_ok = int((df["eppath_feasible"] == "true").sum()) if total and "eppath_feasible" in df.columns else 0
+    gpt_dp_diffs: List[float] = []
+    if total and "gpt_dp_mems_diff" in df.columns:
+        for v in df["gpt_dp_mems_diff"].tolist():
+            if isinstance(v, int):
+                gpt_dp_diffs.append(float(v))
+            elif isinstance(v, float):
+                gpt_dp_diffs.append(v)
+            elif isinstance(v, str) and re.fullmatch(r"-?\d+(\.\d+)?", v.strip()):
+                gpt_dp_diffs.append(float(v.strip()))
+    gpt_dp_var = _safe_variance(gpt_dp_diffs)
+    # 兼容历史打印变量名，避免 NameError
+    gpt_dp_diff_var = gpt_dp_var
+    baseline_acc_samples: List[float] = []
+    for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
+        baseline_acc_samples.extend(BASELINE_ACCURACY_HISTORY.get(cp, []))
+    baseline_acc_var = _safe_variance(baseline_acc_samples)
+
+    final_prompt = build_system_prompt()
+    with open(FINAL_PROMPT_TXT, "w", encoding="utf-8") as f:
+        f.write(final_prompt)
+        f.write("\n")
+
+    with open(PROMPT_HISTORY_JSON, "w", encoding="utf-8") as f:
+        json.dump(PROMPT_SNAPSHOTS, f, ensure_ascii=False, indent=2)
 
     print(f"  [表格] 汇总CSV: {SUMMARY_CSV}")
     print(f"  [表格] 汇总XLSX: {SUMMARY_XLSX}")
@@ -937,6 +1281,10 @@ def main():
     print(f"  [表格] TRUE子集XLSX: {TRUE_ONLY_XLSX}")
     print(f"  [表格] GPT失败子集CSV: {GPT_FAIL_CSV}")
     print(f"  [表格] GPT失败子集XLSX: {GPT_FAIL_XLSX}")
+    print(f"  [提示词] 回溯历史JSON: {PROMPT_HISTORY_JSON}")
+    print(f"  [提示词] 最终提示词TXT: {FINAL_PROMPT_TXT}")
+    print("\n==== 最终系统提示词（回溯后） ====")
+    print(final_prompt)
 
     print("\n==== 统计结果 ====")
     if total:
@@ -948,9 +1296,25 @@ def main():
         print(f"  GPT=DP:   {int(df['gpt_eq_dp_mems'].sum())}/{total} ({df['gpt_eq_dp_mems'].mean():.2%})")
         print(f"  GPT=DFS:  {int(df['gpt_eq_dfs_mems'].sum())}/{total} ({df['gpt_eq_dfs_mems'].mean():.2%})")
         print(f"  DP=DFS:   {int(df['dp_eq_dfs_mems'].sum())}/{total} ({df['dp_eq_dfs_mems'].mean():.2%})")
+        print(f"  eppather判定可行: {eppath_ok}/{total} ({eppath_ok/total:.2%})")
+        print(f"  稳定性方差(gpt_dp_mems_diff): {gpt_dp_var:.6f}")
+        print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
+        for cp in sorted(BASELINE_ACCURACY_HISTORY.keys()):
+            vals = BASELINE_ACCURACY_HISTORY.get(cp, [])
+            var = _safe_variance(vals)
+            last = vals[-1] if vals else 0.0
+            print(
+                f"  稳定性方差(stage={cp}, GPT=DP准确率): {var:.6f} "
+                f"(latest={last:.2%}, rounds={len(vals)})"
+            )
         print(f"  TRUE(三方一致并已保存到{OUTPUT_TRUE_FOLDER}): {true_count}/{total} ({true_count/total:.2%})")
     else:
         print("  总文件数: 0")
+
+    # 额外稳定性区块（兼容旧日志格式）
+    print("\n==== 稳定性方差 ====")
+    print(f"  baseline准确率方差(stage-level): {baseline_acc_var:.6f}")
+    print(f"  GPT-DP mems差值方差(file-level): {gpt_dp_diff_var:.6f}")
 
 
 if __name__ == "__main__":

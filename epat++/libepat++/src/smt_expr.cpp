@@ -47,8 +47,23 @@ namespace epat {
                 epat_error("unsupported type for sort: " + qt.getCode());
                 return gc.bv_sort(width);
             }
+            case Type::TypeKind::Array:
+                // 路径约束里数组对象通常以“地址/索引访问”出现；
+                // 将数组整体退化为位向量，避免抛出 unsupported type for sort: int [N]
+                // 导致 DFS 在可行性判定阶段中断。
+                return gc.bv_sort(width);
             case Type::TypeKind::Pointer:
                 return gc.bv_sort(width); // XXX: 32位指针
+            case Type::TypeKind::Typedef:
+                // typedef 直接沿用底层元素类型；若无法展开则退化为位向量
+                if (auto elem = qt.getElement()) {
+                    return type2sort(elem);
+                }
+                return gc.bv_sort(width);
+            case Type::TypeKind::Struct:
+            case Type::TypeKind::Function:
+                // 当前求解器对结构体/函数不做精细建模，统一按位向量保守处理
+                return gc.bv_sort(width);
             default:
                 epat_error("unsupported type for sort: " + qt.getCode());
                 return gc.bv_sort(width);
