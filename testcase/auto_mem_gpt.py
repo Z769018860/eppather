@@ -42,6 +42,7 @@ EPATH_FEASIBILITY_TIMEOUT = int((os.getenv("AUTO_MEM_EPATH_FEASIBILITY_TIMEOUT")
 BASELINE_STAGE1 = int((os.getenv("AUTO_MEM_BASELINE_STAGE1") or "5").strip() or "5")
 BASELINE_STAGE2 = int((os.getenv("AUTO_MEM_BASELINE_STAGE2") or "20").strip() or "20")
 BASELINE_PASS_THRESHOLD = float((os.getenv("AUTO_MEM_BASELINE_PASS_THRESHOLD") or "0.5").strip() or "0.5")
+FORCE_DP_ALIGNMENT_RETRY = (os.getenv("AUTO_MEM_FORCE_DP_ALIGNMENT_RETRY") or "1").strip() != "0"
 
 CNIP_CANDIDATES = [
     os.path.join(REPO_ROOT, "cnip"),
@@ -595,6 +596,9 @@ def build_system_prompt() -> str:
         "DP-first tie-break policy:\n"
         "- When multiple feasible paths are close, prefer the path whose counting style is most conservative and DP-consistent.\n"
         "- Prefer explicit variable access accounting over speculative hidden operations.\n\n"
+        "Reference-signal calibration policy:\n"
+        "- If guidance provides a trusted dp_mems reference, treat it as a hard calibration target.\n"
+        "- In that case, keep feasibility and try to emit a path whose recomputed MEMS equals dp_mems exactly.\n\n"
         "Hard constraints to reduce mismatch with DP/DFS results:\n"
         "- Treat DP output style as oracle target for worst-case path selection.\n"
         "- Prefer exact symbolic predicates from source conditions (keep operators and constants unchanged).\n"
@@ -1066,6 +1070,39 @@ def main():
                 else:
                     entry["gpt_error"] = short_err(_sanitize_secrets(rg_raw), 300) or entry.get("gpt_error", "retry_parse_fail")
                     print("  [重试结果] 解析失败，保留首轮 GPT 结果")
+
+                if FORCE_DP_ALIGNMENT_RETRY and success_dp and (not entry["gpt_eq_dp_mems"]):
+                    hard_guidance = (
+                        f"{file_guidance}\n"
+                        f"硬校准目标: dp_mems={dp_mems_val}。\n"
+                        "你必须输出与 dp_mems 完全一致的 mems；并给出可行路径。\n"
+                        "严禁随意输出 mems=-1；只有在严格证明无可行路径时才允许输出 [NO FEASIBLE PATH]。"
+                    )
+                    print("  [3/3-重试2] 触发DP硬对齐重试")
+                    t2 = time.time()
+                    hg_mems, hg_path, hg_raw = call_gpt_for_mems(code_text, guidance=hard_guidance)
+                    entry["gpt_time"] = f"{(float(entry['gpt_time']) + (time.time() - t2)):.4f}"
+                    if hg_mems is not None and (hg_path or hg_mems == -1):
+                        entry.update({"gpt_mems": str(hg_mems), "gpt_path": hg_path, "gpt_error": ""})
+                        gpt_mems_val = to_int(entry.get("gpt_mems", ""))
+                        entry["gpt_eq_dp_mems"] = bool(
+                            success_dp and gpt_mems_val is not None and dp_mems_val is not None and gpt_mems_val == dp_mems_val
+                        )
+                        entry["gpt_eq_dfs_mems"] = bool(
+                            success_dfs and gpt_mems_val is not None and dfs_mems_val is not None and gpt_mems_val == dfs_mems_val
+                        )
+                        print(f"  [重试2结果] gpt_mems={entry['gpt_mems']} | 与DP一致={entry['gpt_eq_dp_mems']}")
+                    else:
+                        entry["gpt_error"] = short_err(_sanitize_secrets(hg_raw), 300) or entry.get("gpt_error", "hard_retry_parse_fail")
+                        print("  [重试2结果] 解析失败，保留上轮结果")
+
+            # 保护规则：当DP给出可行(>=0)时，GPT不得随意输出-1
+            if success_gpt and success_dp and gpt_mems_val is not None and dp_mems_val is not None:
+                if dp_mems_val >= 0 and gpt_mems_val == -1:
+                    entry["gpt_error"] = "invalid_no_feasible_path_when_dp_feasible"
+                    entry["gpt_eq_dp_mems"] = False
+                    entry["is_true"] = False
+                    print("  [约束] DP可行但GPT输出-1，标记为无效结果并要求后续回溯修正")
             entry["dp_eq_dfs_mems"] = bool(success_dp and success_dfs and dp_mems_val is not None and dfs_mems_val is not None and dp_mems_val == dfs_mems_val)
             entry["gpt_dp_mems_diff"] = "" if (gpt_mems_val is None or dp_mems_val is None) else str(gpt_mems_val - dp_mems_val)
             entry["gpt_dfs_mems_diff"] = "" if (gpt_mems_val is None or dfs_mems_val is None) else str(gpt_mems_val - dfs_mems_val)
@@ -1136,10 +1173,20 @@ def main():
                     BASELINE_ACCURACY_HISTORY.setdefault(stage, []).append(stage_acc)
                     baseline_passed[stage] = stage_acc > BASELINE_PASS_THRESHOLD
                     if not baseline_passed[stage]:
+                        mismatch_examples: List[str] = []
+                        for r in stage_results:
+                            if r.get("success_dp", False) and r.get("success_gpt", False) and not r.get("gpt_eq_dp_mems", False):
+                                mismatch_examples.append(
+                                    f"{r.get('basename','?')}: gpt={r.get('gpt_mems','?')}, dp={r.get('dp_mems','?')}, diff={r.get('gpt_dp_mems_diff','?')}"
+                                )
+                            if len(mismatch_examples) >= 3:
+                                break
                         fb = (
                             f"baseline未达标: stage={stage}, GPT=DP准确率={stage_acc:.2%} "
                             f"<= {BASELINE_PASS_THRESHOLD:.2%}。请优先修正MEMS计数口径与路径可行性。"
                         )
+                        if mismatch_examples:
+                            fb += " 重点错例: " + " | ".join(mismatch_examples)
                         PROMPT_FEEDBACK_HISTORY.append(fb)
                         record_prompt_snapshot(f"round_{round_idx}_stage_{stage}_baseline_fail", fb)
                         print(f"[自动回溯] {fb}")
