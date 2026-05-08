@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import shutil
 import statistics
+import argparse
 
 def run_with_timeout(cmd, timeout=100):
     print(f"      [run] CMD: {' '.join(cmd)}")
@@ -69,15 +70,15 @@ def get_folder(filename, folders):
             return folder
     return 'other'
 
-def summarize_and_save(results, folders):
+def summarize_and_save(results, folders, summary_path, overview_path):
     df = pd.DataFrame(results, columns=[
         'filename', 'source_path', 'folder',
         'dfs_time', 'dfs_max_mems', 'dfs_min_mems',
         'greedy_time', 'greedy_mems', 'greedy_path',
         'f_error', 'g_error', 'success', 'mems_equal'
     ])
-    df.to_csv("result_summary.csv", index=False)
-    print("  [CSV] 已保存至 result_summary.csv")
+    df.to_csv(summary_path, index=False)
+    print(f"  [CSV] 已保存至 {summary_path}")
 
     total = len(df)
     success_count = int(df['success'].sum()) if total else 0
@@ -110,30 +111,63 @@ def summarize_and_save(results, folders):
             print("  DP 相对 DFS 加速比：无可统计样本（可能时间缺失或为0）。")
 
     print("\n==== 分文件夹成功率 ====")
+    folder_rows = []
     for folder in folders:
         folder_df = df[df['folder'] == folder]
         n = len(folder_df)
         n_success = int(folder_df['success'].sum()) if n else 0
         rate = (n_success / n) if n else 0.0
         print(f"  {folder}: {n_success}/{n} ({rate:.2%})")
+        folder_rows.append({
+            "folder": folder,
+            "total": n,
+            "success": n_success,
+            "success_rate": rate
+        })
+
+    overview_df = pd.DataFrame(folder_rows)
+    overview_df.loc[len(overview_df)] = {
+        "folder": "ALL",
+        "total": total,
+        "success": success_count,
+        "success_rate": success_rate
+    }
+    overview_df.to_csv(overview_path, index=False)
+    print(f"  [CSV] 聚合统计已保存至 {overview_path}")
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="批量执行 DFS/Greedy 并汇总结果")
+    parser.add_argument("--folders", nargs="+", default=["output_true2", "output_complete2"],
+                        help="要扫描的 .c 文件目录列表")
+    parser.add_argument("--summary", default="result_summary.csv",
+                        help="逐文件统计输出 CSV")
+    parser.add_argument("--overview", default="result_overview.csv",
+                        help="聚合统计输出 CSV")
+    return parser.parse_args()
 
 def main():
+    args = parse_args()
     print("==== 扫描目标文件夹 ====")
-    folders = ["output_true2"]
+    folders = args.folders
     c_files = []
+    seen = set()
     for folder in folders:
-        files = glob.glob(os.path.join(folder, "*.c"))
+        files = sorted(glob.glob(os.path.join(folder, "*.c")))
         print(f"  {folder}: 找到 {len(files)} 个 .c 文件")
-        c_files += files
+        for file in files:
+            norm = os.path.normpath(file)
+            if norm not in seen:
+                c_files.append(file)
+                seen.add(norm)
     print(f"== 共 {len(c_files)} 个 C 文件将被处理 ==\n")
 
     if not c_files:
         print("[终止] 未在指定文件夹下发现任何 .c 文件。")
         return
 
-    # 目标目录
-    os.makedirs("output_complete2", exist_ok=True)
-    os.makedirs("output_true2", exist_ok=True)
+    # 分类结果目录（不再移动输入目录文件）
+    os.makedirs("output_analyzed_complete", exist_ok=True)
+    os.makedirs("output_analyzed_true", exist_ok=True)
 
     results = []
     try:
@@ -201,26 +235,24 @@ def main():
 
             print(f"  [总结] 本文件执行 {'成功' if entry['success'] else '失败'} | mems是否一致: {entry['mems_equal']}")
 
-            # === 新的移动/复制逻辑 ===
+            # 复制到分析结果目录，保留源数据不变
             try:
                 mems = entry.get('greedy_mems', '')
-                need_move = (mems not in ('', 'error') and mems not in ('0', '-1'))
+                need_copy = (mems not in ('', 'error') and mems not in ('0', '-1'))
 
-                if need_move:
-                    dst_complete = os.path.join("output_complete2", os.path.basename(cfile))
-                    # 先移动到 complete2
-                    shutil.move(cfile, dst_complete)
-                    print(f"    [已移动] -> output_complete2/{os.path.basename(cfile)}")
+                if need_copy:
+                    dst_complete = os.path.join("output_analyzed_complete", os.path.basename(cfile))
+                    shutil.copy2(cfile, dst_complete)
+                    print(f"    [已复制] -> output_analyzed_complete/{os.path.basename(cfile)}")
 
-                    # 如果结果一致，再复制一份到 true2（保留两套集合）
                     if entry['mems_equal']:
-                        dst_true = os.path.join("output_true2", os.path.basename(cfile))
-                        shutil.copy2(dst_complete, dst_true)
-                        print(f"    [已复制] -> output_true2/{os.path.basename(cfile)}")
+                        dst_true = os.path.join("output_analyzed_true", os.path.basename(cfile))
+                        shutil.copy2(cfile, dst_true)
+                        print(f"    [已复制] -> output_analyzed_true/{os.path.basename(cfile)}")
                 else:
-                    print("    [跳过移动] greedy_mems 为 0 或 -1 或无效。")
+                    print("    [跳过复制] greedy_mems 为 0 或 -1 或无效。")
             except Exception as e:
-                print(f"    [移动/复制失败] {e}")
+                print(f"    [复制失败] {e}")
 
             results.append(entry)
 
@@ -229,7 +261,7 @@ def main():
 
     finally:
         print("\n==== 写入CSV和统计信息（可含中间结果） ====")
-        summarize_and_save(results, folders)
+        summarize_and_save(results, folders, args.summary, args.overview)
 
 if __name__ == "__main__":
     main()
