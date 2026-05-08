@@ -30,10 +30,13 @@ TRUE_ONLY_XLSX = os.path.join(RESULT_DIR, "result_true_only3.xlsx")
 
 GPT_FAIL_CSV = os.path.join(RESULT_DIR, "result_gpt_fail3.csv")
 GPT_FAIL_XLSX = os.path.join(RESULT_DIR, "result_gpt_fail3.xlsx")
+RUN_STATS_JSON = os.path.join(RESULT_DIR, "run_stats_true3.json")
+RUN_STATS_CSV = os.path.join(RESULT_DIR, "run_stats_true3.csv")
 
 PROMPT_HISTORY_JSON = os.path.join(RESULT_DIR, "prompt_backtrack_history_true3.json")
 FINAL_PROMPT_TXT = os.path.join(RESULT_DIR, "prompt_final_true3.txt")
 INPUT_GLOB = (os.getenv("AUTO_MEM_INPUT_GLOB") or "*.c").strip()
+INPUT_RECURSIVE = (os.getenv("AUTO_MEM_INPUT_RECURSIVE") or "1").strip() != "0"
 MAX_FILES = int((os.getenv("AUTO_MEM_MAX_FILES") or "0").strip() or "0")
 MAX_LOOP = int((os.getenv("AUTO_MEM_MAX_LOOP") or "3").strip() or "3")
 MAX_INLINE = int((os.getenv("AUTO_MEM_MAX_INLINE") or "3").strip() or "3")
@@ -924,11 +927,16 @@ def call_gpt_for_mems(code: str, max_retries: int = 2, timeout_sec: int = 90, gu
 
 def main():
     print("==== 扫描目标文件夹 ====")
-    c_files = glob.glob(os.path.join(INPUT_FOLDER, INPUT_GLOB))
-    c_files.sort()
+    search_pattern = os.path.join(INPUT_FOLDER, INPUT_GLOB)
+    c_files = glob.glob(search_pattern, recursive=INPUT_RECURSIVE)
+    c_files = [p for p in c_files if os.path.isfile(p) and p.lower().endswith(".c")]
+    c_files = sorted(set(os.path.abspath(p) for p in c_files))
     if MAX_FILES > 0:
         c_files = c_files[:MAX_FILES]
-    print(f"  {INPUT_FOLDER}: 找到 {len(c_files)} 个 .c 文件 (glob={INPUT_GLOB}, max_files={MAX_FILES})")
+    print(
+        f"  {INPUT_FOLDER}: 找到 {len(c_files)} 个 .c 文件 "
+        f"(glob={INPUT_GLOB}, recursive={INPUT_RECURSIVE}, max_files={MAX_FILES})"
+    )
 
     print(f"== 共 {len(c_files)} 个 C 文件将被处理 ==\n")
     if not c_files:
@@ -1299,6 +1307,42 @@ def main():
         with open(checkpoint_stats_json, "w", encoding="utf-8") as f:
             json.dump(stats, f, ensure_ascii=False, indent=2)
 
+        run_stats = {
+            "run_tag": RUN_TAG,
+            "input_folder": INPUT_FOLDER,
+            "input_glob": INPUT_GLOB,
+            "input_recursive": INPUT_RECURSIVE,
+            "files_detected": len(c_files),
+            "files_processed": len(rows),
+            "max_files": MAX_FILES,
+            "max_backtrack_rounds": MAX_BACKTRACK_ROUNDS,
+            "baseline_pass_threshold": BASELINE_PASS_THRESHOLD,
+            "gate_stages": gate_stages,
+            "current_tag": tag,
+            "current_note": note,
+            "result_dir": RESULT_DIR,
+            "summary_csv": SUMMARY_CSV,
+            "summary_xlsx": SUMMARY_XLSX,
+            "true_only_csv": TRUE_ONLY_CSV,
+            "gpt_fail_csv": GPT_FAIL_CSV,
+            "checkpoint_stats_json": checkpoint_stats_json,
+            "latest_metrics": {
+                "total": total,
+                "true_count": true_count,
+                "gpt_ok": gpt_ok,
+                "dfs_ok": dfs_ok,
+                "dp_ok": dp_ok,
+                "gpt_eq_dp": gpt_eq_dp,
+                "gpt_eq_dfs": gpt_eq_dfs,
+                "dp_eq_dfs": dp_eq_dfs,
+                "eppath_ok": eppath_ok,
+            },
+            "stage_accuracy_records": stage_accuracy_records,
+        }
+        with open(RUN_STATS_JSON, "w", encoding="utf-8") as f:
+            json.dump(run_stats, f, ensure_ascii=False, indent=2)
+        pd.DataFrame(stage_accuracy_records).to_csv(RUN_STATS_CSV, index=False, encoding="utf-8")
+
         print(f"\n==== 已保存阶段结果: {tag} ====")
         if note:
             print(f"  [说明] {note}")
@@ -1311,6 +1355,8 @@ def main():
         print(f"  [表格] GPT失败子集XLSX: {GPT_FAIL_XLSX}")
         print(f"  [提示词] 回溯历史JSON: {PROMPT_HISTORY_JSON}")
         print(f"  [提示词] 最终提示词TXT: {FINAL_PROMPT_TXT}")
+        print(f"  [统计] 运行汇总JSON: {RUN_STATS_JSON}")
+        print(f"  [统计] 阶段准确率CSV: {RUN_STATS_CSV}")
         print(f"  [阶段备份] {checkpoint_summary_csv}")
         print(f"  [阶段提示词] {checkpoint_prompt_txt}")
 
