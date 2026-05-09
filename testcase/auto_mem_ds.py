@@ -1152,6 +1152,7 @@ def main():
         return local_results
 
     results: List[Dict[str, Any]] = []
+    all_stage_results: List[Dict[str, Any]] = []
     stage_accuracy_records: List[Dict[str, Any]] = []
 
     cols = [
@@ -1188,6 +1189,9 @@ def main():
         "worst_path_dp",
         "worst_mems_dfs",
         "worst_path_dfs",
+        "run_round",
+        "run_stage",
+        "run_stage_tag",
     ]
 
     CHECKPOINT_DIR = os.path.join(RESULT_DIR, "checkpoints")
@@ -1209,29 +1213,34 @@ def main():
                 vals.append(float(v.strip()))
         return vals
 
-    def _write_outputs(rows: List[Dict[str, Any]], tag: str, note: str = "") -> Dict[str, Any]:
+    def _write_outputs(
+        rows: List[Dict[str, Any]],
+        tag: str,
+        note: str = "",
+        write_main_summary: bool = True,
+    ) -> Dict[str, Any]:
         safe_tag = _safe_tag(tag)
         os.makedirs(RESULT_DIR, exist_ok=True)
         os.makedirs(OUTPUT_TRUE_FOLDER, exist_ok=True)
         os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
         df = pd.DataFrame(rows, columns=cols)
-        df.to_csv(SUMMARY_CSV, index=False, encoding="utf-8")
-        df.to_excel(SUMMARY_XLSX, index=False)
 
         if "is_true" in df.columns:
             df_true = df[df["is_true"] == True].copy()
         else:
             df_true = pd.DataFrame(columns=cols)
-        df_true.to_csv(TRUE_ONLY_CSV, index=False, encoding="utf-8")
-        df_true.to_excel(TRUE_ONLY_XLSX, index=False)
-
         if "success_gpt" in df.columns:
             df_gpt_fail = df[df["success_gpt"] == False].copy()
         else:
             df_gpt_fail = pd.DataFrame(columns=cols)
-        df_gpt_fail.to_csv(GPT_FAIL_CSV, index=False, encoding="utf-8")
-        df_gpt_fail.to_excel(GPT_FAIL_XLSX, index=False)
+        if write_main_summary:
+            df.to_csv(SUMMARY_CSV, index=False, encoding="utf-8")
+            df.to_excel(SUMMARY_XLSX, index=False)
+            df_true.to_csv(TRUE_ONLY_CSV, index=False, encoding="utf-8")
+            df_true.to_excel(TRUE_ONLY_XLSX, index=False)
+            df_gpt_fail.to_csv(GPT_FAIL_CSV, index=False, encoding="utf-8")
+            df_gpt_fail.to_excel(GPT_FAIL_XLSX, index=False)
 
         final_prompt = build_system_prompt()
         with open(FINAL_PROMPT_TXT, "w", encoding="utf-8") as f:
@@ -1383,6 +1392,7 @@ def main():
         return stats
 
     def _build_gate_stages(total_files: int) -> List[int]:
+        # 保留原本硬编码的阶段策略：5 -> 20 -> 100 -> 全量
         desired = [5, 20, 100, total_files]
         out: List[int] = []
         seen = set()
@@ -1423,8 +1433,23 @@ def main():
 
                 print(f"\n---- 阶段执行: 前 {stage} 个样例 ----")
                 stage_results = process_files(subset)
+                stage_rows = []
+                for r in stage_results:
+                    rr = dict(r)
+                    rr["run_round"] = round_idx
+                    rr["run_stage"] = stage
+                    rr["run_stage_tag"] = tag_prefix
+                    stage_rows.append(rr)
+                all_stage_results.extend(stage_rows)
                 last_stage_results = stage_results
                 results = stage_results
+
+                _write_outputs(
+                    stage_rows,
+                    f"round_{round_idx}_{tag_prefix}_stage_snapshot",
+                    f"{tag_prefix} 阶段执行完成快照。",
+                    write_main_summary=False,
+                )
 
                 _print_stage_summary(f"round={round_idx},{tag_prefix}", stage_results)
                 stage_acc = _stage_accuracy(stage_results)
@@ -1443,11 +1468,20 @@ def main():
                         f"round_{round_idx}_{tag_prefix}_pass",
                         f"{tag_prefix} pass, GPT=DP accuracy={stage_acc:.2%}",
                     )
-                    _write_outputs(
-                        stage_results,
-                        f"round_{round_idx}_{tag_prefix}_pass",
-                        f"{tag_prefix} 通过，GPT=DP准确率={stage_acc:.2%} > {BASELINE_PASS_THRESHOLD:.2%}",
-                    )
+                    # 中间阶段通过时仅写checkpoint，避免覆盖主汇总文件造成“只跑了20/21个”的误判。
+                    if stage == len(c_files):
+                        _write_outputs(
+                            all_stage_results,
+                            f"round_{round_idx}_{tag_prefix}_pass",
+                            f"{tag_prefix} 通过，GPT=DP准确率={stage_acc:.2%} > {BASELINE_PASS_THRESHOLD:.2%}",
+                        )
+                    else:
+                        _write_outputs(
+                            stage_rows,
+                            f"round_{round_idx}_{tag_prefix}_pass",
+                            f"{tag_prefix} 通过（中间阶段checkpoint）。",
+                            write_main_summary=False,
+                        )
                     print(f"[gate通过] {tag_prefix} 准确率={stage_acc:.2%}，保存结果和prompt后进入下一阶段。")
                     continue
 
@@ -1462,6 +1496,12 @@ def main():
                         break
 
                 failed_entries = [r for r in stage_results if not r.get("gpt_eq_dp_mems", False)]
+                _write_outputs(
+                    stage_rows,
+                    f"round_{round_idx}_{tag_prefix}_prefail",
+                    f"{tag_prefix} 未通过前快照（尚未注入失败反馈）。",
+                    write_main_summary=False,
+                )
                 for fx in failed_entries:
                     _record_file_feedback(fx)
 
@@ -1474,9 +1514,10 @@ def main():
                 PROMPT_FEEDBACK_HISTORY.append(fb)
                 record_prompt_snapshot(f"round_{round_idx}_{tag_prefix}_fail", fb)
                 _write_outputs(
-                    stage_results,
-                    f"round_{round_idx}_{tag_prefix}_fail",
-                    f"{tag_prefix} 未通过，已保存中间结果；下一轮将带反馈重新从5个样例开始。",
+                    stage_rows,
+                    f"round_{round_idx}_{tag_prefix}_postfail",
+                    f"{tag_prefix} 未通过后快照（已注入失败反馈）；下一轮将带反馈重新从5个样例开始。",
+                    write_main_summary=False,
                 )
                 print(f"[gate未通过] {fb}")
                 round_failed = True
@@ -1485,13 +1526,13 @@ def main():
             if not round_failed:
                 print("[完成] 5、20、100、全量阶段均已通过并保存。")
                 record_prompt_snapshot(f"round_{round_idx}_completed", "all_gate_stages_success")
-                _write_outputs(results, f"round_{round_idx}_completed", "全部阶段完成后的最终汇总结果。")
+                _write_outputs(all_stage_results, f"round_{round_idx}_completed", "全部阶段完成后的最终汇总结果（含全部执行阶段）。")
                 break
 
             if round_idx >= MAX_BACKTRACK_ROUNDS:
                 print("[停止] 已达到最大回溯轮次，保留最近一次阶段结果。")
                 record_prompt_snapshot(f"round_{round_idx}_stopped", "max_backtrack_reached")
-                _write_outputs(results, f"round_{round_idx}_stopped", "达到最大回溯轮次后的最终可用结果。")
+                _write_outputs(all_stage_results, f"round_{round_idx}_stopped", "达到最大回溯轮次后的最终可用结果（含全部执行阶段）。")
             else:
                 print("[回溯] 已保存当前阶段结果和prompt，下一轮从5个样例重新开始。")
 
