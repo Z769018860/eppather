@@ -1,0 +1,18 @@
+int IDC_INPUT;
+int IDC_INCREMENT;
+int IDC_DECREMENT;
+int IDC_QUIT;
+int value[5];
+int i;
+value[0] = 0;i = 0;
+@(i < 5);
+i = i + 1;
+@(i == IDC_INCREMENT);
+value[0] = value[0] + 1;@(i == IDC_DECREMENT);
+value[0] = value[0] - 1;@(!(i == IDC_QUIT));
+@(i < 5);
+i = i + 1;
+@(!(i == IDC_INCREMENT));
+@(!(i == IDC_DECREMENT));
+@(i == IDC_QUIT);
+return;

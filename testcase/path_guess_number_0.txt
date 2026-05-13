@@ -1,0 +1,11 @@
+int lower_limit;
+int upper_limit;
+int guess;
+int number[5];
+int result[5];
+int i;
+number[0] = lower_limit + (guess % (upper_limit - lower_limit + 1));result[0] = 0;i = 0;
+@(i < 5);
+i = i + 1;
+@(number[0] == guess);
+result[0] = 1;break;return result[0];

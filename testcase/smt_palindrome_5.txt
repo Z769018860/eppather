@@ -1,0 +1,10 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun i@0@0 () (_ BitVec 32))
+(assert
+ (let (($x126 (not (and (distinct (ite (bvslt i@0@0 (bvsdiv n@0@0 (_ bv2 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x303 (ite $x126 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x303 (_ bv0 32)) true))))
+(check-sat)
+

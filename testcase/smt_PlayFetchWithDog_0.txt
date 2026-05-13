@@ -1,0 +1,24 @@
+; 
+(set-info :status unknown)
+(declare-fun weightOfStick@0@0 () (_ BitVec 32))
+(assert
+ (let (($x32 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x27 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x27 $x32))))
+(assert
+ (let (($x32 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x27 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x27 $x32))))
+(assert
+ (let ((?x58 (ite (bvslt weightOfStick@0@0 (_ bv4 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x58 (_ bv0 32)) true)))
+(assert
+ (let (($x32 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x27 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x27 $x32))))
+(assert
+ (let (($x32 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x27 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x27 $x32))))
+(check-sat)
+

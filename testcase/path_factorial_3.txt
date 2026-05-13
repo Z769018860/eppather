@@ -1,0 +1,8 @@
+int n;
+int acc[5];
+int n1;
+acc[0] = 1;n1 = n;@(!(n1 < 0));
+@(n1 > 0);
+n1 = n1 - 1;
+acc[0] = acc[0] * n1;@(!(n1 > 0));
+return acc[0];

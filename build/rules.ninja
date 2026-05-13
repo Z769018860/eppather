@@ -41,6 +41,25 @@ rule CXX_EXECUTABLE_LINKER__test-suite
 #############################################
 # Rule for compiling CXX files.
 
+rule CXX_COMPILER__volce_tool
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
+  description = Building CXX object $out
+
+
+#############################################
+# Rule for linking CXX executable.
+
+rule CXX_EXECUTABLE_LINKER__volce_tool
+  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
+  description = Linking CXX executable $TARGET_FILE
+  restat = $RESTAT
+
+
+#############################################
+# Rule for compiling CXX files.
+
 rule CXX_COMPILER__cnip
   depfile = $DEP_FILE
   deps = gcc
@@ -149,101 +168,6 @@ rule CXX_COMPILER__antlr4-runtime
 rule CXX_STATIC_LIBRARY_LINKER__antlr4-runtime
   command = $PRE_LINK && /usr/bin/cmake -E remove $TARGET_FILE && /usr/bin/ar qc $TARGET_FILE $LINK_FLAGS $in && /usr/bin/ranlib $TARGET_FILE && $POST_BUILD
   description = Linking CXX static library $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__epat-protocol-from_string
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__epat-protocol-from_string
-  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__epat-protocol-from_file
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__epat-protocol-from_file
-  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__epat-protocol-c11_path
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__epat-protocol-c11_path
-  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__epat-protocol-print_type
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__epat-protocol-print_type
-  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__epat-protocol-build_ast
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/clang++-17  $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__epat-protocol-build_ast
-  command = $PRE_LINK && /usr/bin/clang++-17  $FLAGS  $LINK_FLAGS $in  -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
   restat = $RESTAT
 
 

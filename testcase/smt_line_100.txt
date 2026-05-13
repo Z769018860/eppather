@@ -1,0 +1,41 @@
+; 
+(set-info :status unknown)
+(declare-fun x0@0@0 () (_ BitVec 32))
+(declare-fun x1@0@0 () (_ BitVec 32))
+(declare-fun y0@0@0 () (_ BitVec 32))
+(declare-fun y1@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x8386 (ite (bvslt (bvsub x1@0@0 x0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8386 (_ bv0 32)) true)))
+(assert
+ (let ((?x8973 (ite (not (and (distinct (ite (bvslt x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8973 (_ bv0 32)) true)))
+(assert
+ (let ((?x9828 (ite (bvslt (bvsub y1@0@0 y0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x9828 (_ bv0 32)) true)))
+(assert
+ (let ((?x3041 (ite (not (and (distinct (ite (bvslt y0@0@0 y1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x3041 (_ bv0 32)) true)))
+(assert
+ (let ((?x9148 (bvsub y1@0@0 y0@0@0)))
+ (let ((?x7855 (bvsub (_ bv0 32) ?x9148)))
+ (let ((?x4739 (bvsub x1@0@0 x0@0@0)))
+ (let ((?x13810 (bvsub (_ bv0 32) ?x4739)))
+ (let ((?x15508 (ite (not (and (distinct (ite (bvsgt ?x13810 ?x7855) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x15508 (_ bv0 32)) true)))))))
+(assert
+ (let ((?x12069 (ite (not (and (distinct (ite (= x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x12069 (_ bv0 32)) true)))
+(assert
+ (let ((?x5402 (bvsub (_ bv0 32) (bvsdiv (bvsub (_ bv0 32) (bvsub y1@0@0 y0@0@0)) (_ bv2 32)))))
+ (let ((?x5136 (ite (bvsgt ?x5402 (bvsub (_ bv0 32) (bvsub (_ bv0 32) (bvsub x1@0@0 x0@0@0)))) (_ bv1 32) (_ bv0 32))))
+ (let ((?x15497 (ite (not (and (distinct ?x5136 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x15497 (_ bv0 32)) true)))))
+(assert
+ (let ((?x9148 (bvsub y1@0@0 y0@0@0)))
+ (let ((?x7855 (bvsub (_ bv0 32) ?x9148)))
+ (let ((?x5402 (bvsub (_ bv0 32) (bvsdiv ?x7855 (_ bv2 32)))))
+ (let ((?x13670 (ite (bvslt ?x5402 ?x7855) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x13670 (_ bv0 32)) true))))))
+(check-sat)
+

@@ -1,0 +1,16 @@
+; 
+(set-info :status unknown)
+(declare-fun maxlinelen@0@0 () (_ BitVec 32))
+(declare-fun i@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x1028 (ite (not (and (distinct (ite (bvslt i@0@0 maxlinelen@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x1028 (_ bv0 32)) true)))
+(assert
+ (let ((?x499 (ite (not (and (distinct (ite (= (_ bv0 32) (_ bv7 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x499 (_ bv0 32)) true)))
+(assert
+ (let (($x134 (or (and (distinct (ite (bvsgt (_ bv0 32) (_ bv7 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvslt (_ bv0 32) (_ bv6 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x532 (ite $x134 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x532 (_ bv0 32)) true))))
+(check-sat)
+

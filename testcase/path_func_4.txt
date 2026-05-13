@@ -1,0 +1,10 @@
+int y;
+int days[12];
+int m;
+int w;
+int temp;
+days[0] = 31;days[1] = 29;days[2] = 31;days[3] = 30;days[4] = 31;days[5] = 30;days[6] = 31;days[7] = 31;days[8] = 30;days[9] = 31;days[10] = 30;days[11] = 31;@(!(y <= 1700));
+temp = y % 4;@(!(temp != 0));
+temp = y % 100;@(!(temp == 0));
+w = y * 365;temp = y - 1;w = w + temp / 4;w = w - temp / 100;w = w + temp / 400;w = w + 6;@(!(m < 12));
+return;

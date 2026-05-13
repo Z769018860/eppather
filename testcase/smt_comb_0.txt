@@ -1,0 +1,38 @@
+; 
+(set-info :status unknown)
+(declare-fun at@0@0 () (_ BitVec 32))
+(declare-fun need@0@0 () (_ BitVec 32))
+(declare-fun pool@0@0 () (_ BitVec 32))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let (($x60 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x60))))
+(assert
+ (let ((?x24 (ite (bvslt pool@0@0 (bvadd need@0@0 at@0@0)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x24 (_ bv0 32)) true)))
+(check-sat)
+

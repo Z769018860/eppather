@@ -1,0 +1,16 @@
+int n;
+int sum[5];
+int i;
+int n;
+int arr[16];
+int i;
+int j;
+sum[0] = 0;i = 1;
+@(i < (n + 1) / 2);
+i = i + 1;
+@(n % i == 0 && n != i);
+sum[0] = sum[0] + i;@(i < (n + 1) / 2);
+i = i + 1;
+@(n % i == 0 && n != i);
+sum[0] = sum[0] + i;@(!(i < (n + 1) / 2));
+return sum[0];

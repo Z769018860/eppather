@@ -1,0 +1,44 @@
+filename,basename,gpt_time,gpt_mems,gpt_path,gpt_error,dfs_time,dfs_max_mems,dfs_min_mems,dfs_best_path,dfs_error,dp_time,dp_mems,dp_path,dp_error,success_gpt,success_dfs,success_dp,gpt_eq_dp_mems,gpt_eq_dfs_mems,dp_eq_dfs_mems,gpt_dp_mems_diff,gpt_dfs_mems_diff,dp_dfs_mems_diff,eppath_feasible,eppath_feasible_reason,eppath_feasible_source,gpt_path_feasible_by_eppath,is_true,worst_mems_dp,worst_path_dp,worst_mems_dfs,worst_path_dfs,run_round,run_stage,run_stage_tag
+/home/zhangliwei/eppather/testcase/output_complete2/9-billion-names-of-god-the-integer.c,9-billion-names-of-god-the-integer.c,0.6900,error,,"model=gpt-5-mini [HTTP 401] type=authentication_error code=invalid_request_error msg=Authentication Fails, Your api key: ****uq9s is invalid",error,error,error,,retcode_-11,0.0708637,-1,,,False,False,True,False,False,False,,,,unknown,gpt_failed,none,False,False,-1,,,,1,5,calibration_5
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-1.c,a+b-1.c,0.6815,error,,"model=gpt-5-mini [HTTP 401] type=authentication_error code=invalid_request_error msg=Authentication Fails, Your api key: ****uq9s is invalid",0.0727124,2,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",,0.143055,2,,,False,True,True,False,False,True,,,0,unknown,gpt_failed,none,False,False,2,,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",1,5,calibration_5
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-2.c,a+b-2.c,0.7944,error,,"model=gpt-5-mini [HTTP 401] type=authentication_error code=invalid_request_error msg=Authentication Fails, Your api key: ****uq9s is invalid",0.0807086,2,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",,0.136995,2,,,False,True,True,False,False,True,,,0,unknown,gpt_failed,none,False,False,2,,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",1,5,calibration_5
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-3.c,a+b-3.c,0.7736,error,,"model=gpt-5-mini [HTTP 401] type=authentication_error code=invalid_request_error msg=Authentication Fails, Your api key: ****uq9s is invalid",0.0551591,2,2,"[TEST INPUT PATH EXPR]:
+int arg1;
+int arg2;
+int result[5];
+result[0] = arg1 + arg2;return result[0];",,0.133838,2,,,False,True,True,False,False,True,,,0,unknown,gpt_failed,none,False,False,2,,2,"[TEST INPUT PATH EXPR]:
+int arg1;
+int arg2;
+int result[5];
+result[0] = arg1 + arg2;return result[0];",1,5,calibration_5
+/home/zhangliwei/eppather/testcase/output_complete2/abc-problem.c,abc-problem.c,0.8671,error,,"model=gpt-5-mini [HTTP 401] type=authentication_error code=invalid_request_error msg=Authentication Fails, Your api key: ****uq9s is invalid",0.116594,8,7,"[TEST INPUT PATH EXPR]:
+char *b[21];
+char *word;
+int res[1];
+int has_word[1];
+int has_block[1];
+res[0] = 0;has_word[0] = (word != 0);has_block[0] = (b[0] != 0);@(has_word[0] && has_block[0]);
+res[0] = 1;return res[0];",,0.298886,8,,,False,True,True,False,False,True,,,0,unknown,gpt_failed,none,False,False,8,,8,"[TEST INPUT PATH EXPR]:
+char *b[21];
+char *word;
+int res[1];
+int has_word[1];
+int has_block[1];
+res[0] = 0;has_word[0] = (word != 0);has_block[0] = (b[0] != 0);@(has_word[0] && has_block[0]);
+res[0] = 1;return res[0];",1,5,calibration_5

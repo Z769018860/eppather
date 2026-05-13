@@ -1,0 +1,15 @@
+int y;
+int m;
+int d;
+int month_lengths[12];
+int y;
+int d;
+int result[5];
+int dyear = 1166 + y;
+int leap = 0;
+int day = d % 5;
+int season_num = ((d % 73) == 0 ? d - 1 : d) / 73;
+int date_num = (d % 73) == 0 ? 73 : (d % 73);
+@(!((y % 400 == 0) || ((y % 4 == 0) && (y % 100 != 0))));
+@(!(leap == 1));
+result[0] = 0;result[1] = day;result[2] = season_num;result[3] = date_num;result[4] = dyear;return;

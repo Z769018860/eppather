@@ -1,0 +1,41 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun s@0@2 () (_ BitVec 32))
+(declare-fun s@0@4 () (_ BitVec 32))
+(declare-fun s@0@3 () (_ BitVec 32))
+(declare-fun s@0@1 () (_ BitVec 32))
+(declare-fun s@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x134 (ite (bvslt (_ bv0 32) (bvsdiv n@0@0 (_ bv2 32))) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x134 (_ bv0 32)) true)))
+(assert
+ (let ((?x153 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let (($x22 (bvslt ?x153 (_ bv5 32))))
+ (let (($x501 (bvsle (_ bv0 32) ?x153)))
+ (and $x501 $x22)))))
+(assert
+ (let ((?x467 (bvsub (bvsub n@0@0 (bvadd (_ bv0 32) (_ bv1 32))) (_ bv1 32))))
+ (let (($x45 (bvslt ?x467 (_ bv5 32))))
+ (let (($x21 (bvsle (_ bv0 32) ?x467)))
+ (and $x21 $x45)))))
+(assert
+ (let ((?x1457 (bvadd (_ bv4294967294 32) n@0@0)))
+ (let ((?x153 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x169 (store (store (store (store %a (_ bv0 32) s@0@0) (_ bv1 32) s@0@1) (_ bv8 32) (_ bv1 32)) (_ bv3 32) s@0@3)))
+ (let ((?x568 (store (store ?x169 (_ bv4 32) s@0@4) (_ bv2 32) s@0@2)))
+ (let ((?x341 (store (store (store ?x568 (_ bv6 32) ?x153) (_ bv5 32) n@0@0) (_ bv7 32) n@0@0)))
+ (let (($x388 (not (and (distinct (ite (and (distinct s@0@1 (select ?x341 ?x1457)) true) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x64 (ite $x388 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x64 (_ bv0 32)) true)))))))))
+(assert
+ (let ((?x153 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x169 (store (store (store (store %a (_ bv0 32) s@0@0) (_ bv1 32) s@0@1) (_ bv8 32) (_ bv1 32)) (_ bv3 32) s@0@3)))
+ (let ((?x568 (store (store ?x169 (_ bv4 32) s@0@4) (_ bv2 32) s@0@2)))
+ (let ((?x341 (store (store (store ?x568 (_ bv6 32) ?x153) (_ bv5 32) n@0@0) (_ bv7 32) n@0@0)))
+ (let ((?x50 (ite (bvslt (select ?x341 (_ bv6 32)) (bvsdiv (select ?x341 (_ bv7 32)) (_ bv2 32))) (_ bv1 32) (_ bv0 32))))
+ (let ((?x458 (ite (not (and (distinct ?x50 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x458 (_ bv0 32)) true))))))))
+(check-sat)
+

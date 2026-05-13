@@ -1,0 +1,16 @@
+int n;
+int sum[5];
+int n1;
+int n2;
+int n3;
+int n[5];
+int done[5];
+int found[5];
+sum[0] = 0;@(n != 0);
+n = n / 10;
+sum[0] = sum[0] + (n % 10);@(n != 0);
+n = n / 10;
+sum[0] = sum[0] + (n % 10);@(n != 0);
+n = n / 10;
+sum[0] = sum[0] + (n % 10);@(!(n != 0));
+return sum[0];

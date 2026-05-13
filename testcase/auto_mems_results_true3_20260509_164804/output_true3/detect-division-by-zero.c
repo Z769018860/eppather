@@ -1,0 +1,65 @@
+int try_division(int x, int y) {
+    int result[5];
+    int code[5];
+    int act[5];
+    int old[5];
+    int signal[5];
+    int w[5];
+    int a[5];
+    int n1;
+    int n2;
+    int n3;
+    int n4;
+    int n5;
+    int n6;
+    int n7;
+    int n8;
+    int n9;
+    int n10;
+
+    n1 = 1;
+    n2 = 0;
+    n3 = -44;
+    n4 = 5;
+    n5 = -1;
+    n6 = 0;
+    n7 = 0;
+    n8 = 0;
+    n9 = 0;
+    n10 = 0;
+
+    code[0] = n6;
+    if (code[0] == n6) {
+        act[0] = n6;
+        act[1] = n6;
+        act[2] = n6;
+        act[3] = n6;
+        act[4] = n6;
+        old[0] = n6;
+        old[1] = n6;
+        old[2] = n6;
+        old[3] = n6;
+        old[4] = n6;
+
+        result[0] = x / y;
+
+        old[0] = n6;
+        old[1] = n6;
+        old[2] = n6;
+        old[3] = n6;
+        old[4] = n6;
+    } else {
+        old[0] = n6;
+        old[1] = n6;
+        old[2] = n6;
+        old[3] = n6;
+        old[4] = n6;
+
+        if (code[0] == n1 || code[0] == n2) {
+            n7 = n7;
+        } else {
+            n8 = n8;
+        }
+    }
+    return;
+}

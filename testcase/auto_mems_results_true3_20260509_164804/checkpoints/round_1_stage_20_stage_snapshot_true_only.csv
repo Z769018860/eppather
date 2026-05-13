@@ -1,0 +1,260 @@
+filename,basename,gpt_time,gpt_mems,gpt_path,gpt_error,dfs_time,dfs_max_mems,dfs_min_mems,dfs_best_path,dfs_error,dp_time,dp_mems,dp_path,dp_error,success_gpt,success_dfs,success_dp,gpt_eq_dp_mems,gpt_eq_dfs_mems,dp_eq_dfs_mems,gpt_dp_mems_diff,gpt_dfs_mems_diff,dp_dfs_mems_diff,eppath_feasible,eppath_feasible_reason,eppath_feasible_source,gpt_path_feasible_by_eppath,is_true,worst_mems_dp,worst_path_dp,worst_mems_dfs,worst_path_dfs,run_round,run_stage,run_stage_tag
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-1.c,a+b-1.c,130.9442,2,"[TEST INPUT PATH EXPR]:
+x[0] = a + b;
+return x[0];",,0.0820358,2,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",,0.14228,2,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,2,,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-2.c,a+b-2.c,106.9588,2,"[TEST INPUT PATH EXPR]:
+@;
+int x[5];
+x[0] = a + b;
+return x[0];",,0.0571596,2,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",,0.143217,2,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,2,,2,"[TEST INPUT PATH EXPR]:
+int a;
+int b;
+int x[5];
+x[0] = a + b;return x[0];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/a+b-3.c,a+b-3.c,88.1955,2,"[TEST INPUT PATH EXPR]:
+@(1);
+int result[5];
+result[0] = arg1 + arg2;
+return result[0];",,0.059495,2,2,"[TEST INPUT PATH EXPR]:
+int arg1;
+int arg2;
+int result[5];
+result[0] = arg1 + arg2;return result[0];",,0.145408,2,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,2,,2,"[TEST INPUT PATH EXPR]:
+int arg1;
+int arg2;
+int result[5];
+result[0] = arg1 + arg2;return result[0];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/abc-problem.c,abc-problem.c,301.3108,8,"[TEST INPUT PATH EXPR]:
+res[0] = 0;
+has_word[0] = (word != 0);
+has_block[0] = (b[0] != 0);
+@(has_word[0] == 0);
+return res[0];",,0.20436,8,7,"[TEST INPUT PATH EXPR]:
+char *b[21];
+char *word;
+int res[1];
+int has_word[1];
+int has_block[1];
+res[0] = 0;has_word[0] = (word != 0);has_block[0] = (b[0] != 0);@(has_word[0] && has_block[0]);
+res[0] = 1;return res[0];",,0.315867,8,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,8,,8,"[TEST INPUT PATH EXPR]:
+char *b[21];
+char *word;
+int res[1];
+int has_word[1];
+int has_block[1];
+res[0] = 0;has_word[0] = (word != 0);has_block[0] = (b[0] != 0);@(has_word[0] && has_block[0]);
+res[0] = 1;return res[0];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/accumulator-factory.c,accumulator-factory.c,573.8424,4,"[TEST INPUT PATH EXPR]:
+_n[0] = 1;
+_n[0] = _n[0] + i;
+return _n[0];",,0.0710431,4,4,"[TEST INPUT PATH EXPR]:
+int i;
+static int _n[5];
+int i;
+static int _n[5];
+int i;
+static int _n[5];
+int i;
+int selector;
+static int _n_x[5];
+static int _n_y[5];
+static int _n_z[5];
+_n[0] = 1;_n[0] = _n[0] + i;return _n[0];",,0.221457,4,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,4,,4,"[TEST INPUT PATH EXPR]:
+int i;
+static int _n[5];
+int i;
+static int _n[5];
+int i;
+static int _n[5];
+int i;
+int selector;
+static int _n_x[5];
+static int _n_y[5];
+static int _n_z[5];
+_n[0] = 1;_n[0] = _n[0] + i;return _n[0];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/ackermann-function-2.c,ackermann-function-2.c,371.1155,3,"[TEST INPUT PATH EXPR]:
+@(cache[idx] != 0);
+@(mm == 0);
+cache[idx] = nn + 1;
+@(1);
+return cache[idx];",,3.03466,3,2,"[TEST INPUT PATH EXPR]:
+int m;
+int n;
+int m_bits;
+int n_bits;
+int cache[16];
+int mm;
+int nn;
+int idx;
+mm = m;nn = n;@(mm < 0);
+mm = 0;@(nn < 0);
+nn = 0;@(!(mm > 2));
+@(!(nn > 3));
+idx = mm * 4 + nn;@(!(cache[idx] != 0));
+@(mm == 0);
+cache[idx] = nn + 1;return cache[idx];",,1.24065,3,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,3,,3,"[TEST INPUT PATH EXPR]:
+int m;
+int n;
+int m_bits;
+int n_bits;
+int cache[16];
+int mm;
+int nn;
+int idx;
+mm = m;nn = n;@(mm < 0);
+mm = 0;@(nn < 0);
+nn = 0;@(!(mm > 2));
+@(!(nn > 3));
+idx = mm * 4 + nn;@(!(cache[idx] != 0));
+@(mm == 0);
+cache[idx] = nn + 1;return cache[idx];",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/address-of-a-variable-2.c,address-of-a-variable-2.c,50.7457,1,"[TEST INPUT PATH EXPR]:
+@(1);
+address_of_i = &i[0];
+return;",,0.102482,1,1,"[TEST INPUT PATH EXPR]:
+int i[5];
+int* address_of_i;
+address_of_i = &i[0];return;",,0.132534,1,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,1,,1,"[TEST INPUT PATH EXPR]:
+int i[5];
+int* address_of_i;
+address_of_i = &i[0];return;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/address-of-a-variable-4.c,address-of-a-variable-4.c,49.2680,1,"[TEST INPUT PATH EXPR]:
+s[0] = 0;
+return;",,0.0506081,1,1,"[TEST INPUT PATH EXPR]:
+int n;
+int s[5];
+s[0] = 0;return;",,0.126903,1,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,1,,1,"[TEST INPUT PATH EXPR]:
+int n;
+int s[5];
+s[0] = 0;return;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/address-of-a-variable-5.c,address-of-a-variable-5.c,40.1879,1,"[TEST INPUT PATH EXPR]:
+arr[0] = 0;
+return;",,0.045005,1,1,"[TEST INPUT PATH EXPR]:
+int arr[5];
+arr[0] = 0;return;",,0.110779,1,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,1,,1,"[TEST INPUT PATH EXPR]:
+int arr[5];
+arr[0] = 0;return;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/address-of-a-variable-7.c,address-of-a-variable-7.c,145.2619,0,"[TEST INPUT PATH EXPR]:
+@(main);
+x = 168496691;
+y = x;
+@(y > 0);
+y = y - 1;
+return 0;",,0.092743,0,0,"[TEST INPUT PATH EXPR]:
+int x;
+int y;
+x = 168496691;y = x;@(y > 0);
+y = y - 1;return 0;",,0.304851,0,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,0,,0,"[TEST INPUT PATH EXPR]:
+int x;
+int y;
+x = 168496691;y = x;@(y > 0);
+y = y - 1;return 0;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/almost-prime.c,almost-prime.c,884.4031,14,"[TEST INPUT PATH EXPR]:
+f[0] = 0;
+p = 2;
+@(f[0] < k && p * p <= n);
+@(n > 1);
+f[0] = f[0] + 1;
+@(f[0] == k);
+return 1;",,2.58975,14,3,"[TEST INPUT PATH EXPR]:
+int n;
+int k;
+int p;
+int f[5];
+f[0] = 0;p = 2;
+@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(!(f[0] < k && p * p <= n));
+@(n > 1);
+f[0] = f[0] + 1;@(f[0] == k);
+return 1;",,1.14758,14,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,14,,14,"[TEST INPUT PATH EXPR]:
+int n;
+int k;
+int p;
+int f[5];
+f[0] = 0;p = 2;
+@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(f[0] < k && p * p <= n);
+p = p + 1;
+@(0 == n % p);
+n = n / p;f[0] = f[0] + 1;@(!(f[0] < k && p * p <= n));
+@(n > 1);
+f[0] = f[0] + 1;@(f[0] == k);
+return 1;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/arena-storage-pool-1.c,arena-storage-pool-1.c,65.4590,1,"[TEST INPUT PATH EXPR]:
+x[0] = 0;
+return;",,0.0630047,1,1,"[TEST INPUT PATH EXPR]:
+int x[5];
+void;
+x[0] = 0;return;",,0.0961688,1,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,1,,1,"[TEST INPUT PATH EXPR]:
+int x[5];
+void;
+x[0] = 0;return;",1,20,stage_20
+/home/zhangliwei/eppather/testcase/output_complete2/arithmetic-complex-1.c,arithmetic-complex-1.c,87.4035,40,"[TEST INPUT PATH EXPR]:
+a[0] = 1;
+a[1] = 1;
+b[0] = 3;
+b[1] = 1;
+c[0] = a[0] + b[0];
+c[1] = a[1] + b[1];
+c[0] = a[0] * b[0] - a[1] * b[1];
+c[1] = a[0] * b[1] + a[1] * b[0];
+c[0] = a[0] / (a[0] * a[0] + a[1] * a[1]);
+c[1] = -a[1] / (a[0] * a[0] + a[1] * a[1]);
+c[0] = -a[0];
+c[1] = -a[1];
+c[0] = a[0];
+c[1] = -a[1];
+return;",,0.0789889,40,40,"[TEST INPUT PATH EXPR]:
+int n1;
+int n2;
+int n3;
+int n4;
+int n5;
+int n6;
+int n7;
+int n8;
+int n9;
+int n10;
+int a[5];
+int b[5];
+int c[5];
+a[0] = 1;a[1] = 1;b[0] = 3;b[1] = 1;c[0] = a[0] + b[0];c[1] = a[1] + b[1];c[0] = a[0] * b[0] - a[1] * b[1];c[1] = a[0] * b[1] + a[1] * b[0];c[0] = a[0] / (a[0] * a[0] + a[1] * a[1]);c[1] = -a[1] / (a[0] * a[0] + a[1] * a[1]);c[0] = -a[0];c[1] = -a[1];c[0] = a[0];c[1] = -a[1];return;",,1.16282,40,,,True,True,True,True,True,True,0,0,0,true,no_obvious_conflict_by_local_parser,local_parser,True,True,40,,40,"[TEST INPUT PATH EXPR]:
+int n1;
+int n2;
+int n3;
+int n4;
+int n5;
+int n6;
+int n7;
+int n8;
+int n9;
+int n10;
+int a[5];
+int b[5];
+int c[5];
+a[0] = 1;a[1] = 1;b[0] = 3;b[1] = 1;c[0] = a[0] + b[0];c[1] = a[1] + b[1];c[0] = a[0] * b[0] - a[1] * b[1];c[1] = a[0] * b[1] + a[1] * b[0];c[0] = a[0] / (a[0] * a[0] + a[1] * a[1]);c[1] = -a[1] / (a[0] * a[0] + a[1] * a[1]);c[0] = -a[0];c[1] = -a[1];c[0] = a[0];c[1] = -a[1];return;",1,20,stage_20

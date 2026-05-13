@@ -1,0 +1,25 @@
+; 
+(set-info :status unknown)
+(declare-fun hDC@0@0 () (_ BitVec 32))
+(assert
+ (let (($x18 (bvslt (_ bv0 32) (_ bv2 32))))
+ (let (($x16 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x16 $x18))))
+(assert
+ (let (($x44 (bvslt (_ bv1 32) (_ bv2 32))))
+ (let (($x13 (bvsle (_ bv0 32) (_ bv1 32))))
+ (and $x13 $x44))))
+(assert
+ (let (($x17 (= hDC@0@0 (_ bv0 32))))
+ (let ((?x38 (ite $x17 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x38 (_ bv0 32)) true))))
+(assert
+ (let (($x61 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x16 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x16 $x61))))
+(assert
+ (let (($x61 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x16 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x16 $x61))))
+(check-sat)
+

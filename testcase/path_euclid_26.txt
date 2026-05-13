@@ -1,0 +1,17 @@
+int a;
+int b;
+int mode;
+int a_arr[5];
+int b_arr[5];
+int temp_arr[5];
+a_arr[0] = a;b_arr[0] = b;@(!(a_arr[0] < 0));
+@(!(b_arr[0] < 0));
+@(!(mode == 0));
+@(a_arr[0] != b_arr[0]);
+@(a_arr[0] > b_arr[0]);
+a_arr[0] = a_arr[0] - b_arr[0];@(a_arr[0] != b_arr[0]);
+@(a_arr[0] > b_arr[0]);
+a_arr[0] = a_arr[0] - b_arr[0];@(a_arr[0] != b_arr[0]);
+@(!(a_arr[0] > b_arr[0]));
+b_arr[0] = b_arr[0] - a_arr[0];@(!(a_arr[0] != b_arr[0]));
+return a_arr[0];

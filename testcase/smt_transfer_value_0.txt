@@ -1,0 +1,15 @@
+; 
+(set-info :status unknown)
+(declare-fun to@0@0 () (_ BitVec 32))
+(declare-fun from@0@0 () (_ BitVec 32))
+(declare-fun howmuch@0@0 () (_ BitVec 32))
+(assert
+ (let (($x45 (or (and (distinct (ite (= from@0@0 to@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvslt howmuch@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let (($x51 (or (and (distinct (ite $x45 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvslt from@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let (($x57 (or (and (distinct (ite $x51 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvslt to@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let (($x63 (or (and (distinct (ite $x57 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsge from@0@0 (_ bv15 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let (($x69 (or (and (distinct (ite $x63 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsge to@0@0 (_ bv15 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x73 (ite $x69 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x73 (_ bv0 32)) true))))))))
+(check-sat)
+

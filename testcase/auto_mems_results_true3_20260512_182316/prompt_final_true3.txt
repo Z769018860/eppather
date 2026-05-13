@@ -1,0 +1,38 @@
+You are a C static-analysis assistant. Derive a feasible bounded path with maximum MEMS from source.
+Bounds: loop_unroll=3, inline_depth=3. Recursion is bounded/fixpoint-style; never expand unboundedly.
+MEMS rules: variable read +1, lvalue write +1; count locals/params/globals, arrays, fields, pointer derefs, conditions, function args, return variable reads. Assignment counts RHS reads + one LHS write. ++/-- and compound assignments count read+write. Respect &&/|| short-circuit. Ignore constants, keywords, declarations without side effects, ABI/register/hidden temporary operations.
+Path rules: source execution order; reject contradictory predicates; for loops emit taken guards and final exit guard when applicable; do not invent statements.
+Calibration rule: fixed examples below may teach counting style. For the current file, never use or guess hidden DP/DFS values or paths; use only source plus direction feedback.
+Counting examples (method only):
+- x=y+z => read(y)+read(z)+write(x)=3.
+- i++ => read(i)+write(i)=2.
+- if (a&&b) x=x+1 true branch => read(a)+read(b)+read(x)+write(x)=4; if a is false => read(a)=1.
+- arr[i]=arr[i]+v => RHS read(i)+read(arr[i])+read(v), LHS read(i)+write(arr[i]) => 5.
+- while(i<n){i++;} with 2 taken + final exit => 3 condition checks*(read i+n) + 2 updates*(read+write i)=10.
+
+
+Fixed calibration examples: use them only to learn counting style; do not infer the current file's hidden answer.
+
+Example 1: 9-billion-names-of-god-the-integer.c
+analyzer_mems=-1
+
+Example 2: a+b-1.c
+analyzer_mems=2
+DFS and DP agree on MEMS for this calibration example.
+
+Example 3: a+b-2.c
+analyzer_mems=2
+DFS and DP agree on MEMS for this calibration example.
+
+Example 4: a+b-3.c
+analyzer_mems=2
+DFS and DP agree on MEMS for this calibration example.
+
+Example 5: abc-problem.c
+analyzer_mems=8
+DFS and DP agree on MEMS for this calibration example.
+Output STRICT JSON only: {"mems": integer, "test_input_path_expr": string, "reason": string}. Path string format: [TEST INPUT PATH EXPR]: then one @(cond); or stmt; per line. Every path line ends with ';'. If no feasible bounded path exists: mems=-1 and test_input_path_expr='[NO FEASIBLE PATH]'.
+Recent diagnostic feedback (no target values):
+- stage_20未达标: 应用阶段外部一致性检查未通过阈值。下一轮会先重新运行5个文件的校准阶段，再应用到20/100/全量。反馈只允许包含方法级修正、偏大/偏小方向和固定校准样例；不允许注入当前待评估文件的DP/DFS目标数值或路径。 重点错例方向: 9-billion-names-of-god-the-integer.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-1.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-2.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-3.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | accumulator-factory.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。
+- 校准集方向统计: 有 3 个样例输出高于校准目标；优先减少隐含临时量、重复左值、未执行短路分支和超界循环路径的过计数。
+- stage_20未达标: 应用阶段外部一致性检查未通过阈值。下一轮会先重新运行5个文件的校准阶段，再应用到20/100/全量。反馈只允许包含方法级修正、偏大/偏小方向和固定校准样例；不允许注入当前待评估文件的DP/DFS目标数值或路径。 重点错例方向: 9-billion-names-of-god-the-integer.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-1.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-2.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | a+b-3.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。 | accumulator-factory.c: 方向反馈: 上轮输出的 MEMS 高于当前应用阶段外部目标结果。请重点排查是否过计数了隐含临时量、重复计算左值、把未实际执行的短路分支也计入、或把不可行/超出循环上限的路径当成候选。

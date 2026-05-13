@@ -1,0 +1,9 @@
+int year;
+int month;
+int day;
+int adjustment[5];
+int mm[5];
+int yy[5];
+int y[5];
+int result[5];
+adjustment[0] = (14 - month) / 12;mm[0] = month + 12 * adjustment[0] - 2;yy[0] = year - adjustment[0];return (day + (13 * mm[0] - 1) / 5 + yy[0] + yy[0] / 4 - yy[0] / 100 + yy[0] / 400) % 7;

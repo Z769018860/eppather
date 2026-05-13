@@ -1,0 +1,20 @@
+; 
+(set-info :status unknown)
+(assert
+ (let (($x11 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x52 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x52 $x11))))
+(assert
+ (let (($x11 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x52 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x52 $x11))))
+(assert
+ (let (($x11 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x52 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x52 $x11))))
+(assert
+ (let (($x11 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x52 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x52 $x11))))
+(check-sat)
+

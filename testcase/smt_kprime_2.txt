@@ -1,0 +1,96 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun k@0@0 () (_ BitVec 32))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x326 (and (and (distinct (ite (bvslt (_ bv0 32) k@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsle (bvmul (_ bv2 32) (_ bv2 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x5583 (ite $x326 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x5583 (_ bv0 32)) true))))
+(assert
+ (let ((?x11 (ite (= (_ bv0 32) (bvsmod n@0@0 (bvadd (_ bv2 32) (_ bv1 32)))) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x11 (_ bv0 32)) true)))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let ((?x2012 (bvadd (_ bv2 32) (_ bv1 32))))
+ (let ((?x979 (bvsdiv n@0@0 ?x2012)))
+ (let (($x61 (and (and (distinct (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) k@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsle (bvmul ?x2012 ?x2012) ?x979) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x2331 (ite $x61 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x2331 (_ bv0 32)) true))))))
+(assert
+ (let ((?x2012 (bvadd (_ bv2 32) (_ bv1 32))))
+ (let ((?x29 (bvadd ?x2012 (_ bv1 32))))
+ (let ((?x979 (bvsdiv n@0@0 ?x2012)))
+ (let ((?x68 (ite (= (_ bv0 32) (bvsmod ?x979 ?x29)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x68 (_ bv0 32)) true))))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let ((?x2012 (bvadd (_ bv2 32) (_ bv1 32))))
+ (let ((?x29 (bvadd ?x2012 (_ bv1 32))))
+ (let ((?x979 (bvsdiv n@0@0 ?x2012)))
+ (let ((?x8 (bvsdiv ?x979 ?x29)))
+ (let (($x5698 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) k@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let (($x31 (and $x5698 (and (distinct (ite (bvsle (bvmul ?x29 ?x29) ?x8) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x3834 (ite $x31 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x3834 (_ bv0 32)) true)))))))))
+(assert
+ (let ((?x2012 (bvadd (_ bv2 32) (_ bv1 32))))
+ (let ((?x29 (bvadd ?x2012 (_ bv1 32))))
+ (let ((?x90 (bvadd ?x29 (_ bv1 32))))
+ (let ((?x979 (bvsdiv n@0@0 ?x2012)))
+ (let ((?x8 (bvsdiv ?x979 ?x29)))
+ (let ((?x816 (ite (not (and (distinct (ite (= (_ bv0 32) (bvsmod ?x8 ?x90)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x816 (_ bv0 32)) true))))))))
+(assert
+ (let ((?x2012 (bvadd (_ bv2 32) (_ bv1 32))))
+ (let ((?x29 (bvadd ?x2012 (_ bv1 32))))
+ (let ((?x979 (bvsdiv n@0@0 ?x2012)))
+ (let ((?x8 (bvsdiv ?x979 ?x29)))
+ (let ((?x2538 (ite (bvsgt ?x8 (_ bv1 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x2538 (_ bv0 32)) true)))))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let (($x2368 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x274 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x274 $x2368))))
+(assert
+ (let ((?x678 (ite (= (bvadd (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) (_ bv1 32)) k@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x678 (_ bv0 32)) true)))
+(check-sat)
+

@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhangliwei/eppather-master/eppather/epat++/test
+# Install script for directory: /home/zhangliwei/eppather/epat++/test
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -1,0 +1,14 @@
+int str_len;
+char str[5];
+int i;
+int found = 0;
+i = 0;
+@(i < 5);
+i = i + 1;
+@(i + 2 < 5);
+@(!((str[i] == 'u' && str[i + 1] == 't' && str[i + 2] == 'f') || (str[i] == 'U' && str[i + 1] == 'T' && str[i + 2] == 'F')));
+@(i < 5);
+i = i + 1;
+@(i + 2 < 5);
+@((str[i] == 'u' && str[i + 1] == 't' && str[i + 2] == 'f') || (str[i] == 'U' && str[i + 1] == 'T' && str[i + 2] == 'F'));
+found = 1;break;return found;

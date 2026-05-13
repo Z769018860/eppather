@@ -1,0 +1,16 @@
+; 
+(set-info :status unknown)
+(declare-fun den@0@0 () (_ BitVec 32))
+(assert
+ (let (($x76 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let ((?x160 (ite $x76 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x160 (_ bv0 32)) true))))
+(assert
+ (let (($x76 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x177 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x177 $x76))))
+(assert
+ (let ((?x180 (ite (not (and (distinct (ite (and (distinct den@0@0 (_ bv0 32)) true) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x180 (_ bv0 32)) true)))
+(check-sat)
+

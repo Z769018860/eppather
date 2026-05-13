@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 
 # Utility rule file for ExperimentalSubmit.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 include epat++/CMakeFiles/ExperimentalSubmit.dir/progress.make
 
 epat++/CMakeFiles/ExperimentalSubmit:
-	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D ExperimentalSubmit
+	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D ExperimentalSubmit
 
 ExperimentalSubmit: epat++/CMakeFiles/ExperimentalSubmit
 ExperimentalSubmit: epat++/CMakeFiles/ExperimentalSubmit.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/ExperimentalSubmit.dir/build: ExperimentalSubmit
 .PHONY : epat++/CMakeFiles/ExperimentalSubmit.dir/build
 
 epat++/CMakeFiles/ExperimentalSubmit.dir/clean:
-	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/ExperimentalSubmit.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/ExperimentalSubmit.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/ExperimentalSubmit.dir/clean
 
 epat++/CMakeFiles/ExperimentalSubmit.dir/depend:
-	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/ExperimentalSubmit.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/ExperimentalSubmit.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/ExperimentalSubmit.dir/depend
 

@@ -1,0 +1,41 @@
+; 
+(set-info :status unknown)
+(declare-fun len@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x93 (ite (not (and (distinct (ite (bvslt (_ bv0 32) len@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x93 (_ bv0 32)) true)))
+(assert
+ (let (($x13 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x242 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x242 $x13))))
+(assert
+ (let (($x13 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x242 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x242 $x13))))
+(assert
+ (let (($x13 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x242 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x242 $x13))))
+(assert
+ (let (($x13 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x242 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x242 $x13))))
+(assert
+ (let (($x102 (and (and (distinct (ite (bvsle (_ bv0 32) (bvneg (_ bv1 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsge (_ bv0 32) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let (($x30 (and (and (distinct (ite $x102 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct (ite (bvsge (bvneg (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x221 (ite (not (and (distinct (ite $x30 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x221 (_ bv0 32)) true)))))
+(assert
+ (let (($x82 (bvslt (_ bv0 32) (_ bv3 32))))
+ (let (($x242 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x242 $x82))))
+(assert
+ (let (($x110 (bvslt (_ bv1 32) (_ bv3 32))))
+ (let (($x225 (bvsle (_ bv0 32) (_ bv1 32))))
+ (and $x225 $x110))))
+(assert
+ (let (($x117 (bvslt (_ bv2 32) (_ bv3 32))))
+ (let (($x125 (bvsle (_ bv0 32) (_ bv2 32))))
+ (and $x125 $x117))))
+(check-sat)
+

@@ -1,0 +1,13 @@
+int n;
+int r[5];
+r[0] = 0;int i = 1;
+@(i < n);
+i = i + 1;
+int randmax = 32767 / (i + 1) * (i + 1);int rand_val;@(!(rand_val >= randmax));
+@(rand_val / (randmax / (i + 1)) == 0);
+r[0] = i;@(i < n);
+i = i + 1;
+int randmax = 32767 / (i + 1) * (i + 1);int rand_val;@(!(rand_val >= randmax));
+@(rand_val / (randmax / (i + 1)) == 0);
+r[0] = i;@(!(i < n));
+return r[0];

@@ -1,0 +1,18 @@
+int word[100];
+int i;
+int result;
+result = 1;i = 0;
+@(i < 100);
+i = i + 1;
+@(!(word[i] == 0));
+@(i < 99);
+@(!(word[i] > word[i + 1] && word[i + 1] != 0));
+@(i < 100);
+i = i + 1;
+@(!(word[i] == 0));
+@(i < 99);
+@(!(word[i] > word[i + 1] && word[i + 1] != 0));
+@(i < 100);
+i = i + 1;
+@(word[i] == 0);
+break;return result;

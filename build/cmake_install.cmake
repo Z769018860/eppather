@@ -66,6 +66,34 @@ file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE EXECUTABLE PERMISSIONS
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
+    file(RPATH_CHECK
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin"
+         RPATH "$ORIGIN:@executable_path:@loader_path")
+  endif()
+  list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
+   "/home/zhangliwei/eppather/volce_bin")
+  if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+  if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
+    message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
+  endif()
+file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE EXECUTABLE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather/build/volce_bin")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
+    file(RPATH_CHANGE
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin"
+         OLD_RPATH "/home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
+         NEW_RPATH "$ORIGIN:@executable_path:@loader_path")
+    if(CMAKE_INSTALL_DO_STRIP)
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
+    endif()
+  endif()
+endif()
+
+if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
    "/home/zhangliwei/eppather/psychecsolver-exe")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)

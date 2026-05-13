@@ -1,0 +1,17 @@
+; 
+(set-info :status unknown)
+(declare-fun year@0@0 () (_ BitVec 32))
+(assert
+ (let (($x18 (not (and (distinct (ite (= (bvsmod year@0@0 (_ bv4 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x36 (ite $x18 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x36 (_ bv0 32)) true))))
+(assert
+ (let (($x24 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x64 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x64 $x24))))
+(assert
+ (let (($x24 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x64 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x64 $x24))))
+(check-sat)
+

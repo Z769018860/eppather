@@ -1,0 +1,13 @@
+int can_make_words(char *b[21], char *word) {
+    int res[1];
+    int has_word[1];
+    int has_block[1];
+    res[0] = 0;
+    has_word[0] = (word != 0);
+    has_block[0] = (b[0] != 0);
+
+    if (has_word[0] && has_block[0]) {
+        res[0] = 1;
+    }
+    return res[0];
+}

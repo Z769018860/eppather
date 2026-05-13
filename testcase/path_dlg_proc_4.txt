@@ -1,0 +1,13 @@
+int hwnd;
+int msg;
+int wPar;
+int lPar;
+int n[5];
+int reply[5];
+@(!(msg == 0));
+@(msg == 1);
+@(!((wPar & 65535) == 100));
+@(!((wPar & 65535) == 101));
+@(!((wPar & 65535) == 102));
+@(!(msg == 16));
+return;

@@ -1,0 +1,67 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun col@0@0 () (_ BitVec 32))
+(declare-fun hist@0@1 () (_ BitVec 32))
+(assert
+ (let ((?x837 (ite (not (and (distinct (ite (= col@0@0 n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x837 (_ bv0 32)) true)))
+(assert
+ (let ((?x359 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x359 (_ bv0 32)) true)))
+(assert
+ (let ((?x102 (ite (bvslt (_ bv0 32) col@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x102 (_ bv0 32)) true)))
+(assert
+ (let ((?x35 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let (($x683 (bvslt ?x35 (_ bv5 32))))
+ (let (($x75 (bvsle (_ bv0 32) ?x35)))
+ (and $x75 $x683)))))
+(assert
+ (let ((?x35 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let (($x683 (bvslt ?x35 (_ bv5 32))))
+ (let (($x75 (bvsle (_ bv0 32) ?x35)))
+ (and $x75 $x683)))))
+(assert
+ (let ((?x678 (ite (bvslt (bvsub hist@0@1 (bvadd (_ bv0 32) (_ bv1 32))) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x678 (_ bv0 32)) true)))
+(assert
+ (let ((?x35 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x7 (bvsub hist@0@1 ?x35)))
+ (let ((?x329 (bvneg ?x7)))
+ (let ((?x161 (ite (= ?x329 (bvsub col@0@0 ?x35)) (_ bv1 32) (_ bv0 32))))
+ (let (($x709 (or (and (distinct (ite (= hist@0@1 ?x35) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct ?x161 (_ bv0 32)) true))))
+ (let ((?x366 (ite (not (and (distinct (ite $x709 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x366 (_ bv0 32)) true))))))))
+(assert
+ (let ((?x43 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) col@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x43 (_ bv0 32)) true)))
+(assert
+ (let ((?x15 (ite (bvslt (bvneg (bvsub hist@0@1 (bvadd (_ bv0 32) (_ bv1 32)))) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x15 (_ bv0 32)) true)))
+(assert
+ (let ((?x35 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x7 (bvsub hist@0@1 ?x35)))
+ (let ((?x329 (bvneg ?x7)))
+ (let ((?x161 (ite (= ?x329 (bvsub col@0@0 ?x35)) (_ bv1 32) (_ bv0 32))))
+ (let (($x709 (or (and (distinct (ite (= hist@0@1 ?x35) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct ?x161 (_ bv0 32)) true))))
+ (let ((?x366 (ite (not (and (distinct (ite $x709 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x366 (_ bv0 32)) true))))))))
+(assert
+ (let (($x127 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) col@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x199 (ite (not $x127) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x199 (_ bv0 32)) true))))
+(assert
+ (let (($x127 (and (distinct (ite (bvslt (bvadd (bvadd (_ bv0 32) (_ bv1 32)) (_ bv1 32)) col@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x199 (ite (not $x127) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x199 (_ bv0 32)) true))))
+(assert
+ (let (($x8 (bvslt col@0@0 (_ bv5 32))))
+ (let (($x164 (bvsle (_ bv0 32) col@0@0)))
+ (and $x164 $x8))))
+(assert
+ (let (($x984 (not (and (distinct (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x890 (ite $x984 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x890 (_ bv0 32)) true))))
+(check-sat)
+

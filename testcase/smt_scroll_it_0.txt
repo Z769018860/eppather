@@ -1,0 +1,20 @@
+; 
+(set-info :status unknown)
+(declare-fun direction@0@0 () (_ BitVec 32))
+(declare-fun hello_len@0@0 () (_ BitVec 32))
+(declare-fun i@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x34397 (ite (bvsgt direction@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x34397 (_ bv0 32)) true)))
+(assert
+ (let ((?x29966 (ite (not (and (distinct (ite (bvsgt hello_len@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x29966 (_ bv0 32)) true)))
+(assert
+ (let (($x85013 (bvslt hello_len@0@0 (_ bv13 32))))
+ (let (($x49 (bvsle (_ bv0 32) hello_len@0@0)))
+ (and $x49 $x85013))))
+(assert
+ (let ((?x548 (ite (not (and (distinct (ite (bvslt i@0@0 (_ bv13 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x548 (_ bv0 32)) true)))
+(check-sat)
+

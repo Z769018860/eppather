@@ -1,0 +1,16 @@
+int bucket_size;
+int iterations;
+int bucket[10];
+int i;
+@(!(i < 10));
+i = 0;
+@(i < iterations);
+i = i + 1;
+int from;int to;int mode;int diff = 0;int sum;int j;from = i % 10;to = (i + 1) % 10;@(!(from == to));
+mode = i % 10;@(mode == 0 || mode == 1 || mode == 2);
+diff = (bucket[from] - bucket[to]) / 2;bucket[from] = bucket[from] - diff;bucket[to] = bucket[to] + diff;@(i < iterations);
+i = i + 1;
+int from;int to;int mode;int diff = 0;int sum;int j;from = i % 10;to = (i + 1) % 10;@(!(from == to));
+mode = i % 10;@(mode == 0 || mode == 1 || mode == 2);
+diff = (bucket[from] - bucket[to]) / 2;bucket[from] = bucket[from] - diff;bucket[to] = bucket[to] + diff;@(!(i < iterations));
+return;

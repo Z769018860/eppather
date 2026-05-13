@@ -1,0 +1,34 @@
+; 
+(set-info :status unknown)
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let ((?x67 (ite (not (and (distinct (ite (= (_ bv0 32) (bvneg (_ bv1 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x67 (_ bv0 32)) true)))
+(assert
+ (let (($x41 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x37 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x37 $x41))))
+(assert
+ (let ((?x54 (ite (= (_ bv0 32) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x54 (_ bv0 32)) true)))
+(check-sat)
+

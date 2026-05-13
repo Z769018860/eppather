@@ -1,0 +1,43 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun b@0@0 () (_ BitVec 32))
+(declare-fun sum@0@1 () (_ BitVec 32))
+(declare-fun sum@0@4 () (_ BitVec 32))
+(declare-fun sum@0@2 () (_ BitVec 32))
+(declare-fun sum@0@3 () (_ BitVec 32))
+(declare-fun a@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let (($x71 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x43 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x43 $x71))))
+(assert
+ (let ((?x123 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x123 (_ bv0 32)) true)))
+(assert
+ (let (($x71 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x43 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x43 $x71))))
+(assert
+ (let (($x71 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x43 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x43 $x71))))
+(assert
+ (let ((?x189 (bvadd (_ bv1 32) b@0@0)))
+ (let ((?x52 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x78 (store (store (store (store %a (_ bv0 32) a@0@0) (_ bv1 32) b@0@0) (_ bv6 32) sum@0@3) (_ bv5 32) sum@0@2)))
+ (let ((?x194 (store (store ?x78 (_ bv7 32) sum@0@4) (_ bv2 32) n@0@0)))
+ (let ((?x136 (store (store ?x194 (_ bv3 32) (_ bv0 32)) (_ bv4 32) sum@0@1)))
+ (let ((?x171 (store ?x136 (_ bv8 32) ?x52)))
+ (let ((?x83 (bvadd (_ bv0 32) (bvmul (select ?x171 (bvadd (_ bv1 32) a@0@0)) (select ?x171 ?x189)))))
+ (let ((?x182 (store ?x171 (_ bv3 32) ?x83)))
+ (let (($x164 (and (distinct (ite (bvslt (select ?x182 (_ bv8 32)) (select ?x182 (_ bv2 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x173 (ite (not $x164) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x173 (_ bv0 32)) true))))))))))))
+(assert
+ (let (($x71 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x43 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x43 $x71))))
+(check-sat)
+

@@ -1,0 +1,34 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun rand_val@0@0 () (_ BitVec 32))
+(assert
+ (let (($x13097 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x2751 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x2751 $x13097))))
+(assert
+ (let ((?x8262 (ite (bvslt (_ bv1 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8262 (_ bv0 32)) true)))
+(assert
+ (let ((?x3612 (bvadd (_ bv1 32) (_ bv1 32))))
+ (let ((?x12725 (bvadd ?x3612 (_ bv1 32))))
+ (let ((?x3755 (bvmul (bvsdiv (_ bv32767 32) ?x12725) ?x12725)))
+ (let ((?x54 (ite (not (and (distinct (ite (bvsge rand_val@0@0 ?x3755) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x54 (_ bv0 32)) true))))))
+(assert
+ (let ((?x3612 (bvadd (_ bv1 32) (_ bv1 32))))
+ (let ((?x12725 (bvadd ?x3612 (_ bv1 32))))
+ (let ((?x3755 (bvmul (bvsdiv (_ bv32767 32) ?x12725) ?x12725)))
+ (let (($x3007 (and (distinct (ite (= (bvsdiv rand_val@0@0 (bvsdiv ?x3755 ?x12725)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x6296 (ite (not $x3007) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x6296 (_ bv0 32)) true)))))))
+(assert
+ (let (($x29 (not (and (distinct (ite (bvslt (bvadd (_ bv1 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x45 (ite $x29 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x45 (_ bv0 32)) true))))
+(assert
+ (let (($x13097 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x2751 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x2751 $x13097))))
+(check-sat)
+

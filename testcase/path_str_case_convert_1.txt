@@ -1,0 +1,14 @@
+int s[5];
+int is_upper;
+int i;
+i = 0;
+@(i < 5);
+i = i + 1;
+@(!(s[i] == 0));
+@(is_upper != 0);
+@(s[i] >= 97 && s[i] <= 122);
+s[i] = s[i] - 32;@(s[i] >= 65 && s[i] <= 90);
+s[i] = s[i] + 32;@(i < 5);
+i = i + 1;
+@(s[i] == 0);
+break;return;

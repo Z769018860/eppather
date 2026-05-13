@@ -1,0 +1,43 @@
+; 
+(set-info :status unknown)
+(declare-fun pRate@0@1 () (_ BitVec 32))
+(declare-fun pRate@0@0 () (_ BitVec 32))
+(declare-fun now@0@0 () (_ BitVec 32))
+(declare-fun pRate@0@2 () (_ BitVec 32))
+(assert
+ (let (($x35 (bvslt (_ bv2 32) (_ bv3 32))))
+ (let (($x86 (bvsle (_ bv0 32) (_ bv2 32))))
+ (and $x86 $x35))))
+(assert
+ (let (($x35 (bvslt (_ bv2 32) (_ bv3 32))))
+ (let (($x86 (bvsle (_ bv0 32) (_ bv2 32))))
+ (and $x86 $x35))))
+(assert
+ (let (($x103 (bvslt (_ bv0 32) (_ bv3 32))))
+ (let (($x51 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x51 $x103))))
+(assert
+ (let (($x102 (bvslt (_ bv1 32) (_ bv3 32))))
+ (let (($x59 (bvsle (_ bv0 32) (_ bv1 32))))
+ (and $x59 $x102))))
+(assert
+ (let ((?x55 (ite (bvsge (bvsub now@0@0 pRate@0@0) pRate@0@1) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x55 (_ bv0 32)) true)))
+(assert
+ (let (($x35 (bvslt (_ bv2 32) (_ bv3 32))))
+ (let (($x86 (bvsle (_ bv0 32) (_ bv2 32))))
+ (and $x86 $x35))))
+(assert
+ (let (($x39 (not (and (distinct (ite (bvsgt (bvadd pRate@0@2 (_ bv1 32)) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x11 (ite $x39 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x11 (_ bv0 32)) true))))
+(assert
+ (let (($x35 (bvslt (_ bv2 32) (_ bv3 32))))
+ (let (($x86 (bvsle (_ bv0 32) (_ bv2 32))))
+ (and $x86 $x35))))
+(assert
+ (let (($x103 (bvslt (_ bv0 32) (_ bv3 32))))
+ (let (($x51 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x51 $x103))))
+(check-sat)
+

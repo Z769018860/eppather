@@ -1,0 +1,15 @@
+; 
+(set-info :status unknown)
+(declare-fun n_cards@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x270 (ite (not (and (distinct (ite (bvslt (_ bv0 32) n_cards@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x270 (_ bv0 32)) true)))
+(assert
+ (let ((?x285 (ite (not (and (distinct (ite (= n_cards@0@0 (_ bv1 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x285 (_ bv0 32)) true)))
+(assert
+ (let (($x170 (not (and (distinct (ite (bvslt (_ bv0 32) (bvsub n_cards@0@0 (_ bv1 32))) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x245 (ite $x170 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x245 (_ bv0 32)) true))))
+(check-sat)
+

@@ -1,0 +1,14 @@
+int x[81];
+int pos;
+int used;
+int row;
+int col;
+int i;
+int j;
+int k;
+int l;
+int m;
+int n;
+row = pos / 9;col = pos % 9;used = 0;@(!(pos == 81));
+@(x[pos] != 0);
+trycell(x, pos + 1, used, row, col, i, j, k, l, m, n);return;

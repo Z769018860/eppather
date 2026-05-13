@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhangliwei/eppather-master/eppather
+# Install script for directory: /home/zhangliwei/eppather
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -38,78 +38,78 @@ if(NOT DEFINED CMAKE_CROSSCOMPILING)
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip"
          RPATH "$ORIGIN:@executable_path:@loader_path")
   endif()
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/zhangliwei/eppather-master/eppather/cnip")
+   "/home/zhangliwei/eppather/cnip")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/home/zhangliwei/eppather-master/eppather" TYPE EXECUTABLE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather-master/eppather/cnip")
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip")
+file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE EXECUTABLE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather/cnip")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip")
     file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip"
-         OLD_RPATH "/home/zhangliwei/eppather-master/eppather/C:/home/zhangliwei/eppather-master/eppather/common:/home/zhangliwei/eppather-master/eppather/lpsolve:/home/zhangliwei/eppather-master/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip"
+         OLD_RPATH "/home/zhangliwei/eppather/C:/home/zhangliwei/eppather/common:/home/zhangliwei/eppather/lpsolve:/home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
          NEW_RPATH "$ORIGIN:@executable_path:@loader_path")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/cnip")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather/cnip")
     endif()
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
     file(RPATH_CHECK
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin"
          RPATH "$ORIGIN:@executable_path:@loader_path")
   endif()
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/zhangliwei/eppather-master/eppather/volce_bin")
+   "/home/zhangliwei/eppather/volce_bin")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/home/zhangliwei/eppather-master/eppather" TYPE EXECUTABLE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather-master/eppather/volce_bin")
-  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin" AND
-     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin")
+file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE EXECUTABLE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather/volce_bin")
+  if(EXISTS "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin" AND
+     NOT IS_SYMLINK "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
     file(RPATH_CHANGE
-         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin"
-         OLD_RPATH "/home/zhangliwei/eppather-master/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
+         FILE "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin"
+         OLD_RPATH "/home/zhangliwei/eppather/epat++/libz3/z3-4.12.2-x64-glibc-2.31/bin:"
          NEW_RPATH "$ORIGIN:@executable_path:@loader_path")
     if(CMAKE_INSTALL_DO_STRIP)
-      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather-master/eppather/volce_bin")
+      execute_process(COMMAND "/usr/bin/strip" "$ENV{DESTDIR}/home/zhangliwei/eppather/volce_bin")
     endif()
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "/home/zhangliwei/eppather-master/eppather/psychecsolver-exe")
+   "/home/zhangliwei/eppather/psychecsolver-exe")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   if(CMAKE_ERROR_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
-file(INSTALL DESTINATION "/home/zhangliwei/eppather-master/eppather" TYPE FILE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather-master/eppather/psychecsolver-exe")
+file(INSTALL DESTINATION "/home/zhangliwei/eppather" TYPE FILE PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ FILES "/home/zhangliwei/eppather/psychecsolver-exe")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/zhangliwei/eppather-master/eppather/common/cmake_install.cmake")
-  include("/home/zhangliwei/eppather-master/eppather/C/cmake_install.cmake")
-  include("/home/zhangliwei/eppather-master/eppather/epat++/cmake_install.cmake")
+  include("/home/zhangliwei/eppather/common/cmake_install.cmake")
+  include("/home/zhangliwei/eppather/C/cmake_install.cmake")
+  include("/home/zhangliwei/eppather/epat++/cmake_install.cmake")
 
 endif()
 
@@ -121,5 +121,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/zhangliwei/eppather-master/eppather/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/zhangliwei/eppather/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

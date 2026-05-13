@@ -1,0 +1,19 @@
+; 
+(set-info :status unknown)
+(declare-fun delroy_operation_p1@0@0 () (_ BitVec 32))
+(declare-fun theDelegator_delegate_operation_p1@0@0 () (_ BitVec 32))
+(assert
+ (let (($x129 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x105 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x105 $x129))))
+(assert
+ (let ((?x145 (ite (not (and (distinct delroy_operation_p1@0@0 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x145 (_ bv0 32)) true)))
+(assert
+ (and (distinct theDelegator_delegate_operation_p1@0@0 (_ bv0 32)) true))
+(assert
+ (let (($x129 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x105 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x105 $x129))))
+(check-sat)
+

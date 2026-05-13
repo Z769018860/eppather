@@ -1,0 +1,15 @@
+; 
+(set-info :status unknown)
+(assert
+ (let (($x756 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x751 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x751 $x756))))
+(assert
+ (let (($x756 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x751 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x751 $x756))))
+(assert
+ (let ((?x767 (ite (= (_ bv0 32) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x767 (_ bv0 32)) true)))
+(check-sat)
+

@@ -1,0 +1,11 @@
+int n;
+int base;
+int sum[5];
+sum[0] = 0;@(n);
+n = n / base;
+sum[0] = sum[0] + n % base;@(n);
+n = n / base;
+sum[0] = sum[0] + n % base;@(n);
+n = n / base;
+sum[0] = sum[0] + n % base;@(!(n));
+return sum[0];

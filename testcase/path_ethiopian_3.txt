@@ -1,0 +1,12 @@
+int plier;
+int plicand;
+int tutor;
+int result[5];
+int plier_copy[5];
+int plicand_copy[5];
+result[0] = 0;plier_copy[0] = plier;plicand_copy[0] = plicand;@(plier_copy[0] >= 1);
+@((plicand_copy[0] & 1) == 0);
+@(!(tutor != 0));
+@(!(tutor != 0));
+result[0] = result[0] + plicand_copy[0];plier_copy[0] = plier_copy[0] >> 1;plicand_copy[0] = plicand_copy[0] << 1;@(!(plier_copy[0] >= 1));
+return result[0];

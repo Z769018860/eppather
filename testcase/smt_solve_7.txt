@@ -1,0 +1,48 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun col@0@0 () (_ BitVec 32))
+(declare-fun hist@0@1 () (_ BitVec 32))
+(assert
+ (let ((?x63 (ite (not (and (distinct (ite (= col@0@0 n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x63 (_ bv0 32)) true)))
+(assert
+ (let ((?x47 (ite (bvslt (_ bv0 32) n@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x47 (_ bv0 32)) true)))
+(assert
+ (let ((?x152 (ite (bvslt (_ bv0 32) col@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x152 (_ bv0 32)) true)))
+(assert
+ (let ((?x123 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let (($x155 (bvslt ?x123 (_ bv5 32))))
+ (let (($x329 (bvsle (_ bv0 32) ?x123)))
+ (and $x329 $x155)))))
+(assert
+ (let ((?x123 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let (($x155 (bvslt ?x123 (_ bv5 32))))
+ (let (($x329 (bvsle (_ bv0 32) ?x123)))
+ (and $x329 $x155)))))
+(assert
+ (let (($x73 (and (distinct (ite (bvslt (bvsub hist@0@1 (bvadd (_ bv0 32) (_ bv1 32))) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x259 (ite (not $x73) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x259 (_ bv0 32)) true))))
+(assert
+ (let ((?x123 (bvadd (_ bv0 32) (_ bv1 32))))
+ (let ((?x121 (bvsub hist@0@1 ?x123)))
+ (let ((?x846 (ite (= ?x121 (bvsub col@0@0 ?x123)) (_ bv1 32) (_ bv0 32))))
+ (let (($x163 (or (and (distinct (ite (= hist@0@1 ?x123) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true) (and (distinct ?x846 (_ bv0 32)) true))))
+ (let ((?x99 (ite $x163 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x99 (_ bv0 32)) true)))))))
+(assert
+ (let ((?x430 (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) col@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x430 (_ bv0 32)) true)))
+(assert
+ (let (($x792 (bvslt col@0@0 (_ bv5 32))))
+ (let (($x129 (bvsle (_ bv0 32) col@0@0)))
+ (and $x129 $x792))))
+(assert
+ (let (($x995 (not (and (distinct (ite (bvslt (bvadd (_ bv0 32) (_ bv1 32)) n@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x119 (ite $x995 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x119 (_ bv0 32)) true))))
+(check-sat)
+

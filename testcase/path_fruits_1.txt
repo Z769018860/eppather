@@ -1,0 +1,10 @@
+int x;
+int arr[5];
+arr[0] = 0;arr[1] = 1;arr[2] = 2;int i = 0;
+@(i < 5);
+i = i + 1;
+@(!(x == arr[i]));
+@(i < 5);
+i = i + 1;
+@(x == arr[i]);
+return arr[i];

@@ -1,0 +1,12 @@
+int limit;
+int sum[5];
+int i;
+sum[0] = 0;i = 0;
+@(i < limit);
+i = i + 1;
+@(!((i % 3 == 0) || (i % 5 == 0)));
+@(i < limit);
+i = i + 1;
+@(!((i % 3 == 0) || (i % 5 == 0)));
+@(!(i < limit));
+return sum[0];

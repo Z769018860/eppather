@@ -1,0 +1,17 @@
+int pf;
+int w;
+int h;
+int d;
+int img_buf[5];
+int buf[256];
+int t[5];
+int r[5];
+int i;
+@(!(pf == 0));
+@(!(i < 5));
+@(!((t[0] == 0) || (buf[0] != 'P' || buf[1] != '6' || buf[2] != '\n')));
+i = 0;
+@(i < 5);
+i = i + 1;
+t[0] = 0;@(t[0] == 0);
+return 0;

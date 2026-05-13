@@ -1,0 +1,12 @@
+char s[5];
+int i;
+int j;
+char t;
+const void *a;
+const void *b;
+const char *key1 = ((const char **)a)[0];
+const char *key2 = ((const char **)b)[0];
+int i = 0;
+@(key1[i] != 0 && key2[i] != 0 && key1[i] == key2[i]);
+i = i + 1;@(!(key1[i] != 0 && key2[i] != 0 && key1[i] == key2[i]));
+return key1[i] - key2[i];

@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/zhangliwei/eppather-master/eppather
+CMAKE_SOURCE_DIR = /home/zhangliwei/eppather
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
+CMAKE_BINARY_DIR = /home/zhangliwei/eppather
 
 # Utility rule file for Nightly.
 
@@ -54,7 +54,7 @@ CMAKE_BINARY_DIR = /home/zhangliwei/eppather-master/eppather
 include epat++/CMakeFiles/Nightly.dir/progress.make
 
 epat++/CMakeFiles/Nightly:
-	cd /home/zhangliwei/eppather-master/eppather/epat++ && /usr/bin/ctest -D Nightly
+	cd /home/zhangliwei/eppather/epat++ && /usr/bin/ctest -D Nightly
 
 Nightly: epat++/CMakeFiles/Nightly
 Nightly: epat++/CMakeFiles/Nightly.dir/build.make
@@ -67,10 +67,10 @@ epat++/CMakeFiles/Nightly.dir/build: Nightly
 .PHONY : epat++/CMakeFiles/Nightly.dir/build
 
 epat++/CMakeFiles/Nightly.dir/clean:
-	cd /home/zhangliwei/eppather-master/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/Nightly.dir/cmake_clean.cmake
+	cd /home/zhangliwei/eppather/epat++ && $(CMAKE_COMMAND) -P CMakeFiles/Nightly.dir/cmake_clean.cmake
 .PHONY : epat++/CMakeFiles/Nightly.dir/clean
 
 epat++/CMakeFiles/Nightly.dir/depend:
-	cd /home/zhangliwei/eppather-master/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather /home/zhangliwei/eppather-master/eppather/epat++ /home/zhangliwei/eppather-master/eppather/epat++/CMakeFiles/Nightly.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/zhangliwei/eppather && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather /home/zhangliwei/eppather/epat++ /home/zhangliwei/eppather/epat++/CMakeFiles/Nightly.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : epat++/CMakeFiles/Nightly.dir/depend
 

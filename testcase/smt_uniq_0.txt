@@ -1,0 +1,9 @@
+; 
+(set-info :status unknown)
+(declare-fun alen@0@0 () (_ BitVec 32))
+(assert
+ (let (($x21 (= alen@0@0 (_ bv0 32))))
+ (let ((?x25 (ite $x21 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x25 (_ bv0 32)) true))))
+(check-sat)
+

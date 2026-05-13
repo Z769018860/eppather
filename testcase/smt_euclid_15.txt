@@ -1,0 +1,56 @@
+; 
+(set-info :status unknown)
+(declare-fun a@0@0 () (_ BitVec 32))
+(declare-fun b@0@0 () (_ BitVec 32))
+(declare-fun mode@0@0 () (_ BitVec 32))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let ((?x81 (ite (bvslt a@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x81 (_ bv0 32)) true)))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let ((?x12488 (ite (not (and (distinct (ite (bvslt b@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x12488 (_ bv0 32)) true)))
+(assert
+ (let ((?x84076 (ite (not (and (distinct (ite (= mode@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x84076 (_ bv0 32)) true)))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(assert
+ (let (($x66534 (not (and (distinct (ite (and (distinct (bvneg a@0@0) b@0@0) true) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x69365 (ite $x66534 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x69365 (_ bv0 32)) true))))
+(assert
+ (let (($x492 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x6517 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x6517 $x492))))
+(check-sat)
+

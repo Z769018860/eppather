@@ -1,0 +1,6 @@
+int point_func(int x_val, int y_val) {
+    int point[2];
+    point[0] = x_val;
+    point[1] = y_val;
+    return;
+}

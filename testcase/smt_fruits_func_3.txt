@@ -1,0 +1,14 @@
+; 
+(set-info :status unknown)
+(declare-fun fruit_type@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x17 (ite (not (and (distinct (ite (= fruit_type@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x17 (_ bv0 32)) true)))
+(assert
+ (let ((?x18 (ite (not (and (distinct (ite (= fruit_type@0@0 (_ bv1 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x18 (_ bv0 32)) true)))
+(assert
+ (let ((?x68 (ite (not (and (distinct (ite (= fruit_type@0@0 (_ bv2 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x68 (_ bv0 32)) true)))
+(check-sat)
+

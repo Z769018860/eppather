@@ -1,0 +1,36 @@
+; 
+(set-info :status unknown)
+(declare-fun guess@0@0 () (_ BitVec 32))
+(declare-fun lower_limit@0@0 () (_ BitVec 32))
+(declare-fun upper_limit@0@0 () (_ BitVec 32))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x10 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x10 $x36))))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x10 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x10 $x36))))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let ((?x20 (ite $x36 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x20 (_ bv0 32)) true))))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x10 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x10 $x36))))
+(assert
+ (let ((?x33 (bvsmod guess@0@0 (bvadd (bvsub upper_limit@0@0 lower_limit@0@0) (_ bv1 32)))))
+ (let ((?x34 (bvadd lower_limit@0@0 ?x33)))
+ (let ((?x74 (ite (= ?x34 guess@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x74 (_ bv0 32)) true)))))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x10 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x10 $x36))))
+(assert
+ (let (($x36 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x10 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x10 $x36))))
+(check-sat)
+

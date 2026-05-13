@@ -1,0 +1,33 @@
+; 
+(set-info :status unknown)
+(declare-fun IDC_INCREMENT@0@0 () (_ BitVec 32))
+(declare-fun IDC_DECREMENT@0@0 () (_ BitVec 32))
+(declare-fun IDC_QUIT@0@0 () (_ BitVec 32))
+(assert
+ (let (($x144 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x83 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x83 $x144))))
+(assert
+ (let (($x144 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let ((?x31 (ite $x144 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x31 (_ bv0 32)) true))))
+(assert
+ (let ((?x116 (ite (= (bvadd (_ bv0 32) (_ bv1 32)) IDC_INCREMENT@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x116 (_ bv0 32)) true)))
+(assert
+ (let (($x144 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x83 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x83 $x144))))
+(assert
+ (let (($x144 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x83 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x83 $x144))))
+(assert
+ (let (($x66 (and (distinct (ite (= (bvadd (_ bv0 32) (_ bv1 32)) IDC_DECREMENT@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)))
+ (let ((?x21 (ite (not $x66) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x21 (_ bv0 32)) true))))
+(assert
+ (let ((?x106 (ite (= (bvadd (_ bv0 32) (_ bv1 32)) IDC_QUIT@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x106 (_ bv0 32)) true)))
+(check-sat)
+

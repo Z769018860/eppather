@@ -40,7 +40,6 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/zhangliwei/eppather/build/epat++/epat-protocol/grammar/antlr4-runtime/cmake_install.cmake")
-  include("/home/zhangliwei/eppather/build/epat++/epat-protocol/test/cmake_install.cmake")
 
 endif()
 

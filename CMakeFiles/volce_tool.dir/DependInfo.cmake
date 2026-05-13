@@ -4,8 +4,8 @@ set(CMAKE_DEPENDS_LANGUAGES
   )
 # The set of files for implicit dependencies of each language:
 set(CMAKE_DEPENDS_CHECK_CXX
-  "/home/zhangliwei/eppather-master/eppather/volce/main.cpp" "/home/zhangliwei/eppather-master/eppather/CMakeFiles/volce_tool.dir/volce/main.cpp.o"
-  "/home/zhangliwei/eppather-master/eppather/volce/volce_api.cpp" "/home/zhangliwei/eppather-master/eppather/CMakeFiles/volce_tool.dir/volce/volce_api.cpp.o"
+  "/home/zhangliwei/eppather/volce/main.cpp" "/home/zhangliwei/eppather/CMakeFiles/volce_tool.dir/volce/main.cpp.o"
+  "/home/zhangliwei/eppather/volce/volce_api.cpp" "/home/zhangliwei/eppather/CMakeFiles/volce_tool.dir/volce/volce_api.cpp.o"
   )
 set(CMAKE_CXX_COMPILER_ID "GNU")
 

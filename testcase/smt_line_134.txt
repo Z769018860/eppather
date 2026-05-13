@@ -1,0 +1,40 @@
+; 
+(set-info :status unknown)
+(declare-fun x0@0@0 () (_ BitVec 32))
+(declare-fun x1@0@0 () (_ BitVec 32))
+(declare-fun y0@0@0 () (_ BitVec 32))
+(declare-fun y1@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x7335 (ite (bvslt (bvsub x1@0@0 x0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x7335 (_ bv0 32)) true)))
+(assert
+ (let ((?x87 (ite (not (and (distinct (ite (bvslt x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x87 (_ bv0 32)) true)))
+(assert
+ (let (($x4244 (not (and (distinct (ite (bvslt (bvsub y1@0@0 y0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x9170 (ite $x4244 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x9170 (_ bv0 32)) true))))
+(assert
+ (let ((?x8967 (ite (not (and (distinct (ite (bvslt y0@0@0 y1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8967 (_ bv0 32)) true)))
+(assert
+ (let ((?x13808 (bvsub y1@0@0 y0@0@0)))
+ (let ((?x6974 (bvsub x1@0@0 x0@0@0)))
+ (let ((?x10248 (bvsub (_ bv0 32) ?x6974)))
+ (let ((?x15745 (ite (not (and (distinct (ite (bvsgt ?x10248 ?x13808) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x15745 (_ bv0 32)) true))))))
+(assert
+ (let ((?x6652 (ite (not (and (distinct (ite (= x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x6652 (_ bv0 32)) true)))
+(assert
+ (let ((?x1845 (bvsub (_ bv0 32) (bvsdiv (bvsub y1@0@0 y0@0@0) (_ bv2 32)))))
+ (let ((?x3000 (ite (bvsgt ?x1845 (bvsub (_ bv0 32) (bvsub (_ bv0 32) (bvsub x1@0@0 x0@0@0)))) (_ bv1 32) (_ bv0 32))))
+ (let ((?x14704 (ite (not (and (distinct ?x3000 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x14704 (_ bv0 32)) true)))))
+(assert
+ (let ((?x13808 (bvsub y1@0@0 y0@0@0)))
+ (let ((?x1845 (bvsub (_ bv0 32) (bvsdiv ?x13808 (_ bv2 32)))))
+ (let ((?x5012 (ite (bvslt ?x1845 ?x13808) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x5012 (_ bv0 32)) true)))))
+(check-sat)
+

@@ -4,8 +4,8 @@
 
 
 # Configuration directories and files
-SourceDirectory: /home/zhangliwei/eppather-master/eppather/epat++
-BuildDirectory: /home/zhangliwei/eppather-master/eppather/epat++
+SourceDirectory: /home/zhangliwei/eppather/epat++
+BuildDirectory: /home/zhangliwei/eppather/epat++
 
 # Where to place the cost data store
 CostDataFile: 
@@ -26,7 +26,7 @@ SubmitURL: http://
 NightlyStartTime: 00:00:00 EDT
 
 # Commands for the build/test/submit cycle
-ConfigureCommand: "/usr/bin/cmake" "/home/zhangliwei/eppather-master/eppather/epat++"
+ConfigureCommand: "/usr/bin/cmake" "/home/zhangliwei/eppather/epat++"
 MakeCommand: /usr/bin/cmake --build . --config "${CTEST_CONFIGURATION_TYPE}"
 DefaultCTestConfigurationType: Release
 

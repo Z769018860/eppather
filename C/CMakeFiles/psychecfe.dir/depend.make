@@ -2431,6 +2431,7 @@ C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxNodes_
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxNodes_MIXIN.h
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxNodes_Statements.h
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxToken.h
+C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxUtilities.h
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/syntax/SyntaxVisitor.h
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/API.h
 C/CMakeFiles/psychecfe.dir/syntax/SyntaxNamePrinter.cpp.o: C/Fwds.h

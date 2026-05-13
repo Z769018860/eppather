@@ -1,0 +1,44 @@
+; 
+(set-info :status unknown)
+(declare-fun x0@0@0 () (_ BitVec 32))
+(declare-fun x1@0@0 () (_ BitVec 32))
+(declare-fun y0@0@0 () (_ BitVec 32))
+(declare-fun y1@0@0 () (_ BitVec 32))
+(assert
+ (let (($x8503 (not (and (distinct (ite (bvslt (bvsub x1@0@0 x0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x12081 (ite $x8503 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x12081 (_ bv0 32)) true))))
+(assert
+ (let ((?x4264 (ite (bvslt x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x4264 (_ bv0 32)) true)))
+(assert
+ (let (($x14051 (not (and (distinct (ite (bvslt (bvsub y1@0@0 y0@0@0) (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
+ (let ((?x5095 (ite $x14051 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x5095 (_ bv0 32)) true))))
+(assert
+ (let ((?x6323 (ite (bvslt y0@0@0 y1@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x6323 (_ bv0 32)) true)))
+(assert
+ (let ((?x9995 (ite (bvsgt (bvsub x1@0@0 x0@0@0) (bvsub y1@0@0 y0@0@0)) (_ bv1 32) (_ bv0 32))))
+ (let ((?x3549 (ite (not (and (distinct ?x9995 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x3549 (_ bv0 32)) true))))
+(assert
+ (let ((?x15103 (ite (not (and (distinct (ite (= x0@0@0 x1@0@0) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x15103 (_ bv0 32)) true)))
+(assert
+ (let ((?x1014 (bvsub (_ bv0 32) (bvsdiv (bvsub y1@0@0 y0@0@0) (_ bv2 32)))))
+ (let ((?x12222 (ite (bvsgt ?x1014 (bvsub (_ bv0 32) (bvsub x1@0@0 x0@0@0))) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x12222 (_ bv0 32)) true))))
+(assert
+ (let ((?x9661 (bvsub y1@0@0 y0@0@0)))
+ (let ((?x1014 (bvsub (_ bv0 32) (bvsdiv ?x9661 (_ bv2 32)))))
+ (let ((?x13254 (ite (bvslt ?x1014 ?x9661) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x13254 (_ bv0 32)) true)))))
+(assert
+ (let ((?x9762 (ite (= (bvadd x0@0@0 (_ bv1 32)) x1@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x9762 (_ bv0 32)) true)))
+(assert
+ (let ((?x16232 (ite (= (bvadd y0@0@0 (_ bv1 32)) y1@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x16232 (_ bv0 32)) true)))
+(check-sat)
+

@@ -1,0 +1,12 @@
+int x;
+int s_bottom[5];
+int s_top[5];
+int s_allocated_top[5];
+int qtty[5];
+int new_qtty[5];
+int new_size[5];
+int MINIMUM_SIZE[5];
+int GROWTH_FACTOR[5];
+int temp[5];
+MINIMUM_SIZE[0] = 1;GROWTH_FACTOR[0] = 2;s_bottom[0] = 0;s_top[0] = s_bottom[0] - 1;s_allocated_top[0] = s_bottom[0] + MINIMUM_SIZE[0] - 1;@(s_top[0] < s_bottom[0]);
+return 1;

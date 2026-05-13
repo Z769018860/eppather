@@ -250,6 +250,9 @@ CVS_UPDATE_OPTIONS:STRING=-d -A -P
 //Maximum time allowed before CTest will kill the test.
 DART_TESTING_TIMEOUT:STRING=1500
 
+//Build epat-protocol tests
+EPAT_PROTOCOL_BUILD_TESTS:BOOL=OFF
+
 //Path to a program.
 GITCOMMAND:FILEPATH=/usr/bin/git
 
@@ -314,7 +317,7 @@ psychec_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build
 psychec_SOURCE_DIR:STATIC=/home/zhangliwei/eppather
 
 //Dependencies for the target
-psychecfe_LIB_DEPENDS:STATIC=general;psychecommon;general;ClpSolver;general;Clp;
+psychecfe_LIB_DEPENDS:STATIC=general;psychecommon;
 
 //Value Computed by CMake
 psychecommon_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/common
@@ -452,7 +455,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=10
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=9
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

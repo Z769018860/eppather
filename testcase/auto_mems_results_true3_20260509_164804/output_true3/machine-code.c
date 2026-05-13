@@ -1,0 +1,15 @@
+int test(int a, int b) {
+    int code[9];
+    code[0] = 139;
+    code[1] = 68;
+    code[2] = 36;
+    code[3] = 4;
+    code[4] = 3;
+    code[5] = 68;
+    code[6] = 36;
+    code[7] = 8;
+    code[8] = 195;
+    int c[5];
+    c[0] = a + b;
+    return c[0];
+}

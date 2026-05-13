@@ -1,0 +1,14 @@
+int x;
+int s;
+int result[5];
+int i;
+@(!(i < 5));
+result[0] = x;i = 0;
+@(i < s);
+i = i + 1;
+int lsb = result[0] & 1;result[0] = result[0] >> 1;@(lsb);
+result[0] = result[0] | -2147483648;@(i < s);
+i = i + 1;
+int lsb = result[0] & 1;result[0] = result[0] >> 1;@(lsb);
+result[0] = result[0] | -2147483648;@(!(i < s));
+return result[0];

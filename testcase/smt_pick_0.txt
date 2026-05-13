@@ -1,0 +1,14 @@
+; 
+(set-info :status unknown)
+(declare-fun n@0@0 () (_ BitVec 32))
+(declare-fun step@0@0 () (_ BitVec 32))
+(declare-fun state@0@0 () (_ BitVec 32))
+(assert
+ (let (($x10 (= step@0@0 n@0@0)))
+ (let ((?x21 (ite $x10 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x21 (_ bv0 32)) true))))
+(assert
+ (let ((?x47 (ite (and (distinct state@0@0 (_ bv3 32)) true) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x47 (_ bv0 32)) true)))
+(check-sat)
+

@@ -1,0 +1,7 @@
+int pRate[3];
+int now;
+int anchor[5] = {0};
+int x[5] = {0};
+pRate[2] = pRate[2] + 1;@((now - pRate[0]) >= pRate[1]);
+int tps = 0;@(pRate[2] > 0);
+tps = pRate[2] / (now - pRate[0]);pRate[2] = 0;pRate[0] = now;return;

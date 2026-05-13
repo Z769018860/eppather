@@ -6,7 +6,7 @@ CXX_FLAGS = -fPIC   -std=gnu++17
 
 CXX_DEFINES = -Dpsychecfe_EXPORTS
 
-CXX_INCLUDES = -I/home/zhangliwei/eppather-master/eppather/C -I/home/zhangliwei/eppather-master/eppather/C/.. -I/home/zhangliwei/eppather-master/eppather/C/../epat++/epat-protocol/include -I/usr/include/coin -I/home/zhangliwei/eppather-master/eppather/C/../epat++/libepat++/include -I/home/zhangliwei/eppather-master/eppather/C/../epat++/test/include -I/home/zhangliwei/eppather-master/eppather/C/../epat++ -I/home/zhangliwei/eppather-master/eppather/C/../lpsolve 
+CXX_INCLUDES = -I/home/zhangliwei/eppather/C -I/home/zhangliwei/eppather/C/.. -I/home/zhangliwei/eppather/C/../epat++/epat-protocol/include -I/usr/include/coin -I/home/zhangliwei/eppather/C/../epat++/libepat++/include -I/home/zhangliwei/eppather/C/../epat++/test/include -I/home/zhangliwei/eppather/C/../epat++ -I/home/zhangliwei/eppather/C/../lpsolve 
 
 # Custom flags: C/CMakeFiles/psychecfe.dir/SyntaxTree.cpp.o_FLAGS =  -g -Wall                                     -Wsign-compare -DEXPORT_C_API
 

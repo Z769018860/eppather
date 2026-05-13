@@ -1,0 +1,20 @@
+; 
+(set-info :status unknown)
+(declare-fun input@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x13 (ite (not (and (distinct (ite (= input@0@0 (_ bv1 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x13 (_ bv0 32)) true)))
+(assert
+ (let (($x40 (= input@0@0 (_ bv2 32))))
+ (let ((?x50 (ite $x40 (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x50 (_ bv0 32)) true))))
+(assert
+ (let (($x56 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x56))))
+(assert
+ (let (($x56 (bvslt (_ bv0 32) (_ bv5 32))))
+ (let (($x55 (bvsle (_ bv0 32) (_ bv0 32))))
+ (and $x55 $x56))))
+(check-sat)
+

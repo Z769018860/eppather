@@ -1,0 +1,13 @@
+; 
+(set-info :status unknown)
+(declare-fun is_recursive@0@0 () (_ BitVec 32))
+(declare-fun i@0@0 () (_ BitVec 32))
+(declare-fun j@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x504 (ite (not (and (distinct (ite (= is_recursive@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x504 (_ bv0 32)) true)))
+(assert
+ (let ((?x291 (ite (bvslt j@0@0 i@0@0) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x291 (_ bv0 32)) true)))
+(check-sat)
+

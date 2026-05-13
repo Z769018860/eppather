@@ -1,4 +1,4 @@
-# Install script for directory: /home/zhangliwei/eppather-master/eppather/epat++/epat-protocol
+# Install script for directory: /home/zhangliwei/eppather/epat++/epat-protocol
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/home/zhangliwei/eppather-master/eppather/epat++/epat-protocol/grammar/antlr4-runtime/cmake_install.cmake")
+  include("/home/zhangliwei/eppather/epat++/epat-protocol/grammar/antlr4-runtime/cmake_install.cmake")
 
 endif()
 
