@@ -31,6 +31,17 @@ Eppather 综合并扩展了以下关键技术组件：
 
 ---
 
+
+### 后端切换（pafi-rs / epat++）
+
+当前构建系统已支持后端切换参数：
+
+```bash
+cmake -DANALYSIS_BACKEND=pafi-rs . && make -j4
+```
+
+可选值：`pafi-rs`（默认）或 `epat++`。
+
 ### 编译与运行
 
 #### 环境要求
