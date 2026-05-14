@@ -15,11 +15,36 @@ add_subdirectory(common)
 # Build the C frontend.
 add_subdirectory(C)
 
-add_subdirectory(epat++)
+# Backend selection: prefer Rust backend (pafi-rs), fallback to legacy epat++.
+set(ANALYSIS_BACKEND "pafi-rs" CACHE STRING "Backend to use: pafi-rs or epat++")
+set_property(CACHE ANALYSIS_BACKEND PROPERTY STRINGS pafi-rs epat++)
 
+if(ANALYSIS_BACKEND STREQUAL "pafi-rs")
+  if(EXISTS ${PROJECT_SOURCE_DIR}/pafi-rs/CMakeLists.txt)
+    add_subdirectory(pafi-rs)
+  else()
+    add_library(epat-rs INTERFACE)
+    target_include_directories(epat-rs INTERFACE ${PROJECT_SOURCE_DIR}/pafi-rs/include)
+  endif()
+  set(BACKEND_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/pafi-rs/include)
+  set(BACKEND_ROOT_DIR ${PROJECT_SOURCE_DIR}/pafi-rs)
+  set(BACKEND_LIB epat-rs)
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/pafi-rs/libz3)
+    set(Z3_DIR ${CMAKE_CURRENT_SOURCE_DIR}/pafi-rs/libz3)
+  else()
+    set(Z3_DIR ${CMAKE_CURRENT_SOURCE_DIR}/epat++/libz3)
+  endif()
+elseif(ANALYSIS_BACKEND STREQUAL "epat++")
+  add_subdirectory(epat++)
+  set(BACKEND_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/epat++/libepat++/include)
+  set(BACKEND_ROOT_DIR ${PROJECT_SOURCE_DIR}/epat++)
+  set(BACKEND_LIB libepat++)
+  set(Z3_DIR ${CMAKE_CURRENT_SOURCE_DIR}/epat++/libz3)
+else()
+  message(FATAL_ERROR "Unsupported backend: ${ANALYSIS_BACKEND}")
+endif()
 
 # 根据平台引入z3预编译库
-set(Z3_DIR ${CMAKE_CURRENT_SOURCE_DIR}/epat++/libz3)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "[Ll]inux")
   set(Z3_DIR "${Z3_DIR}/z3-4.12.2-x64-glibc-2.31")
@@ -110,8 +135,8 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/tester
     ${PROJECT_SOURCE_DIR}/tools
     ${PROJECT_SOURCE_DIR}/utility
-    ${PROJECT_SOURCE_DIR}/epat++/libepat++/include
-    ${PROJECT_SOURCE_DIR}/epat++/
+    ${BACKEND_INCLUDE_DIR}
+    ${BACKEND_ROOT_DIR}/
     ${PROJECT_SOURCE_DIR}/lpsolve/
     ${Z3_INCLUDE_DIR}
     #${PROJECT_SOURCE_DIR}/libParser
@@ -120,7 +145,7 @@ include_directories(
 
 set(GENERATOR cnip)
 add_executable(${GENERATOR} ${CNIPPET_SOURCES})
-target_link_libraries(${GENERATOR} psychecfe psychecommon dl epat-protocol libepat++ ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
+target_link_libraries(${GENERATOR} psychecfe psychecommon dl epat-protocol ${BACKEND_LIB} ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
 
 # VolCE model counting utility
 add_executable(volce_tool
@@ -133,7 +158,7 @@ target_link_libraries(volce_tool ${Z3_LIB})
 #if (NOT WIN32 AND NOT MINGW)
     set(PSYCHE_TESTS test-suite)
     add_executable(${PSYCHE_TESTS} ${PSYCHE_TESTS_SOURCES})
-    target_link_libraries(${PSYCHE_TESTS} psychecfe psychecommon dl epat-protocol libepat++ ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
+    target_link_libraries(${PSYCHE_TESTS} psychecfe psychecommon dl epat-protocol ${BACKEND_LIB} ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so ${PROJECT_SOURCE_DIR}/libParser/libParser.a ${Z3_LIB_DIR})
 #endif()
 
 # Install setup
