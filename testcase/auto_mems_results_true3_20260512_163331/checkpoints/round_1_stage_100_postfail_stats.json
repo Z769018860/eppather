@@ -1,0 +1,62 @@
+{
+  "tag": "round_1_stage_100_postfail",
+  "note": "stage_100 未通过后快照（已注入方向反馈）；下一轮将先从5个校准样例重新总结方法，再进入应用阶段。",
+  "result_dir": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331",
+  "total": 100,
+  "gpt_ok": 100,
+  "dfs_ok": 71,
+  "dp_ok": 77,
+  "gpt_eq_dp": 38,
+  "gpt_eq_dfs": 37,
+  "dp_eq_dfs": 55,
+  "eppath_ok": 89,
+  "true_count": 34,
+  "gpt_success_rate": 1.0,
+  "dfs_success_rate": 0.71,
+  "dp_success_rate": 0.77,
+  "gpt_eq_dp_rate": 0.38,
+  "gpt_eq_dfs_rate": 0.37,
+  "dp_eq_dfs_rate": 0.55,
+  "true_rate": 0.34,
+  "gpt_dp_mems_diff_variance": 86253.13678529263,
+  "gpt_dfs_mems_diff_variance": 6540.1813132315,
+  "dp_dfs_mems_diff_variance": 23.920382968001977,
+  "baseline_accuracy_variance": 0.029422222222222228,
+  "stage_accuracy_records": [
+    {
+      "round": 1,
+      "stage": 5,
+      "accuracy": 0.8,
+      "sample_count": 5,
+      "tag": "calibration_5",
+      "stage_role": "calibration"
+    },
+    {
+      "round": 1,
+      "stage": 20,
+      "accuracy": 0.6,
+      "sample_count": 20,
+      "tag": "stage_20",
+      "stage_role": "application"
+    },
+    {
+      "round": 1,
+      "stage": 100,
+      "accuracy": 0.38,
+      "sample_count": 100,
+      "tag": "stage_100",
+      "stage_role": "application"
+    }
+  ],
+  "baseline_accuracy_history": {
+    "5": [
+      0.8
+    ],
+    "20": [
+      0.6
+    ],
+    "100": [
+      0.38
+    ]
+  }
+}

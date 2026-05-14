@@ -13,22 +13,22 @@
     100,
     266
   ],
-  "current_tag": "round_1_stage_20_pass",
+  "current_tag": "round_2_stage_20_pass",
   "current_note": "stage_20 通过（中间应用阶段checkpoint）。",
   "result_dir": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331",
   "summary_csv": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/result_summary_true3.csv",
   "summary_xlsx": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/result_summary_true3.xlsx",
   "true_only_csv": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/result_true_only3.csv",
   "gpt_fail_csv": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/result_gpt_fail3.csv",
-  "checkpoint_stats_json": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/checkpoints/round_1_stage_20_pass_stats.json",
+  "checkpoint_stats_json": "/home/zhangliwei/eppather/testcase/auto_mems_results_true3_20260512_163331/checkpoints/round_2_stage_20_pass_stats.json",
   "latest_metrics": {
     "total": 20,
-    "true_count": 10,
+    "true_count": 11,
     "gpt_ok": 20,
     "dfs_ok": 14,
     "dp_ok": 18,
-    "gpt_eq_dp": 12,
-    "gpt_eq_dfs": 10,
+    "gpt_eq_dp": 13,
+    "gpt_eq_dfs": 11,
     "dp_eq_dfs": 13,
     "eppath_ok": 19
   },
@@ -45,6 +45,30 @@
       "round": 1,
       "stage": 20,
       "accuracy": 0.6,
+      "sample_count": 20,
+      "tag": "stage_20",
+      "stage_role": "application"
+    },
+    {
+      "round": 1,
+      "stage": 100,
+      "accuracy": 0.38,
+      "sample_count": 100,
+      "tag": "stage_100",
+      "stage_role": "application"
+    },
+    {
+      "round": 2,
+      "stage": 5,
+      "accuracy": 1.0,
+      "sample_count": 5,
+      "tag": "calibration_5",
+      "stage_role": "calibration"
+    },
+    {
+      "round": 2,
+      "stage": 20,
+      "accuracy": 0.65,
       "sample_count": 20,
       "tag": "stage_20",
       "stage_role": "application"
