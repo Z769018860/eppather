@@ -25,7 +25,7 @@ PROJECTS = {
 }
 
 RUNTIME_PROFILE = {
-    'cjson': {'maxloop': '1', 'maxpaths': '30', 'timeout': 180},
+    'cjson': {'maxloop': '1', 'maxpaths': '18', 'timeout': 120},
     'lua': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
     'tinyexpr': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
 }
@@ -85,21 +85,48 @@ def compat_filter(project: str, text: str) -> str:
         "#ifndef __inline__",
         "#define __inline__ inline",
         "#endif",
+        "#ifndef __THROW",
+        "#define __THROW",
+        "#endif",
+        "#ifndef __wur",
+        "#define __wur",
+        "#endif",
+        "#ifndef __nonnull",
+        "#define __nonnull(x)",
+        "#endif",
+        "#ifndef __attribute_malloc__",
+        "#define __attribute_malloc__",
+        "#endif",
         "typedef unsigned long size_t;",
         "typedef long ptrdiff_t;",
         "typedef unsigned long uintptr_t;",
+        "typedef void* __builtin_va_list;",
+        "typedef struct _IO_FILE FILE;",
         "",
     ]
     lines = prelude[:]
     typedef_aliases = {}
+    in_enum = False
     for line in text.splitlines():
         s = line.strip()
         if not s:
             lines.append(line)
             continue
+        if s.startswith('enum') and '{' in s:
+            in_enum = True
+        if in_enum and ('#' in s or '/*' in s or '*/' in s):
+            continue
+        if in_enum and '};' in s:
+            in_enum = False
         # Common noisy GNU/C extensions or declarations that frequently break parser recovery.
         if '__attribute__(' in s or '__declspec(' in s:
             continue
+        if '__builtin_va_list' in s or '__gnuc_va_list' in s or '_IO_FILE' in s:
+            continue
+        if s.startswith('extern ') and ('__THROW' in s or '__wur' in s):
+            continue
+        if '__restrict' in s or 'restrict ' in s:
+            line = line.replace('__restrict', '').replace('restrict ', '')
         if s.startswith('typedef '):
             # Handle simple alias typedef by converting it into macro-style expansion.
             # Example: typedef unsigned long lu_mem; -> #define lu_mem unsigned long
@@ -164,6 +191,13 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'\bCJSON_CDECL\b', '', filtered)
         filtered = re.sub(r'\bcJSON_bool\b', 'int', filtered)
         filtered = re.sub(r'\bCJSON_NESTING_LIMIT\b', '1000', filtered)
+        filtered = re.sub(r'^\s*_IS[a-zA-Z_]+\s*=.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+void\s*\*\s*memcpy\s*\(.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*long unsigned int __n\)\s*;\s*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*In file included from .*$' , '', filtered, flags=re.M)
+    elif project == 'lua':
+        filtered = re.sub(r'^\s*extern\s+.*__THROW.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__nonnull.*$', '', filtered, flags=re.M)
     return filtered
 
 
@@ -197,6 +231,23 @@ def discover_entry_candidates(compat_source: str):
     return uniq[:6]
 
 
+def discover_cjson_entry_candidates(compat_source: str):
+    preferred = [
+        'cJSON_Parse',
+        'cJSON_ParseWithOpts',
+        'cJSON_ParseWithLength',
+        'cJSON_ParseWithLengthOpts',
+        'cJSON_Print',
+        'cJSON_PrintUnformatted',
+    ]
+    dynamic = discover_entry_candidates(compat_source)
+    ordered = []
+    for n in preferred + dynamic:
+        if n not in ordered:
+            ordered.append(n)
+    return ordered[:10]
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     results = {}
@@ -222,15 +273,16 @@ def main():
             compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
         profile = RUNTIME_PROFILE.get(name, {'maxloop': '1', 'maxpaths': '120', 'timeout': 180})
-        entry_candidates = discover_entry_candidates(compat_i_file.read_text()) if name == 'cjson' else []
+        entry_candidates = discover_cjson_entry_candidates(compat_i_file.read_text()) if name == 'cjson' else []
         per = {}
+        default_entry_env = {'EPPATHER_ENTRY': 'cJSON_Parse'} if name == 'cjson' else None
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
             cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)]
-            rc, out = run(cmd, timeout=profile['timeout'])
+            rc, out = run(cmd, timeout=profile['timeout'], extra_env=default_entry_env)
             if rc == 124 and name in FALLBACK_PROFILE:
                 for fb in FALLBACK_PROFILE[name]:
                     fb_cmd = [str(CNIP), opt, '--maxloop', fb['maxloop'], '--maxpaths', fb['maxpaths'], str(compat_i_file)]
-                    rc, out_fb = run(fb_cmd, timeout=fb['timeout'])
+                    rc, out_fb = run(fb_cmd, timeout=fb['timeout'], extra_env=default_entry_env)
                     out = (
                         out
                         + "\n[FALLBACK RETRY] " + ' '.join(shlex.quote(x) for x in fb_cmd)
@@ -258,7 +310,7 @@ def main():
 
         # Retry with a discovered entry function to get program-level mems if default entry is missing.
         if st.get('worst_mems') in (None, 'N/A') and per.get('summary.txt') == 0:
-            fnames = parse_function_names(summary_text)
+            fnames = entry_candidates + [f for f in parse_function_names(summary_text) if f not in entry_candidates]
             if fnames:
                 rc_retry, out_retry = run(
                     [str(CNIP), '-s', '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)],
@@ -270,6 +322,11 @@ def main():
                 retry_mems = parse_mems(out_retry)
                 st['worst_mems_retry'] = retry_mems['worst_mems']
                 st['weighted_avg_mems_retry'] = retry_mems['weighted_avg_mems']
+                st['summary_success'] = (retry_mems['worst_mems'] not in (None, 'N/A'))
+        else:
+            st['summary_success'] = (st.get('worst_mems') not in (None, 'N/A'))
+        if 'summary_success' not in st:
+            st['summary_success'] = False
         dot_files = sorted(pdir.glob('cfg_func_*.dot'))
         st['cfg_graph_count'] = len(dot_files)
         cfg_quality = []
@@ -280,6 +337,13 @@ def main():
         st['rcodes'] = per
         results[name] = st
 
+    (OUT / 'report.json').write_text(json.dumps(results, indent=2, ensure_ascii=False))
+    success_count = sum(1 for x in results.values() if x.get('summary_success'))
+    results['_aggregate'] = {
+        'project_count': len(PROJECTS),
+        'summary_success_count': success_count,
+        'summary_success_rate': round(success_count / max(len(PROJECTS), 1), 4),
+    }
     (OUT / 'report.json').write_text(json.dumps(results, indent=2, ensure_ascii=False))
     print(json.dumps(results, indent=2, ensure_ascii=False))
 
