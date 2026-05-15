@@ -253,13 +253,28 @@ MEMS: 18
   - tinyexpr：替换函数指针类型别名；
   - cJSON：规整 `CJSON_PUBLIC/CJSON_CDECL` 包装与 bool 别名。
 
+#### 原始仓库与项目特征
+
+- **cJSON**：原始仓库 `DaveGamble/cJSON`，单文件实现（`cJSON.c`）包含大量 JSON 解析/打印分支，路径爆炸风险最高；
+- **Lua**：原始仓库 `lua/lua`，实验选取 `lapi.c`（避免 `onelua.c` 超大聚合文件导致 CFG 信噪比下降）；
+- **tinyexpr**：原始仓库 `codeplea/tinyexpr`，表达式求值逻辑紧凑，适合作为小型对照组。
+
+#### 预处理与兼容（本次整理）
+
+- 通用预处理：`gcc -E -P -std=c11` 生成 `.i`；
+- 通用兼容过滤：去除 `__attribute__/__declspec`、复杂 `typedef`、高噪声 `extern` 声明，并注入最小类型前导；
+- Lua 兼容：替换 `size_t/ptrdiff_t/Instruction/StkId` 等别名，清理 `LUA_API/LUAI_*` 装饰宏；
+- tinyexpr 兼容：保留 `tinyexpr_cfgsafe.c`，并将 `te_fun*` 函数指针别名改写为显式函数指针类型；
+- cJSON 兼容：规整 `CJSON_PUBLIC/CJSON_CDECL` 包装、`cJSON_bool` 与 `CJSON_NESTING_LIMIT`。
+
 #### cJSON 超时问题（本次修复）
 
-针对 cJSON 仍可能超时的问题，实验脚本已增加分项目运行档位和回退机制：
+针对 cJSON 仍可能超时的问题，`run_three_projects_experiment.py` 进一步引入了**多级退避 + 入口重试**：
 
-- cJSON 默认更保守预算：`--maxpaths 60`、`timeout=240s`；
-- 首轮超时时自动回退：`--maxpaths 20`、`timeout=300s`；
-- 输出会记录 `[FALLBACK RETRY]` 与 `[FALLBACK RC]`，便于论文实验追踪。
+- 首轮预算：`--maxpaths 30`、`timeout=180s`；
+- 超时后自动多级回退：`maxpaths=15(timeout=180s)` → `maxpaths=8(timeout=120s)`；
+- 若仍超时，自动从 `cJSON.compat.i` 提取候选函数并以 `EPPATHER_ENTRY` 定向重试；
+- 所有重试轨迹都会写入输出（`[FALLBACK RETRY] / [ENTRY RETRY]`），便于论文记录与复核。
 
 #### 当前仓库内结果摘要（以现有 `experiment_results/` 为准）
 
