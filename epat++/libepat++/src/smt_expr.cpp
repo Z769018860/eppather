@@ -38,7 +38,7 @@ namespace epat {
                     base2sort = {
                         {"bool", gc.bv_sort(width)},     {"int", gc.bv_sort(width)},
                         {"char", gc.bv_sort(width)},     {"long", gc.bv_sort(width)},
-                        {"float", gc.fpa_sort<width>()},
+                        {"float", gc.fpa_sort<width>()}, {"double", gc.fpa_sort<width>()},
                     };
                 auto i = base2sort.find(qt->getCode());
                 // XXX: 处理类型修饰符

@@ -102,11 +102,39 @@ std::string epat::smt::Solver::getSMT2()
 
 void epat::smt::Solver::pushCond(smt::expr const& cond)
 {
-    epat_log("push cond: ", cond);
-    impl_->z3solver.add(cond.is_bool() ? cond : (cond != 0));
+    try {
+        epat_log("push cond: ", cond);
+        impl_->z3solver.add(cond.is_bool() ? cond : (cond != 0));
+    }
+    catch (const z3::exception& e) {
+        std::cout << "[pushCond z3 exception] " << e << std::endl;
+        // Keep analysis progressing when a single condition is ill-typed.
+    }
 }
 
 void epat::smt::Solver::pushLimit(smt::expr value, smt::expr start, smt::expr end)
 {
-    pushCond((start <= value) && (value < end));
+    auto is_orderable = [](const z3::sort& s) {
+        return s.is_bv() || s.is_int() || s.is_real() || s.is_fpa();
+    };
+    try {
+        auto sv = value.get_sort();
+        auto ss = start.get_sort();
+        auto se = end.get_sort();
+        if (!is_orderable(sv) || !is_orderable(ss) || !is_orderable(se)) {
+            std::cout << "[pushLimit skip] non-orderable sort: "
+                      << ss << " , " << sv << " , " << se << std::endl;
+            return;
+        }
+        auto s2 = smt::to_tag(start, sv);
+        auto e2 = smt::to_tag(end, sv);
+        pushCond((s2 <= value) && (value < e2));
+    }
+    catch (const z3::exception& e) {
+        std::cout << "[pushLimit z3 exception] " << e << std::endl;
+    }
+    catch (...) {
+        std::cout << "[pushLimit exception] unknown failure while building range constraint"
+                  << std::endl;
+    }
 }

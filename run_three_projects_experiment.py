@@ -244,6 +244,86 @@ def discover_entry_candidates(compat_source: str):
     return uniq[:6]
 
 
+def extract_failure_diagnostics(output_text: str, source_text: str, source_label: str):
+    """
+    Collect likely failing statements/syntax around parser errors for quick triage.
+    """
+    diags = []
+    lines = source_text.splitlines()
+    seen = set()
+    # Match forms like: xxx.compat.i:238:21 error: ...
+    for m in re.finditer(rf'{re.escape(source_label)}:(\d+):(\d+)\s+(error|warning):\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        col = int(m.group(2))
+        msg = m.group(4).strip()
+        key = (ln, col, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        start = max(1, ln - 1)
+        end = min(len(lines), ln + 1)
+        snippet = []
+        for i in range(start, end + 1):
+            mark = ">>" if i == ln else "  "
+            snippet.append(f"{mark} L{i}: {lines[i-1]}")
+        diags.append(
+            f"[FAIL POINT] line={ln} col={col} msg={msg}\n" + "\n".join(snippet)
+        )
+        if len(diags) >= 20:
+            break
+    # Parse antlr-style: line 174:29 no viable alternative at input ...
+    for m in re.finditer(r'line\s+(\d+):(\d+)\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        col = int(m.group(2))
+        msg = m.group(3).strip()
+        key = (ln, col, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        if 1 <= ln <= len(lines):
+            start = max(1, ln - 1)
+            end = min(len(lines), ln + 1)
+            snippet = []
+            for i in range(start, end + 1):
+                mark = ">>" if i == ln else "  "
+                snippet.append(f"{mark} L{i}: {lines[i-1]}")
+            diags.append(
+                f"[FAIL POINT] line={ln} col={col} msg={msg}\n" + "\n".join(snippet)
+            )
+        if len(diags) >= 40:
+            break
+    return diags
+
+
+def extract_failure_lines(output_text: str, source_label: str):
+    bad = set()
+    for m in re.finditer(rf'{re.escape(source_label)}:(\d+):\d+\s+(error|warning):\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        msg = m.group(3)
+        if 'missing type specifier' in msg or 'expected ' in msg or 'no viable alternative' in msg:
+            bad.add(ln)
+    for m in re.finditer(r'line\s+(\d+):\d+\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        msg = m.group(2)
+        if 'no viable alternative' in msg or 'mismatched input' in msg or 'extraneous input' in msg:
+            bad.add(ln)
+    return sorted(bad)
+
+
+def sanitize_by_failure_lines(source_text: str, bad_lines):
+    if not bad_lines:
+        return source_text
+    lines = source_text.splitlines()
+    bad = set(bad_lines)
+    out = []
+    for i, line in enumerate(lines, start=1):
+        if i in bad:
+            out.append("/* removed by sanitizer: parse-failure line */")
+            continue
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
 def discover_cjson_entry_candidates(compat_source: str):
     preferred = [
         'cJSON_Parse',
@@ -286,7 +366,8 @@ def main():
             compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
         profile = RUNTIME_PROFILE.get(name, {'maxloop': '1', 'maxpaths': '120', 'timeout': 180})
-        entry_candidates = discover_cjson_entry_candidates(compat_i_file.read_text()) if name == 'cjson' else []
+        compat_text = compat_i_file.read_text()
+        entry_candidates = discover_cjson_entry_candidates(compat_text) if name == 'cjson' else []
         per = {}
         default_entry_env = {'EPPATHER_ENTRY': 'cJSON_Parse'} if name == 'cjson' else None
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
@@ -334,6 +415,24 @@ def main():
                         + f"\n[TINYEXPR FALLBACK RC] {rc_fb}\n" + out_fb
                     )
                     rc = rc_fb
+            if rc < 0 and opt in ('-s', '-g'):
+                bad_lines = extract_failure_lines(out, compat_i_file.name)
+                if bad_lines:
+                    sanitized = sanitize_by_failure_lines(compat_text, bad_lines[:200])
+                    sanitized_file = pdir / f'{name}.sanitized.compat.i'
+                    sanitized_file.write_text(sanitized)
+                    san_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '20', str(sanitized_file)]
+                    rc_s, out_s = run(san_cmd, timeout=120, extra_env=default_entry_env)
+                    out += (
+                        "\n[SANITIZE RETRY] removed_lines=" + str(len(bad_lines[:200]))
+                        + "\n[SANITIZE CMD] " + ' '.join(shlex.quote(x) for x in san_cmd)
+                        + f"\n[SANITIZE RC] {rc_s}\n" + out_s
+                    )
+                    rc = rc_s
+            if rc < 0:
+                fail_points = extract_failure_diagnostics(out, compat_text, compat_i_file.name)
+                if fail_points:
+                    out += "\n[FAILURE DIAGNOSTICS]\n" + "\n\n".join(fail_points) + "\n"
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':

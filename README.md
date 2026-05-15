@@ -400,6 +400,41 @@ python3 run_three_projects_experiment.py
 
 ---
 
+### LLM 自动迭代修复流程（新增）
+
+仓库新增脚本：`tools/auto_iterative_fix_with_llm.py`，用于将“失败语句提取 -> 大模型修复 -> 重跑验证”自动化，适用于 cJSON / Lua / tinyexpr 以及其他 C 项目。
+
+核心流程：
+
+1. 执行分析命令（例如 `cnip -s/-g`）；
+2. 从输出中提取失败行与错误信息（GCC/ANTLR 两种格式）；
+3. 组装严格修复 Prompt（约束最小改动、保留控制流）并调用大模型 API；
+4. 写回修复后源码并进入下一轮；
+5. 直到返回码为 0 或达到最大迭代次数。
+
+运行示例：
+
+```bash
+export OPENAI_API_KEY=your_key
+python3 tools/auto_iterative_fix_with_llm.py \
+  --input experiment_results/cjson/cjson.compat.i \
+  --workdir experiment_results/cjson \
+  --cmd "./build/cnip -s --maxloop 1 --maxpaths 20 {input}" \
+  --project cjson \
+  --max-iters 6
+```
+
+脚本会在 `--workdir` 下生成：
+
+- `*.iterN.c`：第 N 轮修复输入；
+- `iterN.log`：第 N 轮执行日志；
+- `*.fixed.c`：成功收敛时的最终版本；
+- `*.last_attempt.c`：达到最大迭代仍失败时的最后版本。
+
+该流程的 Prompt 设计遵循“最小语法修复优先、函数体语义不破坏、局部修改优先”，可迁移到其他项目的预处理兼容修复场景。
+
+---
+
 ### 函数摘要日志说明（更新）
 
 在解析阶段，未定义标识符仍会按“隐式函数”处理以保持兼容性，但不再打印冗余的 `find an undefined symbol ...` 调试信息，避免干扰摘要与自动化验证输出。
