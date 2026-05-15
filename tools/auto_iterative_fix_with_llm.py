@@ -25,7 +25,8 @@ import subprocess
 from pathlib import Path
 from typing import List, Dict, Tuple
 
-import requests
+import urllib.request
+import urllib.error
 
 
 SYSTEM_PROMPT = """You are a senior C compatibility-repair engineer.
@@ -118,9 +119,14 @@ def call_openai(base_url: str, api_key: str, model: str, system_prompt: str, use
         ],
     }
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-    r = requests.post(url, headers=headers, data=json.dumps(payload), timeout=180)
-    r.raise_for_status()
-    data = r.json()
+    req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
+    try:
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            body = resp.read().decode("utf-8", errors="replace")
+    except urllib.error.HTTPError as e:
+        detail = e.read().decode("utf-8", errors="replace") if hasattr(e, "read") else str(e)
+        raise RuntimeError(f"HTTP {e.code}: {detail}")
+    data = json.loads(body)
     return data["choices"][0]["message"]["content"]
 
 
@@ -131,7 +137,8 @@ def main():
     ap.add_argument("--cmd", required=True, help="Analyzer command; use {input} placeholder.")
     ap.add_argument("--project", default="generic-c-project")
     ap.add_argument("--max-iters", type=int, default=6)
-    ap.add_argument("--model", default=os.environ.get("OPENAI_MODEL", "gpt-4o-mini"))
+    ap.add_argument("--model", default=os.environ.get("OPENAI_MODEL", "gpt-5-mini"))
+    ap.add_argument("--fallback-model", default=os.environ.get("OPENAI_FALLBACK_MODEL", "gpt-5-nano"))
     ap.add_argument("--base-url", default=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"))
     args = ap.parse_args()
 
@@ -167,7 +174,12 @@ def main():
             diagnostics=diagnostics,
             source=current,
         )
-        repaired = call_openai(args.base_url, api_key, args.model, SYSTEM_PROMPT, user_prompt)
+        try:
+            repaired = call_openai(args.base_url, api_key, args.model, SYSTEM_PROMPT, user_prompt)
+        except Exception as e1:
+            print(f"[ITER {it}] primary model {args.model} failed: {e1}")
+            repaired = call_openai(args.base_url, api_key, args.fallback_model, SYSTEM_PROMPT, user_prompt)
+            print(f"[ITER {it}] fallback model {args.fallback_model} succeeded")
         repaired = repaired.strip()
         if not repaired:
             raise SystemExit(f"[ITER {it}] LLM returned empty content")
