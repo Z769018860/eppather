@@ -25,13 +25,16 @@ PROJECTS = {
 }
 
 RUNTIME_PROFILE = {
-    'cjson': {'maxloop': '1', 'maxpaths': '60', 'timeout': 240},
+    'cjson': {'maxloop': '1', 'maxpaths': '30', 'timeout': 180},
     'lua': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
     'tinyexpr': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
 }
 
 FALLBACK_PROFILE = {
-    'cjson': {'maxloop': '1', 'maxpaths': '20', 'timeout': 300},
+    'cjson': [
+        {'maxloop': '1', 'maxpaths': '15', 'timeout': 180},
+        {'maxloop': '1', 'maxpaths': '8', 'timeout': 120},
+    ],
 }
 
 
@@ -184,6 +187,16 @@ def parse_function_names(summary_text: str):
     return re.findall(r'^Function\s+([A-Za-z_]\w*)\s*:', summary_text, flags=re.M)
 
 
+def discover_entry_candidates(compat_source: str):
+    names = re.findall(r'^(?:static\s+)?[A-Za-z_][\w\s\*]*\s+([A-Za-z_]\w*)\s*\([^;{}]*\)\s*\{', compat_source, flags=re.M)
+    deny = {'if', 'while', 'for', 'switch'}
+    uniq = []
+    for n in names:
+        if n not in deny and n not in uniq:
+            uniq.append(n)
+    return uniq[:6]
+
+
 def main():
     OUT.mkdir(exist_ok=True)
     results = {}
@@ -209,20 +222,30 @@ def main():
             compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
         profile = RUNTIME_PROFILE.get(name, {'maxloop': '1', 'maxpaths': '120', 'timeout': 180})
+        entry_candidates = discover_entry_candidates(compat_i_file.read_text()) if name == 'cjson' else []
         per = {}
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
             cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)]
             rc, out = run(cmd, timeout=profile['timeout'])
             if rc == 124 and name in FALLBACK_PROFILE:
-                fb = FALLBACK_PROFILE[name]
-                fb_cmd = [str(CNIP), opt, '--maxloop', fb['maxloop'], '--maxpaths', fb['maxpaths'], str(compat_i_file)]
-                rc, out_fb = run(fb_cmd, timeout=fb['timeout'])
-                out = (
-                    out
-                    + "\n[FALLBACK RETRY] " + ' '.join(shlex.quote(x) for x in fb_cmd)
-                    + f"\n[FALLBACK RC] {rc}\n"
-                    + out_fb
-                )
+                for fb in FALLBACK_PROFILE[name]:
+                    fb_cmd = [str(CNIP), opt, '--maxloop', fb['maxloop'], '--maxpaths', fb['maxpaths'], str(compat_i_file)]
+                    rc, out_fb = run(fb_cmd, timeout=fb['timeout'])
+                    out = (
+                        out
+                        + "\n[FALLBACK RETRY] " + ' '.join(shlex.quote(x) for x in fb_cmd)
+                        + f"\n[FALLBACK RC] {rc}\n"
+                        + out_fb
+                    )
+                    if rc != 124:
+                        break
+            if rc == 124 and entry_candidates:
+                for entry in entry_candidates:
+                    rc_e, out_e = run(cmd, timeout=90, extra_env={'EPPATHER_ENTRY': entry})
+                    out += f"\n[ENTRY RETRY] {entry}\n[ENTRY RC] {rc_e}\n" + out_e
+                    rc = rc_e
+                    if rc != 124:
+                        break
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':
