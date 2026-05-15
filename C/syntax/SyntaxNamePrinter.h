@@ -350,7 +350,7 @@ private:
 
     std::vector<int> loopCount;
     std::vector<int> temp_depth;
-    std::vector<int> temp_loopCount[1000];
+    std::vector<std::vector<int>> temp_loopCount;
     std::vector<bool> temp_pathCoverage[1000];
     std::vector<std::string> currentPathCallees_;
 

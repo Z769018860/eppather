@@ -204,6 +204,30 @@ std::string sanitizeFunctionTag(const std::string& rawTag) {
     }
     return sanitized.empty() ? "unknown" : sanitized;
 }
+
+bool shouldEmitCrashTrace() {
+    const char* env = std::getenv("EPPATHER_DEBUG_CRASH_TRACE");
+    return env && *env && std::string(env) != "0";
+}
+
+void emitCrashTrace(const char* stage, const std::shared_ptr<CFGNode>& node, int depth) {
+    if (!shouldEmitCrashTrace()) return;
+    std::cerr << "[CRASH_TRACE] stage=" << stage
+              << " depth=" << depth;
+    if (!node) {
+        std::cerr << " node=null" << std::endl;
+        return;
+    }
+    std::cerr << " nodeDepth=" << node->depth
+              << " nodeLevel=" << node->nodeLevel
+              << " kind(loop=" << node->isLoop
+              << ",if=" << node->isIf
+              << ",ret=" << node->isReturn
+              << ",func=" << node->isFuncDef << ")"
+              << " next=" << (node->getNextNode() ? "1" : "0")
+              << " nextFalse=" << (node->getNextFalseNode() ? "1" : "0")
+              << std::endl;
+}
 }  // namespace
 
 
@@ -766,8 +790,15 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
         if (!firstTk.isValid() || !lastTk.isValid())
             continue;
 
-        auto firstTkStart = source.c_str() + firstTk.span().start();
-        auto lastTkEnd    = source.c_str() + lastTk.span().end();
+        const auto srcSize = source.size();
+        const auto firstPos = static_cast<size_t>(firstTk.span().start());
+        const auto lastPos = static_cast<size_t>(lastTk.span().end());
+        if (firstPos > srcSize || lastPos > srcSize || firstPos >= lastPos) {
+            emitCrashTrace("getCFG.skip_invalid_span", nullptr, static_cast<int>(i));
+            continue;
+        }
+        auto firstTkStart = source.c_str() + firstPos;
+        auto lastTkEnd    = source.c_str() + lastPos;
         std::string snippet(firstTkStart, lastTkEnd - firstTkStart);
 
         // 全局变量（层级=1 的 VariableAndOrFunctionDeclaration）
@@ -789,16 +820,22 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             f->memUsage = 0;
 
             const DeclaratorSyntax* declarator = syn->asFunctionDefinition()->declarator();
-            auto fstart = source.c_str() + firstTk.span().start();
+            auto fstart = source.c_str() + firstPos;
             std::string signature;
             if (declarator) {
-                auto dend = source.c_str() + declarator->lastToken().span().end();
-                signature = std::string(fstart, dend - fstart);
+                auto declLast = declarator->lastToken();
+                if (declLast.isValid()) {
+                    const auto dendPos = static_cast<size_t>(declLast.span().end());
+                    if (dendPos > firstPos && dendPos <= srcSize) {
+                        auto dend = source.c_str() + dendPos;
+                        signature = std::string(fstart, dend - fstart);
+                    }
+                }
                 if (auto name = extractFunctionIdentifierFromDeclarator(declarator)) {
                     f->functionName = *name;
                 }
             } else {
-                signature = std::string(fstart, source.c_str() + lastTk.span().end() - fstart);
+                signature = std::string(fstart, source.c_str() + lastPos - fstart);
             }
             if (f->functionName.empty()) {
                 f->functionName = extractFunctionName(formatSnippet(signature, false));
@@ -1123,6 +1160,7 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
     }
 
     maxdepth = depth_count;
+    temp_loopCount.assign(static_cast<size_t>(std::max(1, maxdepth + 2)), {});
 
     // 变量文本输出
     for (auto& n : globalVarDefs) {
@@ -1919,6 +1957,35 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         }
     }
 
+    std::cout << "[CALL GRAPH]" << std::endl;
+    size_t callEdgeCount = 0;
+    for (const auto& [caller, callees] : callGraph) {
+        if (callees.empty()) {
+            std::cout << caller << " -> []" << std::endl;
+            continue;
+        }
+        std::cout << caller << " -> [";
+        size_t idx = 0;
+        for (const auto& callee : callees) {
+            if (idx++ > 0) {
+                std::cout << ",";
+            }
+            std::cout << callee;
+            ++callEdgeCount;
+        }
+        std::cout << "]" << std::endl;
+    }
+
+    std::cout << "[SUMMARY STATS]" << std::endl;
+    std::cout << "function_count=" << summaries.size() << std::endl;
+    std::cout << "summary_case_count=";
+    size_t totalCases = 0;
+    for (const auto& summary : summaries) {
+        totalCases += summary.cases.size();
+    }
+    std::cout << totalCases << std::endl;
+    std::cout << "call_edge_count=" << callEdgeCount << std::endl;
+
     std::cout << "[PROGRAM SUMMARY]" << std::endl;
     std::cout << "entry=" << entryName << std::endl;
     std::cout << "recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=" << kFixpointMaxIters
@@ -1990,7 +2057,7 @@ void SyntaxNamePrinter::DFS(
 
     // 标记当前节点已访问
     if (node->depth >= 0)
-        pathCoverage[node->depth] = true;
+        if (node->depth >= 0 && node->depth < static_cast<int>(pathCoverage.size())) pathCoverage[node->depth] = true;
 
     auto appendAndEvalLeaf = [&](bool includeCode) {
         bool pushed = false;
@@ -2024,15 +2091,22 @@ void SyntaxNamePrinter::DFS(
     if (node->isLoop) {
         if (node->isFor) {
             // False分支（循环终止）
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (loopCount[node->depth] >= maxloop) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                DFS(node->getNextFalseNode()->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
+                auto falseNode = node->getNextFalseNode();
+                auto afterFalse = falseNode ? falseNode->getNextNode() : nullptr;
+                DFS(afterFalse, pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
                 decisions.pop_back();
                 return;
             }
             // 第一次进入时补初始化
             bool pushedInit = false;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (loopCount[node->depth] == 0 && node->initstmt_str != ";") {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
                 pushedInit = true;
@@ -2051,6 +2125,8 @@ void SyntaxNamePrinter::DFS(
 
         if (node->isWhile) {
             // False分支（循环终止）
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (loopCount[node->depth] >= maxloop) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
@@ -2069,6 +2145,9 @@ void SyntaxNamePrinter::DFS(
     if (node->isIf) {
         // True分支
 
+        if (depth >= static_cast<int>(temp_loopCount.size())) {
+            temp_loopCount.resize(static_cast<size_t>(depth + 1));
+        }
         temp_loopCount[depth]=loopCount;
         auto temp_pathcoverage = pathCoverage;
         decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
@@ -2080,7 +2159,9 @@ void SyntaxNamePrinter::DFS(
             pathCoverage[i]=false;//对于之前下面的覆盖率清零；
 
         pathCoverage = temp_pathcoverage;
-        loopCount=temp_loopCount[depth];
+        if (depth >= 0 && depth < static_cast<int>(temp_loopCount.size())) {
+            loopCount=temp_loopCount[depth];
+        }
         decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
         DFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
         decisions.pop_back();
@@ -2138,6 +2219,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 {
     if (maxpaths > 0 && pathCount >= maxpaths) return;
     if (!node) return;
+    emitCrashTrace("DFS2.enter", node, depth);
 
     struct CalleeRestore {
         std::vector<std::string>& ref;
@@ -2181,8 +2263,14 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
     // 非条件普通语句：同时打 T/F 覆盖位
     if (node->depth >= 0 && !node->isCondition) {
         ensure_cov(node->depth);
-        pathCoverage[2 * node->depth]     = true;
-        pathCoverage[2 * node->depth + 1] = true;
+        const int trueIdx = 2 * node->depth;
+        const int falseIdx = trueIdx + 1;
+        if (trueIdx >= 0 && trueIdx < static_cast<int>(pathCoverage.size())) {
+            pathCoverage[trueIdx] = true;
+        }
+        if (falseIdx >= 0 && falseIdx < static_cast<int>(pathCoverage.size())) {
+            pathCoverage[falseIdx] = true;
+        }
     }
 
     // 叶子：return 或 无后继（将当前节点代码补入，再判可行）
@@ -2795,7 +2883,7 @@ void SyntaxNamePrinter::GreedyDFS(
     int& bestMem)
 {
     if (!node || (maxpaths > 0 && pathCount >= maxpaths)) return;
-    if (node->depth >= 0) pathCoverage[node->depth] = true;
+    if (node->depth >= 0 && node->depth < static_cast<int>(pathCoverage.size())) pathCoverage[node->depth] = true;
     currentMem += node->getMem(vartemp);
 
     auto leafEval = [&](bool includeCode) {
@@ -2824,6 +2912,9 @@ void SyntaxNamePrinter::GreedyDFS(
     // If分支
     if (node->isIf) {
         auto temp_pathcoverage = pathCoverage;
+        if (depth >= static_cast<int>(temp_loopCount.size())) {
+            temp_loopCount.resize(static_cast<size_t>(depth + 1));
+        }
         temp_loopCount[depth] = loopCount;
 
         decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
@@ -2833,7 +2924,9 @@ void SyntaxNamePrinter::GreedyDFS(
         for (int i = node->depth + 1; i < maxdepth; i++)
             pathCoverage[i] = false;
         pathCoverage = temp_pathcoverage;
-        loopCount = temp_loopCount[depth];
+        if (depth >= 0 && depth < static_cast<int>(temp_loopCount.size())) {
+            loopCount = temp_loopCount[depth];
+        }
         decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
         GreedyDFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
         decisions.pop_back();
@@ -2843,27 +2936,38 @@ void SyntaxNamePrinter::GreedyDFS(
     // Loop循环
     else if (node->isLoop) {
         if (node->isFor) {
-            pathCoverage[node->depth + 1] = true;
+            if (node->depth + 1 >= 0 && node->depth + 1 < static_cast<int>(pathCoverage.size())) {
+                pathCoverage[node->depth + 1] = true;
+            }
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (loopCount[node->depth] >= maxloop) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
-                GreedyDFS(node->getNextFalseNode()->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
+                auto falseNode = node->getNextFalseNode();
+                auto afterFalse = falseNode ? falseNode->getNextNode() : nullptr;
+                GreedyDFS(afterFalse, pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
                 decisions.pop_back();
             } else {
-                if (loopCount[node->depth] == 0 && node->initstmt_str != ";") {
+                if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (loopCount[node->depth] == 0 && node->initstmt_str != ";") {
                     decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
                 }
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
                 if (!node->expr_str.empty()) decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
                 auto epatDecisions = decisions;
                 loopCount[node->depth]++;
-                GreedyDFS(node->getNextNode()->getNextNode(), pathCoverage, epatDecisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
+                auto loopBody = node->getNextNode();
+                auto loopBodyNext = loopBody ? loopBody->getNextNode() : nullptr;
+                GreedyDFS(loopBodyNext, pathCoverage, epatDecisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
                 if (!node->expr_str.empty()) decisions.pop_back();
                 decisions.pop_back();
                 if (loopCount[node->depth] == 1 && node->initstmt_str != ";") decisions.pop_back();
             }
             return;
         } else if (node->isWhile) {
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
+            if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (loopCount[node->depth] >= maxloop) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
@@ -2896,6 +3000,7 @@ void SyntaxNamePrinter::GreedyDFS(
 
 // 估算指定分支或循环下最大mems（仅贪心用，不检查可行性！）
 int SyntaxNamePrinter::EvaluateBranchMem(std::shared_ptr<CFGNode> node, int maxloop, int nodelevel) {
+    emitCrashTrace("EvalBranch.enter", node, nodelevel);
     if (!node) return 0;
     if (node->isReturn || node->nodeLevel < nodelevel) return 0;
     int mem = node->getMem(vartemp);
@@ -2910,8 +3015,10 @@ int SyntaxNamePrinter::EvaluateBranchMem(std::shared_ptr<CFGNode> node, int maxl
             mem += EvaluateBranchMem(afterLoop, maxloop, afterLoop->nodeLevel);
         }
     } else if (node->isIf) {
-        int trueMem = EvaluateBranchMem(node->getNextNode(), maxloop, node->getNextNode()->nodeLevel);
-        int falseMem = EvaluateBranchMem(node->getNextFalseNode(), maxloop, node->getNextFalseNode()->nodeLevel);
+        auto trueNode = node->getNextNode();
+        auto falseNode = node->getNextFalseNode();
+        int trueMem = trueNode ? EvaluateBranchMem(trueNode, maxloop, trueNode->nodeLevel) : std::numeric_limits<int>::min();
+        int falseMem = falseNode ? EvaluateBranchMem(falseNode, maxloop, falseNode->nodeLevel) : std::numeric_limits<int>::min();
         mem += std::max(trueMem, falseMem);
     } else {
         std::shared_ptr<CFGNode> nextNode = node->getNextNode();
