@@ -77,6 +77,14 @@ std::pair<int, std::string> GnuCompilerFacade::preprocess_IgnoreIncludes(const s
 std::string GnuCompilerFacade::assembleMacroCmd() const
 {
     std::string s;
+    // Compatibility defaults for common GNU/libc decorations that frequently
+    // appear in real-world projects and otherwise add parser noise.
+    s += " -D __THROW=";
+    s += " -D __wur=";
+    s += " -D __nonnull\\(x\\)=";
+    s += " -D __attribute_malloc__=";
+    s += " -D __extension__=";
+    s += " -D __restrict=";
     for (const auto& d : D_)
         s += " -D " + d;
     for (const auto& u : U_)
