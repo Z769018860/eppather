@@ -18,17 +18,26 @@ PROJECTS = {
         'cpp_flags': ['-I', str(TC / 'lua'), '-DLUA_USE_POSIX', '-DLUA_COMPAT_5_3'],
     },
     'tinyexpr': {
-        'src': TC / 'tinyexpr' / 'tinyexpr.c',
+        # Use compatibility-reduced tinyexpr source for summary/DP stability.
+        'src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
         'cpp_flags': ['-I', str(TC / 'tinyexpr')],
     },
 }
 
 
-def run(cmd, cwd=ROOT):
+def run(cmd, cwd=ROOT, timeout=None, extra_env=None):
     env = dict(os.environ)
     env['LD_LIBRARY_PATH'] = f"{ROOT/'build'}:{ROOT/'build'/'C'}:{ROOT/'build'/'common'}:{ROOT/'C'}:" + env.get('LD_LIBRARY_PATH', '')
-    p = subprocess.run(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env)
-    return p.returncode, p.stdout
+    if extra_env:
+        env.update(extra_env)
+    try:
+        p = subprocess.run(cmd, cwd=cwd, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env, timeout=timeout)
+        return p.returncode, p.stdout
+    except subprocess.TimeoutExpired as e:
+        out = e.stdout or b""
+        if isinstance(out, bytes):
+            out = out.decode('utf-8', errors='ignore')
+        return 124, out + "\n[TIMEOUT]"
 
 
 def collect_stats(text: str):
@@ -147,9 +156,22 @@ def compat_filter(project: str, text: str) -> str:
 
 def parse_cfg_quality(dot_path: Path):
     text = dot_path.read_text(encoding='utf-8', errors='ignore')
-    node_count = len(re.findall(r'\\bn\\d+\\s*\\[', text))
-    edge_count = len(re.findall(r'\\bn\\d+\\s*->\\s*n\\d+', text))
+    node_count = len(re.findall(r'^\s*\d+\s*\[', text, flags=re.M))
+    edge_count = len(re.findall(r'^\s*\d+\s*->\s*\d+', text, flags=re.M))
     return node_count, edge_count
+
+
+def parse_mems(summary_text: str):
+    worst = re.search(r'worst_mems=([^\n]+)', summary_text)
+    avg = re.search(r'weighted_avg_mems=([^\n]+)', summary_text)
+    return {
+        'worst_mems': worst.group(1).strip() if worst else None,
+        'weighted_avg_mems': avg.group(1).strip() if avg else None,
+    }
+
+
+def parse_function_names(summary_text: str):
+    return re.findall(r'^Function\s+([A-Za-z_]\w*)\s*:', summary_text, flags=re.M)
 
 
 def main():
@@ -158,23 +180,51 @@ def main():
     for name, conf in PROJECTS.items():
         pdir = OUT / name
         pdir.mkdir(exist_ok=True)
+        for stale in pdir.glob('cfg_func_*.dot'):
+            stale.unlink()
+        use_direct_source = (name == 'tinyexpr' and conf['src'].name == 'tinyexpr_cfgsafe.c')
         i_file = pdir / f'{name}.i'
-        rc, pp = preprocess(conf['src'], i_file, conf['cpp_flags'])
-        if rc != 0:
-            results[name] = {'error': pp[:3000]}
-            continue
+        if use_direct_source:
+            i_file.write_text(conf['src'].read_text())
+            rc = 0
+        else:
+            rc, pp = preprocess(conf['src'], i_file, conf['cpp_flags'])
+            if rc != 0:
+                results[name] = {'error': pp[:3000]}
+                continue
         compat_i_file = pdir / f'{name}.compat.i'
-        compat_i_file.write_text(compat_filter(name, i_file.read_text()))
+        if use_direct_source:
+            compat_i_file.write_text(i_file.read_text())
+        else:
+            compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
         per = {}
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
-            rc, out = run([str(CNIP), opt, '--maxloop', '1', '--maxpaths', '120', str(compat_i_file)])
+            rc, out = run([str(CNIP), opt, '--maxloop', '1', '--maxpaths', '120', str(compat_i_file)], timeout=180)
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':
                 for dot in ROOT.glob('cfg_func_*.dot'):
                     shutil.move(str(dot), pdir / dot.name)
-        st = collect_stats((pdir / 'summary.txt').read_text())
+        summary_text = (pdir / 'summary.txt').read_text()
+        st = collect_stats(summary_text)
+        st.update(parse_mems(summary_text))
+        st['function_blocks'] = len(parse_function_names(summary_text))
+
+        # Retry with a discovered entry function to get program-level mems if default entry is missing.
+        if st.get('worst_mems') in (None, 'N/A') and per.get('summary.txt') == 0:
+            fnames = parse_function_names(summary_text)
+            if fnames:
+                rc_retry, out_retry = run(
+                    [str(CNIP), '-s', '--maxloop', '1', '--maxpaths', '120', str(compat_i_file)],
+                    timeout=180,
+                    extra_env={'EPPATHER_ENTRY': fnames[0]},
+                )
+                (pdir / 'summary_entry_retry.txt').write_text(out_retry)
+                st['entry_retry'] = {'entry': fnames[0], 'rc': rc_retry}
+                retry_mems = parse_mems(out_retry)
+                st['worst_mems_retry'] = retry_mems['worst_mems']
+                st['weighted_avg_mems_retry'] = retry_mems['weighted_avg_mems']
         dot_files = sorted(pdir.glob('cfg_func_*.dot'))
         st['cfg_graph_count'] = len(dot_files)
         cfg_quality = []
