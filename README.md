@@ -308,6 +308,69 @@ python3 run_three_projects_experiment.py
 - `experiment_results/<project>/worst_path_dp.txt`（最坏路径）
 - `experiment_results/<project>/cfg_func_*.dot`（CFG 图）
 
+#### cJSON 编译执行与本仓库当前结果（2026-05-15）
+
+已在仓库内完成编译与实验脚本执行：
+
+```bash
+cmake -S . -B build && cmake --build build -j4
+python3 run_three_projects_experiment.py
+```
+
+从 `experiment_results/cjson/summary.txt` 可得到当前 cJSON 摘要统计：
+
+- `function_count=113`
+- `summary_case_count=679`
+- `call_edge_count=139`
+
+当前程序级 MEMS 结果为：
+
+- `worst_mems=N/A`
+- `weighted_avg_mems=N/A`
+- `reason=entry function not found`
+
+说明：cJSON 源文件本身不提供 `main` 入口，因此在默认入口策略下只能稳定得到函数级摘要；如需程序级 MEMS，请在实验时显式设置 `EPPATHER_ENTRY`（并结合兼容过滤进一步收敛解析噪声）。
+
+#### 降噪与兼容增强（run_three_projects_experiment.py）
+
+为降低 cJSON 预处理噪声并提升实验效率，脚本新增/调整了以下策略：
+
+- cJSON 预算下调为 `--maxpaths 18`、`timeout 120s`（保持 `--maxloop 1`），减少长尾耗时；
+- 兼容过滤新增：
+  - 去除 `__restrict/restrict` 关键字；
+  - 在 `enum` 块内过滤注释与预处理残留行；
+  - 对 cJSON 进一步过滤 `_IS* = ...` 以及高噪声 `extern void *memcpy(...)` 行；
+- cJSON 运行 `-s/-g/-c` 时默认注入 `EPPATHER_ENTRY=cJSON_Parse`，减少无效入口带来的失败重试；
+- 汇总报告新增 `_aggregate.summary_success_rate`（函数摘要成功率）与 `summary_success`（单项目布尔）。
+
+此外，在 Eppather 预处理前端（`tools/GnuCompilerFacade.cpp`）中新增了常见 GNU/libc 装饰宏默认兼容定义（如 `__THROW/__wur/__nonnull/__extension__/__restrict`），用于降低真实项目源码进入解析器前的语法噪声。
+
+#### 当前函数摘要成功率与结果汇总（2026-05-15）
+
+以 `python3 run_three_projects_experiment.py` 产物 `experiment_results/report.json` 为准：
+
+- 总项目数：`3`
+- 函数摘要成功数：`0`
+- 函数摘要成功率：`0.0`
+
+当前结果呈现为：`cjson/lua` 的 CFG 可生成但 `-s/-g` 返回异常；`tinyexpr` 可稳定生成摘要统计（`function_count=4`），但程序级 `worst_mems` 仍为 `N/A`（入口与语义约束相关）。
+
+#### Lua / cJSON 的进一步处理与 DP 策略说明
+
+- 当前三项目实验脚本已统一采用 `-g`（DP 最坏路径）而非 DFS 路径枚举来输出 MEMS 相关结果；
+- 但 `lua/cjson` 在当前版本仍存在“可出 CFG、但 `-s/-g` 异常退出（返回码 `-11`）”的问题，说明瓶颈已从路径搜索策略转为**前端解析/语义建模噪声**；
+- 因此后续优化重点应放在更强的预处理约简（尤其是 libc 相关声明、宏展开残留、复杂别名链）而非进一步削减 DFS/DP 参数。
+
+#### tinyexpr 函数摘要正确性分析：是否需要更多预处理？
+
+从 `experiment_results/tinyexpr/summary.txt` 可见：
+
+- 函数摘要块已正确生成（`fac/ncr/npr/main` 共 4 个函数）；
+- 但每个函数 `#cases=0`，`DIRECT worst_mems=-1`，程序级 `worst_mems=N/A`；
+- 输出同时出现 `unsupported type for sort: double`，说明当前 SMT/MEMS 通路对 `double` 相关路径支持不足，导致“摘要框架可运行，但无可用路径案例”。
+
+结论：tinyexpr **确实还需要额外预处理/归一化**（例如将关键浮点分支改写为可支持的整数近似，或在分析前端对浮点表达式做保守抽象），否则即使入口正确也难以得到有效 MEMS。
+
 ---
 
 ### 一键功能验证脚本（新增）
