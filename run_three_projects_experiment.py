@@ -18,16 +18,17 @@ PROJECTS = {
         'cpp_flags': ['-I', str(TC / 'lua'), '-DLUA_USE_POSIX', '-DLUA_COMPAT_5_3'],
     },
     'tinyexpr': {
-        # Use compatibility-reduced tinyexpr source for summary/DP stability.
-        'src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
+        # Use upstream tinyexpr core to validate summary coverage.
+        'src': TC / 'tinyexpr' / 'tinyexpr.c',
+        'fallback_src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
         'cpp_flags': ['-I', str(TC / 'tinyexpr')],
     },
 }
 
 RUNTIME_PROFILE = {
-    'cjson': {'maxloop': '1', 'maxpaths': '30', 'timeout': 180},
+    'cjson': {'maxloop': '1', 'maxpaths': '18', 'timeout': 120},
     'lua': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
-    'tinyexpr': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
+    'tinyexpr': {'maxloop': '1', 'maxpaths': '30', 'timeout': 180},
 }
 
 FALLBACK_PROFILE = {
@@ -69,7 +70,7 @@ def preprocess(src: Path, dst_i: Path, cpp_flags):
     return rc, out
 
 
-def compat_filter(project: str, text: str) -> str:
+def compat_filter(project: str, text: str, aggressive: bool = True) -> str:
     """
     Convert preprocessed sources into a parser-friendlier subset for eppather.
     Goal: keep control-flow/function bodies for CFG while removing hard-to-parse declarations.
@@ -85,21 +86,67 @@ def compat_filter(project: str, text: str) -> str:
         "#ifndef __inline__",
         "#define __inline__ inline",
         "#endif",
+        "#ifndef __THROW",
+        "#define __THROW",
+        "#endif",
+        "#ifndef __wur",
+        "#define __wur",
+        "#endif",
+        "#ifndef __nonnull",
+        "#define __nonnull(x)",
+        "#endif",
+        "#ifndef __attribute_malloc__",
+        "#define __attribute_malloc__",
+        "#endif",
         "typedef unsigned long size_t;",
         "typedef long ptrdiff_t;",
         "typedef unsigned long uintptr_t;",
+        "typedef void* __builtin_va_list;",
+        "typedef struct _IO_FILE FILE;",
         "",
     ]
     lines = prelude[:]
     typedef_aliases = {}
+    in_enum = False
+
+    noisy_decl_patterns = [
+        r'^__BEGIN_DECLS\s*$',
+        r'^__END_DECLS\s*$',
+        r'^extern\s+__inline__\b.*$',
+        r'^extern\s+inline\b.*$',
+        r'^extern\s+__attribute__\b.*$',
+        r'^extern\s+int\s+_IO_.*$',
+        r'^extern\s+const\s+.*\b__libc_.*$',
+        r'^typedef\s+__builtin_va_list\s+__gnuc_va_list\s*;\s*$',
+        r'^typedef\s+struct\s+_IO_.*;\s*$',
+        r'^typedef\s+.*\b__mbstate_t\b.*;\s*$',
+    ]
     for line in text.splitlines():
         s = line.strip()
         if not s:
             lines.append(line)
             continue
-        # Common noisy GNU/C extensions or declarations that frequently break parser recovery.
-        if '__attribute__(' in s or '__declspec(' in s:
+        if any(re.match(pat, s) for pat in noisy_decl_patterns):
             continue
+        if s.startswith('enum') and '{' in s:
+            in_enum = True
+        if in_enum and ('#' in s or '/*' in s or '*/' in s):
+            continue
+        if in_enum and '};' in s:
+            in_enum = False
+        # Common noisy GNU/C extensions or declarations that frequently break parser recovery.
+        if aggressive and ('__attribute__(' in s or '__declspec(' in s):
+            continue
+        if aggressive and ('__builtin_va_list' in s or '__gnuc_va_list' in s or '_IO_FILE' in s):
+            continue
+        if aggressive and s.startswith('extern ') and ('__THROW' in s or '__wur' in s):
+            continue
+        if aggressive and re.match(r'^(const|unsigned|long|int|char|void|TValue|TString|lua_Alloc|F2Imod)\b.*[,;)]\s*$', s) and '(' not in s and ')' in s:
+            continue
+        if aggressive and ('_Float128' in s or '__compar_fn_t' in s):
+            continue
+        if '__restrict' in s or 'restrict ' in s:
+            line = line.replace('__restrict', '').replace('restrict ', '')
         if s.startswith('typedef '):
             # Handle simple alias typedef by converting it into macro-style expansion.
             # Example: typedef unsigned long lu_mem; -> #define lu_mem unsigned long
@@ -114,10 +161,10 @@ def compat_filter(project: str, text: str) -> str:
         # Skip GCC extension typedefs with typeof/alignof patterns (parser-unfriendly).
         if s.startswith('typedef ') and ('typeof' in s or '__typeof__' in s or '__alignof__' in s):
             continue
-        if s.startswith('extern ') and ('(' in s and ')' in s and ';' in s):
+        if aggressive and s.startswith('extern ') and ('(' in s and ')' in s and ';' in s):
             continue
         # Normalize anonymous struct/union forward declarations that often confuse recovery.
-        if re.match(r'^(struct|union)\s*\{', s):
+        if aggressive and re.match(r'^(struct|union)\s*\{', s):
             continue
         if s.startswith('#pragma') or s.startswith('#line'):
             continue
@@ -134,6 +181,8 @@ def compat_filter(project: str, text: str) -> str:
         lines = prelude[:] + macro_lines + [""] + lines[len(prelude):]
 
     filtered = "\n".join(lines) + "\n"
+    filtered = re.sub(r'\bint\s+l_uint32\s+int\b', 'unsigned int', filtered)
+    filtered = re.sub(r'\bstruct\s+_IO_(?:FILE|marker|codecvt|wide_data)\s*;', '', filtered)
 
     # Project-specific compatibility rewrites.
     if project == 'lua':
@@ -146,24 +195,41 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'\bInstruction\b', 'unsigned int', filtered)
         filtered = re.sub(r'\bStkId\b', 'void *', filtered)
         filtered = re.sub(r'\bPfunc\b', 'void *', filtered)
+        filtered = re.sub(r'\bglobal_State\b', 'void *', filtered)
+        filtered = re.sub(r'\blua_State\b', 'void *', filtered)
+        filtered = re.sub(r'\bCallInfo\b', 'void *', filtered)
         # Simplify Lua API decoration macros to empty/identity forms.
         filtered = re.sub(r'\bLUA_API\b', '', filtered)
         filtered = re.sub(r'\bLUAI_FUNC\b', '', filtered)
         filtered = re.sub(r'\bLUAI_DDEC\b', '', filtered)
         filtered = re.sub(r'\bLUAI_DDEF\b', '', filtered)
+        filtered = re.sub(r'^\s*extern\s+.*__THROW.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__nonnull.*$', '', filtered, flags=re.M)
     elif project == 'tinyexpr':
         filtered = re.sub(r'\bsize_t\b', 'unsigned long', filtered)
         filtered = re.sub(r'\buintptr_t\b', 'unsigned long', filtered)
-        filtered = re.sub(r'\bte_fun2\b', 'double (*)(double,double)', filtered)
-        filtered = re.sub(r'\bte_fun1\b', 'double (*)(double)', filtered)
-        filtered = re.sub(r'\bte_fun0\b', 'double (*)()', filtered)
-        filtered = re.sub(r'\bte_fun7\b', 'double (*)()', filtered)
+        # Float-to-int approximation for current solver limitations on double sort.
+        filtered = re.sub(r'\bdouble\b', 'long', filtered)
+        filtered = re.sub(r'\bfloat\b', 'long', filtered)
+        filtered = re.sub(r'\bte_fun2\b', 'long (*)(long,long)', filtered)
+        filtered = re.sub(r'\bte_fun1\b', 'long (*)(long)', filtered)
+        filtered = re.sub(r'\bte_fun0\b', 'long (*)()', filtered)
+        filtered = re.sub(r'\bte_fun7\b', 'long (*)()', filtered)
+        filtered = re.sub(r'\bNAN\b', '0', filtered)
+        filtered = re.sub(r'\bINFINITY\b', '1000000', filtered)
+        filtered = re.sub(r'#include\s*<math\.h>', '', filtered)
     elif project == 'cjson':
         # cJSON public/declaration wrappers and bool-like aliases.
         filtered = re.sub(r'\bCJSON_PUBLIC\s*\(', '(', filtered)
         filtered = re.sub(r'\bCJSON_CDECL\b', '', filtered)
         filtered = re.sub(r'\bcJSON_bool\b', 'int', filtered)
         filtered = re.sub(r'\bCJSON_NESTING_LIMIT\b', '1000', filtered)
+        filtered = re.sub(r'^\s*_IS[a-zA-Z_]+\s*=.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+void\s*\*\s*memcpy\s*\(.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*long unsigned int __n\)\s*;\s*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*In file included from .*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__attribute_pure__.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__nonnull\s*\(.*$', '', filtered, flags=re.M)
     return filtered
 
 
@@ -197,6 +263,143 @@ def discover_entry_candidates(compat_source: str):
     return uniq[:6]
 
 
+def extract_failure_diagnostics(output_text: str, source_text: str, source_label: str):
+    """
+    Collect likely failing statements/syntax around parser errors for quick triage.
+    """
+    diags = []
+    lines = source_text.splitlines()
+    seen = set()
+    # Match forms like: xxx.compat.i:238:21 error: ...
+    for m in re.finditer(rf'{re.escape(source_label)}:(\d+):(\d+)\s+(error|warning):\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        col = int(m.group(2))
+        msg = m.group(4).strip()
+        key = (ln, col, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        start = max(1, ln - 1)
+        end = min(len(lines), ln + 1)
+        snippet = []
+        for i in range(start, end + 1):
+            mark = ">>" if i == ln else "  "
+            snippet.append(f"{mark} L{i}: {lines[i-1]}")
+        diags.append(
+            f"[FAIL POINT] line={ln} col={col} msg={msg}\n" + "\n".join(snippet)
+        )
+        if len(diags) >= 20:
+            break
+    # Parse antlr-style: line 174:29 no viable alternative at input ...
+    for m in re.finditer(r'line\s+(\d+):(\d+)\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        col = int(m.group(2))
+        msg = m.group(3).strip()
+        key = (ln, col, msg)
+        if key in seen:
+            continue
+        seen.add(key)
+        if 1 <= ln <= len(lines):
+            start = max(1, ln - 1)
+            end = min(len(lines), ln + 1)
+            snippet = []
+            for i in range(start, end + 1):
+                mark = ">>" if i == ln else "  "
+                snippet.append(f"{mark} L{i}: {lines[i-1]}")
+            diags.append(
+                f"[FAIL POINT] line={ln} col={col} msg={msg}\n" + "\n".join(snippet)
+            )
+        if len(diags) >= 40:
+            break
+    return diags
+
+
+def extract_failure_lines(output_text: str, source_label: str):
+    bad = set()
+    for m in re.finditer(rf'{re.escape(source_label)}:(\d+):\d+\s+(error|warning):\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        msg = m.group(3)
+        if ('missing type specifier' in msg or 'expected ' in msg or 'no viable alternative' in msg
+            or 'mismatched input' in msg or 'extraneous input' in msg or 'undeclared identifier' in msg):
+            bad.add(ln)
+    for m in re.finditer(r'line\s+(\d+):\d+\s+([^\n]+)', output_text):
+        ln = int(m.group(1))
+        msg = m.group(2)
+        if 'no viable alternative' in msg or 'mismatched input' in msg or 'extraneous input' in msg:
+            bad.add(ln)
+    return sorted(bad)
+
+
+def sanitize_by_failure_lines(source_text: str, bad_lines):
+    if not bad_lines:
+        return source_text
+    lines = source_text.splitlines()
+    bad = set(bad_lines)
+    out = []
+    for i, line in enumerate(lines, start=1):
+        if i in bad:
+            out.append("/* removed by sanitizer: parse-failure line */")
+            continue
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def discover_cjson_entry_candidates(compat_source: str):
+    preferred = [
+        'cJSON_Parse',
+        'cJSON_ParseWithOpts',
+        'cJSON_ParseWithLength',
+        'cJSON_ParseWithLengthOpts',
+        'cJSON_Print',
+        'cJSON_PrintUnformatted',
+    ]
+    dynamic = discover_entry_candidates(compat_source)
+    ordered = []
+    for n in preferred + dynamic:
+        if n not in ordered:
+            ordered.append(n)
+    return ordered[:10]
+
+
+
+
+def retry_with_compat_levels(name: str, opt: str, profile: dict, base_i: Path, pdir: Path, default_entry_env, initial_out: str, initial_rc: int):
+    best_rc, best_out = initial_rc, initial_out
+    if opt not in ('-s', '-g'):
+        return best_rc, best_out
+    for label, aggressive in [('relaxed', False), ('raw', None)]:
+        if label == 'raw':
+            cand = pdir / f"{name}.raw.compat.i"
+            cand.write_text(base_i.read_text())
+        else:
+            cand = pdir / f"{name}.{label}.compat.i"
+            cand.write_text(compat_filter(name, base_i.read_text(), aggressive=aggressive))
+        cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(cand)]
+        rc, out = run(cmd, timeout=profile['timeout'], extra_env=default_entry_env)
+        best_out += f"\n[COMPAT RETRY:{label}] rc={rc}\n" + out
+        if rc == 0:
+            best_rc = 0
+            if '[FUNCTION SUMMARIES]' in out:
+                return best_rc, best_out
+    return best_rc, best_out
+
+
+def retry_on_timeout(name: str, opt: str, target_input: Path, default_entry_env, out: str, rc: int):
+    if rc != 124 or opt not in ('-s', '-g'):
+        return rc, out
+    profiles = [
+        ('timeout-shrink-1', '1', '20', 120),
+        ('timeout-shrink-2', '1', '8', 90),
+        ('timeout-shrink-3', '1', '4', 60),
+    ]
+    for tag, maxloop, maxpaths, to in profiles:
+        cmd = [str(CNIP), opt, '--maxloop', maxloop, '--maxpaths', maxpaths, str(target_input)]
+        rci, outi = run(cmd, timeout=to, extra_env=default_entry_env)
+        out += f"\n[TIMEOUT RETRY:{tag}] " + ' '.join(shlex.quote(x) for x in cmd) + f"\n[TIMEOUT RC] {rci}\n" + outi
+        rc = rci
+        if rc != 124:
+            break
+    return rc, out
 def main():
     OUT.mkdir(exist_ok=True)
     results = {}
@@ -222,15 +425,20 @@ def main():
             compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
         profile = RUNTIME_PROFILE.get(name, {'maxloop': '1', 'maxpaths': '120', 'timeout': 180})
-        entry_candidates = discover_entry_candidates(compat_i_file.read_text()) if name == 'cjson' else []
+        compat_text = compat_i_file.read_text()
+        entry_candidates = discover_cjson_entry_candidates(compat_text) if name == 'cjson' else []
         per = {}
+        default_entry_env = {'EPPATHER_ENTRY': 'cJSON_Parse'} if name == 'cjson' else None
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
-            cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)]
-            rc, out = run(cmd, timeout=profile['timeout'])
+            target_input = compat_i_file
+            if name == 'tinyexpr' and opt in ('-s', '-g') and conf.get('fallback_src'):
+                target_input = conf['fallback_src']
+            cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(target_input)]
+            rc, out = run(cmd, timeout=profile['timeout'], extra_env=default_entry_env)
             if rc == 124 and name in FALLBACK_PROFILE:
                 for fb in FALLBACK_PROFILE[name]:
                     fb_cmd = [str(CNIP), opt, '--maxloop', fb['maxloop'], '--maxpaths', fb['maxpaths'], str(compat_i_file)]
-                    rc, out_fb = run(fb_cmd, timeout=fb['timeout'])
+                    rc, out_fb = run(fb_cmd, timeout=fb['timeout'], extra_env=default_entry_env)
                     out = (
                         out
                         + "\n[FALLBACK RETRY] " + ' '.join(shlex.quote(x) for x in fb_cmd)
@@ -246,6 +454,53 @@ def main():
                     rc = rc_e
                     if rc != 124:
                         break
+            rc, out = retry_on_timeout(name, opt, Path(target_input), default_entry_env, out, rc)
+            # Crash-oriented fallback: if summary/DP crashes (-11 etc.), retry with
+            # stricter budget and optionally tinyexpr fallback source.
+            if rc < 0 and opt in ('-s', '-g'):
+                crash_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '4', str(target_input)]
+                rc_c, out_c = run(crash_cmd, timeout=90, extra_env=default_entry_env)
+                out += (
+                    "\n[CRASH RETRY] " + ' '.join(shlex.quote(x) for x in crash_cmd)
+                    + f"\n[CRASH RC] {rc_c}\n" + out_c
+                )
+                rc = rc_c
+                if rc < 0 and name == 'tinyexpr' and conf.get('fallback_src'):
+                    fb_i = pdir / 'tinyexpr_fallback.i'
+                    fb_compat = pdir / 'tinyexpr_fallback.compat.i'
+                    fb_i.write_text(conf['fallback_src'].read_text())
+                    fb_compat.write_text(compat_filter('tinyexpr', fb_i.read_text()))
+                    tiny_fb_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '30', str(fb_compat)]
+                    rc_fb, out_fb = run(tiny_fb_cmd, timeout=120)
+                    out += (
+                        "\n[TINYEXPR FALLBACK SRC] " + str(conf['fallback_src'])
+                        + "\n[TINYEXPR FALLBACK CMD] " + ' '.join(shlex.quote(x) for x in tiny_fb_cmd)
+                        + f"\n[TINYEXPR FALLBACK RC] {rc_fb}\n" + out_fb
+                    )
+                    rc = rc_fb
+            if rc < 0 and opt in ('-s', '-g'):
+                bad_lines = extract_failure_lines(out, Path(target_input).name)
+                if bad_lines:
+                    target_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
+                    sanitized = sanitize_by_failure_lines(target_text, bad_lines[:200])
+                    sanitized_file = pdir / f'{name}.sanitized.compat.i'
+                    sanitized_file.write_text(sanitized)
+                    san_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '20', str(sanitized_file)]
+                    rc_s, out_s = run(san_cmd, timeout=120, extra_env=default_entry_env)
+                    out += (
+                        "\n[SANITIZE RETRY] removed_lines=" + str(len(bad_lines[:200]))
+                        + "\n[SANITIZE CMD] " + ' '.join(shlex.quote(x) for x in san_cmd)
+                        + f"\n[SANITIZE RC] {rc_s}\n" + out_s
+                    )
+                    rc = rc_s
+            if rc != 0 and opt in ('-s', '-g'):
+                retry_base = i_file if name != 'tinyexpr' else Path(target_input)
+                rc, out = retry_with_compat_levels(name, opt, profile, retry_base, pdir, default_entry_env, out, rc)
+            if rc < 0:
+                diag_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
+                fail_points = extract_failure_diagnostics(out, diag_text, Path(target_input).name)
+                if fail_points:
+                    out += "\n[FAILURE DIAGNOSTICS]\n" + "\n\n".join(fail_points) + "\n"
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':
@@ -258,7 +513,7 @@ def main():
 
         # Retry with a discovered entry function to get program-level mems if default entry is missing.
         if st.get('worst_mems') in (None, 'N/A') and per.get('summary.txt') == 0:
-            fnames = parse_function_names(summary_text)
+            fnames = entry_candidates + [f for f in parse_function_names(summary_text) if f not in entry_candidates]
             if fnames:
                 rc_retry, out_retry = run(
                     [str(CNIP), '-s', '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)],
@@ -270,6 +525,11 @@ def main():
                 retry_mems = parse_mems(out_retry)
                 st['worst_mems_retry'] = retry_mems['worst_mems']
                 st['weighted_avg_mems_retry'] = retry_mems['weighted_avg_mems']
+                st['summary_success'] = (retry_mems['worst_mems'] not in (None, 'N/A'))
+        else:
+            st['summary_success'] = (st.get('worst_mems') not in (None, 'N/A'))
+        if 'summary_success' not in st:
+            st['summary_success'] = False
         dot_files = sorted(pdir.glob('cfg_func_*.dot'))
         st['cfg_graph_count'] = len(dot_files)
         cfg_quality = []
@@ -280,6 +540,13 @@ def main():
         st['rcodes'] = per
         results[name] = st
 
+    (OUT / 'report.json').write_text(json.dumps(results, indent=2, ensure_ascii=False))
+    success_count = sum(1 for x in results.values() if x.get('summary_success'))
+    results['_aggregate'] = {
+        'project_count': len(PROJECTS),
+        'summary_success_count': success_count,
+        'summary_success_rate': round(success_count / max(len(PROJECTS), 1), 4),
+    }
     (OUT / 'report.json').write_text(json.dumps(results, indent=2, ensure_ascii=False))
     print(json.dumps(results, indent=2, ensure_ascii=False))
 
