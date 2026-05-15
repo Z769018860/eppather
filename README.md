@@ -369,7 +369,11 @@ python3 run_three_projects_experiment.py
 - 但每个函数 `#cases=0`，`DIRECT worst_mems=-1`，程序级 `worst_mems=N/A`；
 - 输出同时出现 `unsupported type for sort: double`，说明当前 SMT/MEMS 通路对 `double` 相关路径支持不足，导致“摘要框架可运行，但无可用路径案例”。
 
-结论：tinyexpr **确实还需要额外预处理/归一化**（例如将关键浮点分支改写为可支持的整数近似，或在分析前端对浮点表达式做保守抽象），否则即使入口正确也难以得到有效 MEMS。
+补充核查（`testcase/tinyexpr/tinyexpr.c`）显示 tinyexpr 核心文件函数数明显 **不止 4 个**，因此此前只得到 4 个函数摘要时，确实说明大量函数未完整进入摘要阶段。
+
+最新实验改为直接处理 `tinyexpr.c`，并在兼容过滤中启用“浮点近似为整数”的策略（`double/float -> long`，`NAN/INFINITY` 常量归一化），以绕过当前求解器对 `double sort` 的限制；该策略显著提升了 CFG 覆盖（可见 `cfg_graph_count` 上升），但 `-s/-g` 仍可能受更深层语义问题影响。
+
+结论：tinyexpr **仍需要进一步语义兼容**，但“浮点近似转整数”是必要步骤之一，且已纳入当前实验管线。
 
 ---
 

@@ -18,8 +18,9 @@ PROJECTS = {
         'cpp_flags': ['-I', str(TC / 'lua'), '-DLUA_USE_POSIX', '-DLUA_COMPAT_5_3'],
     },
     'tinyexpr': {
-        # Use compatibility-reduced tinyexpr source for summary/DP stability.
-        'src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
+        # Use upstream tinyexpr core to validate summary coverage.
+        'src': TC / 'tinyexpr' / 'tinyexpr.c',
+        'fallback_src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
         'cpp_flags': ['-I', str(TC / 'tinyexpr')],
     },
 }
@@ -125,6 +126,11 @@ def compat_filter(project: str, text: str) -> str:
             continue
         if s.startswith('extern ') and ('__THROW' in s or '__wur' in s):
             continue
+        if re.match(r'^(const|unsigned|long|int|char|void|TValue|TString|lua_Alloc|F2Imod)\b.*[,;)]\s*$', s) and '(' not in s and ')' in s:
+            # Drop orphan parameter/declarator fragments left after aggressive filtering.
+            continue
+        if '_Float128' in s or '__compar_fn_t' in s:
+            continue
         if '__restrict' in s or 'restrict ' in s:
             line = line.replace('__restrict', '').replace('restrict ', '')
         if s.startswith('typedef '):
@@ -161,6 +167,8 @@ def compat_filter(project: str, text: str) -> str:
         lines = prelude[:] + macro_lines + [""] + lines[len(prelude):]
 
     filtered = "\n".join(lines) + "\n"
+    filtered = re.sub(r'\bint\s+l_uint32\s+int\b', 'unsigned int', filtered)
+    filtered = re.sub(r'\bstruct\s+_IO_(?:FILE|marker|codecvt|wide_data)\s*;', '', filtered)
 
     # Project-specific compatibility rewrites.
     if project == 'lua':
@@ -178,13 +186,21 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'\bLUAI_FUNC\b', '', filtered)
         filtered = re.sub(r'\bLUAI_DDEC\b', '', filtered)
         filtered = re.sub(r'\bLUAI_DDEF\b', '', filtered)
+        filtered = re.sub(r'^\s*extern\s+.*__THROW.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__nonnull.*$', '', filtered, flags=re.M)
     elif project == 'tinyexpr':
         filtered = re.sub(r'\bsize_t\b', 'unsigned long', filtered)
         filtered = re.sub(r'\buintptr_t\b', 'unsigned long', filtered)
-        filtered = re.sub(r'\bte_fun2\b', 'double (*)(double,double)', filtered)
-        filtered = re.sub(r'\bte_fun1\b', 'double (*)(double)', filtered)
-        filtered = re.sub(r'\bte_fun0\b', 'double (*)()', filtered)
-        filtered = re.sub(r'\bte_fun7\b', 'double (*)()', filtered)
+        # Float-to-int approximation for current solver limitations on double sort.
+        filtered = re.sub(r'\bdouble\b', 'long', filtered)
+        filtered = re.sub(r'\bfloat\b', 'long', filtered)
+        filtered = re.sub(r'\bte_fun2\b', 'long (*)(long,long)', filtered)
+        filtered = re.sub(r'\bte_fun1\b', 'long (*)(long)', filtered)
+        filtered = re.sub(r'\bte_fun0\b', 'long (*)()', filtered)
+        filtered = re.sub(r'\bte_fun7\b', 'long (*)()', filtered)
+        filtered = re.sub(r'\bNAN\b', '0', filtered)
+        filtered = re.sub(r'\bINFINITY\b', '1000000', filtered)
+        filtered = re.sub(r'#include\s*<math\.h>', '', filtered)
     elif project == 'cjson':
         # cJSON public/declaration wrappers and bool-like aliases.
         filtered = re.sub(r'\bCJSON_PUBLIC\s*\(', '(', filtered)
@@ -195,9 +211,6 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'^\s*extern\s+void\s*\*\s*memcpy\s*\(.*$', '', filtered, flags=re.M)
         filtered = re.sub(r'^\s*long unsigned int __n\)\s*;\s*$', '', filtered, flags=re.M)
         filtered = re.sub(r'^\s*In file included from .*$' , '', filtered, flags=re.M)
-    elif project == 'lua':
-        filtered = re.sub(r'^\s*extern\s+.*__THROW.*$', '', filtered, flags=re.M)
-        filtered = re.sub(r'^\s*extern\s+.*__nonnull.*$', '', filtered, flags=re.M)
     return filtered
 
 
@@ -298,6 +311,29 @@ def main():
                     rc = rc_e
                     if rc != 124:
                         break
+            # Crash-oriented fallback: if summary/DP crashes (-11 etc.), retry with
+            # stricter budget and optionally tinyexpr fallback source.
+            if rc < 0 and opt in ('-s', '-g'):
+                crash_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '4', str(compat_i_file)]
+                rc_c, out_c = run(crash_cmd, timeout=90, extra_env=default_entry_env)
+                out += (
+                    "\n[CRASH RETRY] " + ' '.join(shlex.quote(x) for x in crash_cmd)
+                    + f"\n[CRASH RC] {rc_c}\n" + out_c
+                )
+                rc = rc_c
+                if rc < 0 and name == 'tinyexpr' and conf.get('fallback_src'):
+                    fb_i = pdir / 'tinyexpr_fallback.i'
+                    fb_compat = pdir / 'tinyexpr_fallback.compat.i'
+                    fb_i.write_text(conf['fallback_src'].read_text())
+                    fb_compat.write_text(compat_filter('tinyexpr', fb_i.read_text()))
+                    tiny_fb_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '30', str(fb_compat)]
+                    rc_fb, out_fb = run(tiny_fb_cmd, timeout=120)
+                    out += (
+                        "\n[TINYEXPR FALLBACK SRC] " + str(conf['fallback_src'])
+                        + "\n[TINYEXPR FALLBACK CMD] " + ' '.join(shlex.quote(x) for x in tiny_fb_cmd)
+                        + f"\n[TINYEXPR FALLBACK RC] {rc_fb}\n" + out_fb
+                    )
+                    rc = rc_fb
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':
