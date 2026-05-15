@@ -28,7 +28,7 @@ PROJECTS = {
 RUNTIME_PROFILE = {
     'cjson': {'maxloop': '1', 'maxpaths': '18', 'timeout': 120},
     'lua': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
-    'tinyexpr': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
+    'tinyexpr': {'maxloop': '1', 'maxpaths': '30', 'timeout': 180},
 }
 
 FALLBACK_PROFILE = {
@@ -70,7 +70,7 @@ def preprocess(src: Path, dst_i: Path, cpp_flags):
     return rc, out
 
 
-def compat_filter(project: str, text: str) -> str:
+def compat_filter(project: str, text: str, aggressive: bool = True) -> str:
     """
     Convert preprocessed sources into a parser-friendlier subset for eppather.
     Goal: keep control-flow/function bodies for CFG while removing hard-to-parse declarations.
@@ -108,10 +108,25 @@ def compat_filter(project: str, text: str) -> str:
     lines = prelude[:]
     typedef_aliases = {}
     in_enum = False
+
+    noisy_decl_patterns = [
+        r'^__BEGIN_DECLS\s*$',
+        r'^__END_DECLS\s*$',
+        r'^extern\s+__inline__\b.*$',
+        r'^extern\s+inline\b.*$',
+        r'^extern\s+__attribute__\b.*$',
+        r'^extern\s+int\s+_IO_.*$',
+        r'^extern\s+const\s+.*\b__libc_.*$',
+        r'^typedef\s+__builtin_va_list\s+__gnuc_va_list\s*;\s*$',
+        r'^typedef\s+struct\s+_IO_.*;\s*$',
+        r'^typedef\s+.*\b__mbstate_t\b.*;\s*$',
+    ]
     for line in text.splitlines():
         s = line.strip()
         if not s:
             lines.append(line)
+            continue
+        if any(re.match(pat, s) for pat in noisy_decl_patterns):
             continue
         if s.startswith('enum') and '{' in s:
             in_enum = True
@@ -120,16 +135,15 @@ def compat_filter(project: str, text: str) -> str:
         if in_enum and '};' in s:
             in_enum = False
         # Common noisy GNU/C extensions or declarations that frequently break parser recovery.
-        if '__attribute__(' in s or '__declspec(' in s:
+        if aggressive and ('__attribute__(' in s or '__declspec(' in s):
             continue
-        if '__builtin_va_list' in s or '__gnuc_va_list' in s or '_IO_FILE' in s:
+        if aggressive and ('__builtin_va_list' in s or '__gnuc_va_list' in s or '_IO_FILE' in s):
             continue
-        if s.startswith('extern ') and ('__THROW' in s or '__wur' in s):
+        if aggressive and s.startswith('extern ') and ('__THROW' in s or '__wur' in s):
             continue
-        if re.match(r'^(const|unsigned|long|int|char|void|TValue|TString|lua_Alloc|F2Imod)\b.*[,;)]\s*$', s) and '(' not in s and ')' in s:
-            # Drop orphan parameter/declarator fragments left after aggressive filtering.
+        if aggressive and re.match(r'^(const|unsigned|long|int|char|void|TValue|TString|lua_Alloc|F2Imod)\b.*[,;)]\s*$', s) and '(' not in s and ')' in s:
             continue
-        if '_Float128' in s or '__compar_fn_t' in s:
+        if aggressive and ('_Float128' in s or '__compar_fn_t' in s):
             continue
         if '__restrict' in s or 'restrict ' in s:
             line = line.replace('__restrict', '').replace('restrict ', '')
@@ -147,10 +161,10 @@ def compat_filter(project: str, text: str) -> str:
         # Skip GCC extension typedefs with typeof/alignof patterns (parser-unfriendly).
         if s.startswith('typedef ') and ('typeof' in s or '__typeof__' in s or '__alignof__' in s):
             continue
-        if s.startswith('extern ') and ('(' in s and ')' in s and ';' in s):
+        if aggressive and s.startswith('extern ') and ('(' in s and ')' in s and ';' in s):
             continue
         # Normalize anonymous struct/union forward declarations that often confuse recovery.
-        if re.match(r'^(struct|union)\s*\{', s):
+        if aggressive and re.match(r'^(struct|union)\s*\{', s):
             continue
         if s.startswith('#pragma') or s.startswith('#line'):
             continue
@@ -181,6 +195,9 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'\bInstruction\b', 'unsigned int', filtered)
         filtered = re.sub(r'\bStkId\b', 'void *', filtered)
         filtered = re.sub(r'\bPfunc\b', 'void *', filtered)
+        filtered = re.sub(r'\bglobal_State\b', 'void *', filtered)
+        filtered = re.sub(r'\blua_State\b', 'void *', filtered)
+        filtered = re.sub(r'\bCallInfo\b', 'void *', filtered)
         # Simplify Lua API decoration macros to empty/identity forms.
         filtered = re.sub(r'\bLUA_API\b', '', filtered)
         filtered = re.sub(r'\bLUAI_FUNC\b', '', filtered)
@@ -210,7 +227,9 @@ def compat_filter(project: str, text: str) -> str:
         filtered = re.sub(r'^\s*_IS[a-zA-Z_]+\s*=.*$', '', filtered, flags=re.M)
         filtered = re.sub(r'^\s*extern\s+void\s*\*\s*memcpy\s*\(.*$', '', filtered, flags=re.M)
         filtered = re.sub(r'^\s*long unsigned int __n\)\s*;\s*$', '', filtered, flags=re.M)
-        filtered = re.sub(r'^\s*In file included from .*$' , '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*In file included from .*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__attribute_pure__.*$', '', filtered, flags=re.M)
+        filtered = re.sub(r'^\s*extern\s+.*__nonnull\s*\(.*$', '', filtered, flags=re.M)
     return filtered
 
 
@@ -300,7 +319,8 @@ def extract_failure_lines(output_text: str, source_label: str):
     for m in re.finditer(rf'{re.escape(source_label)}:(\d+):\d+\s+(error|warning):\s+([^\n]+)', output_text):
         ln = int(m.group(1))
         msg = m.group(3)
-        if 'missing type specifier' in msg or 'expected ' in msg or 'no viable alternative' in msg:
+        if ('missing type specifier' in msg or 'expected ' in msg or 'no viable alternative' in msg
+            or 'mismatched input' in msg or 'extraneous input' in msg or 'undeclared identifier' in msg):
             bad.add(ln)
     for m in re.finditer(r'line\s+(\d+):\d+\s+([^\n]+)', output_text):
         ln = int(m.group(1))
@@ -341,6 +361,45 @@ def discover_cjson_entry_candidates(compat_source: str):
     return ordered[:10]
 
 
+
+
+def retry_with_compat_levels(name: str, opt: str, profile: dict, base_i: Path, pdir: Path, default_entry_env, initial_out: str, initial_rc: int):
+    best_rc, best_out = initial_rc, initial_out
+    if opt not in ('-s', '-g'):
+        return best_rc, best_out
+    for label, aggressive in [('relaxed', False), ('raw', None)]:
+        if label == 'raw':
+            cand = pdir / f"{name}.raw.compat.i"
+            cand.write_text(base_i.read_text())
+        else:
+            cand = pdir / f"{name}.{label}.compat.i"
+            cand.write_text(compat_filter(name, base_i.read_text(), aggressive=aggressive))
+        cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(cand)]
+        rc, out = run(cmd, timeout=profile['timeout'], extra_env=default_entry_env)
+        best_out += f"\n[COMPAT RETRY:{label}] rc={rc}\n" + out
+        if rc == 0:
+            best_rc = 0
+            if '[FUNCTION SUMMARIES]' in out:
+                return best_rc, best_out
+    return best_rc, best_out
+
+
+def retry_on_timeout(name: str, opt: str, target_input: Path, default_entry_env, out: str, rc: int):
+    if rc != 124 or opt not in ('-s', '-g'):
+        return rc, out
+    profiles = [
+        ('timeout-shrink-1', '1', '20', 120),
+        ('timeout-shrink-2', '1', '8', 90),
+        ('timeout-shrink-3', '1', '4', 60),
+    ]
+    for tag, maxloop, maxpaths, to in profiles:
+        cmd = [str(CNIP), opt, '--maxloop', maxloop, '--maxpaths', maxpaths, str(target_input)]
+        rci, outi = run(cmd, timeout=to, extra_env=default_entry_env)
+        out += f"\n[TIMEOUT RETRY:{tag}] " + ' '.join(shlex.quote(x) for x in cmd) + f"\n[TIMEOUT RC] {rci}\n" + outi
+        rc = rci
+        if rc != 124:
+            break
+    return rc, out
 def main():
     OUT.mkdir(exist_ok=True)
     results = {}
@@ -371,7 +430,10 @@ def main():
         per = {}
         default_entry_env = {'EPPATHER_ENTRY': 'cJSON_Parse'} if name == 'cjson' else None
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
-            cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)]
+            target_input = compat_i_file
+            if name == 'tinyexpr' and opt in ('-s', '-g') and conf.get('fallback_src'):
+                target_input = conf['fallback_src']
+            cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(target_input)]
             rc, out = run(cmd, timeout=profile['timeout'], extra_env=default_entry_env)
             if rc == 124 and name in FALLBACK_PROFILE:
                 for fb in FALLBACK_PROFILE[name]:
@@ -392,10 +454,11 @@ def main():
                     rc = rc_e
                     if rc != 124:
                         break
+            rc, out = retry_on_timeout(name, opt, Path(target_input), default_entry_env, out, rc)
             # Crash-oriented fallback: if summary/DP crashes (-11 etc.), retry with
             # stricter budget and optionally tinyexpr fallback source.
             if rc < 0 and opt in ('-s', '-g'):
-                crash_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '4', str(compat_i_file)]
+                crash_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '4', str(target_input)]
                 rc_c, out_c = run(crash_cmd, timeout=90, extra_env=default_entry_env)
                 out += (
                     "\n[CRASH RETRY] " + ' '.join(shlex.quote(x) for x in crash_cmd)
@@ -416,9 +479,10 @@ def main():
                     )
                     rc = rc_fb
             if rc < 0 and opt in ('-s', '-g'):
-                bad_lines = extract_failure_lines(out, compat_i_file.name)
+                bad_lines = extract_failure_lines(out, Path(target_input).name)
                 if bad_lines:
-                    sanitized = sanitize_by_failure_lines(compat_text, bad_lines[:200])
+                    target_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
+                    sanitized = sanitize_by_failure_lines(target_text, bad_lines[:200])
                     sanitized_file = pdir / f'{name}.sanitized.compat.i'
                     sanitized_file.write_text(sanitized)
                     san_cmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '20', str(sanitized_file)]
@@ -429,8 +493,12 @@ def main():
                         + f"\n[SANITIZE RC] {rc_s}\n" + out_s
                     )
                     rc = rc_s
+            if rc != 0 and opt in ('-s', '-g'):
+                retry_base = i_file if name != 'tinyexpr' else Path(target_input)
+                rc, out = retry_with_compat_levels(name, opt, profile, retry_base, pdir, default_entry_env, out, rc)
             if rc < 0:
-                fail_points = extract_failure_diagnostics(out, compat_text, compat_i_file.name)
+                diag_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
+                fail_points = extract_failure_diagnostics(out, diag_text, Path(target_input).name)
                 if fail_points:
                     out += "\n[FAILURE DIAGNOSTICS]\n" + "\n\n".join(fail_points) + "\n"
             (pdir / fname).write_text(out)
