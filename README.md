@@ -234,6 +234,43 @@ MEMS: 18
 
 ---
 
+### 论文实验：三项目基准说明（cJSON / Lua / tinyexpr）
+
+为便于论文复现，仓库提供了 `run_three_projects_experiment.py` 与 `experiment_results/` 目录，统一执行三类代表性 C 项目：
+
+- **cJSON**：中等规模、分支密集、字符串解析路径多，适合检验 CFG 与路径枚举鲁棒性；
+- **Lua（lapi.c）**：宏与类型系统复杂，适合检验预处理与兼容策略；
+- **tinyexpr（cfgsafe 变体）**：核心逻辑紧凑，适合对比摘要质量与 CFG 可读性。
+
+#### 预处理与兼容策略
+
+脚本先执行 `gcc -E -P` 预处理，再输出 `*.compat.i` 供分析，核心兼容动作包括：
+
+- 去除 GNU 扩展属性与部分高噪声声明（如 `__attribute__`、复杂 `typedef`）；
+- 统一部分类型别名与声明宏；
+- 项目特定兼容：
+  - Lua：弱化装饰宏并替换常见别名类型；
+  - tinyexpr：替换函数指针类型别名；
+  - cJSON：规整 `CJSON_PUBLIC/CJSON_CDECL` 包装与 bool 别名。
+
+#### cJSON 超时问题（本次修复）
+
+针对 cJSON 仍可能超时的问题，实验脚本已增加分项目运行档位和回退机制：
+
+- cJSON 默认更保守预算：`--maxpaths 60`、`timeout=240s`；
+- 首轮超时时自动回退：`--maxpaths 20`、`timeout=300s`；
+- 输出会记录 `[FALLBACK RETRY]` 与 `[FALLBACK RC]`，便于论文实验追踪。
+
+#### 当前仓库内结果摘要（以现有 `experiment_results/` 为准）
+
+- cJSON：`function_count=0`，`summary_case_count=0`，`call_edge_count=0`，`cfg_graph_count=1`；
+- Lua：`function_count=0`，`summary_case_count=0`，`call_edge_count=0`，`cfg_graph_count=0`；
+- tinyexpr：当前 `report.json` 统计为空（需完整重跑后刷新）。
+
+> 说明：以上数据来自仓库当前 `experiment_results/report.json` 与 `summary.txt` 产物，可作为论文“当前版本基线”；正式实验建议在统一环境重跑后更新最终统计表。
+
+---
+
 ### 一键功能验证脚本（新增）
 
 仓库提供了自动化脚本 `tools/run_feature_checks.sh`，用于一次性构建并验证以下能力：

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, os, re, shutil, subprocess
+import json, os, re, shlex, shutil, subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -22,6 +22,16 @@ PROJECTS = {
         'src': TC / 'tinyexpr' / 'tinyexpr_cfgsafe.c',
         'cpp_flags': ['-I', str(TC / 'tinyexpr')],
     },
+}
+
+RUNTIME_PROFILE = {
+    'cjson': {'maxloop': '1', 'maxpaths': '60', 'timeout': 240},
+    'lua': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
+    'tinyexpr': {'maxloop': '1', 'maxpaths': '120', 'timeout': 180},
+}
+
+FALLBACK_PROFILE = {
+    'cjson': {'maxloop': '1', 'maxpaths': '20', 'timeout': 300},
 }
 
 
@@ -198,9 +208,21 @@ def main():
         else:
             compat_i_file.write_text(compat_filter(name, i_file.read_text()))
 
+        profile = RUNTIME_PROFILE.get(name, {'maxloop': '1', 'maxpaths': '120', 'timeout': 180})
         per = {}
         for opt, fname in [('-s', 'summary.txt'), ('-g', 'worst_path_dp.txt'), ('-c', 'cfg.txt')]:
-            rc, out = run([str(CNIP), opt, '--maxloop', '1', '--maxpaths', '120', str(compat_i_file)], timeout=180)
+            cmd = [str(CNIP), opt, '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)]
+            rc, out = run(cmd, timeout=profile['timeout'])
+            if rc == 124 and name in FALLBACK_PROFILE:
+                fb = FALLBACK_PROFILE[name]
+                fb_cmd = [str(CNIP), opt, '--maxloop', fb['maxloop'], '--maxpaths', fb['maxpaths'], str(compat_i_file)]
+                rc, out_fb = run(fb_cmd, timeout=fb['timeout'])
+                out = (
+                    out
+                    + "\n[FALLBACK RETRY] " + ' '.join(shlex.quote(x) for x in fb_cmd)
+                    + f"\n[FALLBACK RC] {rc}\n"
+                    + out_fb
+                )
             (pdir / fname).write_text(out)
             per[fname] = rc
             if opt == '-c':
@@ -216,8 +238,8 @@ def main():
             fnames = parse_function_names(summary_text)
             if fnames:
                 rc_retry, out_retry = run(
-                    [str(CNIP), '-s', '--maxloop', '1', '--maxpaths', '120', str(compat_i_file)],
-                    timeout=180,
+                    [str(CNIP), '-s', '--maxloop', profile['maxloop'], '--maxpaths', profile['maxpaths'], str(compat_i_file)],
+                    timeout=profile['timeout'],
                     extra_env={'EPPATHER_ENTRY': fnames[0]},
                 )
                 (pdir / 'summary_entry_retry.txt').write_text(out_retry)
