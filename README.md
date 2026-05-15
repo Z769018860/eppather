@@ -236,53 +236,77 @@ MEMS: 18
 
 ### 论文实验：三项目基准说明（cJSON / Lua / tinyexpr）
 
-为便于论文复现，仓库提供了 `run_three_projects_experiment.py` 与 `experiment_results/` 目录，统一执行三类代表性 C 项目：
+仓库提供 `run_three_projects_experiment.py`，用于对三个真实 C 项目做统一流程实验，并将产物写入 `experiment_results/<project>/`。
 
-- **cJSON**：中等规模、分支密集、字符串解析路径多，适合检验 CFG 与路径枚举鲁棒性；
-- **Lua（lapi.c）**：宏与类型系统复杂，适合检验预处理与兼容策略；
-- **tinyexpr（cfgsafe 变体）**：核心逻辑紧凑，适合对比摘要质量与 CFG 可读性。
+#### 原始仓库、选取文件与项目特征
 
-#### 预处理与兼容策略
+- **cJSON**（`DaveGamble/cJSON`）  
+  选取 `testcase/cJSON/cJSON.c`。单文件内包含解析、打印、错误处理等大量分支，路径密度高，适合验证路径枚举与超时退避策略。
+- **Lua**（`lua/lua`）  
+  选取 `testcase/lua/lapi.c`，并显式不使用 `onelua.c`（聚合过大、CFG 信噪比较差）。该文件宏、别名类型与 API 装饰较多，适合验证预处理兼容性。
+- **tinyexpr**（`codeplea/tinyexpr`）  
+  选取 `testcase/tinyexpr/tinyexpr_cfgsafe.c`（兼容版输入），核心表达式求值逻辑较紧凑，适合作为摘要与 CFG 对照组。
 
-脚本先执行 `gcc -E -P` 预处理，再输出 `*.compat.i` 供分析，核心兼容动作包括：
+#### 预处理与兼容策略（按脚本实际行为）
 
-- 去除 GNU 扩展属性与部分高噪声声明（如 `__attribute__`、复杂 `typedef`）；
-- 统一部分类型别名与声明宏；
-- 项目特定兼容：
-  - Lua：弱化装饰宏并替换常见别名类型；
-  - tinyexpr：替换函数指针类型别名；
-  - cJSON：规整 `CJSON_PUBLIC/CJSON_CDECL` 包装与 bool 别名。
+脚本对 `cJSON/lua` 先执行：
 
-#### 原始仓库与项目特征
+```bash
+gcc -E -P -std=c11 <cpp_flags> <src> > <project>.i
+```
 
-- **cJSON**：原始仓库 `DaveGamble/cJSON`，单文件实现（`cJSON.c`）包含大量 JSON 解析/打印分支，路径爆炸风险最高；
-- **Lua**：原始仓库 `lua/lua`，实验选取 `lapi.c`（避免 `onelua.c` 超大聚合文件导致 CFG 信噪比下降）；
-- **tinyexpr**：原始仓库 `codeplea/tinyexpr`，表达式求值逻辑紧凑，适合作为小型对照组。
+随后生成 `<project>.compat.i`，主要做以下兼容处理：
 
-#### 预处理与兼容（本次整理）
+- 注入兼容前导（如 `__attribute__`、`__extension__`、`__inline__` 的兜底定义，以及 `size_t/ptrdiff_t/uintptr_t` 基础 typedef）；
+- 过滤解析噪声：`__attribute__/__declspec`、复杂 `typedef`、高噪声 `extern` 函数声明、匿名 `struct/union` 起始声明、`#pragma/#line` 等；
+- 将“简单 typedef 别名”转为宏定义，降低解析负担；
+- 项目特化改写：
+  - **Lua**：替换 `ptrdiff_t/size_t/Instruction/StkId/Pfunc` 等别名，并去除 `LUA_API/LUAI_*` 装饰；
+  - **tinyexpr**：将 `te_fun0/1/2/7` 别名改写为显式函数指针类型；
+  - **cJSON**：规整 `CJSON_PUBLIC()/CJSON_CDECL`，将 `cJSON_bool` 归一为 `int`，并固定 `CJSON_NESTING_LIMIT`。
 
-- 通用预处理：`gcc -E -P -std=c11` 生成 `.i`；
-- 通用兼容过滤：去除 `__attribute__/__declspec`、复杂 `typedef`、高噪声 `extern` 声明，并注入最小类型前导；
-- Lua 兼容：替换 `size_t/ptrdiff_t/Instruction/StkId` 等别名，清理 `LUA_API/LUAI_*` 装饰宏；
-- tinyexpr 兼容：保留 `tinyexpr_cfgsafe.c`，并将 `te_fun*` 函数指针别名改写为显式函数指针类型；
-- cJSON 兼容：规整 `CJSON_PUBLIC/CJSON_CDECL` 包装、`cJSON_bool` 与 `CJSON_NESTING_LIMIT`。
+> 注：`tinyexpr_cfgsafe.c` 在脚本中按“直读源文件”处理，不额外跑 `gcc -E`，但仍走统一分析输出流程。
 
-#### cJSON 超时问题（本次修复）
+#### 运行预算与超时兼容
 
-针对 cJSON 仍可能超时的问题，`run_three_projects_experiment.py` 进一步引入了**多级退避 + 入口重试**：
+- 默认预算（`--maxloop 1`）：
+  - cJSON：`--maxpaths 30`，`timeout=180s`
+  - Lua/tinyexpr：`--maxpaths 120`，`timeout=180s`
+- cJSON 超时后自动退避：
+  - `maxpaths=15, timeout=180s`
+  - `maxpaths=8, timeout=120s`
+- 若仍超时，脚本会从 `cJSON.compat.i` 自动提取候选函数，并通过环境变量 `EPPATHER_ENTRY=<func>` 做入口重试。
 
-- 首轮预算：`--maxpaths 30`、`timeout=180s`；
-- 超时后自动多级回退：`maxpaths=15(timeout=180s)` → `maxpaths=8(timeout=120s)`；
-- 若仍超时，自动从 `cJSON.compat.i` 提取候选函数并以 `EPPATHER_ENTRY` 定向重试；
-- 所有重试轨迹都会写入输出（`[FALLBACK RETRY] / [ENTRY RETRY]`），便于论文记录与复核。
+所有退避与重试轨迹会写入输出文件（包含 `[FALLBACK RETRY]`、`[ENTRY RETRY]` 标记），便于论文复核。
 
-#### 当前仓库内结果摘要（以现有 `experiment_results/` 为准）
+#### 一次实验会产出什么（函数摘要 / CFG / MEMS）
 
-- cJSON：`function_count=0`，`summary_case_count=0`，`call_edge_count=0`，`cfg_graph_count=1`；
-- Lua：`function_count=0`，`summary_case_count=0`，`call_edge_count=0`，`cfg_graph_count=0`；
-- tinyexpr：当前 `report.json` 统计为空（需完整重跑后刷新）。
+对每个项目，脚本都会调用 `cnip` 三次：
 
-> 说明：以上数据来自仓库当前 `experiment_results/report.json` 与 `summary.txt` 产物，可作为论文“当前版本基线”；正式实验建议在统一环境重跑后更新最终统计表。
+- `-s`：生成函数摘要与统计（`summary.txt`）；
+- `-g`：生成最坏路径（DP）结果（`worst_path_dp.txt`）；
+- `-c`：生成 CFG 文本与 `cfg_func_*.dot` 图文件（`cfg.txt` + DOT）。
+
+并在 `experiment_results/report.json` 汇总关键字段，例如：
+
+- `function_count / summary_case_count / call_edge_count`
+- `worst_mems / weighted_avg_mems`
+- `cfg_graph_count`
+- `cfg_quality_sample`（每个 DOT 的节点数/边数样本）
+- 各步骤返回码 `rcodes`
+
+#### 复现实验命令
+
+```bash
+python3 run_three_projects_experiment.py
+```
+
+运行后可重点查看：
+
+- `experiment_results/report.json`（跨项目总览）
+- `experiment_results/<project>/summary.txt`（函数摘要与 MEMS 汇总）
+- `experiment_results/<project>/worst_path_dp.txt`（最坏路径）
+- `experiment_results/<project>/cfg_func_*.dot`（CFG 图）
 
 ---
 
