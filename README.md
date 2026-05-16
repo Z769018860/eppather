@@ -334,10 +334,10 @@ testcase/_eppather_runs/20260516_180425/
 最新一次全函数实验结果位于：
 
 ```text
-testcase/_eppather_runs/20260516_183533/final_summary.csv
+testcase/_eppather_runs/20260516_185515/final_summary.csv
 ```
 
-本轮实验使用 `--entry-set all`，即对三个小型 C 项目中由预处理脚本发现并过滤后的项目级候选函数进行函数摘要生成。`run_summary.csv` 保留所有中间尝试记录；`final_summary.csv` 为每个 `(project, entry, mode)` 选择最终最佳结果，因此成功率统计以 `final_summary.csv` 为准。
+本轮实验在前一轮 66/66 成功的基础上进一步加入了 `semantic_stubbed` slice。该 slice 不再只根据函数签名生成统一模板，而是在尽量保留原函数体控制流、指针访问、数组访问和 SDS 核心布局语义的前提下，对当前后端不稳定支持的真实 C 构造进行局部改写。`run_summary.csv` 保留所有中间尝试记录；`final_summary.csv` 为每个 `(project, entry, mode)` 选择最终最佳结果，因此成功率统计以 `final_summary.csv` 为准。
 
 复现实验命令：
 
@@ -364,7 +364,7 @@ python3 tools/run_small_project_summaries.py \
 | sds | 47 | 47 | 100.0% | 47 |
 | 合计 | 66 | 66 | 100.0% | 66 |
 
-本轮结果表明，经过项目级预处理、入口过滤、类型保持近似和自动兼容 slice 后，Eppather 已能够对三个小型 C 项目的项目级候选函数集合生成函数摘要。三个项目共 66 个候选函数均成功生成最终函数摘要，且最终结果均由 pafi-rs 原生后端完成。
+本轮结果表明，经过项目级预处理、入口过滤、类型保持近似、语义保持局部改写和自动兼容 slice 后，Eppather 已能够对三个小型 C 项目的项目级候选函数集合生成函数摘要。三个项目共 66 个候选函数均成功生成最终函数摘要，且最终结果均由 pafi-rs 原生后端完成。
 
 #### 可写入论文的结果表
 
@@ -382,6 +382,27 @@ python3 tools/run_small_project_summaries.py \
 中文表述：
 
 > 我们在 clibs/list、inih 和 sds 三个小型开源 C 项目上评估 Eppather 的函数摘要能力。在过滤非库函数入口后，预处理流程共发现并尝试 66 个项目级候选函数，Eppather 成功为全部 66 个函数生成最终函数摘要，成功率为 100.0%。实验结果表明，Eppather 目前已经可以支持小型 C 项目的项目级函数摘要生成。
+
+#### Slice 分布与语义保留程度
+
+为了避免将所有结果都解释为同等强度的原始语义摘要，本实验进一步记录最终结果来自哪一类 slice。各项目最终 slice 分布如下：
+
+| 项目 | Total | closure | entry_only | type_erased | semantic_stubbed | compat_entry | auto_compat |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| clibs/list | 9 | 0 | 0 | 5 | 1 | 0 | 3 |
+| inih | 10 | 0 | 0 | 2 | 4 | 1 | 3 |
+| sds | 47 | 3 | 0 | 13 | 1 | 3 | 27 |
+| 合计 | 66 | 3 | 0 | 20 | 6 | 4 | 33 |
+
+其中，`closure`、`entry_only`、`type_erased` 和 `semantic_stubbed` 保留了原始函数体结构或主要内存访问形态；`compat_entry` 和 `auto_compat` 作为兼容模型使用，用于当前后端仍难以稳定处理的复杂真实 C 构造。因此，除总体成功率外，本文同时报告语义保留类 slice 的覆盖情况：
+
+| 类别 | 包含 slice | 函数数 | 占比 |
+|---|---|---:|---:|
+| 语义保留摘要 | `closure` / `entry_only` / `type_erased` / `semantic_stubbed` | 29 | 43.9% |
+| 兼容模型摘要 | `compat_entry` / `auto_compat` | 37 | 56.1% |
+| 合计 | 全部最终摘要 | 66 | 100.0% |
+
+这一区分用于说明：Eppather 的项目级摘要管线已经能覆盖所有小型 C 项目候选函数；其中一部分结果来自保持函数体结构的近似转换，另一部分来自兼容摘要模型。兼容模型用于提升工程覆盖率，不应被解释为与原始 C 函数完全语义等价。
 
 #### 三个项目的逐步处理方法
 
@@ -444,8 +465,9 @@ testcase/_eppather_preprocessed/sds/sds_sds_flat.c
 | `closure` | 入口函数及其直接调用闭包 | 优先保留真实源代码结构 |
 | `entry_only` | 只保留入口函数 | 排除被调用函数导致的解析和求解不稳定 |
 | `type_erased` | 类型保持近似版本 | 将 `char/double/typedef` 等弱化为 `int` 系列，同时保留 `int *`、`int[]`、`*p`、`p[i]` 等内存访问形态 |
+| `semantic_stubbed` | 保持函数体结构的语义化近似 | 保留控制流和主要内存访问，将外部调用与 SDS header 操作局部改写为 pafi-rs 可处理形式 |
 | `compat_entry` | 手写兼容摘要模型 | 用于少量核心 API 的稳定兼容建模 |
-| `auto_compat` | 自动生成兼容摘要模型 | 根据函数签名自动构造 pafi-rs 易处理的摘要模型，用于高复杂度函数 |
+| `auto_compat` | 自动生成兼容摘要模型 | 根据函数签名自动构造 pafi-rs 易处理的摘要模型，用于高复杂度函数的最终兜底 |
 
 **Step 5：类型保持近似**
 
@@ -460,11 +482,37 @@ testcase/_eppather_preprocessed/sds/sds_sds_flat.c
 | `p->field` | `p[k]` | 将结构体字段近似为槽位访问 |
 | `obj.field` | `obj_field` | 将非指针结构体字段降级为普通变量 |
 
-这样既避免真实 C 类型系统带来的后端不稳定，又保留 MEMS 度量所依赖的关键内存访问结构。
+**Step 6：semantic-stubbed 局部语义改写**
 
-**Step 6：自动兼容摘要模型**
+为避免所有复杂函数都退化为同质化兼容模板，脚本新增 `semantic_stubbed`。该 slice 保留原函数体控制流，再对不稳定语法做局部改写。对于 SDS，使用抽象 header 槽位建模核心状态：
 
-对于 SDS 这类宏和指针布局密集的库，仅依赖原始 slice 或 type-erased slice 仍可能不稳定。因此脚本增加 `auto_compat`：根据函数签名自动构造简化摘要模型。例如，对标量参数生成条件分支，对指针参数生成受保护的槽位读取：
+| SDS 抽象槽位 | 含义 |
+|---|---|
+| `s[0]` | `len` |
+| `s[1]` | `alloc` |
+| `s[2]` | `flags/header byte` |
+| `s[3..]` | payload slots |
+
+典型改写包括：
+
+| 原始 C 形式 | semantic-stubbed 改写 |
+|---|---|
+| `sdslen(s)` | `s[0]` |
+| `sdsavail(s)` | `s[1] - s[0]` |
+| `sdsalloc(s)` | `s[1]` |
+| `sdssetlen(s, n)` | `s[0] = n` |
+| `sdsinclen(s, inc)` | `s[0] = s[0] + inc` |
+| `sdssetalloc(s, n)` | `s[1] = n` |
+| `s[-1]` | `s[2]` |
+| `memcpy(dst, src, n)` / `memmove(dst, src, n)` | `n` |
+| `s_realloc(p, n)` | `p` |
+| `s_malloc(n)` | `0` |
+
+这样可以在尽可能保留原函数语义结构的同时，将真实 C 项目中的复杂类型、内存布局和库调用改写为 pafi-rs 更稳定支持的整数、指针和数组操作。
+
+**Step 7：自动兼容摘要模型**
+
+当保持函数体结构的 slice 仍无法被 pafi-rs 稳定处理时，脚本使用 `auto_compat` 作为最后兜底。它根据函数签名生成简化摘要模型，例如对标量参数生成条件分支，对指针参数生成受保护的槽位读取：
 
 ```c
 int f(int n, int *p)
@@ -484,15 +532,15 @@ int f(int n, int *p)
 
 该模型用于项目级函数摘要覆盖，不等价于完整语义替换；其目标是让复杂库函数也能进入统一的摘要生成和 MEMS 统计流程。
 
-**Step 7：native-first 运行与最终结果选择**
+**Step 8：native-first 运行与最终结果选择**
 
 脚本采用 native-first 策略：优先尝试 pafi-rs 原生后端，并按 slice 优先级选择最终结果：
 
 ```text
-closure -> entry_only -> type_erased -> compat_entry -> auto_compat
+closure -> entry_only -> type_erased -> semantic_stubbed -> compat_entry -> auto_compat
 ```
 
-只有当前面 slice 失败时，后续兼容 slice 才会被选为最终结果。最终结果写入：
+最终结果写入：
 
 ```text
 testcase/_eppather_runs/<timestamp>/final_summary.csv
@@ -516,10 +564,11 @@ testcase/_eppather_runs/<timestamp>/run_summary.csv
 | R1 | `20260516_180425` | 扩展到 `--entry-set all` 全函数模式 | 初始项目级函数集合 | 70 | 54 | 77.1% | 28 |
 | R2 | `20260516_181840` | 过滤非项目入口；为 SDS 增加 `auto_compat` | 过滤后的项目级函数集合 | 66 | 61 | 92.4% | 52 |
 | R3 | `20260516_183533` | 修复生成函数头；将 `auto_compat` 扩展到三个项目 | 最终项目级函数集合 | 66 | 66 | 100.0% | 66 |
+| R4 | `20260516_185515` | 增加 `semantic_stubbed`，在保留语义的情况下进行局部简化和兼容 | 最终项目级函数集合 | 66 | 66 | 100.0% | 66 |
 
-其中 R3 相比 R1 的主要提升为：
+其中 R4 相比 R1 的主要提升为：
 
-| 指标 | R1：`20260516_180425` | R3：`20260516_183533` | 提升 |
+| 指标 | R1：`20260516_180425` | R4：`20260516_185515` | 提升 |
 |---|---:|---:|---:|
 | 尝试函数数 | 70 | 66 | 去除 4 个非项目入口 |
 | 成功摘要数 | 54 | 66 | +12 |
@@ -533,10 +582,12 @@ testcase/_eppather_runs/<timestamp>/run_summary.csv
 | `20260516_180425` | 51 | 35 | 68.6% | 17 |
 | `20260516_181840` | 47 | 42 | 89.4% | 41 |
 | `20260516_183533` | 47 | 47 | 100.0% | 47 |
+| `20260516_185515` | 47 | 47 | 100.0% | 47 |
 
 #### 当前局限
 
-- `type_erased` 和 `auto_compat` 是面向后端稳定性的近似摘要输入，不应视为完整 C 语义等价转换；
+- `type_erased` 和 `semantic_stubbed` 是面向后端稳定性的近似摘要输入，不应视为完整 C 语义等价转换；
+- `auto_compat` 是最后兜底的兼容摘要模型，主要用于项目级覆盖率，不代表完整函数语义；
 - 当前实验对象是小型、单源文件为主的 C 项目，尚未覆盖大型多文件工程；
 - 对 cJSON、tinyexpr 和 Lua 等更复杂项目，仍需增强宏展开、函数指针、跨文件调用图和解释器式控制流建模；
 - `run_summary.csv` 中仍会保留中间失败项，最终实验统计应以 `final_summary.csv` 为准。
