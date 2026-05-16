@@ -1,25 +1,25 @@
-/* Generated type-erased approximation for eppather summary mode. */
+/* Generated typed approximation for eppather summary mode. */
 
 /* project=list EPPATHER_ENTRY=list_lpop slice=type_erased */
 
 
-/* ===== TYPE ERASED FUNCTION list_lpop ===== */
+/* ===== TYPED APPROX FUNCTION list_lpop ===== */
 
-int * list_lpop(int *self)
+int *list_lpop(int *self)
 {
     int prev;
 
-  if (!self[8]) return 0;
+  if (!self[4]) return 0;
 
-  int *node = self[8];
+  int *node;
 
-  if (--self[8]) {
-    (self[8] = node[8])->prev = 0;
+  if (--self[4]) {
+    (self[3] = node[2])->prev = 0;
   } else {
-    self[8] = self[8] = 0;
+    self[3] = self[2] = 0;
   }
 
-  node[8] = node[8] = 0;
+  node[2] = node[1] = 0;
   return node;
 }
 

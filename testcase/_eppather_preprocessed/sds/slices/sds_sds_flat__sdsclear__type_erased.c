@@ -1,32 +1,31 @@
-/* Generated type-erased approximation for eppather summary mode. */
+/* Generated typed approximation for eppather summary mode. */
 
 /* project=sds EPPATHER_ENTRY=sdsclear slice=type_erased */
 
 
-/* ===== TYPE ERASED FUNCTION sdsclear ===== */
+/* ===== TYPED APPROX FUNCTION sdsclear ===== */
 
-int * sdsclear(int *s)
+int *sdsclear(int *s)
 {
 
-    1;
-    s[8] = 1;
-    return 0;
-
+    sdssetlen(s, 0);
+    s[0] = '\0';
 }
 
 
 
 
-/* ===== TYPE ERASED FUNCTION sdssetlen ===== */
+/* ===== TYPED APPROX FUNCTION sdssetlen ===== */
 
-int sdssetlen(int *s, int newlen)
+intsdssetlen(int *s, int newlen)
 {
     int break;
+    int flagsSDS_TYPE_MASK;
     int fp;
     int len;
 
-    int flags = s[8];
-    switch(flags&SDS_TYPE_MASK) {
+    int *flags;
+    switch(flagsSDS_TYPE_MASK) {
         case SDS_TYPE_5:
             {
 
@@ -46,8 +45,6 @@ int sdssetlen(int *s, int newlen)
             1->len = newlen;
             break;
     }
-    return 0;
-
 }
 
 

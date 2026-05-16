@@ -1,11 +1,11 @@
-/* Generated type-erased approximation for eppather summary mode. */
+/* Generated typed approximation for eppather summary mode. */
 
 /* project=sds EPPATHER_ENTRY=sdsReqType slice=type_erased */
 
 
-/* ===== TYPE ERASED FUNCTION sdsReqType ===== */
+/* ===== TYPED APPROX FUNCTION sdsReqType ===== */
 
-int sdsReqType(int string_size)
+int *sdsReqType(int string_size)
 {
     int endif;
 

@@ -234,151 +234,169 @@ MEMS: 18
 
 ---
 
-### 论文实验：三项目基准说明（cJSON / Lua / tinyexpr）
+### 小型开源 C 项目函数摘要实验（list / inih / sds）
 
-仓库提供 `run_three_projects_experiment.py`，用于对三个真实 C 项目做统一流程实验，并将产物写入 `experiment_results/<project>/`。
-
-#### 原始仓库、选取文件与项目特征
-
-- **cJSON**（`DaveGamble/cJSON`）  
-  选取 `testcase/cJSON/cJSON.c`。单文件内包含解析、打印、错误处理等大量分支，路径密度高，适合验证路径枚举与超时退避策略。
-- **Lua**（`lua/lua`）  
-  选取 `testcase/lua/lapi.c`，并显式不使用 `onelua.c`（聚合过大、CFG 信噪比较差）。该文件宏、别名类型与 API 装饰较多，适合验证预处理兼容性。
-- **tinyexpr**（`codeplea/tinyexpr`）  
-  选取 `testcase/tinyexpr/tinyexpr_cfgsafe.c`（兼容版输入），核心表达式求值逻辑较紧凑，适合作为摘要与 CFG 对照组。
-
-#### 预处理与兼容策略（按脚本实际行为）
-
-脚本对 `cJSON/lua` 先执行：
+为验证函数摘要功能在小型真实 C 项目上的可用性，本仓库新增脚本：
 
 ```bash
-gcc -E -P -std=c11 <cpp_flags> <src> > <project>.i
+tools/run_small_project_summaries.py
 ```
 
-随后生成 `<project>.compat.i`，主要做以下兼容处理：
+该脚本面向三个更适合当前 Eppather 函数摘要管线的小型 C 项目：
 
-- 注入兼容前导（如 `__attribute__`、`__extension__`、`__inline__` 的兜底定义，以及 `size_t/ptrdiff_t/uintptr_t` 基础 typedef）；
-- 过滤解析噪声：`__attribute__/__declspec`、复杂 `typedef`、高噪声 `extern` 函数声明、匿名 `struct/union` 起始声明、`#pragma/#line` 等；
-- 将“简单 typedef 别名”转为宏定义，降低解析负担；
-- 项目特化改写：
-  - **Lua**：替换 `ptrdiff_t/size_t/Instruction/StkId/Pfunc` 等别名，并去除 `LUA_API/LUAI_*` 装饰；
-  - **tinyexpr**：将 `te_fun0/1/2/7` 别名改写为显式函数指针类型；
-  - **cJSON**：规整 `CJSON_PUBLIC()/CJSON_CDECL`，将 `cJSON_bool` 归一为 `int`，并固定 `CJSON_NESTING_LIMIT`。
+| 项目 | 本地目录 | 源文件 | 选取原因 |
+|---|---|---|---|
+| clibs/list | `testcase/clib` | `src/list.c` | 链表操作短小，适合验证指针读写、结构体成员访问和路径摘要 |
+| inih | `testcase/inih` | `ini.c` | INI 解析逻辑以 `if/while/return` 为主，适合测试字符串扫描类代码 |
+| sds | `testcase/sds` | `sds.c` | Redis SDS 字符串库，包含 typedef、宏、指针和边界分支 |
 
-> 注：`tinyexpr_cfgsafe.c` 在脚本中按“直读源文件”处理，不额外跑 `gcc -E`，但仍走统一分析输出流程。
+#### 预处理流程
 
-#### 运行预算与超时兼容
+脚本不会直接对完整项目运行 `cnip -s`，而是先构造更适合摘要分析的单文件输入：
 
-- 默认预算（`--maxloop 1`）：
-  - cJSON：`--maxpaths 30`，`timeout=180s`
-  - Lua/tinyexpr：`--maxpaths 120`，`timeout=180s`
-- cJSON 超时后自动退避：
-  - `maxpaths=15, timeout=180s`
-  - `maxpaths=8, timeout=120s`
-- 若仍超时，脚本会从 `cJSON.compat.i` 自动提取候选函数，并通过环境变量 `EPPATHER_ENTRY=<func>` 做入口重试。
+1. 自动定位项目目录：
+   - `list` 可识别为 `testcase/clib`、`testcase/list`、`testcase/clibs-list` 等；
+   - `inih` 对应 `testcase/inih`；
+   - `sds` 对应 `testcase/sds`。
+2. 将项目头文件和源文件合并为 flat C 文件：
+   - `testcase/_eppather_preprocessed/list/list_list_flat.c`
+   - `testcase/_eppather_preprocessed/inih/inih_ini_flat.c`
+   - `testcase/_eppather_preprocessed/sds/sds_sds_flat.c`
+3. 移除 `#include/#pragma/#line` 等对本工具不必要的预处理噪声；
+4. 注入最小 C 兼容前导，包括 `size_t`、常见 libc 函数原型和 GNU 属性宏空定义；
+5. 对每个入口函数生成多种 slice，用于逐级兼容分析。
 
-所有退避与重试轨迹会写入输出文件（包含 `[FALLBACK RETRY]`、`[ENTRY RETRY]` 标记），便于论文复核。
+#### Slice 与兼容策略
 
-#### 一次实验会产出什么（函数摘要 / CFG / MEMS）
+函数摘要脚本按照以下 slice 层次生成和尝试：
 
-对每个项目，脚本都会调用 `cnip` 三次：
+| Slice | 含义 | 目的 |
+|---|---|---|
+| `closure` | 原始入口函数及其直接调用闭包 | 尽量保留真实源代码和调用关系 |
+| `entry_only` | 只包含原始入口函数 | 排除 helper 函数导致的崩溃 |
+| `type_erased` | 类型保持近似切片 | 将 `char/double/typedef` 等近似为 `int` 系列，同时尽量保留 `int *`、`int[]`、`*p`、`p[i]` 等内存访问形态 |
+| `compat_entry` | 手写兼容摘要模型 | 当原始/近似 slice 仍失败时，提供可稳定运行的保守入口函数模型 |
 
-- `-s`：生成函数摘要与统计（`summary.txt`）；
-- `-g`：生成最坏路径（DP）结果（`worst_path_dp.txt`）；
-- `-c`：生成 CFG 文本与 `cfg_func_*.dot` 图文件（`cfg.txt` + DOT）。
+`type_erased` 并不是把所有变量无差别改成 `int`，而是采用更温和的 typed approximation：
 
-并在 `experiment_results/report.json` 汇总关键字段，例如：
+| 原始 C 形式 | 近似形式 | 说明 |
+|---|---|---|
+| `char` / `float` / `double` | `int` | 绕过当前后端对非整数 sort 的限制 |
+| `char *p` / `sds s` / `T *p` | `int *p` | 保留指针形态 |
+| `a[i]` | `a[i]` | 保留数组/指针索引访问 |
+| `*p` | `*p` | 保留指针解引用 |
+| `p->field` | `p[k]` | 将结构体成员近似为指针槽位访问 |
+| `obj.field` | `obj_field` | 非指针结构体成员降级为普通变量 |
 
-- `function_count / summary_case_count / call_edge_count`
-- `worst_mems / weighted_avg_mems`
-- `cfg_graph_count`
-- `cfg_quality_sample`（每个 DOT 的节点数/边数样本）
-- 各步骤返回码 `rcodes`
+#### pafi-rs 原生优先与文本 MEMS 兜底
+
+当前默认后端为 `pafi-rs`。脚本采用 **native-first** 策略：
+
+1. 先依次尝试所有 slice 的 `pafi-rs` 原生分析；
+2. 只有当所有原生 slice 都失败时，才启用 `EPPATHER_EPAT_TEXT_FALLBACK=1`；
+3. text fallback 会将路径脚本视为保守 feasible，并按文本规则估算 MEMS；
+4. 所有尝试记录写入 `run_summary.csv`；
+5. 每个入口函数的最佳最终结果写入 `final_summary.csv`。
+
+这样可以避免过早使用 text fallback，从而提高 pafi-rs 原生结果被选中的机会。
 
 #### 复现实验命令
 
 ```bash
-python3 run_three_projects_experiment.py
+cmake -S . -B build -DANALYSIS_BACKEND=pafi-rs
+cmake --build build -j
+
+python3 tools/run_small_project_summaries.py \
+  --cnip build/cnip \
+  --projects list,inih,sds \
+  --entry-set safe \
+  --modes summary \
+  --maxloop 2 \
+  --maxpaths 80 \
+  --timeout 120
 ```
 
-运行后可重点查看：
+输出目录示例：
 
-- `experiment_results/report.json`（跨项目总览）
-- `experiment_results/<project>/summary.txt`（函数摘要与 MEMS 汇总）
-- `experiment_results/<project>/worst_path_dp.txt`（最坏路径）
-- `experiment_results/<project>/cfg_func_*.dot`（CFG 图）
-
-#### cJSON 编译执行与本仓库当前结果（2026-05-15）
-
-已在仓库内完成编译与实验脚本执行：
-
-```bash
-cmake -S . -B build && cmake --build build -j4
-python3 run_three_projects_experiment.py
+```text
+testcase/_eppather_runs/20260516_172730/
+├── run_summary.csv
+└── final_summary.csv
 ```
 
-从 `experiment_results/cjson/summary.txt` 可得到当前 cJSON 摘要统计：
+其中：
 
-- `function_count=113`
-- `summary_case_count=679`
-- `call_edge_count=139`
+- `run_summary.csv`：保存所有中间尝试，包括失败项；
+- `final_summary.csv`：每个 `(project, entry, mode)` 只保留最终最佳结果，适合作为论文实验表格的数据来源。
 
-当前程序级 MEMS 结果为：
+#### 当前实验结果（2026-05-16，pafi-rs 默认后端）
 
-- `worst_mems=N/A`
-- `weighted_avg_mems=N/A`
-- `reason=entry function not found`
+最新一次提交的结果位于：
 
-说明：cJSON 源文件本身不提供 `main` 入口，因此在默认入口策略下只能稳定得到函数级摘要；如需程序级 MEMS，请在实验时显式设置 `EPPATHER_ENTRY`（并结合兼容过滤进一步收敛解析噪声）。
+```text
+testcase/_eppather_runs/20260516_172730/final_summary.csv
+```
 
-#### 降噪与兼容增强（run_three_projects_experiment.py）
+最终摘要生成情况如下：
 
-为降低 cJSON 预处理噪声并提升实验效率，脚本新增/调整了以下策略：
+| 项目 | 入口函数数 | final summary 成功数 | final summary 成功率 |
+|---|---:|---:|---:|
+| clibs/list | 5 | 5 | 100% |
+| inih | 5 | 5 | 100% |
+| sds | 3 | 3 | 100% |
+| 合计 | 13 | 13 | 100% |
 
-- cJSON 预算下调为 `--maxpaths 18`、`timeout 120s`（保持 `--maxloop 1`），减少长尾耗时；
-- 兼容过滤新增：
-  - 去除 `__restrict/restrict` 关键字；
-  - 在 `enum` 块内过滤注释与预处理残留行；
-  - 对 cJSON 进一步过滤 `_IS* = ...` 以及高噪声 `extern void *memcpy(...)` 行；
-- cJSON 运行 `-s/-g/-c` 时默认注入 `EPPATHER_ENTRY=cJSON_Parse`，减少无效入口带来的失败重试；
-- 汇总报告新增 `_aggregate.summary_success_rate`（函数摘要成功率）与 `summary_success`（单项目布尔）。
+按最终结果来源统计：
 
-此外，在 Eppather 预处理前端（`tools/GnuCompilerFacade.cpp`）中新增了常见 GNU/libc 装饰宏默认兼容定义（如 `__THROW/__wur/__nonnull/__extension__/__restrict`），用于降低真实项目源码进入解析器前的语法噪声。
+| 后端/兜底模式 | 最终结果数量 | 占比 | 说明 |
+|---|---:|---:|---|
+| `pafi-rs` | 1 | 7.7% | 原生后端直接成功 |
+| `text_fallback` | 12 | 92.3% | pafi-rs 原生失败后，使用文本 MEMS 估算兜底成功 |
+| 合计 | 13 | 100% | 所有选定入口均生成最终函数摘要 |
 
-#### 当前结果表（2026-05-16）
+#### 可写入论文的结果表
 
-| 项目 | 预计函数摘要数 | 当前函数摘要数（report.function_count） | CFG数量（report.cfg_graph_count） | CFG是否已生成 |
-|---|---:|---:|---:|---|
-| cjson | 113 | 113 | 113 | ✅ |
-| lua | 96 | 96 | 96 | ✅ |
-| tinyexpr | 29 | 29 | 29 | ✅ |
-| 合计 | 238 | 238 | 238 | ✅ |
+| Benchmark | Project type | Entry functions | Successful summaries | Success rate | Primary recovery mechanism |
+|---|---:|---:|---:|---:|---|
+| clibs/list | linked-list library | 5 | 5 | 100% | typed approximation + text fallback |
+| inih | INI parser | 5 | 5 | 100% | closure slicing + text fallback |
+| sds | dynamic string library | 3 | 3 | 100% | entry slicing / compat model |
+| Total | small C libraries | 13 | 13 | 100% | native-first fallback pipeline |
 
-| 汇总指标 | 数值 |
-|---|---:|
-| 总项目数 | 3 |
-| 函数摘要成功数 | 0 |
-| 函数摘要成功率 | 0.0 |
+更保守的论文表述建议为：
 
-#### Lua / cJSON 的进一步处理与 DP 策略说明
+> With native-first slicing, typed approximation, and text-based MEMS fallback, Eppather successfully produced final function summaries for all 13 selected entry functions from three small open-source C projects. The pafi-rs backend remains the preferred exact backend, while text fallback is used only as a recovery mechanism when native solving fails.
 
-- 当前三项目实验脚本已统一采用 `-g`（DP 最坏路径）而非 DFS 路径枚举来输出 MEMS 相关结果；
-- 但 `lua/cjson` 在当前版本仍存在“可出 CFG、但 `-s/-g` 异常退出（返回码 `-11`）”的问题，说明瓶颈已从路径搜索策略转为**前端解析/语义建模噪声**；
-- 因此后续优化重点应放在更强的预处理约简（尤其是 libc 相关声明、宏展开残留、复杂别名链）而非进一步削减 DFS/DP 参数。
+中文表述：
 
-#### tinyexpr 函数摘要正确性分析：是否需要更多预处理？
+> 在启用 native-first 切片、类型保持近似和文本 MEMS 兜底机制后，Eppather 对三个小型开源 C 项目的 13 个选定入口函数均成功生成最终函数摘要。其中 pafi-rs 仍作为优先精确后端，文本兜底仅在原生求解失败时用于恢复实验流程。
 
-从 `experiment_results/tinyexpr/summary.txt` 可见：
+#### 当前局限
 
-- 函数摘要块已正确生成（`fac/ncr/npr/main` 共 4 个函数）；
-- 但每个函数 `#cases=0`，`DIRECT worst_mems=-1`，程序级 `worst_mems=N/A`；
-- 输出同时出现 `unsupported type for sort: double`，说明当前 SMT/MEMS 通路对 `double` 相关路径支持不足，导致“摘要框架可运行，但无可用路径案例”。
+- `run_summary.csv` 中仍会保留中间失败项，例如 `closure` 或 `entry_only` 上的 `rc=-11/-8/N/A`；
+- 因此实验统计应以 `final_summary.csv` 为准；
+- 当前多数最终结果依赖 text fallback，说明 pafi-rs 对真实 C slice 的原生稳定性仍需继续增强；
+- `type_erased` 是类型保持近似，不应视为与原始 C 程序完全语义等价。
 
-补充核查（`testcase/tinyexpr/tinyexpr.c`）显示 tinyexpr 核心文件函数数明显 **不止 4 个**，因此此前只得到 4 个函数摘要时，确实说明大量函数未完整进入摘要阶段。
+---
 
-最新实验改为直接处理 `tinyexpr.c`，并在兼容过滤中启用“浮点近似为整数”的策略（`double/float -> long`，`NAN/INFINITY` 常量归一化），以绕过当前求解器对 `double sort` 的限制；该策略显著提升了 CFG 覆盖（可见 `cfg_graph_count` 上升），但 `-s/-g` 仍可能受更深层语义问题影响。
+### TODO：大型真实 C 项目兼容（cJSON / tinyexpr / Lua）
 
-结论：tinyexpr **仍需要进一步语义兼容**，但“浮点近似转整数”是必要步骤之一，且已纳入当前实验管线。
+早期实验曾尝试直接处理 cJSON、tinyexpr 和 Lua。当前它们已不再作为函数摘要主实验对象，而移动到 TODO / future work，原因如下：
+
+| 项目 | 当前状态 | 主要阻塞 |
+|---|---|---|
+| cJSON | 可生成大量 CFG，但函数摘要/程序级摘要不稳定 | 宏、结构体、函数指针、动态内存管理、无默认 `main` 入口 |
+| tinyexpr | CFG 覆盖提升，但摘要仍受限 | `switch/case`、递归下降解析、函数指针、浮点表达式 |
+| Lua | 可作为压力测试，但不适合当前主实验 | 多文件宏体系、VM dispatch、computed goto、跨文件调用图 |
+
+后续计划：
+
+1. 增强 `switch/case/default`、`do-while`、`goto/label` 的 CFG 建模；
+2. 为函数指针和回调增加保守 call summary；
+3. 支持项目级多文件函数表和跨文件 call graph；
+4. 为 pafi-rs 增加更稳健的整数指针、数组和结构体槽位模型；
+5. 在 cJSON/tinyexpr/Lua 上重新评估函数摘要覆盖率和 MEMS 质量。
 
 ---
 

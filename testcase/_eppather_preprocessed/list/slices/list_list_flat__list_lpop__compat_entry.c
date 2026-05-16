@@ -6,15 +6,10 @@
 int list_lpop(int len)
 {
     int reads = 1;
-    if (!len) {
-        return 0;
-    }
+    if (!len) return 0;
     len = len - 1;
-    if (len) {
-        reads = reads + 3;
-    } else {
-        reads = reads + 2;
-    }
+    if (len) reads = reads + 3;
+    else reads = reads + 2;
     return reads + len;
 }
 

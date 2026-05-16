@@ -1,27 +1,25 @@
-/* Generated type-erased approximation for eppather summary mode. */
+/* Generated typed approximation for eppather summary mode. */
 
 /* project=list EPPATHER_ENTRY=list_remove slice=type_erased */
 
 
-/* ===== TYPE ERASED FUNCTION list_remove ===== */
+/* ===== TYPED APPROX FUNCTION list_remove ===== */
 
-int * list_remove(int *self, int *node)
+int *list_remove(int *self, int *node)
 {
 
-  node[8]
-    ? (node[8][8] = node[8])
-    : (self[8] = node[8]);
+  node[1]
+    ? (node[6] = node[2])
+    : (self[3] = node[2]);
 
-  node[8]
-    ? (node[8][8] = node[8])
-    : (self[8] = node[8]);
+  node[2]
+    ? (node[1] = node[1])
+    : (self[2] = node[1]);
 
-  if (self[8]) self[8](node[8]);
+  if (self[1]) self[1](node[1]);
 
   1;
-  --self[8];
-    return 0;
-
+  --self[4];
 }
 
 

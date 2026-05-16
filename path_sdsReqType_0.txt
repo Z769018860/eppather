@@ -1,5 +1,3 @@
-extern const char *SDS_NOINIT;
-const char *SDS_NOINIT = "SDS_NOINIT";
-size_t string_size;
-@(string_size < 1<<5);
+unsigned long string_size;
+@(string_size < 32);
 return 0;

@@ -6,9 +6,7 @@
 int ini_rstrip(int len, int last_is_space)
 {
     if (len > 0) {
-        if (last_is_space) {
-            len = len - 1;
-        }
+        if (last_is_space) len = len - 1;
     }
     return len;
 }

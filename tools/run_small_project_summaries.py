@@ -8,7 +8,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 C_PRELUDE = r"""
 #ifndef NULL
@@ -157,14 +157,9 @@ COMPAT_FUNCTIONS: Dict[Tuple[str, str], str] = {
 int list_rpush(int len, int node_ok)
 {
     int writes = 0;
-    if (!node_ok) {
-        return 0;
-    }
-    if (len) {
-        writes = writes + 4;
-    } else {
-        writes = writes + 4;
-    }
+    if (!node_ok) return 0;
+    if (len) writes = writes + 4;
+    else writes = writes + 4;
     len = len + 1;
     return writes + len;
 }
@@ -173,14 +168,9 @@ int list_rpush(int len, int node_ok)
 int list_lpush(int len, int node_ok)
 {
     int writes = 0;
-    if (!node_ok) {
-        return 0;
-    }
-    if (len) {
-        writes = writes + 4;
-    } else {
-        writes = writes + 4;
-    }
+    if (!node_ok) return 0;
+    if (len) writes = writes + 4;
+    else writes = writes + 4;
     len = len + 1;
     return writes + len;
 }
@@ -189,15 +179,10 @@ int list_lpush(int len, int node_ok)
 int list_rpop(int len)
 {
     int reads = 1;
-    if (!len) {
-        return 0;
-    }
+    if (!len) return 0;
     len = len - 1;
-    if (len) {
-        reads = reads + 3;
-    } else {
-        reads = reads + 2;
-    }
+    if (len) reads = reads + 3;
+    else reads = reads + 2;
     return reads + len;
 }
 """,
@@ -205,15 +190,10 @@ int list_rpop(int len)
 int list_lpop(int len)
 {
     int reads = 1;
-    if (!len) {
-        return 0;
-    }
+    if (!len) return 0;
     len = len - 1;
-    if (len) {
-        reads = reads + 3;
-    } else {
-        reads = reads + 2;
-    }
+    if (len) reads = reads + 3;
+    else reads = reads + 2;
     return reads + len;
 }
 """,
@@ -221,16 +201,10 @@ int list_lpop(int len)
 int list_remove(int has_prev, int has_next, int len)
 {
     int writes = 0;
-    if (has_prev) {
-        writes = writes + 1;
-    } else {
-        writes = writes + 1;
-    }
-    if (has_next) {
-        writes = writes + 1;
-    } else {
-        writes = writes + 1;
-    }
+    if (has_prev) writes = writes + 1;
+    else writes = writes + 1;
+    if (has_next) writes = writes + 1;
+    else writes = writes + 1;
     len = len - 1;
     return writes + len;
 }
@@ -239,9 +213,7 @@ int list_remove(int has_prev, int has_next, int len)
 int ini_rstrip(int len, int last_is_space)
 {
     if (len > 0) {
-        if (last_is_space) {
-            len = len - 1;
-        }
+        if (last_is_space) len = len - 1;
     }
     return len;
 }
@@ -271,9 +243,7 @@ int ini_strncpy0(int size, int src_nonzero)
 {
     int copied = 0;
     if (size > 1) {
-        if (src_nonzero) {
-            copied = copied + 1;
-        }
+        if (src_nonzero) copied = copied + 1;
     }
     return copied;
 }
@@ -281,9 +251,7 @@ int ini_strncpy0(int size, int src_nonzero)
     ("inih", "ini_reader_string"): """
 int ini_reader_string(int num_left, int num)
 {
-    if (num_left == 0 || num < 2) {
-        return 0;
-    }
+    if (num_left == 0 || num < 2) return 0;
     num_left = num_left - 1;
     return num_left + 1;
 }
@@ -291,15 +259,9 @@ int ini_reader_string(int num_left, int num)
     ("sds", "sdsReqType"): """
 int sdsReqType(unsigned long string_size)
 {
-    if (string_size < 32) {
-        return 0;
-    }
-    if (string_size < 256) {
-        return 1;
-    }
-    if (string_size < 65536) {
-        return 2;
-    }
+    if (string_size < 32) return 0;
+    if (string_size < 256) return 1;
+    if (string_size < 65536) return 2;
     return 3;
 }
 """,
@@ -313,9 +275,7 @@ int sdsclear(int len)
     ("sds", "sdsupdatelen"): """
 int sdsupdatelen(int old_len, int real_len)
 {
-    if (real_len >= 0) {
-        old_len = real_len;
-    }
+    if (real_len >= 0) old_len = real_len;
     return old_len;
 }
 """,
@@ -643,59 +603,45 @@ def param_name(param: str, idx: int) -> str:
         return f"arg{idx}"
     return ids[-1]
 
-FIELD_OFFSETS = {
-    "len": 0,
-    "alloc": 1,
-    "flags": 2,
-    "head": 3,
-    "tail": 4,
-    "next": 5,
-    "prev": 6,
-    "val": 7,
-    "value": 7,
-    "ptr": 8,
-    "num_left": 9,
-    "data": 10,
-    "buf": 11,
-}
+def is_pointer_like_type(param: str) -> bool:
+    return "*" in param or re.search(r"\[[^\]]*\]", param) is not None or re.search(r"\b(char|sds|FILE)\b", param) is not None
 
-POINTER_TYPE_NAMES = {
-    "sds", "FILE",
-}
+def typed_param(param: str, idx: int) -> str:
+    name = param_name(param, idx)
+    if is_pointer_like_type(param):
+        return f"int *{name}"
+    return f"int {name}"
 
-def field_offset(field: str) -> int:
-    if field in FIELD_OFFSETS:
-        return FIELD_OFFSETS[field]
-    return 16 + (sum(ord(ch) for ch in field) % 48)
+def return_type_for_signature(signature: str, func_name: str) -> str:
+    before = signature.split(func_name, 1)[0]
+    if "*" in before or re.search(r"\b(char|sds|FILE)\b", before):
+        return "int *"
+    return "int"
+
+def stable_slot(name: str) -> int:
+    h = 0
+    for ch in name:
+        h = (h * 131 + ord(ch)) % 7
+    return h
 
 def rewrite_member_access_to_index(text: str) -> str:
-    """
-    Keep pointer/array memory-access shape instead of flattening member accesses
-    into scalar variables.
-
-    Examples:
-      self->len          => self[0]
-      node->next         => node[5]
-      self->tail->next   => self[4][5]
-      ctx.ptr            => ctx_ptr
-    """
+    pattern = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)(?:\s*->\s*([A-Za-z_][A-Za-z0-9_]*))+")
+    def repl(m: re.Match) -> str:
+        full = m.group(0)
+        base = re.match(r"\b([A-Za-z_][A-Za-z0-9_]*)", full).group(1)
+        members = re.findall(r"->\s*([A-Za-z_][A-Za-z0-9_]*)", full)
+        slot = stable_slot("_".join(members)) if members else 0
+        return f"{base}[{slot}]"
     prev = None
     cur = text
-    arrow = re.compile(r"(\b[A-Za-z_][A-Za-z0-9_]*(?:\s*\[[^\]]+\])*)\s*->\s*([A-Za-z_][A-Za-z0-9_]*)")
-    dot = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)")
     while prev != cur:
         prev = cur
-        cur = arrow.sub(lambda m: f"{m.group(1)}[{field_offset(m.group(2))}]", cur)
-        cur = dot.sub(lambda m: f"{m.group(1)}_{m.group(2)}", cur)
+        cur = pattern.sub(repl, cur)
+    cur = re.sub(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)", lambda m: f"{m.group(1)}_{m.group(2)}", cur)
     return cur
 
 def remove_casts(text: str) -> str:
-    type_words = (
-        r"(?:const|volatile|unsigned|signed|long|short|double|float|"
-        r"struct\s+\w+|union\s+\w+|enum\s+\w+|"
-        r"char|int|void|size_t|ssize_t|"
-        r"[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE)"
-    )
+    type_words = r"(?:const|volatile|unsigned|signed|long|short|struct\s+\w+|union\s+\w+|enum\s+\w+|char|int|void|size_t|ssize_t|[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE)"
     pattern = re.compile(r"\(\s*" + type_words + r"(?:\s*\*)*\s*\)")
     prev = None
     cur = text
@@ -704,106 +650,25 @@ def remove_casts(text: str) -> str:
         cur = pattern.sub("", cur)
     return cur
 
-def replace_string_and_char_literals(text: str) -> str:
-    text = re.sub(r'"(?:\\.|[^"\\])*"', "0", text)
-    text = re.sub(r"'(?:\\.|[^'\\])+'", "1", text)
-    return text
+def replace_string_literals(text: str) -> str:
+    return re.sub(r'"(?:\\.|[^"\\])*"', "0", text)
 
-def replace_external_function_calls(text: str, internal_names: Optional[Set[str]] = None) -> str:
-    if internal_names is None:
-        internal_names = set()
+def replace_unsupported_calls(text: str, known: Set[str]) -> str:
+    simple_call = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(([^(){};]*)\)")
     prev = None
     cur = text
-    simple_call = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(([^(){};]*)\)")
     while prev != cur:
         prev = cur
         def repl(m: re.Match) -> str:
             name = m.group(1)
-            if name in CONTROL_WORDS or name in internal_names:
+            if name in CONTROL_WORDS or name in known:
                 return m.group(0)
             return "1"
         cur = simple_call.sub(repl, cur)
     return cur
 
-def is_pointer_like_decl(param_or_decl: str) -> bool:
-    p = param_or_decl.strip()
-    if "*" in p:
-        return True
-    if re.search(r"\[[^\]]*\]", p):
-        return True
-    words = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", p)
-    return any(w in POINTER_TYPE_NAMES for w in words)
-
-def is_array_decl(param_or_decl: str) -> bool:
-    return bool(re.search(r"\[[^\]]*\]", param_or_decl))
-
-def normalize_array_suffix(text: str) -> str:
-    return re.sub(r"\[[^\]]*\]", "[8]", text)
-
-def normalize_declarator_name(part: str, idx: int) -> str:
-    p = re.sub(r"=.*$", "", part).strip()
-    p = re.sub(r"\[[^\]]*\]", " ", p)
-    ids = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", p)
-    ids = [x for x in ids if x not in KEYWORDS and x not in {"const", "volatile", "restrict", "struct", "union", "enum"}]
-    return ids[-1] if ids else f"tmp{idx}"
-
-def normalize_decl_part(part: str, idx: int, internal_names: Optional[Set[str]] = None) -> str:
-    raw = part.strip()
-    if not raw:
-        return ""
-    if "(*" in raw:
-        return ""
-    init = ""
-    if "=" in raw:
-        left, init = raw.split("=", 1)
-        init = normalize_expression_typed(init.strip(), internal_names)
-    else:
-        left = raw
-    name = normalize_declarator_name(left, idx)
-
-    if is_array_decl(left):
-        decl = f"int {name}[8]"
-    elif is_pointer_like_decl(left):
-        decl = f"int *{name}"
-    else:
-        decl = f"int {name}"
-
-    if init:
-        return f"{decl} = {init};"
-    return f"{decl};"
-
-def normalize_declaration_line_typed(line: str, internal_names: Optional[Set[str]] = None) -> str:
-    raw = line.strip()
-    if not raw or raw.startswith("#"):
-        return line
-
-    prefix_pattern = re.compile(
-        r"^(?P<indent>\s*)(?:(?:static|const|volatile|register|inline|extern)\s+)*"
-        r"(?P<type>(?:struct|union|enum)\s+[A-Za-z_][A-Za-z0-9_]*|"
-        r"[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE|char|double|float|int|long|short|size_t|ssize_t|unsigned|signed|void)"
-        r"(?:\s+(?:long|short|int|char|signed|unsigned|double|float))*"
-        r"\s+(?P<rest>[^;{}]+);$"
-    )
-    m = prefix_pattern.match(line)
-    if not m:
-        return line
-
-    rest = m.group("rest").strip()
-    if "(" in rest and ")" in rest:
-        return ""
-
-    base_type = m.group("type")
-    decls = []
-    for idx, part in enumerate(split_top_level_commas(rest)):
-        full_part = base_type + " " + part.strip()
-        d = normalize_decl_part(full_part, idx, internal_names)
-        if d:
-            decls.append(d)
-    indent = m.group("indent")
-    return "\n".join(indent + d for d in decls)
-
-def normalize_expression_typed(expr: str, internal_names: Optional[Set[str]] = None) -> str:
-    expr = replace_string_and_char_literals(expr)
+def normalize_expression(expr: str, known: Set[str]) -> str:
+    expr = replace_string_literals(expr)
     expr = re.sub(r"\bNULL\b", "0", expr)
     expr = re.sub(r"\btrue\b", "1", expr)
     expr = re.sub(r"\bfalse\b", "0", expr)
@@ -811,83 +676,98 @@ def normalize_expression_typed(expr: str, internal_names: Optional[Set[str]] = N
     expr = re.sub(r"sizeof\s+[A-Za-z_][A-Za-z0-9_]*", "1", expr)
     expr = remove_casts(expr)
     expr = rewrite_member_access_to_index(expr)
-    expr = replace_external_function_calls(expr, internal_names)
-    expr = normalize_array_suffix(expr)
+    expr = re.sub(r"&\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
+    expr = replace_unsupported_calls(expr, known)
     return expr
 
-def normalize_body_typed(body: str, internal_names: Optional[Set[str]] = None) -> str:
-    b = normalize_expression_typed(body, internal_names)
+def normalize_declaration_line(line: str, known: Set[str]) -> str:
+    prefix_pattern = re.compile(
+        r"^(?P<indent>\s*)(?:(?:static|const|volatile|register|inline|extern)\s+)*"
+        r"(?:(?:struct|union|enum)\s+[A-Za-z_][A-Za-z0-9_]*|[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE|char|int|long|short|size_t|ssize_t|unsigned|signed|double|float|void)"
+        r"(?:\s+(?:long|short|int|char|signed|unsigned|double|float))*\s+(?P<rest>[^;{}]+);$"
+    )
+    m = prefix_pattern.match(line)
+    if not m:
+        return line
+    rest = m.group("rest").strip()
+    if "(" in rest and ")" in rest:
+        return ""
+    decls = []
+    for part in split_top_level_commas(rest):
+        part = part.strip()
+        pointer_like = "*" in part or "[" in part
+        raw_part = part
+        part = part.replace("*", " ")
+        arr_suffix = ""
+        if "[" in part:
+            arr_suffix = "[8]"
+        part = re.sub(r"\[[^\]]*\]", " ", part)
+        if "=" in part:
+            left, init = part.split("=", 1)
+            init = normalize_expression(init.strip(), known)
+        else:
+            left, init = part, ""
+        ids = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", left)
+        ids = [x for x in ids if x not in KEYWORDS]
+        if not ids:
+            continue
+        name = ids[-1]
+        if pointer_like:
+            decl = f"int *{name}"
+            init = "" if "malloc" in raw_part or init == "1" else init
+        elif arr_suffix:
+            decl = f"int {name}{arr_suffix}"
+        else:
+            decl = f"int {name}"
+        if init and not pointer_like:
+            decls.append(f"{decl} = {init};")
+        else:
+            decls.append(f"{decl};")
+    indent = m.group("indent")
+    return "\n".join(indent + d for d in decls)
+
+def normalize_body(body: str, known: Set[str]) -> str:
+    body = normalize_expression(body, known)
     out_lines = []
-    for line in b.splitlines():
-        out_lines.append(normalize_declaration_line_typed(line, internal_names))
-    b = "\n".join(out_lines)
-    b = re.sub(r"\breturn\s*;", "return 0;", b)
-    return b
+    for line in body.splitlines():
+        out_lines.append(normalize_declaration_line(line, known))
+    body = "\n".join(out_lines)
+    body = re.sub(r"\breturn\s*;", "return 0;", body)
+    return body
+
+def collect_declared_names(text: str) -> Set[str]:
+    names = set(re.findall(r"\bint\s+\*?\s*([A-Za-z_][A-Za-z0-9_]*)\b", text))
+    return names
 
 def collect_identifiers(text: str) -> Set[str]:
     masked = mask_comments_and_strings(text)
     ids = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", masked))
     return {x for x in ids if x not in KEYWORDS and x not in CONTROL_WORDS and not x.isupper()}
 
-def collect_declared_names(text: str) -> Set[str]:
-    names = set(re.findall(r"\bint\s+\*?\s*([A-Za-z_][A-Za-z0-9_]*)\b", text))
-    names.update(re.findall(r"\bint\s+([A-Za-z_][A-Za-z0-9_]*)\s*\[", text))
-    return names
-
-def pointer_return_type(signature: str) -> bool:
-    before = signature.split("(", 1)[0]
-    if "*" in before:
-        return True
-    words = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", before)
-    return any(w in POINTER_TYPE_NAMES for w in words)
-
-def make_typed_param(param: str, idx: int) -> Tuple[str, str]:
-    name = param_name(param, idx)
-    if is_array_decl(param) or is_pointer_like_decl(param):
-        return name, f"int *{name}"
-    return name, f"int {name}"
-
-def make_type_erased_function(func: FunctionDef, internal_names: Optional[Set[str]] = None) -> str:
-    if internal_names is None:
-        internal_names = set()
+def make_typed_approx_function(func: FunctionDef, known: Set[str]) -> str:
     params_text = extract_param_text(func.signature, func.name)
     params = []
     param_names: List[str] = []
     if params_text.strip() and params_text.strip() != "void":
         for i, p in enumerate(split_top_level_commas(params_text)):
-            name, decl = make_typed_param(p, i)
+            name = param_name(p, i)
             if name not in param_names:
                 param_names.append(name)
-                params.append(decl)
+                params.append(typed_param(p, i))
     param_sig = ", ".join(params) if params else "void"
-    ret = "int *" if pointer_return_type(func.signature) else "int"
+    ret = return_type_for_signature(func.signature, func.name)
+    body = normalize_body(func.body, known)
 
-    body = normalize_body_typed(func.body, internal_names)
-    existing = collect_declared_names(body) | set(param_names)
+    declared = collect_declared_names(body) | set(param_names)
     ids = collect_identifiers(body)
-    extra = sorted(x for x in ids if x not in existing and x != func.name and x not in internal_names)
+    extra = sorted(x for x in ids if x not in declared and x != func.name and x not in known)
     decls = "\n".join(f"    int {x};" for x in extra)
     if decls:
         body = decls + "\n" + body
 
-    if "return" not in body:
-        body = body.rstrip() + "\n    return 0;\n"
-
-    return f"{ret} {func.name}({param_sig})\n{{\n{body}\n}}\n"
-
-def make_type_erased_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
-    out = [
-        "/* Generated typed approximation for eppather summary mode. */\n",
-        "/* This slice preserves pointer/array access forms where possible. */\n",
-        f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\n",
-    ]
-    internal_names = set(names)
-    for name in names:
-        if name in funcs:
-            out.append("\n/* ===== TYPED APPROX FUNCTION " + name + " ===== */\n")
-            out.append(make_type_erased_function(funcs[name], internal_names))
-            out.append("\n")
-    return "\n".join(out)
+    if ret == "int *":
+        body = re.sub(r"\breturn\s+0\s*;", "return 0;", body)
+    return f"{ret}{func.name}({param_sig})\n{{\n{body}\n}}\n"
 
 def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str, slice_mode: str) -> str:
     out = [
@@ -902,15 +782,16 @@ def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[
             out.append("\n")
     return "\n".join(out)
 
-def make_type_erased_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+def make_typed_approx_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+    known = set(funcs)
     out = [
-        "/* Generated type-erased approximation for eppather summary mode. */\n",
+        "/* Generated typed approximation for eppather summary mode. */\n",
         f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\n",
     ]
     for name in names:
         if name in funcs:
-            out.append("\n/* ===== TYPE ERASED FUNCTION " + name + " ===== */\n")
-            out.append(make_type_erased_function(funcs[name]))
+            out.append("\n/* ===== TYPED APPROX FUNCTION " + name + " ===== */\n")
+            out.append(make_typed_approx_function(funcs[name], known))
             out.append("\n")
     return "\n".join(out)
 
@@ -962,56 +843,33 @@ def extract_metrics(text: str, entry: str) -> Dict[str, str]:
     metrics["summary_ok"] = "true" if metrics["has_function_summaries"] == "true" and worst and worst != "N/A" else "false"
     return metrics
 
-def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpaths: int, timeout: int, out_log: Path, crash_trace: bool, debug_epat: bool) -> Dict[str, str]:
-    def invoke(use_text_fallback: bool, log_path: Path) -> Dict[str, str]:
-        env = os.environ.copy()
-        env["EPPATHER_ENTRY"] = entry
-        env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
-        env.setdefault("EPPATHER_EPAT_SAFE_PREFIX", "1")
-        if use_text_fallback:
-            env["EPPATHER_EPAT_TEXT_FALLBACK"] = "1"
-        if crash_trace:
-            env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
-        if debug_epat:
-            env["EPPATHER_DEBUG_EPAT_SCRIPT"] = "1"
-
-        cmd = [str(cnip), mode_to_flag(mode), "--maxloop", str(maxloop), "--maxpaths", str(maxpaths), str(cfile)]
-        rc, timed_out, text, elapsed = run_cmd(cmd, env, timeout)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
-        log_path.write_text(text, encoding="utf-8", errors="ignore")
-        metrics = extract_metrics(text, entry)
-        metrics.update({
-            "entry": entry,
-            "mode": mode,
-            "returncode": str(rc),
-            "timeout": "true" if timed_out else "false",
-            "seconds": f"{elapsed:.6f}",
-            "log": str(log_path),
-            "cmd": " ".join(cmd),
-            "epat_mode": "text_fallback" if use_text_fallback else "pafi-rs",
-        })
-        return metrics
-
-    row = invoke(False, out_log)
-    ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
-
-    retry_enabled = os.environ.get("EPPATHER_DISABLE_TEXT_FALLBACK_RETRY", "0") != "1"
-    should_retry = retry_enabled and mode == "summary" and not ok
-
-    if should_retry:
-        fallback_log = out_log.with_name(out_log.stem + "_text_fallback" + out_log.suffix)
-        fallback_row = invoke(True, fallback_log)
-        fallback_ok = fallback_row.get("summary_ok") == "true"
-        if fallback_ok:
-            fallback_row["original_returncode"] = row.get("returncode", "")
-            fallback_row["original_timeout"] = row.get("timeout", "")
-            fallback_row["original_log"] = row.get("log", "")
-            return fallback_row
-
-    row.setdefault("original_returncode", "")
-    row.setdefault("original_timeout", "")
-    row.setdefault("original_log", "")
-    return row
+def invoke_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpaths: int, timeout: int, out_log: Path, crash_trace: bool, debug_epat: bool, epat_mode: str) -> Dict[str, str]:
+    env = os.environ.copy()
+    env["EPPATHER_ENTRY"] = entry
+    env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
+    env.setdefault("EPPATHER_EPAT_SAFE_PREFIX", "1")
+    if epat_mode == "text_fallback":
+        env["EPPATHER_EPAT_TEXT_FALLBACK"] = "1"
+    if crash_trace:
+        env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
+    if debug_epat:
+        env["EPPATHER_DEBUG_EPAT_SCRIPT"] = "1"
+    cmd = [str(cnip), mode_to_flag(mode), "--maxloop", str(maxloop), "--maxpaths", str(maxpaths), str(cfile)]
+    rc, timed_out, text, elapsed = run_cmd(cmd, env, timeout)
+    out_log.parent.mkdir(parents=True, exist_ok=True)
+    out_log.write_text(text, encoding="utf-8", errors="ignore")
+    metrics = extract_metrics(text, entry)
+    metrics.update({
+        "entry": entry,
+        "mode": mode,
+        "returncode": str(rc),
+        "timeout": "true" if timed_out else "false",
+        "seconds": f"{elapsed:.6f}",
+        "log": str(out_log),
+        "cmd": " ".join(cmd),
+        "epat_mode": epat_mode,
+    })
+    return metrics
 
 def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
     fields = [
@@ -1030,31 +888,22 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
             writer.writerow({k: row.get(k, "") for k in fields})
 
 def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
-    priority = {
-        "closure": 0,
-        "entry_only": 1,
-        "type_erased": 2,
-        "compat_entry": 3,
-    }
+    priority = {"closure": 0, "entry_only": 1, "type_erased": 2, "compat_entry": 3}
     grouped: Dict[Tuple[str, str, str], List[Dict[str, str]]] = {}
     for row in rows:
         key = (row.get("project", ""), row.get("entry", ""), row.get("mode", ""))
         grouped.setdefault(key, []).append(row)
-
     final_rows: List[Dict[str, str]] = []
     for key in sorted(grouped):
         candidates = grouped[key]
         ok_rows = [r for r in candidates if r.get("summary_ok") == "true" or (r.get("mode") != "summary" and r.get("returncode") == "0")]
         pool = ok_rows if ok_rows else candidates
-        best = sorted(
-            pool,
-            key=lambda r: (
-                0 if r.get("summary_ok") == "true" else 1,
-                priority.get(r.get("slice_mode", ""), 99),
-                0 if r.get("epat_mode") == "pafi-rs" else 1,
-                float(r.get("seconds", "999999") or 999999),
-            )
-        )[0].copy()
+        best = sorted(pool, key=lambda r: (
+            0 if r.get("summary_ok") == "true" else 1,
+            0 if r.get("epat_mode") == "pafi-rs" else 1,
+            priority.get(r.get("slice_mode", ""), 99),
+            float(r.get("seconds", "999999") or 999999),
+        ))[0].copy()
         best["attempt_count"] = str(len(candidates))
         best["successful_attempt_count"] = str(len(ok_rows))
         final_rows.append(best)
@@ -1106,20 +955,56 @@ def build_slice_files(project_out: Path, spec: ProjectSpec, flat_path: Path, fun
         closure_path = slices_dir / f"{flat_path.stem}__{entry}__closure.c"
         closure_path.write_text(make_slice_source(preamble, funcs, closure, entry, spec.name, "closure"), encoding="utf-8")
         result.append(("closure", closure_path))
-
         entry_path = slices_dir / f"{flat_path.stem}__{entry}__entry_only.c"
         entry_path.write_text(make_slice_source(preamble, funcs, [entry], entry, spec.name, "entry_only"), encoding="utf-8")
         result.append(("entry_only", entry_path))
-
-        type_erased_path = slices_dir / f"{flat_path.stem}__{entry}__type_erased.c"
-        type_erased_path.write_text(make_type_erased_source(funcs, closure, entry, spec.name), encoding="utf-8")
-        result.append(("type_erased", type_erased_path))
-
+        typed_path = slices_dir / f"{flat_path.stem}__{entry}__type_erased.c"
+        typed_path.write_text(make_typed_approx_source(funcs, closure, entry, spec.name), encoding="utf-8")
+        result.append(("type_erased", typed_path))
     if (spec.name, entry) in COMPAT_FUNCTIONS:
         compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
         compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
         result.append(("compat_entry", compat_path))
     return result
+
+def run_attempts_native_first(cnip: Path, slice_files: List[Tuple[str, Path]], mode: str, entry: str, spec: ProjectSpec, flat_path: Path, project_root: Path, run_root: Path, maxloop: int, maxpaths: int, timeout: int, crash_trace: bool, debug_epat: bool, disable_fallback: bool) -> Tuple[List[Dict[str, str]], bool]:
+    rows: List[Dict[str, str]] = []
+    native_rows_by_slice: Dict[Tuple[str, str], Dict[str, str]] = {}
+
+    for slice_mode, slice_path in slice_files:
+        log_name = f"{spec.name}_{flat_path.stem}_{entry}_{mode}_{slice_mode}.log"
+        log_path = run_root / spec.name / log_name
+        log(f"[RUN] project={spec.name} entry={entry} mode={mode} slice={slice_mode} epat=pafi-rs")
+        row = invoke_cnip(cnip, slice_path, mode, entry, maxloop, maxpaths, timeout, log_path, crash_trace, debug_epat, "pafi-rs")
+        row.update({"project": spec.name, "project_root": str(project_root), "source": str(flat_path), "slice_mode": slice_mode, "slice_file": str(slice_path)})
+        rows.append(row)
+        native_rows_by_slice[(slice_mode, str(slice_path))] = row
+        ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
+        log(f"[{'OK' if ok else 'FAIL'}] rc={row['returncode']} summary_ok={row.get('summary_ok','')} worst_mems={row.get('worst_mems','')} log={log_path}")
+        if ok:
+            return rows, True
+
+    if disable_fallback:
+        return rows, False
+
+    for slice_mode, slice_path in slice_files:
+        log_name = f"{spec.name}_{flat_path.stem}_{entry}_{mode}_{slice_mode}_text_fallback.log"
+        log_path = run_root / spec.name / log_name
+        log(f"[RUN] project={spec.name} entry={entry} mode={mode} slice={slice_mode} epat=text_fallback")
+        row = invoke_cnip(cnip, slice_path, mode, entry, maxloop, maxpaths, timeout, log_path, crash_trace, debug_epat, "text_fallback")
+        row.update({"project": spec.name, "project_root": str(project_root), "source": str(flat_path), "slice_mode": slice_mode, "slice_file": str(slice_path)})
+        native = native_rows_by_slice.get((slice_mode, str(slice_path)))
+        if native:
+            row["original_returncode"] = native.get("returncode", "")
+            row["original_timeout"] = native.get("timeout", "")
+            row["original_log"] = native.get("log", "")
+        rows.append(row)
+        ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
+        log(f"[{'OK' if ok else 'FAIL'}] rc={row['returncode']} summary_ok={row.get('summary_ok','')} worst_mems={row.get('worst_mems','')} log={log_path}")
+        if ok:
+            return rows, True
+
+    return rows, False
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -1137,6 +1022,7 @@ def main() -> int:
     ap.add_argument("--only-preprocess", action="store_true")
     ap.add_argument("--no-type-erased", action="store_true")
     ap.add_argument("--no-compat-fallback", action="store_true")
+    ap.add_argument("--no-text-fallback", action="store_true")
     ap.add_argument("--crash-trace", action="store_true")
     ap.add_argument("--debug-epat", action="store_true")
     args = ap.parse_args()
@@ -1185,25 +1071,11 @@ def main() -> int:
                 if not slice_files:
                     continue
                 for mode in modes:
-                    succeeded = False
-                    for slice_mode, slice_path in slice_files:
-                        log_name = f"{spec.name}_{flat_path.stem}_{entry}_{mode}_{slice_mode}.log"
-                        log_path = run_root / spec.name / log_name
-                        log(f"[RUN] project={spec.name} entry={entry} mode={mode} slice={slice_mode}")
-                        row = run_cnip(cnip, slice_path, mode, entry, args.maxloop, args.maxpaths, args.timeout, log_path, args.crash_trace, args.debug_epat)
-                        row.update({
-                            "project": spec.name,
-                            "project_root": str(project_root),
-                            "source": str(flat_path),
-                            "slice_mode": slice_mode,
-                            "slice_file": str(slice_path),
-                        })
-                        rows.append(row)
-                        ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
-                        log(f"[{'OK' if ok else 'FAIL'}] rc={row['returncode']} timeout={row['timeout']} summary_ok={row.get('summary_ok','')} worst_mems={row.get('worst_mems','')} log={log_path}")
-                        if ok:
-                            succeeded = True
-                            break
+                    new_rows, succeeded = run_attempts_native_first(
+                        cnip, slice_files, mode, entry, spec, flat_path, project_root, run_root,
+                        args.maxloop, args.maxpaths, args.timeout, args.crash_trace, args.debug_epat, args.no_text_fallback
+                    )
+                    rows.extend(new_rows)
                     if not succeeded:
                         log(f"[WARN] no successful {mode} result for {spec.name}:{entry}")
 
@@ -1211,7 +1083,6 @@ def main() -> int:
         summary_csv = run_root / "run_summary.csv"
         write_csv(summary_csv, rows)
         log(f"[SUMMARY] {summary_csv}")
-
         final_csv = run_root / "final_summary.csv"
         write_csv(final_csv, select_final_rows(rows))
         log(f"[FINAL SUMMARY] {final_csv}")

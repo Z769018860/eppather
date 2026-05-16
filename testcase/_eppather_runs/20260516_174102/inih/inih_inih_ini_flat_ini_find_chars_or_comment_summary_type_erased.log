@@ -1,0 +1,56 @@
+equals!!!!!!1!!!!
+equals!!!!!(!chars || !1)!!!!
+Function summaries are ready to dump ~
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+Path:int *s;
+int *chars;
+int endif;
+int isspace;
+@(!(*s && (!chars || !1)));
+return s;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int *chars[0] = 1
+int *s[0] = 0
+int endif = 0
+int isspace = 0
+
+[FUNCTION SUMMARIES]
+Function ini_find_chars_or_comment:
+signature: int *ini_find_chars_or_comment(int *s, int *chars)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=25053141268592219 path="int *s;
+int *chars;
+int endif;
+int isspace;
+@(!(*s && (!chars || !1)));
+return s;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+ini_find_chars_or_comment -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_find_chars_or_comment
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=ini_find_chars_or_comment#0{int *s;
+int *chars;
+int endif;
+int isspace;
+@(!(*s && (!chars || !1)));
+return s;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

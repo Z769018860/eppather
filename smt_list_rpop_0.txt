@@ -1,1 +1,15 @@
+; 
+(set-info :status unknown)
+(declare-fun self@0@0 () (_ BitVec 32))
+(declare-fun node@0@0 () (_ BitVec 32))
+(declare-fun next@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x12 (bvadd (_ bv4 32) self@0@0)))
+ (let ((?x17 (store %a (_ bv0 32) self@0@0)))
+ (let ((?x15 (store ?x17 (_ bv1 32) next@0@0)))
+ (let ((?x18 (store ?x15 (_ bv2 32) node@0@0)))
+ (let ((?x22 (ite (not (and (distinct (select ?x18 ?x12) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x22 (_ bv0 32)) true)))))))
+(check-sat)
 
