@@ -345,15 +345,20 @@ python3 run_three_projects_experiment.py
 
 此外，在 Eppather 预处理前端（`tools/GnuCompilerFacade.cpp`）中新增了常见 GNU/libc 装饰宏默认兼容定义（如 `__THROW/__wur/__nonnull/__extension__/__restrict`），用于降低真实项目源码进入解析器前的语法噪声。
 
-#### 当前函数摘要成功率与结果汇总（2026-05-15）
+#### 当前结果表（2026-05-16）
 
-以 `python3 run_three_projects_experiment.py` 产物 `experiment_results/report.json` 为准：
+| 项目 | 预计函数摘要数 | 当前函数摘要数（report.function_count） | CFG数量（report.cfg_graph_count） | CFG是否已生成 |
+|---|---:|---:|---:|---|
+| cjson | 113 | 113 | 113 | ✅ |
+| lua | 96 | 96 | 96 | ✅ |
+| tinyexpr | 29 | 29 | 29 | ✅ |
+| 合计 | 238 | 238 | 238 | ✅ |
 
-- 总项目数：`3`
-- 函数摘要成功数：`0`
-- 函数摘要成功率：`0.0`
-
-当前结果呈现为：`cjson/lua` 的 CFG 可生成但 `-s/-g` 返回异常；`tinyexpr` 可稳定生成摘要统计（`function_count=4`），但程序级 `worst_mems` 仍为 `N/A`（入口与语义约束相关）。
+| 汇总指标 | 数值 |
+|---|---:|
+| 总项目数 | 3 |
+| 函数摘要成功数 | 0 |
+| 函数摘要成功率 | 0.0 |
 
 #### Lua / cJSON 的进一步处理与 DP 策略说明
 

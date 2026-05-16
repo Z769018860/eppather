@@ -384,6 +384,104 @@ def retry_with_compat_levels(name: str, opt: str, profile: dict, base_i: Path, p
     return best_rc, best_out
 
 
+
+
+def extract_function_only_source(text: str) -> str:
+    lines = text.splitlines()
+    out = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if '{' in line and '(' in line and not line.strip().startswith(('if', 'for', 'while', 'switch')):
+            header = []
+            j = i
+            while j >= 0 and lines[j].strip() and not lines[j].strip().endswith(';'):
+                header.append(lines[j])
+                if '{' in lines[j]:
+                    break
+                j -= 1
+            header = list(reversed(header))
+            brace = 0
+            body = []
+            k = i
+            started = False
+            while k < n:
+                l = lines[k]
+                if '{' in l:
+                    brace += l.count('{')
+                    started = True
+                if started:
+                    body.append(l)
+                if '}' in l and started:
+                    brace -= l.count('}')
+                    if brace <= 0:
+                        break
+                k += 1
+            if body and any('{' in x for x in body):
+                out.extend(header[:-1] + body)
+                out.append('')
+                i = k + 1
+                continue
+        i += 1
+    prelude = [
+        'typedef unsigned long size_t;',
+        'typedef long ptrdiff_t;',
+        'typedef unsigned long uintptr_t;',
+        'typedef void* __builtin_va_list;',
+        'typedef struct _IO_FILE FILE;',
+        ''
+    ]
+    return '\n'.join(prelude + out) + '\n'
+
+
+def split_functions_to_files(text: str, out_dir: Path, prefix: str):
+    out_dir.mkdir(exist_ok=True, parents=True)
+    lines = text.splitlines()
+    funcs = []
+    i = 0
+    n = len(lines)
+    while i < n:
+        line = lines[i]
+        if '{' in line and '(' in line and not line.strip().startswith(('if', 'for', 'while', 'switch')):
+            # capture body by brace matching
+            brace = 0
+            body = []
+            k = i
+            started = False
+            while k < n:
+                l = lines[k]
+                if '{' in l:
+                    brace += l.count('{')
+                    started = True
+                if started:
+                    body.append(l)
+                if '}' in l and started:
+                    brace -= l.count('}')
+                    if brace <= 0:
+                        break
+                k += 1
+            if body and any('{' in x for x in body):
+                funcs.append('\n'.join(body) + '\n')
+                i = k + 1
+                continue
+        i += 1
+
+    prelude = '\n'.join([
+        'typedef unsigned long size_t;',
+        'typedef long ptrdiff_t;',
+        'typedef unsigned long uintptr_t;',
+        'typedef void* __builtin_va_list;',
+        'typedef struct _IO_FILE FILE;',
+        ''
+    ]) + '\n'
+
+    files = []
+    for idx, fbody in enumerate(funcs):
+        fp = out_dir / f"{prefix}.func_{idx}.i"
+        fp.write_text(prelude + fbody)
+        files.append(fp)
+    return files
 def retry_on_timeout(name: str, opt: str, target_input: Path, default_entry_env, out: str, rc: int):
     if rc != 124 or opt not in ('-s', '-g'):
         return rc, out
@@ -496,6 +594,27 @@ def main():
             if rc != 0 and opt in ('-s', '-g'):
                 retry_base = i_file if name != 'tinyexpr' else Path(target_input)
                 rc, out = retry_with_compat_levels(name, opt, profile, retry_base, pdir, default_entry_env, out, rc)
+            if rc != 0 and opt == '-s':
+                active_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
+                func_only = extract_function_only_source(active_text)
+                func_file = pdir / f'{name}.function_only.i'
+                func_file.write_text(func_only)
+                fcmd = [str(CNIP), opt, '--maxloop', '1', '--maxpaths', '12', str(func_file)]
+                rc_f, out_f = run(fcmd, timeout=120, extra_env=default_entry_env)
+                out += "\n[FUNCTION-ONLY RETRY] " + ' '.join(shlex.quote(x) for x in fcmd) + f"\n[FUNCTION-ONLY RC] {rc_f}\n" + out_f
+                rc = rc_f if rc_f == 0 else rc
+            if rc != 0 and opt == '-s':
+                shard_dir = pdir / f'{name}_func_shards'
+                shard_files = split_functions_to_files(Path(target_input).read_text(encoding='utf-8', errors='ignore'), shard_dir, name)
+                success_blocks = 0
+                for sf in shard_files[:80]:
+                    scmd = [str(CNIP), '-s', '--maxloop', '1', '--maxpaths', '4', str(sf)]
+                    rc_sf, out_sf = run(scmd, timeout=45, extra_env=default_entry_env)
+                    out += '\n[SHARD RETRY] ' + sf.name + f' rc={rc_sf}\n'
+                    if rc_sf == 0 and '[FUNCTION SUMMARIES]' in out_sf:
+                        success_blocks += 1
+                        out += out_sf
+                out += f'\n[SHARD SUMMARY SUCCESS] {success_blocks}/{len(shard_files[:80])}\n'
             if rc < 0:
                 diag_text = Path(target_input).read_text(encoding='utf-8', errors='ignore')
                 fail_points = extract_failure_diagnostics(out, diag_text, Path(target_input).name)
