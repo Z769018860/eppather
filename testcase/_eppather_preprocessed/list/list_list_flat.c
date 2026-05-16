@@ -1,0 +1,453 @@
+
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
+#ifndef EOF
+#define EOF (-1)
+#endif
+
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
+#endif
+
+#ifndef CHAR_BIT
+#define CHAR_BIT 8
+#endif
+
+#ifndef LONG_MAX
+#define LONG_MAX 9223372036854775807L
+#endif
+
+#ifndef LLONG_MAX
+#define LLONG_MAX 9223372036854775807LL
+#endif
+
+#define __attribute__(x)
+#define __declspec(x)
+#define __cdecl
+#define __stdcall
+#define __inline
+#define __inline__
+#define __restrict
+#define __restrict__
+#define restrict
+#define _Noreturn
+#define _Static_assert(cond,msg)
+#define static_assert(cond,msg)
+#define assert(x) ((void)0)
+
+typedef unsigned long size_t;
+typedef long ssize_t;
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+typedef long intptr_t;
+typedef unsigned long uintptr_t;
+
+typedef struct _EPPATHER_FILE FILE;
+
+void *malloc(size_t size);
+void free(void *ptr);
+void *realloc(void *ptr, size_t size);
+void *calloc(size_t n, size_t size);
+
+void *memcpy(void *dest, const void *src, size_t n);
+void *memmove(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+
+size_t strlen(const char *s);
+int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t n);
+char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
+char *strstr(const char *haystack, const char *needle);
+char *strncpy(char *dest, const char *src, size_t n);
+char *strcpy(char *dest, const char *src);
+
+int sprintf(char *str, const char *format, ...);
+int snprintf(char *str, size_t size, const char *format, ...);
+int printf(const char *format, ...);
+int fprintf(FILE *stream, const char *format, ...);
+int fputc(int c, FILE *stream);
+FILE *fopen(const char *filename, const char *mode);
+int fclose(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+long ftell(FILE *stream);
+void rewind(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int ferror(FILE *stream);
+char *fgets(char *str, int num, void *stream);
+
+int isspace(int c);
+int isalpha(int c);
+int isdigit(int c);
+int isalnum(int c);
+int isxdigit(int c);
+int tolower(int c);
+int toupper(int c);
+
+double strtod(const char *nptr, char **endptr);
+
+
+/* ===== BEGIN HEADER src/list.h ===== */
+
+
+//
+// list.h
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+#ifndef __CLIBS_LIST_H__
+#define __CLIBS_LIST_H__
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+// Library version
+
+#define LIST_VERSION "0.4.1"
+
+// Memory management macros
+#ifdef LIST_CONFIG_H
+#define _STR(x) #x
+#define STR(x) _STR(x)
+#include STR(LIST_CONFIG_H)
+#undef _STR
+#undef STR
+#endif
+
+#ifndef LIST_MALLOC
+#define LIST_MALLOC malloc
+#endif
+
+#ifndef LIST_FREE
+#define LIST_FREE free
+#endif
+
+/*
+ * list_t iterator direction.
+ */
+
+typedef enum {
+    LIST_HEAD
+  , LIST_TAIL
+} list_direction_t;
+
+/*
+ * list_t node struct.
+ */
+
+typedef struct list_node {
+  struct list_node *prev;
+  struct list_node *next;
+  void *val;
+} list_node_t;
+
+/*
+ * list_t struct.
+ */
+
+typedef struct {
+  list_node_t *head;
+  list_node_t *tail;
+  unsigned int len;
+  void (*free)(void *val);
+  int (*match)(void *a, void *b);
+} list_t;
+
+/*
+ * list_t iterator struct.
+ */
+
+typedef struct {
+  list_node_t *next;
+  list_direction_t direction;
+} list_iterator_t;
+
+// Node prototypes.
+
+list_node_t *
+list_node_new(void *val);
+
+// list_t prototypes.
+
+list_t *
+list_new(void);
+
+list_node_t *
+list_rpush(list_t *self, list_node_t *node);
+
+list_node_t *
+list_lpush(list_t *self, list_node_t *node);
+
+list_node_t *
+list_find(list_t *self, void *val);
+
+list_node_t *
+list_at(list_t *self, int index);
+
+list_node_t *
+list_rpop(list_t *self);
+
+list_node_t *
+list_lpop(list_t *self);
+
+void
+list_remove(list_t *self, list_node_t *node);
+
+void
+list_destroy(list_t *self);
+
+// list_t iterator prototypes.
+
+list_iterator_t *
+list_iterator_new(list_t *list, list_direction_t direction);
+
+list_iterator_t *
+list_iterator_new_from_node(list_node_t *node, list_direction_t direction);
+
+list_node_t *
+list_iterator_next(list_iterator_t *self);
+
+void
+list_iterator_destroy(list_iterator_t *self);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __CLIBS_LIST_H__ */
+
+
+/* ===== END HEADER src/list.h ===== */
+
+
+/* ===== BEGIN SOURCE src/list.c ===== */
+
+
+//
+// list.c
+//
+// Copyright (c) 2010 TJ Holowaychuk <tj@vision-media.ca>
+//
+
+
+/*
+ * Allocate a new list_t. NULL on failure.
+ */
+
+list_t *
+list_new(void) {
+  list_t *self;
+  if (!(self = LIST_MALLOC(sizeof(list_t))))
+    return NULL;
+  self->head = NULL;
+  self->tail = NULL;
+  self->free = NULL;
+  self->match = NULL;
+  self->len = 0;
+  return self;
+}
+
+/*
+ * Free the list.
+ * @self: Pointer to the list 
+ */
+
+void
+list_destroy(list_t *self) {
+  unsigned int len = self->len;
+  list_node_t *next;
+  list_node_t *curr = self->head;
+
+  while (len--) {
+    next = curr->next;
+    if (self->free) self->free(curr->val);
+    LIST_FREE(curr);
+    curr = next;
+  }
+
+  LIST_FREE(self);
+}
+
+/*
+ * Append the given node to the list
+ * and return the node, NULL on failure.
+ * @self: Pointer to the list for popping node
+ * @node: the node to push
+ */
+
+list_node_t *
+list_rpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
+
+  if (self->len) {
+    node->prev = self->tail;
+    node->next = NULL;
+    self->tail->next = node;
+    self->tail = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return node;
+}
+
+/*
+ * Return / detach the last node in the list, or NULL.
+ * @self: Pointer to the list for popping node
+ */
+
+list_node_t *
+list_rpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->tail;
+
+  if (--self->len) {
+    (self->tail = node->prev)->next = NULL;
+  } else {
+    self->tail = self->head = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Return / detach the first node in the list, or NULL.
+ * @self: Pointer to the list for popping node
+ */
+
+list_node_t *
+list_lpop(list_t *self) {
+  if (!self->len) return NULL;
+
+  list_node_t *node = self->head;
+
+  if (--self->len) {
+    (self->head = node->next)->prev = NULL;
+  } else {
+    self->head = self->tail = NULL;
+  }
+
+  node->next = node->prev = NULL;
+  return node;
+}
+
+/*
+ * Prepend the given node to the list
+ * and return the node, NULL on failure.
+ * @self: Pointer to the list for pushing node
+ * @node: the node to push
+ */
+
+list_node_t *
+list_lpush(list_t *self, list_node_t *node) {
+  if (!node) return NULL;
+
+  if (self->len) {
+    node->next = self->head;
+    node->prev = NULL;
+    self->head->prev = node;
+    self->head = node;
+  } else {
+    self->head = self->tail = node;
+    node->prev = node->next = NULL;
+  }
+
+  ++self->len;
+  return node;
+}
+
+/*
+ * Return the node associated to val or NULL.
+ * @self: Pointer to the list for finding given value
+ * @val: Value to find 
+ */
+
+list_node_t *
+list_find(list_t *self, void *val) {
+  list_iterator_t *it = list_iterator_new(self, LIST_HEAD);
+  list_node_t *node;
+
+  while ((node = list_iterator_next(it))) {
+    if (self->match) {
+      if (self->match(val, node->val)) {
+        list_iterator_destroy(it);
+        return node;
+      }
+    } else {
+      if (val == node->val) {
+        list_iterator_destroy(it);
+        return node;
+      }
+    }
+  }
+
+  list_iterator_destroy(it);
+  return NULL;
+}
+
+/*
+ * Return the node at the given index or NULL.
+ * @self: Pointer to the list for finding given index 
+ * @index: the index of node in the list
+ */
+
+list_node_t *
+list_at(list_t *self, int index) {
+  list_direction_t direction = LIST_HEAD;
+
+  if (index < 0) {
+    direction = LIST_TAIL;
+    index = ~index;
+  }
+
+  if ((unsigned)index < self->len) {
+    list_iterator_t *it = list_iterator_new(self, direction);
+    list_node_t *node = list_iterator_next(it);
+    while (index--) node = list_iterator_next(it);
+    list_iterator_destroy(it);
+    return node;
+  }
+
+  return NULL;
+}
+
+/*
+ * Remove the given node from the list, freeing it and it's value.
+ * @self: Pointer to the list to delete a node 
+ * @node: Pointer the node to be deleted
+ */
+
+void
+list_remove(list_t *self, list_node_t *node) {
+  node->prev
+    ? (node->prev->next = node->next)
+    : (self->head = node->next);
+
+  node->next
+    ? (node->next->prev = node->prev)
+    : (self->tail = node->prev);
+
+  if (self->free) self->free(node->val);
+
+  LIST_FREE(node);
+  --self->len;
+}
+
+
+/* ===== END SOURCE src/list.c ===== */
