@@ -1,0 +1,36 @@
+; 
+(set-info :status unknown)
+(declare-fun reader@0@0 () (_ BitVec 32))
+(declare-fun stream@0@0 () (_ BitVec 32))
+(declare-fun handler@0@0 () (_ BitVec 32))
+(declare-fun user@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x8 (ite (bvsgt reader@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x8 (_ bv0 32)) true)))
+(assert
+ (and (distinct stream@0@0 (_ bv0 32)) true))
+(assert
+ (let ((?x10 (bvadd (_ bv0 32) reader@0@0)))
+ (let ((?x97 (store (store (store %a (_ bv0 32) reader@0@0) (_ bv1 32) stream@0@0) (_ bv3 32) user@0@0)))
+ (let ((?x28 (store ?x97 (_ bv2 32) handler@0@0)))
+ (let ((?x106 (store ?x28 (_ bv4 32) ?x10)))
+ (let ((?x85 (bvadd ?x10 (select ?x106 stream@0@0))))
+ (let ((?x77 (store ?x106 (_ bv4 32) ?x85)))
+ (let ((?x87 (select ?x77 (_ bv2 32))))
+ (let ((?x31 (ite (not (and (distinct (ite (bvsgt ?x87 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x31 (_ bv0 32)) true))))))))))
+(assert
+ (let ((?x10 (bvadd (_ bv0 32) reader@0@0)))
+ (let ((?x97 (store (store (store %a (_ bv0 32) reader@0@0) (_ bv1 32) stream@0@0) (_ bv3 32) user@0@0)))
+ (let ((?x28 (store ?x97 (_ bv2 32) handler@0@0)))
+ (let ((?x106 (store ?x28 (_ bv4 32) ?x10)))
+ (let ((?x85 (bvadd ?x10 (select ?x106 stream@0@0))))
+ (let ((?x77 (store ?x106 (_ bv4 32) ?x85)))
+ (let ((?x87 (select ?x77 (_ bv2 32))))
+ (let ((?x100 (bvsub (select ?x77 (_ bv4 32)) ?x87)))
+ (let ((?x29 (store ?x77 (_ bv4 32) ?x100)))
+ (let ((?x13 (ite (not (and (distinct (select ?x29 (_ bv3 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x13 (_ bv0 32)) true))))))))))))
+(check-sat)
+

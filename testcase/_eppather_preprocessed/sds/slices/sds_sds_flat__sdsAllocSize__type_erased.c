@@ -18,7 +18,7 @@ int *sdsAllocSize(int *s)
 
 /* ===== TYPED APPROX FUNCTION sdsHdrSize ===== */
 
-intsdsHdrSize(int *type)
+int sdsHdrSize(int *type)
 {
     int typeSDS_TYPE_MASK;
 
@@ -68,7 +68,7 @@ int *sdsalloc(void)
 
 /* ===== TYPED APPROX FUNCTION SDS_TYPE_5_LEN ===== */
 
-intSDS_TYPE_5_LEN(int f)
+int SDS_TYPE_5_LEN(int f)
 {
     int flagsSDS_TYPE_MASK;
     int len;

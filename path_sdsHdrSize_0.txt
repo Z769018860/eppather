@@ -1,3 +1,18 @@
-extern const char *SDS_NOINIT;
-const char *SDS_NOINIT = "SDS_NOINIT";
-char type;
+int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;

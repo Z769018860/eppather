@@ -1,0 +1,281 @@
+equals!!!!!filename[0]!!!!
+equals!!!!!mem + filename[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!handler!!!!
+equals!!!!!mem + handler!!!!
+equals!!!!!handler!!!!
+equals!!!!!mem - handler!!!!
+equals!!!!!user[0]!!!!
+equals!!!!!mem + user[0]!!!!
+Function summaries are ready to dump ~
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *user[0] = 4294967295
+int *filename[0] = 4294967295
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *filename[0] = 4294967295
+int handler = 1
+int *user[0] = 0
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *filename[0] = 4294967295
+int *user[0] = 4294967295
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *filename[0] = 4294967295
+int *user[0] = 0
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *user[0] = 4294967295
+int *filename[0] = 0
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *filename[0] = 0
+int *user[0] = 0
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *user[0] = 4294967295
+int handler = 0
+int *filename[0] = 0
+
+Path:int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *filename[0] = 0
+int *user[0] = 0
+
+[FUNCTION SUMMARIES]
+Function ini_parse:
+signature: int *ini_parse(int *filename, int handler, int *user)
+#cases: 8
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=15959009102707026893 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=8966456311222714786 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=5715239097302312703 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=7758672030968523731 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=18419416502832204593 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=11050132797986973456 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=5824564988790428008 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=4449206812964542101 path="int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(!(filename));
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+ini_parse -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=8
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_parse
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=ini_parse#0{int *filename;
+int handler;
+int *user;
+int mem = 0;
+@(filename);
+mem = mem + filename[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

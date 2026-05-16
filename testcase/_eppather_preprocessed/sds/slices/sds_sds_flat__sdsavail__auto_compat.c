@@ -2,7 +2,7 @@
 
 /* project=sds EPPATHER_ENTRY=sdsavail slice=auto_compat */
 
-intsdsavail(int *s)
+int sdsavail(int *s)
 {
     int mem = 0;
     if (s) {

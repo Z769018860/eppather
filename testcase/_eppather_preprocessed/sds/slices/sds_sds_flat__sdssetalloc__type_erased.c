@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sdssetalloc ===== */
 
-intsdssetalloc(int *s, int newlen)
+int sdssetalloc(int *s, int newlen)
 {
     int alloc;
     int break;

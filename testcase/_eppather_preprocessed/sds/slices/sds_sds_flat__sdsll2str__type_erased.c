@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sdsll2str ===== */
 
-intsdsll2str(int *s, int value)
+int sdsll2str(int *s, int value)
 {
 
     int *p;

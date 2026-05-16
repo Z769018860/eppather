@@ -1,0 +1,281 @@
+equals!!!!!string[0]!!!!
+equals!!!!!mem + string[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!handler!!!!
+equals!!!!!mem + handler!!!!
+equals!!!!!handler!!!!
+equals!!!!!mem - handler!!!!
+equals!!!!!user[0]!!!!
+equals!!!!!mem + user[0]!!!!
+Function summaries are ready to dump ~
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *user[0] = 4294967295
+int *string[0] = 4294967295
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *string[0] = 4294967295
+int handler = 1
+int *user[0] = 0
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *string[0] = 4294967295
+int *user[0] = 4294967295
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *string[0] = 4294967295
+int *user[0] = 0
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *user[0] = 4294967295
+int *string[0] = 0
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int handler = 1
+int *user[0] = 0
+int *string[0] = 0
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *user[0] = 4294967295
+int handler = 0
+int *string[0] = 0
+
+Path:int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int handler = 0
+int *user[0] = 0
+int *string[0] = 0
+
+[FUNCTION SUMMARIES]
+Function ini_parse_string:
+signature: int *ini_parse_string(int *string, int handler, int *user)
+#cases: 8
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=11138828467532767988 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=14562948480249029346 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=4272137644497651633 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=3862196316048819933 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=6938427724428532476 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=5626564017352417308 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(handler > 0);
+mem = mem + handler;
+@(!(user));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=17150979198982523063 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(!(handler > 0));
+mem = mem - handler;
+@(user);
+mem = mem + user[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=3568017557612106791 path="int *string;
+int handler;
+int *user;
+int mem = 0;
+@(!(string));
+@(!(handler > 0));
+mem = mem - handler;
+@(!(user));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+ini_parse_string -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=8
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_parse_string
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=ini_parse_string#0{int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

@@ -81,7 +81,7 @@ int *sdsMakeRoomFor(int *s, int addlen)
 
 /* ===== TYPED APPROX FUNCTION sdsHdrSize ===== */
 
-intsdsHdrSize(int *type)
+int sdsHdrSize(int *type)
 {
     int typeSDS_TYPE_MASK;
 
@@ -129,7 +129,7 @@ int *sdsReqType(int string_size)
 
 /* ===== TYPED APPROX FUNCTION sdsavail ===== */
 
-intsdsavail(int *s)
+int sdsavail(int *s)
 {
     int flagsSDS_TYPE_MASK;
     int sh;
@@ -164,7 +164,7 @@ intsdsavail(int *s)
 
 /* ===== TYPED APPROX FUNCTION sdssetalloc ===== */
 
-intsdssetalloc(int *s, int newlen)
+int sdssetalloc(int *s, int newlen)
 {
     int alloc;
     int break;
@@ -195,7 +195,7 @@ intsdssetalloc(int *s, int newlen)
 
 /* ===== TYPED APPROX FUNCTION sdssetlen ===== */
 
-intsdssetlen(int *s, int newlen)
+int sdssetlen(int *s, int newlen)
 {
     int break;
     int flagsSDS_TYPE_MASK;
@@ -256,7 +256,7 @@ int *sdsalloc(void)
 
 /* ===== TYPED APPROX FUNCTION SDS_TYPE_5_LEN ===== */
 
-intSDS_TYPE_5_LEN(int f)
+int SDS_TYPE_5_LEN(int f)
 {
     int flagsSDS_TYPE_MASK;
     int len;

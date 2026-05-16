@@ -2,7 +2,7 @@
 
 /* project=sds EPPATHER_ENTRY=sdssetalloc slice=auto_compat */
 
-intsdssetalloc(int *s, int newlen)
+int sdssetalloc(int *s, int newlen)
 {
     int mem = 0;
     if (s) {

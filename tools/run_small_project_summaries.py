@@ -631,6 +631,12 @@ def return_type_for_signature(signature: str, func_name: str) -> str:
         return "int *"
     return "int"
 
+def format_function_header(ret: str, name: str, params: str) -> str:
+    ret = ret.strip()
+    if ret.endswith("*"):
+        return f"{ret}{name}({params})"
+    return f"{ret} {name}({params})"
+
 def is_candidate_project_entry(spec: ProjectSpec, name: str, func: FunctionDef) -> bool:
     if name in NON_PROJECT_ENTRIES.get(spec.name, set()):
         return False
@@ -803,7 +809,7 @@ def make_typed_approx_function(func: FunctionDef, known: Set[str]) -> str:
 
     if ret == "int *":
         body = re.sub(r"\breturn\s+0\s*;", "return 0;", body)
-    return f"{ret}{func.name}({param_sig})\n{{\n{body}\n}}\n"
+    return format_function_header(ret, func.name, param_sig) + f"\n{{\n{body}\n}}\n"
 
 def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str, slice_mode: str) -> str:
     out = [
@@ -871,7 +877,7 @@ def make_auto_compat_function(func: FunctionDef) -> str:
     else:
         lines.append("    return mem;")
 
-    return f"{ret}{func.name}({param_sig})\n{{\n" + "\n".join(lines) + "\n}\n"
+    return format_function_header(ret, func.name, param_sig) + "\n{\n" + "\n".join(lines) + "\n}\n"
 
 def make_auto_compat_source(func: FunctionDef, project: str, entry: str) -> str:
     return "\n".join([
@@ -1055,7 +1061,7 @@ def build_slice_files(project_out: Path, spec: ProjectSpec, flat_path: Path, fun
         compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
         compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
         result.append(("compat_entry", compat_path))
-    elif spec.name == "sds" and entry in funcs:
+    if entry in funcs:
         auto_compat_path = slices_dir / f"{flat_path.stem}__{entry}__auto_compat.c"
         auto_compat_path.write_text(make_auto_compat_source(funcs[entry], spec.name, entry), encoding="utf-8")
         result.append(("auto_compat", auto_compat_path))

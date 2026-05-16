@@ -1,2 +1,11 @@
-size_t num_left;
-return ini_parse_string_length(string, strlen(string), handler, user);
+int *string;
+int handler;
+int *user;
+int mem = 0;
+@(string);
+mem = mem + string[0];
+@(handler > 0);
+mem = mem + handler;
+@(user);
+mem = mem + user[0];
+return 0;

@@ -2,7 +2,7 @@
 
 /* project=sds EPPATHER_ENTRY=sdssetlen slice=auto_compat */
 
-intsdssetlen(int *s, int newlen)
+int sdssetlen(int *s, int newlen)
 {
     int mem = 0;
     if (s) {

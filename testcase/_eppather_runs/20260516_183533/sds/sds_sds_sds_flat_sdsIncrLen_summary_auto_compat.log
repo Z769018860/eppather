@@ -1,0 +1,132 @@
+equals!!!!!s[0]!!!!
+equals!!!!!mem + s[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!incr!!!!
+equals!!!!!mem + incr!!!!
+equals!!!!!incr!!!!
+equals!!!!!mem - incr!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int incr;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(incr > 0);
+mem = mem + incr;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *s[0] = 4294967295
+int incr = 1
+
+Path:int *s;
+int incr;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(incr > 0));
+mem = mem - incr;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int incr = 0
+int *s[0] = 4294967295
+
+Path:int *s;
+int incr;
+int mem = 0;
+@(!(s));
+@(incr > 0);
+mem = mem + incr;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int incr = 1
+int *s[0] = 0
+
+Path:int *s;
+int incr;
+int mem = 0;
+@(!(s));
+@(!(incr > 0));
+mem = mem - incr;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int incr = 0
+int *s[0] = 0
+
+[FUNCTION SUMMARIES]
+Function sdsIncrLen:
+signature: int *sdsIncrLen(int *s, int incr)
+#cases: 4
+DIRECT worst_mems: 1
+DIRECT avg_mems(equal-weight): 0.5
+APPROX worst_mems: 1
+APPROX avg_mems(equal-weight): 0.5
+  [case 0] guard_hash=16045751929800286621 path="int *s;
+int incr;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(incr > 0);
+mem = mem + incr;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=10233885730887915824 path="int *s;
+int incr;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(incr > 0));
+mem = mem - incr;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=7386284670267972638 path="int *s;
+int incr;
+int mem = 0;
+@(!(s));
+@(incr > 0);
+mem = mem + incr;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=6261705243827503407 path="int *s;
+int incr;
+int mem = 0;
+@(!(s));
+@(!(incr > 0));
+mem = mem - incr;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsIncrLen -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=4
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsIncrLen
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=1
+worst_path=sdsIncrLen#0{int *s;
+int incr;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(incr > 0);
+mem = mem + incr;
+return 0;
+}
+weighted_avg_mems=0.5 (equal-weight; volce disabled)

@@ -1,0 +1,61 @@
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!size - 1!!!!
+equals!!!!!src[i]!!!!
+equals!!!!!src[i]!!!!
+equals!!!!!'\0'!!!!
+Function summaries are ready to dump ~
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+Path:int *dest;
+int *src;
+int size;
+int i;
+@(!(i < size - 1 &src[i]));
+dest[i] = '\0';
+return dest;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int *src[0] = 3
+int *dest[0] = 4294967295
+int i = 0
+int size = 0
+
+[FUNCTION SUMMARIES]
+Function ini_strncpy0:
+signature: int *ini_strncpy0(int *dest, int *src, int size)
+#cases: 1
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 2
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 2
+  [case 0] guard_hash=7283448824742839266 path="int *dest;
+int *src;
+int size;
+int i;
+@(!(i < size - 1 &src[i]));
+dest[i] = '\0';
+return dest;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+ini_strncpy0 -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_strncpy0
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=ini_strncpy0#0{int *dest;
+int *src;
+int size;
+int i;
+@(!(i < size - 1 &src[i]));
+dest[i] = '\0';
+return dest;
+}
+weighted_avg_mems=2 (equal-weight; volce disabled)

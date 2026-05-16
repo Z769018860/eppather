@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sdsinclen ===== */
 
-intsdsinclen(int *s, int inc)
+int sdsinclen(int *s, int inc)
 {
     int break;
     int flagsSDS_TYPE_MASK;
@@ -42,7 +42,7 @@ intsdsinclen(int *s, int inc)
 
 /* ===== TYPED APPROX FUNCTION SDS_TYPE_5_LEN ===== */
 
-intSDS_TYPE_5_LEN(int f)
+int SDS_TYPE_5_LEN(int f)
 {
     int flagsSDS_TYPE_MASK;
     int len;

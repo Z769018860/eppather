@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sdsHdrSize ===== */
 
-intsdsHdrSize(int *type)
+int sdsHdrSize(int *type)
 {
     int typeSDS_TYPE_MASK;
 

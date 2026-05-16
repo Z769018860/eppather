@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sdsavail ===== */
 
-intsdsavail(int *s)
+int sdsavail(int *s)
 {
     int flagsSDS_TYPE_MASK;
     int sh;

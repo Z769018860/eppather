@@ -2,7 +2,7 @@
 
 /* project=sds EPPATHER_ENTRY=sdsHdrSize slice=auto_compat */
 
-intsdsHdrSize(int *type)
+int sdsHdrSize(int *type)
 {
     int mem = 0;
     if (type) {

@@ -1,0 +1,15 @@
+; 
+(set-info :status unknown)
+(declare-fun file@0@0 () (_ BitVec 32))
+(declare-fun handler@0@0 () (_ BitVec 32))
+(declare-fun user@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x20 (ite (not (and (distinct file@0@0 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x20 (_ bv0 32)) true)))
+(assert
+ (let ((?x55 (ite (not (and (distinct (ite (bvsgt handler@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x55 (_ bv0 32)) true)))
+(assert
+ (and (distinct user@0@0 (_ bv0 32)) true))
+(check-sat)
+

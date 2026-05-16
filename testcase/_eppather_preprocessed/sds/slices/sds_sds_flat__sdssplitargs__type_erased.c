@@ -208,7 +208,7 @@ int *sdsMakeRoomFor(int *s, int addlen)
 
 /* ===== TYPED APPROX FUNCTION sdssetlen ===== */
 
-intsdssetlen(int *s, int newlen)
+int sdssetlen(int *s, int newlen)
 {
     int break;
     int flagsSDS_TYPE_MASK;
@@ -267,7 +267,7 @@ int *sdsfree(int *s)
 
 /* ===== TYPED APPROX FUNCTION sdsHdrSize ===== */
 
-intsdsHdrSize(int *type)
+int sdsHdrSize(int *type)
 {
     int typeSDS_TYPE_MASK;
 

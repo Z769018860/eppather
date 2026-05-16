@@ -118,7 +118,7 @@ int *sdsalloc(void)
 
 /* ===== TYPED APPROX FUNCTION sdssetlen ===== */
 
-intsdssetlen(int *s, int newlen)
+int sdssetlen(int *s, int newlen)
 {
     int break;
     int flagsSDS_TYPE_MASK;

@@ -5,7 +5,7 @@
 
 /* ===== TYPED APPROX FUNCTION sds_free ===== */
 
-intsds_free(int *ptr)
+int sds_free(int *ptr)
 {
  1; 
 }
