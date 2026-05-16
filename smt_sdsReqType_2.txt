@@ -1,4 +1,14 @@
 ; 
 (set-info :status unknown)
+(declare-fun string_size@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x16 (ite (not (and (distinct (ite (bvslt string_size@0@0 (_ bv32 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x16 (_ bv0 32)) true)))
+(assert
+ (let ((?x41 (ite (not (and (distinct (ite (bvslt string_size@0@0 (_ bv256 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x41 (_ bv0 32)) true)))
+(assert
+ (let ((?x34 (ite (bvslt string_size@0@0 (_ bv65536 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x34 (_ bv0 32)) true)))
 (check-sat)
 

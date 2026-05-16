@@ -14,8 +14,11 @@
 # EXTERNAL cache entries
 ########################
 
+//Backend to use: pafi-rs or epat++
+ANALYSIS_BACKEND:STRING=pafi-rs
+
 //Value Computed by CMake
-ANTLR4_RUNTIME_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epat++/epat-protocol/grammar/antlr4-runtime
+ANTLR4_RUNTIME_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epatpp_from_pafi/epat-protocol/grammar/antlr4-runtime
 
 //Value Computed by CMake
 ANTLR4_RUNTIME_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++/epat-protocol/grammar/antlr4-runtime
@@ -32,17 +35,23 @@ CMAKE_ADDR2LINE:FILEPATH=/usr/bin/addr2line
 //Path to a program.
 CMAKE_AR:FILEPATH=/usr/bin/ar
 
-//No help, variable specified on the command line.
-CMAKE_BUILD_TYPE:STRING=Debug
+//Choose the type of build, options are: None Debug Release RelWithDebInfo
+// MinSizeRel ...
+CMAKE_BUILD_TYPE:STRING=
 
-//No help, variable specified on the command line.
-CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++-17
+//Enable/Disable color output during build.
+CMAKE_COLOR_MAKEFILE:BOOL=ON
 
-//LLVM archiver
-CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/lib/llvm-17/bin/llvm-ar
+//CXX compiler
+CMAKE_CXX_COMPILER:FILEPATH=/usr/bin/c++
 
-//Generate index for LLVM archive
-CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/lib/llvm-17/bin/llvm-ranlib
+//A wrapper around 'ar' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_CXX_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar-9
+
+//A wrapper around 'ranlib' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_CXX_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib-9
 
 //Flags used by the CXX compiler during all build types.
 CMAKE_CXX_FLAGS:STRING=
@@ -59,14 +68,16 @@ CMAKE_CXX_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 //Flags used by the CXX compiler during RELWITHDEBINFO builds.
 CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
-//No help, variable specified on the command line.
-CMAKE_C_COMPILER:FILEPATH=/usr/bin/clang-17
+//C compiler
+CMAKE_C_COMPILER:FILEPATH=/usr/bin/cc
 
-//LLVM archiver
-CMAKE_C_COMPILER_AR:FILEPATH=/usr/lib/llvm-17/bin/llvm-ar
+//A wrapper around 'ar' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_C_COMPILER_AR:FILEPATH=/usr/bin/gcc-ar-9
 
-//Generate index for LLVM archive
-CMAKE_C_COMPILER_RANLIB:FILEPATH=/usr/lib/llvm-17/bin/llvm-ranlib
+//A wrapper around 'ranlib' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_C_COMPILER_RANLIB:FILEPATH=/usr/bin/gcc-ranlib-9
 
 //Flags used by the C compiler during all build types.
 CMAKE_C_FLAGS:STRING=
@@ -84,7 +95,7 @@ CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
 CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 
 //Path to a program.
-CMAKE_DLLTOOL:FILEPATH=/usr/bin/llvm-dlltool
+CMAKE_DLLTOOL:FILEPATH=CMAKE_DLLTOOL-NOTFOUND
 
 //Flags used by the linker during all build types.
 CMAKE_EXE_LINKER_FLAGS:STRING=
@@ -101,8 +112,8 @@ CMAKE_EXE_LINKER_FLAGS_RELEASE:STRING=
 //Flags used by the linker during RELWITHDEBINFO builds.
 CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 
-//No help, variable specified on the command line.
-CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=TRUE
+//Enable/Disable output of compile commands during generation.
+CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF
 
 //Install path prefix, prepended onto install directories.
 CMAKE_INSTALL_PREFIX:PATH=/usr/local
@@ -110,8 +121,8 @@ CMAKE_INSTALL_PREFIX:PATH=/usr/local
 //Path to a program.
 CMAKE_LINKER:FILEPATH=/usr/bin/ld
 
-//Program used to build from build.ninja files.
-CMAKE_MAKE_PROGRAM:FILEPATH=/usr/bin/ninja
+//Path to a program.
+CMAKE_MAKE_PROGRAM:FILEPATH=/usr/local/bin/make
 
 //Flags used by the linker during the creation of modules during
 // all build types.
@@ -293,22 +304,28 @@ cfe_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/C
 cfe_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/C
 
 //Value Computed by CMake
-epat++_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epat++
+epat++_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epatpp_from_pafi
 
 //Value Computed by CMake
 epat++_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++
 
 //Value Computed by CMake
-epat-protocol_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epat++/epat-protocol
+epat-protocol_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epatpp_from_pafi/epat-protocol
 
 //Value Computed by CMake
 epat-protocol_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++/epat-protocol
 
 //Value Computed by CMake
-libepat++_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epat++/libepat++
+libepat++_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epatpp_from_pafi/libepat++
 
 //Value Computed by CMake
 libepat++_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++/libepat++
+
+//Value Computed by CMake
+pafi_rs_bridge_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/pafi-rs
+
+//Value Computed by CMake
+pafi_rs_bridge_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/pafi-rs
 
 //Value Computed by CMake
 psychec_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build
@@ -335,7 +352,7 @@ psychecstd_LIB_DEPENDS:STATIC=general;psychecfe;
 psychecstd_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/C/stdlib-support
 
 //Value Computed by CMake
-test_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epat++/test
+test_BINARY_DIR:STATIC=/home/zhangliwei/eppather/build/epatpp_from_pafi/test
 
 //Value Computed by CMake
 test_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++/test
@@ -345,6 +362,8 @@ test_SOURCE_DIR:STATIC=/home/zhangliwei/eppather/epat++/test
 # INTERNAL cache entries
 ########################
 
+//STRINGS property for variable: ANALYSIS_BACKEND
+ANALYSIS_BACKEND-STRINGS:INTERNAL=pafi-rs;epat++
 //ADVANCED property for variable: BZRCOMMAND
 BZRCOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_ADDR2LINE
@@ -359,6 +378,8 @@ CMAKE_CACHE_MAJOR_VERSION:INTERNAL=3
 CMAKE_CACHE_MINOR_VERSION:INTERNAL=16
 //Patch version of cmake used to create the current loaded cache
 CMAKE_CACHE_PATCH_VERSION:INTERNAL=3
+//ADVANCED property for variable: CMAKE_COLOR_MAKEFILE
+CMAKE_COLOR_MAKEFILE-ADVANCED:INTERNAL=1
 //Path to CMake executable.
 CMAKE_COMMAND:INTERNAL=/usr/bin/cmake
 //Path to cpack program executable.
@@ -418,7 +439,7 @@ CMAKE_EXPORT_COMPILE_COMMANDS-ADVANCED:INTERNAL=1
 //Name of external makefile project generator.
 CMAKE_EXTRA_GENERATOR:INTERNAL=
 //Name of generator.
-CMAKE_GENERATOR:INTERNAL=Ninja
+CMAKE_GENERATOR:INTERNAL=Unix Makefiles
 //Generator instance identifier.
 CMAKE_GENERATOR_INSTANCE:INTERNAL=
 //Name of generator platform.
@@ -455,7 +476,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=9
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=10
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP
