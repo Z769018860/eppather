@@ -36,7 +36,7 @@ bool probablyUnsafeForEpat(const std::string& line) {
     if (line.empty()) {
         return false;
     }
-    if (containsAny(line, {"->", "(*", "?", "[", "]"})) {
+    if (containsAny(line, {"->", "?"})) {
         return true;
     }
     if (containsAny(line, {"sizeof", "offsetof", "__attribute__", "__asm"})) {
@@ -70,9 +70,6 @@ bool isSafePrefixLine(const std::string& line) {
         line.find("struct ") != std::string::npos ||
         line.find("union ") != std::string::npos ||
         line.find("enum ") != std::string::npos ||
-        line.find("*") != std::string::npos ||
-        line.find("[") != std::string::npos ||
-        line.find("]") != std::string::npos ||
         line.find("->") != std::string::npos ||
         line.find(".") != std::string::npos ||
         line.find("(") != std::string::npos ||

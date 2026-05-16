@@ -145,10 +145,12 @@ PROJECTS: Dict[str, ProjectSpec] = {
 }
 
 KEYWORDS = {
-    "if", "while", "for", "switch", "return", "sizeof", "case", "do",
-    "else", "goto", "typedef", "struct", "union", "enum", "static",
-    "inline", "extern"
+    "if", "while", "for", "switch", "return", "sizeof", "case", "do", "else", "goto",
+    "typedef", "struct", "union", "enum", "static", "inline", "extern", "const", "volatile",
+    "int", "char", "long", "short", "unsigned", "signed", "void", "size_t", "NULL"
 }
+
+CONTROL_WORDS = {"if", "while", "for", "switch", "return", "sizeof"}
 
 COMPAT_FUNCTIONS: Dict[Tuple[str, str], str] = {
     ("list", "list_rpush"): """
@@ -233,17 +235,6 @@ int list_remove(int has_prev, int has_next, int len)
     return writes + len;
 }
 """,
-    ("list", "list_new"): """
-int list_new(int alloc_ok)
-{
-    int len = 0;
-    if (!alloc_ok) {
-        return 0;
-    }
-    len = 0;
-    return len + 1;
-}
-""",
     ("inih", "ini_rstrip"): """
 int ini_rstrip(int len, int last_is_space)
 {
@@ -297,19 +288,6 @@ int ini_reader_string(int num_left, int num)
     return num_left + 1;
 }
 """,
-    ("inih", "ini_parse_string_length"): """
-int ini_parse_string_length(int length, int handler_ok)
-{
-    int error = 0;
-    if (length <= 0) {
-        return error;
-    }
-    if (!handler_ok) {
-        error = 1;
-    }
-    return error;
-}
-""",
     ("sds", "sdsReqType"): """
 int sdsReqType(unsigned long string_size)
 {
@@ -339,49 +317,6 @@ int sdsupdatelen(int old_len, int real_len)
         old_len = real_len;
     }
     return old_len;
-}
-""",
-    ("sds", "sdsempty"): """
-int sdsempty(void)
-{
-    int len = 0;
-    return len;
-}
-""",
-    ("sds", "sdsnew"): """
-int sdsnew(int init_is_null, int initlen)
-{
-    if (init_is_null) {
-        initlen = 0;
-    }
-    return initlen + 1;
-}
-""",
-    ("sds", "sdsdup"): """
-int sdsdup(int len)
-{
-    return len + 1;
-}
-""",
-    ("sds", "sdsfree"): """
-int sdsfree(int is_null)
-{
-    if (is_null) {
-        return 0;
-    }
-    return 1;
-}
-""",
-    ("sds", "sdsAllocSize"): """
-int sdsAllocSize(int hdr, int alloc)
-{
-    return hdr + alloc + 1;
-}
-""",
-    ("sds", "sdsAllocPtr"): """
-int sdsAllocPtr(int ptr, int hdr)
-{
-    return ptr - hdr;
 }
 """,
 }
@@ -666,6 +601,294 @@ def filter_preamble(preamble: str) -> str:
         lines.append(line)
     return "\n".join(lines) + "\n"
 
+def split_top_level_commas(text: str) -> List[str]:
+    parts = []
+    cur = []
+    depth = 0
+    for ch in text:
+        if ch in "([{":
+            depth += 1
+        elif ch in ")]}":
+            depth = max(0, depth - 1)
+        if ch == "," and depth == 0:
+            parts.append("".join(cur).strip())
+            cur = []
+        else:
+            cur.append(ch)
+    if cur:
+        parts.append("".join(cur).strip())
+    return parts
+
+def extract_param_text(signature: str, func_name: str) -> str:
+    m = re.search(r"\b" + re.escape(func_name) + r"\s*\(", signature)
+    if not m:
+        return ""
+    start = signature.find("(", m.start())
+    depth = 0
+    for i in range(start, len(signature)):
+        if signature[i] == "(":
+            depth += 1
+        elif signature[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return signature[start + 1:i]
+    return ""
+
+def param_name(param: str, idx: int) -> str:
+    p = re.sub(r"=.*$", "", param).strip()
+    p = re.sub(r"\[[^\]]*\]", " ", p)
+    ids = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", p)
+    ids = [x for x in ids if x not in KEYWORDS and x not in {"const", "volatile", "restrict", "struct", "union", "enum"}]
+    if not ids:
+        return f"arg{idx}"
+    return ids[-1]
+
+FIELD_OFFSETS = {
+    "len": 0,
+    "alloc": 1,
+    "flags": 2,
+    "head": 3,
+    "tail": 4,
+    "next": 5,
+    "prev": 6,
+    "val": 7,
+    "value": 7,
+    "ptr": 8,
+    "num_left": 9,
+    "data": 10,
+    "buf": 11,
+}
+
+POINTER_TYPE_NAMES = {
+    "sds", "FILE",
+}
+
+def field_offset(field: str) -> int:
+    if field in FIELD_OFFSETS:
+        return FIELD_OFFSETS[field]
+    return 16 + (sum(ord(ch) for ch in field) % 48)
+
+def rewrite_member_access_to_index(text: str) -> str:
+    """
+    Keep pointer/array memory-access shape instead of flattening member accesses
+    into scalar variables.
+
+    Examples:
+      self->len          => self[0]
+      node->next         => node[5]
+      self->tail->next   => self[4][5]
+      ctx.ptr            => ctx_ptr
+    """
+    prev = None
+    cur = text
+    arrow = re.compile(r"(\b[A-Za-z_][A-Za-z0-9_]*(?:\s*\[[^\]]+\])*)\s*->\s*([A-Za-z_][A-Za-z0-9_]*)")
+    dot = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)")
+    while prev != cur:
+        prev = cur
+        cur = arrow.sub(lambda m: f"{m.group(1)}[{field_offset(m.group(2))}]", cur)
+        cur = dot.sub(lambda m: f"{m.group(1)}_{m.group(2)}", cur)
+    return cur
+
+def remove_casts(text: str) -> str:
+    type_words = (
+        r"(?:const|volatile|unsigned|signed|long|short|double|float|"
+        r"struct\s+\w+|union\s+\w+|enum\s+\w+|"
+        r"char|int|void|size_t|ssize_t|"
+        r"[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE)"
+    )
+    pattern = re.compile(r"\(\s*" + type_words + r"(?:\s*\*)*\s*\)")
+    prev = None
+    cur = text
+    while prev != cur:
+        prev = cur
+        cur = pattern.sub("", cur)
+    return cur
+
+def replace_string_and_char_literals(text: str) -> str:
+    text = re.sub(r'"(?:\\.|[^"\\])*"', "0", text)
+    text = re.sub(r"'(?:\\.|[^'\\])+'", "1", text)
+    return text
+
+def replace_external_function_calls(text: str, internal_names: Optional[Set[str]] = None) -> str:
+    if internal_names is None:
+        internal_names = set()
+    prev = None
+    cur = text
+    simple_call = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(([^(){};]*)\)")
+    while prev != cur:
+        prev = cur
+        def repl(m: re.Match) -> str:
+            name = m.group(1)
+            if name in CONTROL_WORDS or name in internal_names:
+                return m.group(0)
+            return "1"
+        cur = simple_call.sub(repl, cur)
+    return cur
+
+def is_pointer_like_decl(param_or_decl: str) -> bool:
+    p = param_or_decl.strip()
+    if "*" in p:
+        return True
+    if re.search(r"\[[^\]]*\]", p):
+        return True
+    words = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", p)
+    return any(w in POINTER_TYPE_NAMES for w in words)
+
+def is_array_decl(param_or_decl: str) -> bool:
+    return bool(re.search(r"\[[^\]]*\]", param_or_decl))
+
+def normalize_array_suffix(text: str) -> str:
+    return re.sub(r"\[[^\]]*\]", "[8]", text)
+
+def normalize_declarator_name(part: str, idx: int) -> str:
+    p = re.sub(r"=.*$", "", part).strip()
+    p = re.sub(r"\[[^\]]*\]", " ", p)
+    ids = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", p)
+    ids = [x for x in ids if x not in KEYWORDS and x not in {"const", "volatile", "restrict", "struct", "union", "enum"}]
+    return ids[-1] if ids else f"tmp{idx}"
+
+def normalize_decl_part(part: str, idx: int, internal_names: Optional[Set[str]] = None) -> str:
+    raw = part.strip()
+    if not raw:
+        return ""
+    if "(*" in raw:
+        return ""
+    init = ""
+    if "=" in raw:
+        left, init = raw.split("=", 1)
+        init = normalize_expression_typed(init.strip(), internal_names)
+    else:
+        left = raw
+    name = normalize_declarator_name(left, idx)
+
+    if is_array_decl(left):
+        decl = f"int {name}[8]"
+    elif is_pointer_like_decl(left):
+        decl = f"int *{name}"
+    else:
+        decl = f"int {name}"
+
+    if init:
+        return f"{decl} = {init};"
+    return f"{decl};"
+
+def normalize_declaration_line_typed(line: str, internal_names: Optional[Set[str]] = None) -> str:
+    raw = line.strip()
+    if not raw or raw.startswith("#"):
+        return line
+
+    prefix_pattern = re.compile(
+        r"^(?P<indent>\s*)(?:(?:static|const|volatile|register|inline|extern)\s+)*"
+        r"(?P<type>(?:struct|union|enum)\s+[A-Za-z_][A-Za-z0-9_]*|"
+        r"[A-Za-z_][A-Za-z0-9_]*_t|sds|FILE|char|double|float|int|long|short|size_t|ssize_t|unsigned|signed|void)"
+        r"(?:\s+(?:long|short|int|char|signed|unsigned|double|float))*"
+        r"\s+(?P<rest>[^;{}]+);$"
+    )
+    m = prefix_pattern.match(line)
+    if not m:
+        return line
+
+    rest = m.group("rest").strip()
+    if "(" in rest and ")" in rest:
+        return ""
+
+    base_type = m.group("type")
+    decls = []
+    for idx, part in enumerate(split_top_level_commas(rest)):
+        full_part = base_type + " " + part.strip()
+        d = normalize_decl_part(full_part, idx, internal_names)
+        if d:
+            decls.append(d)
+    indent = m.group("indent")
+    return "\n".join(indent + d for d in decls)
+
+def normalize_expression_typed(expr: str, internal_names: Optional[Set[str]] = None) -> str:
+    expr = replace_string_and_char_literals(expr)
+    expr = re.sub(r"\bNULL\b", "0", expr)
+    expr = re.sub(r"\btrue\b", "1", expr)
+    expr = re.sub(r"\bfalse\b", "0", expr)
+    expr = re.sub(r"sizeof\s*\([^)]*\)", "1", expr)
+    expr = re.sub(r"sizeof\s+[A-Za-z_][A-Za-z0-9_]*", "1", expr)
+    expr = remove_casts(expr)
+    expr = rewrite_member_access_to_index(expr)
+    expr = replace_external_function_calls(expr, internal_names)
+    expr = normalize_array_suffix(expr)
+    return expr
+
+def normalize_body_typed(body: str, internal_names: Optional[Set[str]] = None) -> str:
+    b = normalize_expression_typed(body, internal_names)
+    out_lines = []
+    for line in b.splitlines():
+        out_lines.append(normalize_declaration_line_typed(line, internal_names))
+    b = "\n".join(out_lines)
+    b = re.sub(r"\breturn\s*;", "return 0;", b)
+    return b
+
+def collect_identifiers(text: str) -> Set[str]:
+    masked = mask_comments_and_strings(text)
+    ids = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", masked))
+    return {x for x in ids if x not in KEYWORDS and x not in CONTROL_WORDS and not x.isupper()}
+
+def collect_declared_names(text: str) -> Set[str]:
+    names = set(re.findall(r"\bint\s+\*?\s*([A-Za-z_][A-Za-z0-9_]*)\b", text))
+    names.update(re.findall(r"\bint\s+([A-Za-z_][A-Za-z0-9_]*)\s*\[", text))
+    return names
+
+def pointer_return_type(signature: str) -> bool:
+    before = signature.split("(", 1)[0]
+    if "*" in before:
+        return True
+    words = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", before)
+    return any(w in POINTER_TYPE_NAMES for w in words)
+
+def make_typed_param(param: str, idx: int) -> Tuple[str, str]:
+    name = param_name(param, idx)
+    if is_array_decl(param) or is_pointer_like_decl(param):
+        return name, f"int *{name}"
+    return name, f"int {name}"
+
+def make_type_erased_function(func: FunctionDef, internal_names: Optional[Set[str]] = None) -> str:
+    if internal_names is None:
+        internal_names = set()
+    params_text = extract_param_text(func.signature, func.name)
+    params = []
+    param_names: List[str] = []
+    if params_text.strip() and params_text.strip() != "void":
+        for i, p in enumerate(split_top_level_commas(params_text)):
+            name, decl = make_typed_param(p, i)
+            if name not in param_names:
+                param_names.append(name)
+                params.append(decl)
+    param_sig = ", ".join(params) if params else "void"
+    ret = "int *" if pointer_return_type(func.signature) else "int"
+
+    body = normalize_body_typed(func.body, internal_names)
+    existing = collect_declared_names(body) | set(param_names)
+    ids = collect_identifiers(body)
+    extra = sorted(x for x in ids if x not in existing and x != func.name and x not in internal_names)
+    decls = "\n".join(f"    int {x};" for x in extra)
+    if decls:
+        body = decls + "\n" + body
+
+    if "return" not in body:
+        body = body.rstrip() + "\n    return 0;\n"
+
+    return f"{ret} {func.name}({param_sig})\n{{\n{body}\n}}\n"
+
+def make_type_erased_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+    out = [
+        "/* Generated typed approximation for eppather summary mode. */\n",
+        "/* This slice preserves pointer/array access forms where possible. */\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\n",
+    ]
+    internal_names = set(names)
+    for name in names:
+        if name in funcs:
+            out.append("\n/* ===== TYPED APPROX FUNCTION " + name + " ===== */\n")
+            out.append(make_type_erased_function(funcs[name], internal_names))
+            out.append("\n")
+    return "\n".join(out)
+
 def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str, slice_mode: str) -> str:
     out = [
         "/* Generated by run_small_project_summaries.py */\n",
@@ -676,6 +899,18 @@ def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[
         if name in funcs:
             out.append("\n/* ===== FUNCTION " + name + " ===== */\n")
             out.append(funcs[name].text)
+            out.append("\n")
+    return "\n".join(out)
+
+def make_type_erased_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+    out = [
+        "/* Generated type-erased approximation for eppather summary mode. */\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\n",
+    ]
+    for name in names:
+        if name in funcs:
+            out.append("\n/* ===== TYPE ERASED FUNCTION " + name + " ===== */\n")
+            out.append(make_type_erased_function(funcs[name]))
             out.append("\n")
     return "\n".join(out)
 
@@ -816,14 +1051,16 @@ def build_slice_files(project_out: Path, spec: ProjectSpec, flat_path: Path, fun
 
         entry_path = slices_dir / f"{flat_path.stem}__{entry}__entry_only.c"
         entry_path.write_text(make_slice_source(preamble, funcs, [entry], entry, spec.name, "entry_only"), encoding="utf-8")
-        if ("entry_only", entry_path) not in result:
-            result.append(("entry_only", entry_path))
+        result.append(("entry_only", entry_path))
+
+        type_erased_path = slices_dir / f"{flat_path.stem}__{entry}__type_erased.c"
+        type_erased_path.write_text(make_type_erased_source(funcs, closure, entry, spec.name), encoding="utf-8")
+        result.append(("type_erased", type_erased_path))
 
     if (spec.name, entry) in COMPAT_FUNCTIONS:
         compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
         compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
         result.append(("compat_entry", compat_path))
-
     return result
 
 def main() -> int:
@@ -840,6 +1077,7 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--max-closure-depth", type=int, default=2)
     ap.add_argument("--only-preprocess", action="store_true")
+    ap.add_argument("--no-type-erased", action="store_true")
     ap.add_argument("--no-compat-fallback", action="store_true")
     ap.add_argument("--crash-trace", action="store_true")
     ap.add_argument("--debug-epat", action="store_true")
@@ -882,8 +1120,10 @@ def main() -> int:
                 log(f"[WARN] {spec.name}: missing entries in {flat_path.name}: {','.join(missing)}")
             for entry in selected:
                 slice_files = build_slice_files(project_out, spec, flat_path, funcs, preamble, entry, args.max_closure_depth)
+                if args.no_type_erased:
+                    slice_files = [(m, p) for m, p in slice_files if m != "type_erased"]
                 if args.no_compat_fallback:
-                    slice_files = [(mode, path) for mode, path in slice_files if mode != "compat_entry"]
+                    slice_files = [(m, p) for m, p in slice_files if m != "compat_entry"]
                 if not slice_files:
                     continue
                 for mode in modes:
