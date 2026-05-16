@@ -1,0 +1,231 @@
+diff --git a/C/syntax/EpatRunner.cpp b/C/syntax/EpatRunner.cpp
+index 84f9832..0000000 100644
+--- a/C/syntax/EpatRunner.cpp
++++ b/C/syntax/EpatRunner.cpp
+@@ -1,15 +1,73 @@
+ // Implementation of CFG-aware epat++ invocation utilities.
+ #include "EpatRunner.h"
+
++#include <cstdlib>
++#include <iostream>
++#include <sstream>
+ #include <utility>
+
+ #include "SyntaxNamePrinter.h"
+
+ namespace psy {
+ namespace C {
+
+ namespace {
+ bool endsWithSemicolon(const std::string& s) {
+     return !s.empty() && s.back() == ';';
+ }
++
++bool envEnabled(const char* name) {
++    const char* v = std::getenv(name);
++    return v && *v && std::string(v) != "0";
++}
++
++bool containsAny(const std::string& s, const std::initializer_list<const char*> needles) {
++    for (const char* needle : needles) {
++        if (s.find(needle) != std::string::npos) {
++            return true;
++        }
++    }
++    return false;
++}
++
++bool probablyUnsafeForEpat(const std::string& line) {
++    /*
++     * Real-world C libraries often contain statements that the current epat
++     * script parser cannot model safely: struct member writes, indirect calls,
++     * ternary expressions, address-of/pointer-indirection heavy statements,
++     * casts embedded in guards, and callback invocations.
++     *
++     * In summary mode we prefer a conservative "skip unsupported statement"
++     * policy over crashing the whole batch. This is enabled only when
++     * EPPATHER_EPAT_SAFE_RENDER=1, so existing exact benchmark behaviour can be
++     * preserved by leaving the variable unset.
++     */
++    if (line.empty()) {
++        return false;
++    }
++    if (containsAny(line, {"->", "?.", "(*", "&&", "||"})) {
++        return true;
++    }
++    if (containsAny(line, {"?", ":", "[", "]"})) {
++        return true;
++    }
++    if (containsAny(line, {"sizeof", "offsetof", "__attribute__", "__asm"})) {
++        return true;
++    }
++    return false;
++}
++
++void appendSafeLine(std::string& script, const std::string& line, bool addSemicolon) {
++    if (line.empty()) {
++        return;
++    }
++    const bool safeRender = envEnabled("EPPATHER_EPAT_SAFE_RENDER");
++    if (safeRender && probablyUnsafeForEpat(line)) {
++        if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
++            std::cerr << "[EPAT_SAFE_RENDER] skip unsupported script line: "
++                      << line << std::endl;
++        }
++        return;
++    }
++    script += line;
++    if (addSemicolon && !endsWithSemicolon(line)) {
++        script += ";";
++    }
++    script += "\n";
++}
+ }  // namespace
+
+ EpatRunner::EpatRunner(std::string prefix) : prefix_(std::move(prefix)) {
+@@ -25,8 +83,7 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+             case PathDecisionKind::LoopInit: {
+                 const auto& init = step.node->initstmt_str;
+                 if (!init.empty() && init != ";") {
+-                    script += init;
+-                    if (!endsWithSemicolon(init)) script += ";";
+-                    script += "\n";
++                    appendSafeLine(script, init, true);
+                 }
+                 break;
+             }
+@@ -34,7 +91,9 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+             case PathDecisionKind::TrueBranch: {
+                 if (!step.node->cond_str.empty()) {
+-                    script += "@(" + step.node->cond_str + ");\n";
++                    if (!envEnabled("EPPATHER_EPAT_SAFE_RENDER") || !probablyUnsafeForEpat(step.node->cond_str)) {
++                        script += "@(" + step.node->cond_str + ");\n";
++                    }
+                 }
+                 break;
+             }
+@@ -42,7 +101,9 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+             case PathDecisionKind::FalseBranch: {
+                 if (!step.node->cond_str.empty()) {
+-                    script += "@(!(" + step.node->cond_str + "));\n";
++                    if (!envEnabled("EPPATHER_EPAT_SAFE_RENDER") || !probablyUnsafeForEpat(step.node->cond_str)) {
++                        script += "@(!(" + step.node->cond_str + "));\n";
++                    }
+                 }
+                 break;
+             }
+@@ -50,9 +111,7 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+             case PathDecisionKind::LoopUpdate: {
+                 if (!step.node->expr_str.empty()) {
+-                    script += step.node->expr_str;
+-                    if (!endsWithSemicolon(step.node->expr_str)) script += ";";
+-                    script += "\n";
++                    appendSafeLine(script, step.node->expr_str, true);
+                 }
+                 break;
+             }
+@@ -61,9 +120,7 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+             default: {
+                 auto code = step.node->getCode();
+                 if (!code.empty()) {
+-                    script += code;
+-                    if (!endsWithSemicolon(code)) script += "\n";
++                    appendSafeLine(script, code, false);
+                 }
+                 break;
+             }
+@@ -76,6 +133,17 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
+ }
+
+ EpatResult EpatRunner::solveScript(const std::string& script) const {
++    if (envEnabled("EPPATHER_DEBUG_EPAT_SCRIPT")) {
++        std::cerr << "[EPAT_SCRIPT_BEGIN]\n" << script << "\n[EPAT_SCRIPT_END]" << std::endl;
++    }
++    if (envEnabled("EPPATHER_EPAT_SAFE_RENDER")) {
++        bool hasExecutable = false;
++        for (char ch : script) {
++            if (!std::isspace(static_cast<unsigned char>(ch))) {
++                hasExecutable = true;
++                break;
++            }
++        }
++    }
+     auto root = epat::Root::fromString(script);
+     auto solver = epat::Solver::create(std::move(root));
+
+diff --git a/C/syntax/SyntaxNamePrinter.cpp b/C/syntax/SyntaxNamePrinter.cpp
+index 09d467c..0000000 100644
+--- a/C/syntax/SyntaxNamePrinter.cpp
++++ b/C/syntax/SyntaxNamePrinter.cpp
+@@ -1038,6 +1038,26 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* node) {
+
+                 loopStack.push_back(LoopFrame{ n, bodyEnd, join, nodeLevel, {}, nullptr, /*isFor*/false });
+             }
++            else if (syn->kind() == SyntaxKind::DoStatement) {
++                /*
++                 * Minimal do-while support for small real-world libraries.
++                 * The CFG approximation is:
++                 *   do-node -> body -> cond
++                 *   cond true -> body, cond false -> join
++                 * It reuses the existing loop machinery and marks the node as
++                 * a while-like loop so DFS/summary can bound it with maxloop.
++                 */
++                n->isCondition = true; n->isWhile = true; n->isLoop = true; n->loopCount = 0;
++
++                n->cond_    = syn->asDoStatement()->condition();
++                n->cond_str = cfgnode.ExpressionToString(n->cond_);
++
++                const StatementSyntax* bodyFirst = firstExecutable(syn->asDoStatement()->statement());
++                auto join    = createEndNode(); join->nodeLevel    = nodeLevel;
++                auto bodyEnd = createEndNode(); bodyEnd->nodeLevel = nodeLevel + 1;
++                n->setNextFalseNode(join);
++                if (bodyFirst) pendingEdges[bodyFirst].push_back({ n, bodyFirst, false });
++                else           n->setNextNode(bodyEnd);
++                bodyEnd->setNextNode(n);
++                loopStack.push_back(LoopFrame{ n, bodyEnd, join, nodeLevel, {}, nullptr, /*isFor*/false });
++            }
+
+             // 回填 True/False 延迟边
+             if (auto it = pendingEdges.find(syn); it != pendingEdges.end()) {
+diff --git a/tools/run_small_project_summaries.py b/tools/run_small_project_summaries.py
+index 2cfc7da..0000000 100755
+--- a/tools/run_small_project_summaries.py
++++ b/tools/run_small_project_summaries.py
+@@ -1,5 +1,6 @@
+ #!/usr/bin/env python3
+ import argparse
++import os
+ import csv
+ import re
+ import shutil
+@@ -520,6 +521,12 @@ def run_gcc_preprocess(flat: Path, pp: Path, timeout: int) -> Tuple[bool, str]:
+         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout)
+         return proc.returncode == 0, proc.stdout + proc.stderr
+     except subprocess.TimeoutExpired as exc:
+-        return False, (exc.stdout or "") + (exc.stderr or "") + "\n[TIMEOUT] gcc -E\n"
++        return False, to_text(exc.stdout) + to_text(exc.stderr) + "\n[TIMEOUT] gcc -E\n"
++
++
++def to_text(value) -> str:
++    if value is None:
++        return ""
++    if isinstance(value, bytes):
++        return value.decode("utf-8", errors="replace")
++    return str(value)
+@@ -666,6 +673,7 @@ def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpa
+     env = os.environ.copy()
+     env["EPPATHER_ENTRY"] = entry
++    env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
+     if crash_trace:
+         env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
+@@ -674,11 +682,11 @@ def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpa
+     try:
+         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, timeout=timeout)
+         rc = proc.returncode
+-        text = proc.stdout + proc.stderr
++        text = to_text(proc.stdout) + to_text(proc.stderr)
+     except subprocess.TimeoutExpired as exc:
+         rc = 124
+         timed_out = True
+-        text = (exc.stdout or "") + (exc.stderr or "") + "\n[TIMEOUT] cnip execution timeout\n"
++        text = to_text(exc.stdout) + to_text(exc.stderr) + "\n[TIMEOUT] cnip execution timeout\n"

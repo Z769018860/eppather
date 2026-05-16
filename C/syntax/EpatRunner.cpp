@@ -1,6 +1,9 @@
 // Implementation of CFG-aware epat++ invocation utilities.
 #include "EpatRunner.h"
 
+#include <cctype>
+#include <cstdlib>
+#include <iostream>
 #include <utility>
 
 #include "SyntaxNamePrinter.h"
@@ -11,6 +14,50 @@ namespace C {
 namespace {
 bool endsWithSemicolon(const std::string& s) {
     return !s.empty() && s.back() == ';';
+}
+
+bool envEnabled(const char* name) {
+    const char* v = std::getenv(name);
+    return v && *v && std::string(v) != "0";
+}
+
+bool containsAny(const std::string& s, std::initializer_list<const char*> needles) {
+    for (const char* needle : needles) {
+        if (s.find(needle) != std::string::npos) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool probablyUnsafeForEpat(const std::string& line) {
+    if (line.empty()) {
+        return false;
+    }
+    if (containsAny(line, {"->", "(*", "?", "[", "]"})) {
+        return true;
+    }
+    if (containsAny(line, {"sizeof", "offsetof", "__attribute__", "__asm"})) {
+        return true;
+    }
+    return false;
+}
+
+void appendSafeLine(std::string& script, const std::string& line, bool addSemicolon) {
+    if (line.empty()) {
+        return;
+    }
+    if (envEnabled("EPPATHER_EPAT_SAFE_RENDER") && probablyUnsafeForEpat(line)) {
+        if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
+            std::cerr << "[EPAT_SAFE_RENDER] skip unsupported script line: " << line << std::endl;
+        }
+        return;
+    }
+    script += line;
+    if (addSemicolon && !endsWithSemicolon(line)) {
+        script += ";";
+    }
+    script += "\n";
 }
 }  // namespace
 
@@ -27,29 +74,29 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
             case PathDecisionKind::LoopInit: {
                 const auto& init = step.node->initstmt_str;
                 if (!init.empty() && init != ";") {
-                    script += init;
-                    if (!endsWithSemicolon(init)) script += ";";
-                    script += "\n";
+                    appendSafeLine(script, init, true);
                 }
                 break;
             }
             case PathDecisionKind::TrueBranch: {
                 if (!step.node->cond_str.empty()) {
-                    script += "@(" + step.node->cond_str + ");\n";
+                    if (!envEnabled("EPPATHER_EPAT_SAFE_RENDER") || !probablyUnsafeForEpat(step.node->cond_str)) {
+                        script += "@(" + step.node->cond_str + ");\n";
+                    }
                 }
                 break;
             }
             case PathDecisionKind::FalseBranch: {
                 if (!step.node->cond_str.empty()) {
-                    script += "@(!(" + step.node->cond_str + "));\n";
+                    if (!envEnabled("EPPATHER_EPAT_SAFE_RENDER") || !probablyUnsafeForEpat(step.node->cond_str)) {
+                        script += "@(!(" + step.node->cond_str + "));\n";
+                    }
                 }
                 break;
             }
             case PathDecisionKind::LoopUpdate: {
                 if (!step.node->expr_str.empty()) {
-                    script += step.node->expr_str;
-                    if (!endsWithSemicolon(step.node->expr_str)) script += ";";
-                    script += "\n";
+                    appendSafeLine(script, step.node->expr_str, true);
                 }
                 break;
             }
@@ -57,8 +104,7 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
             default: {
                 auto code = step.node->getCode();
                 if (!code.empty()) {
-                    script += code;
-                    if (!endsWithSemicolon(code)) script += "\n";
+                    appendSafeLine(script, code, false);
                 }
                 break;
             }
@@ -69,6 +115,9 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
 }
 
 EpatResult EpatRunner::solveScript(const std::string& script) const {
+    if (envEnabled("EPPATHER_DEBUG_EPAT_SCRIPT")) {
+        std::cerr << "[EPAT_SCRIPT_BEGIN]\n" << script << "\n[EPAT_SCRIPT_END]" << std::endl;
+    }
     auto root = epat::Root::fromString(script);
     auto solver = epat::Solver::create(std::move(root));
 

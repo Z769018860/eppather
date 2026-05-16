@@ -1,0 +1,315 @@
+equals!!!!!'\0'!!!!
+Function summaries are ready to dump ~
+error: struct _EPPATHER_FILE not found
+debug: empty type, return int
+Path:typedef unsigned long size_t;
+typedef long ssize_t;
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+typedef long intptr_t;
+typedef unsigned long uintptr_t;
+typedef struct _EPPATHER_FILE FILE;
+void *malloc(size_t size);
+void free(void *ptr);
+void *realloc(void *ptr, size_t size);
+void *calloc(size_t n, size_t size);
+void *memcpy(void *dest, const void *src, size_t n);
+void *memmove(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+size_t strlen(const char *s);
+int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t n);
+char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
+char *strstr(const char *haystack, const char *needle);
+char *strncpy(char *dest, const char *src, size_t n);
+char *strcpy(char *dest, const char *src);
+int sprintf(char *str, const char *format, ...);
+int snprintf(char *str, size_t size, const char *format, ...);
+int printf(const char *format, ...);
+int fprintf(FILE *stream, const char *format, ...);
+int fputc(int c, FILE *stream);
+FILE *fopen(const char *filename, const char *mode);
+int fclose(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+long ftell(FILE *stream);
+void rewind(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int ferror(FILE *stream);
+char *fgets(char *str, int num, void *stream);
+int isspace(int c);
+int isalpha(int c);
+int isdigit(int c);
+int isalnum(int c);
+int isxdigit(int c);
+int tolower(int c);
+int toupper(int c);
+double strtod(const char *nptr, char **endptr);
+extern const char *SDS_NOINIT;
+typedef char *sds;
+sds sdsnewlen(const void *init, size_t initlen);
+sds sdsnew(const char *init);
+sds sdsempty(void);
+sds sdsdup(const sds s);
+void sdsfree(sds s);
+sds sdsgrowzero(sds s, size_t len);
+sds sdscatlen(sds s, const void *t, size_t len);
+sds sdscat(sds s, const char *t);
+sds sdscatsds(sds s, const sds t);
+sds sdscpylen(sds s, const char *t, size_t len);
+sds sdscpy(sds s, const char *t);
+sds sdscatvprintf(sds s, const char *fmt, va_list ap);
+sds sdscatprintf(sds s, const char *fmt, ...)
+;
+sds sdscatfmt(sds s, char const *fmt, ...);
+sds sdstrim(sds s, const char *cset);
+void sdsrange(sds s, ssize_t start, ssize_t end);
+void sdsupdatelen(sds s);
+void sdsclear(sds s);
+int sdscmp(const sds s1, const sds s2);
+sds *sdssplitlen(const char *s, ssize_t len, const char *sep, int seplen, int *count);
+void sdsfreesplitres(sds *tokens, int count);
+void sdstolower(sds s);
+void sdstoupper(sds s);
+sds sdsfromlonglong(long long value);
+sds sdscatrepr(sds s, const char *p, size_t len);
+sds *sdssplitargs(const char *line, int *argc);
+sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen);
+sds sdsjoin(char **argv, int argc, char *sep);
+sds sdsjoinsds(sds *argv, int argc, const char *sep, size_t seplen);
+sds sdsMakeRoomFor(sds s, size_t addlen);
+void sdsIncrLen(sds s, ssize_t incr);
+sds sdsRemoveFreeSpace(sds s);
+size_t sdsAllocSize(sds s);
+void *sdsAllocPtr(sds s);
+void *sds_malloc(size_t size);
+void *sds_realloc(void *ptr, size_t size);
+void sds_free(void *ptr);
+const char *SDS_NOINIT = "SDS_NOINIT";
+sds s;
+sdssetlen(s, 0);
+s[0] = '\0';
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsclear:
+signature: void sdsclear(sds s)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=2313800190901056197 path="typedef unsigned long size_t;
+typedef long ssize_t;
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+typedef long intptr_t;
+typedef unsigned long uintptr_t;
+typedef struct _EPPATHER_FILE FILE;
+void *malloc(size_t size);
+void free(void *ptr);
+void *realloc(void *ptr, size_t size);
+void *calloc(size_t n, size_t size);
+void *memcpy(void *dest, const void *src, size_t n);
+void *memmove(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+size_t strlen(const char *s);
+int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t n);
+char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
+char *strstr(const char *haystack, const char *needle);
+char *strncpy(char *dest, const char *src, size_t n);
+char *strcpy(char *dest, const char *src);
+int sprintf(char *str, const char *format, ...);
+int snprintf(char *str, size_t size, const char *format, ...);
+int printf(const char *format, ...);
+int fprintf(FILE *stream, const char *format, ...);
+int fputc(int c, FILE *stream);
+FILE *fopen(const char *filename, const char *mode);
+int fclose(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+long ftell(FILE *stream);
+void rewind(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int ferror(FILE *stream);
+char *fgets(char *str, int num, void *stream);
+int isspace(int c);
+int isalpha(int c);
+int isdigit(int c);
+int isalnum(int c);
+int isxdigit(int c);
+int tolower(int c);
+int toupper(int c);
+double strtod(const char *nptr, char **endptr);
+extern const char *SDS_NOINIT;
+typedef char *sds;
+sds sdsnewlen(const void *init, size_t initlen);
+sds sdsnew(const char *init);
+sds sdsempty(void);
+sds sdsdup(const sds s);
+void sdsfree(sds s);
+sds sdsgrowzero(sds s, size_t len);
+sds sdscatlen(sds s, const void *t, size_t len);
+sds sdscat(sds s, const char *t);
+sds sdscatsds(sds s, const sds t);
+sds sdscpylen(sds s, const char *t, size_t len);
+sds sdscpy(sds s, const char *t);
+sds sdscatvprintf(sds s, const char *fmt, va_list ap);
+sds sdscatprintf(sds s, const char *fmt, ...)
+;
+sds sdscatfmt(sds s, char const *fmt, ...);
+sds sdstrim(sds s, const char *cset);
+void sdsrange(sds s, ssize_t start, ssize_t end);
+void sdsupdatelen(sds s);
+void sdsclear(sds s);
+int sdscmp(const sds s1, const sds s2);
+sds *sdssplitlen(const char *s, ssize_t len, const char *sep, int seplen, int *count);
+void sdsfreesplitres(sds *tokens, int count);
+void sdstolower(sds s);
+void sdstoupper(sds s);
+sds sdsfromlonglong(long long value);
+sds sdscatrepr(sds s, const char *p, size_t len);
+sds *sdssplitargs(const char *line, int *argc);
+sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen);
+sds sdsjoin(char **argv, int argc, char *sep);
+sds sdsjoinsds(sds *argv, int argc, const char *sep, size_t seplen);
+sds sdsMakeRoomFor(sds s, size_t addlen);
+void sdsIncrLen(sds s, ssize_t incr);
+sds sdsRemoveFreeSpace(sds s);
+size_t sdsAllocSize(sds s);
+void *sdsAllocPtr(sds s);
+void *sds_malloc(size_t size);
+void *sds_realloc(void *ptr, size_t size);
+void sds_free(void *ptr);
+const char *SDS_NOINIT = "SDS_NOINIT";
+sds s;
+sdssetlen(s, 0);
+s[0] = '\0';
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[sdssetlen]
+[CALL GRAPH]
+sdsclear -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsclear
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdsclear#0{typedef unsigned long size_t;
+typedef long ssize_t;
+typedef signed char int8_t;
+typedef unsigned char uint8_t;
+typedef short int16_t;
+typedef unsigned short uint16_t;
+typedef int int32_t;
+typedef unsigned int uint32_t;
+typedef long long int64_t;
+typedef unsigned long long uint64_t;
+typedef long intptr_t;
+typedef unsigned long uintptr_t;
+typedef struct _EPPATHER_FILE FILE;
+void *malloc(size_t size);
+void free(void *ptr);
+void *realloc(void *ptr, size_t size);
+void *calloc(size_t n, size_t size);
+void *memcpy(void *dest, const void *src, size_t n);
+void *memmove(void *dest, const void *src, size_t n);
+void *memset(void *s, int c, size_t n);
+int memcmp(const void *s1, const void *s2, size_t n);
+size_t strlen(const char *s);
+int strcmp(const char *s1, const char *s2);
+int strncmp(const char *s1, const char *s2, size_t n);
+char *strchr(const char *s, int c);
+char *strrchr(const char *s, int c);
+char *strstr(const char *haystack, const char *needle);
+char *strncpy(char *dest, const char *src, size_t n);
+char *strcpy(char *dest, const char *src);
+int sprintf(char *str, const char *format, ...);
+int snprintf(char *str, size_t size, const char *format, ...);
+int printf(const char *format, ...);
+int fprintf(FILE *stream, const char *format, ...);
+int fputc(int c, FILE *stream);
+FILE *fopen(const char *filename, const char *mode);
+int fclose(FILE *stream);
+int fseek(FILE *stream, long offset, int whence);
+long ftell(FILE *stream);
+void rewind(FILE *stream);
+size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
+int ferror(FILE *stream);
+char *fgets(char *str, int num, void *stream);
+int isspace(int c);
+int isalpha(int c);
+int isdigit(int c);
+int isalnum(int c);
+int isxdigit(int c);
+int tolower(int c);
+int toupper(int c);
+double strtod(const char *nptr, char **endptr);
+extern const char *SDS_NOINIT;
+typedef char *sds;
+sds sdsnewlen(const void *init, size_t initlen);
+sds sdsnew(const char *init);
+sds sdsempty(void);
+sds sdsdup(const sds s);
+void sdsfree(sds s);
+sds sdsgrowzero(sds s, size_t len);
+sds sdscatlen(sds s, const void *t, size_t len);
+sds sdscat(sds s, const char *t);
+sds sdscatsds(sds s, const sds t);
+sds sdscpylen(sds s, const char *t, size_t len);
+sds sdscpy(sds s, const char *t);
+sds sdscatvprintf(sds s, const char *fmt, va_list ap);
+sds sdscatprintf(sds s, const char *fmt, ...)
+;
+sds sdscatfmt(sds s, char const *fmt, ...);
+sds sdstrim(sds s, const char *cset);
+void sdsrange(sds s, ssize_t start, ssize_t end);
+void sdsupdatelen(sds s);
+void sdsclear(sds s);
+int sdscmp(const sds s1, const sds s2);
+sds *sdssplitlen(const char *s, ssize_t len, const char *sep, int seplen, int *count);
+void sdsfreesplitres(sds *tokens, int count);
+void sdstolower(sds s);
+void sdstoupper(sds s);
+sds sdsfromlonglong(long long value);
+sds sdscatrepr(sds s, const char *p, size_t len);
+sds *sdssplitargs(const char *line, int *argc);
+sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen);
+sds sdsjoin(char **argv, int argc, char *sep);
+sds sdsjoinsds(sds *argv, int argc, const char *sep, size_t seplen);
+sds sdsMakeRoomFor(sds s, size_t addlen);
+void sdsIncrLen(sds s, ssize_t incr);
+sds sdsRemoveFreeSpace(sds s);
+size_t sdsAllocSize(sds s);
+void *sdsAllocPtr(sds s);
+void *sds_malloc(size_t size);
+void *sds_realloc(void *ptr, size_t size);
+void sds_free(void *ptr);
+const char *SDS_NOINIT = "SDS_NOINIT";
+sds s;
+sdssetlen(s, 0);
+s[0] = '\0';
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)
+notes=external callee omitted=sdssetlen
+line 64:42 no viable alternative at input 'va_list'
