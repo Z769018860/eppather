@@ -1,5 +1,7 @@
 // Implementation of CFG-aware epat++ invocation utilities.
 #include "EpatRunner.h"
+#include <stdexcept>
+#include <sstream>
 
 #include <cctype>
 #include <cstdlib>
@@ -59,9 +61,57 @@ void appendSafeLine(std::string& script, const std::string& line, bool addSemico
     }
     script += "\n";
 }
+
+bool isSafePrefixLine(const std::string& line) {
+    if (line.empty()) {
+        return false;
+    }
+    if (line.find("typedef") != std::string::npos ||
+        line.find("struct ") != std::string::npos ||
+        line.find("union ") != std::string::npos ||
+        line.find("enum ") != std::string::npos ||
+        line.find("*") != std::string::npos ||
+        line.find("[") != std::string::npos ||
+        line.find("]") != std::string::npos ||
+        line.find("->") != std::string::npos ||
+        line.find(".") != std::string::npos ||
+        line.find("(") != std::string::npos ||
+        line.find(")") != std::string::npos) {
+        return false;
+    }
+    if (line.find("int ") != std::string::npos ||
+        line.find("long ") != std::string::npos ||
+        line.find("char ") != std::string::npos ||
+        line.find("size_t ") != std::string::npos ||
+        line.find("unsigned ") != std::string::npos) {
+        return true;
+    }
+    return false;
+}
+
+std::string sanitizePrefixForEpat(const std::string& prefix) {
+    if (!envEnabled("EPPATHER_EPAT_SAFE_PREFIX")) {
+        return prefix;
+    }
+    std::stringstream in(prefix);
+    std::string out;
+    std::string line;
+    while (std::getline(in, line)) {
+        if (isSafePrefixLine(line)) {
+            out += line;
+            if (!line.empty() && line.back() != ';') {
+                out += ";";
+            }
+            out += "\n";
+        } else if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE") && !line.empty()) {
+            std::cerr << "[EPAT_SAFE_PREFIX] skip unsupported prefix line: " << line << std::endl;
+        }
+    }
+    return out;
+}
 }  // namespace
 
-EpatRunner::EpatRunner(std::string prefix) : prefix_(std::move(prefix)) {
+EpatRunner::EpatRunner(std::string prefix) : prefix_(sanitizePrefixForEpat(prefix)) {
     if (!prefix_.empty() && prefix_.back() != '\n') prefix_.push_back('\n');
 }
 
@@ -118,14 +168,28 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
     if (envEnabled("EPPATHER_DEBUG_EPAT_SCRIPT")) {
         std::cerr << "[EPAT_SCRIPT_BEGIN]\n" << script << "\n[EPAT_SCRIPT_END]" << std::endl;
     }
-    auto root = epat::Root::fromString(script);
-    auto solver = epat::Solver::create(std::move(root));
 
     EpatResult result;
-    result.status = solver->feasible();
-    result.mem = solver->getMem();
-    result.smt = solver->getSMT2();
-    result.model = solver->getModel();
+    try {
+        auto root = epat::Root::fromString(script);
+        auto solver = epat::Solver::create(std::move(root));
+        result.status = solver->feasible();
+        result.mem = solver->getMem();
+        result.smt = solver->getSMT2();
+        result.model = solver->getModel();
+    } catch (const std::exception& ex) {
+        result.status = epat::result::unknown;
+        result.mem = 0;
+        if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
+            std::cerr << "[EPAT_SAFE_RENDER] solver exception: " << ex.what() << std::endl;
+        }
+    } catch (...) {
+        result.status = epat::result::unknown;
+        result.mem = 0;
+        if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
+            std::cerr << "[EPAT_SAFE_RENDER] solver unknown exception" << std::endl;
+        }
+    }
     return result;
 }
 

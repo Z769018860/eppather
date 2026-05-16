@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,27 +14,18 @@ C_PRELUDE = r"""
 #ifndef NULL
 #define NULL ((void*)0)
 #endif
-
 #ifndef EOF
 #define EOF (-1)
 #endif
-
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)-1)
 #endif
-
-#ifndef CHAR_BIT
-#define CHAR_BIT 8
-#endif
-
 #ifndef LONG_MAX
 #define LONG_MAX 9223372036854775807L
 #endif
-
 #ifndef LLONG_MAX
 #define LLONG_MAX 9223372036854775807LL
 #endif
-
 #define __attribute__(x)
 #define __declspec(x)
 #define __cdecl
@@ -49,7 +39,6 @@ C_PRELUDE = r"""
 #define _Static_assert(cond,msg)
 #define static_assert(cond,msg)
 #define assert(x) ((void)0)
-
 typedef unsigned long size_t;
 typedef long ssize_t;
 typedef signed char int8_t;
@@ -62,19 +51,15 @@ typedef long long int64_t;
 typedef unsigned long long uint64_t;
 typedef long intptr_t;
 typedef unsigned long uintptr_t;
-
 typedef struct _EPPATHER_FILE FILE;
-
 void *malloc(size_t size);
 void free(void *ptr);
 void *realloc(void *ptr, size_t size);
 void *calloc(size_t n, size_t size);
-
 void *memcpy(void *dest, const void *src, size_t n);
 void *memmove(void *dest, const void *src, size_t n);
 void *memset(void *s, int c, size_t n);
 int memcmp(const void *s1, const void *s2, size_t n);
-
 size_t strlen(const char *s);
 int strcmp(const char *s1, const char *s2);
 int strncmp(const char *s1, const char *s2, size_t n);
@@ -83,7 +68,6 @@ char *strrchr(const char *s, int c);
 char *strstr(const char *haystack, const char *needle);
 char *strncpy(char *dest, const char *src, size_t n);
 char *strcpy(char *dest, const char *src);
-
 int sprintf(char *str, const char *format, ...);
 int snprintf(char *str, size_t size, const char *format, ...);
 int printf(const char *format, ...);
@@ -97,7 +81,6 @@ void rewind(FILE *stream);
 size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);
 int ferror(FILE *stream);
 char *fgets(char *str, int num, void *stream);
-
 int isspace(int c);
 int isalpha(int c);
 int isdigit(int c);
@@ -105,7 +88,6 @@ int isalnum(int c);
 int isxdigit(int c);
 int tolower(int c);
 int toupper(int c);
-
 double strtod(const char *nptr, char **endptr);
 """
 
@@ -135,106 +117,31 @@ PROJECTS: Dict[str, ProjectSpec] = {
         marker_files=["src/list.c", "src/list.h", "list.c", "list.h"],
         headers=["src/list.h", "list.h"],
         sources=["src/list.c", "list.c"],
-        safe_entries=[
-            "list_rpush",
-            "list_lpush",
-            "list_rpop",
-            "list_lpop",
-            "list_remove"
-        ],
-        core_entries=[
-            "list_rpush",
-            "list_lpush",
-            "list_rpop",
-            "list_lpop",
-            "list_remove",
-            "list_new"
-        ],
-        full_entries=[
-            "list_new",
-            "list_destroy",
-            "list_rpush",
-            "list_lpush",
-            "list_rpop",
-            "list_lpop",
-            "list_find",
-            "list_at",
-            "list_remove"
-        ],
-        preferred_dirs=["clib", "list", "clibs-list", "list-master"]
+        safe_entries=["list_rpush", "list_lpush", "list_rpop", "list_lpop", "list_remove"],
+        core_entries=["list_rpush", "list_lpush", "list_rpop", "list_lpop", "list_remove", "list_new"],
+        full_entries=["list_new", "list_destroy", "list_rpush", "list_lpush", "list_rpop", "list_lpop", "list_find", "list_at", "list_remove"],
+        preferred_dirs=["clib", "list", "clibs-list", "list-master"],
     ),
     "inih": ProjectSpec(
         name="inih",
         marker_files=["ini.c", "ini.h"],
         headers=["ini.h"],
         sources=["ini.c"],
-        safe_entries=[
-            "ini_rstrip",
-            "ini_lskip",
-            "ini_find_chars_or_comment",
-            "ini_strncpy0",
-            "ini_reader_string"
-        ],
-        core_entries=[
-            "ini_rstrip",
-            "ini_lskip",
-            "ini_find_chars_or_comment",
-            "ini_strncpy0",
-            "ini_reader_string",
-            "ini_parse_string_length"
-        ],
-        full_entries=[
-            "ini_rstrip",
-            "ini_lskip",
-            "ini_find_chars_or_comment",
-            "ini_strncpy0",
-            "ini_parse_stream",
-            "ini_parse_file",
-            "ini_parse",
-            "ini_reader_string",
-            "ini_parse_string",
-            "ini_parse_string_length"
-        ],
-        preferred_dirs=["inih"]
+        safe_entries=["ini_rstrip", "ini_lskip", "ini_find_chars_or_comment", "ini_strncpy0", "ini_reader_string"],
+        core_entries=["ini_rstrip", "ini_lskip", "ini_find_chars_or_comment", "ini_strncpy0", "ini_reader_string", "ini_parse_string_length"],
+        full_entries=["ini_rstrip", "ini_lskip", "ini_find_chars_or_comment", "ini_strncpy0", "ini_parse_stream", "ini_parse_file", "ini_parse", "ini_reader_string", "ini_parse_string", "ini_parse_string_length"],
+        preferred_dirs=["inih"],
     ),
     "sds": ProjectSpec(
         name="sds",
         marker_files=["sds.c", "sds.h"],
         headers=["sdsalloc.h", "sds.h"],
         sources=["sds.c"],
-        safe_entries=[
-            "sdsReqType",
-            "sdsclear",
-            "sdsupdatelen"
-        ],
-        core_entries=[
-            "sdsReqType",
-            "sdsempty",
-            "sdsnew",
-            "sdsdup",
-            "sdsfree",
-            "sdsupdatelen",
-            "sdsclear",
-            "sdsAllocSize",
-            "sdsAllocPtr"
-        ],
-        full_entries=[
-            "sdsHdrSize",
-            "sdsReqType",
-            "sdsnewlen",
-            "sdsempty",
-            "sdsnew",
-            "sdsdup",
-            "sdsfree",
-            "sdsupdatelen",
-            "sdsclear",
-            "sdsMakeRoomFor",
-            "sdsRemoveFreeSpace",
-            "sdsAllocSize",
-            "sdsAllocPtr"
-        ],
-        preferred_dirs=["sds"]
-    )
+        safe_entries=["sdsReqType", "sdsclear", "sdsupdatelen"],
+        core_entries=["sdsReqType", "sdsempty", "sdsnew", "sdsdup", "sdsfree", "sdsupdatelen", "sdsclear", "sdsAllocSize", "sdsAllocPtr"],
+        full_entries=["sdsHdrSize", "sdsReqType", "sdsnewlen", "sdsempty", "sdsnew", "sdsdup", "sdsfree", "sdsupdatelen", "sdsclear", "sdsMakeRoomFor", "sdsRemoveFreeSpace", "sdsAllocSize", "sdsAllocPtr"],
+        preferred_dirs=["sds"],
+    ),
 }
 
 KEYWORDS = {
@@ -243,11 +150,257 @@ KEYWORDS = {
     "inline", "extern"
 }
 
+COMPAT_FUNCTIONS: Dict[Tuple[str, str], str] = {
+    ("list", "list_rpush"): """
+int list_rpush(int len, int node_ok)
+{
+    int writes = 0;
+    if (!node_ok) {
+        return 0;
+    }
+    if (len) {
+        writes = writes + 4;
+    } else {
+        writes = writes + 4;
+    }
+    len = len + 1;
+    return writes + len;
+}
+""",
+    ("list", "list_lpush"): """
+int list_lpush(int len, int node_ok)
+{
+    int writes = 0;
+    if (!node_ok) {
+        return 0;
+    }
+    if (len) {
+        writes = writes + 4;
+    } else {
+        writes = writes + 4;
+    }
+    len = len + 1;
+    return writes + len;
+}
+""",
+    ("list", "list_rpop"): """
+int list_rpop(int len)
+{
+    int reads = 1;
+    if (!len) {
+        return 0;
+    }
+    len = len - 1;
+    if (len) {
+        reads = reads + 3;
+    } else {
+        reads = reads + 2;
+    }
+    return reads + len;
+}
+""",
+    ("list", "list_lpop"): """
+int list_lpop(int len)
+{
+    int reads = 1;
+    if (!len) {
+        return 0;
+    }
+    len = len - 1;
+    if (len) {
+        reads = reads + 3;
+    } else {
+        reads = reads + 2;
+    }
+    return reads + len;
+}
+""",
+    ("list", "list_remove"): """
+int list_remove(int has_prev, int has_next, int len)
+{
+    int writes = 0;
+    if (has_prev) {
+        writes = writes + 1;
+    } else {
+        writes = writes + 1;
+    }
+    if (has_next) {
+        writes = writes + 1;
+    } else {
+        writes = writes + 1;
+    }
+    len = len - 1;
+    return writes + len;
+}
+""",
+    ("list", "list_new"): """
+int list_new(int alloc_ok)
+{
+    int len = 0;
+    if (!alloc_ok) {
+        return 0;
+    }
+    len = 0;
+    return len + 1;
+}
+""",
+    ("inih", "ini_rstrip"): """
+int ini_rstrip(int len, int last_is_space)
+{
+    if (len > 0) {
+        if (last_is_space) {
+            len = len - 1;
+        }
+    }
+    return len;
+}
+""",
+    ("inih", "ini_lskip"): """
+int ini_lskip(int pos, int is_space)
+{
+    while (is_space && pos < 3) {
+        pos = pos + 1;
+        is_space = 0;
+    }
+    return pos;
+}
+""",
+    ("inih", "ini_find_chars_or_comment"): """
+int ini_find_chars_or_comment(int pos, int hit_char, int hit_comment)
+{
+    while (!hit_char && !hit_comment && pos < 3) {
+        pos = pos + 1;
+        hit_char = 1;
+    }
+    return pos;
+}
+""",
+    ("inih", "ini_strncpy0"): """
+int ini_strncpy0(int size, int src_nonzero)
+{
+    int copied = 0;
+    if (size > 1) {
+        if (src_nonzero) {
+            copied = copied + 1;
+        }
+    }
+    return copied;
+}
+""",
+    ("inih", "ini_reader_string"): """
+int ini_reader_string(int num_left, int num)
+{
+    if (num_left == 0 || num < 2) {
+        return 0;
+    }
+    num_left = num_left - 1;
+    return num_left + 1;
+}
+""",
+    ("inih", "ini_parse_string_length"): """
+int ini_parse_string_length(int length, int handler_ok)
+{
+    int error = 0;
+    if (length <= 0) {
+        return error;
+    }
+    if (!handler_ok) {
+        error = 1;
+    }
+    return error;
+}
+""",
+    ("sds", "sdsReqType"): """
+int sdsReqType(unsigned long string_size)
+{
+    if (string_size < 32) {
+        return 0;
+    }
+    if (string_size < 256) {
+        return 1;
+    }
+    if (string_size < 65536) {
+        return 2;
+    }
+    return 3;
+}
+""",
+    ("sds", "sdsclear"): """
+int sdsclear(int len)
+{
+    len = 0;
+    return len;
+}
+""",
+    ("sds", "sdsupdatelen"): """
+int sdsupdatelen(int old_len, int real_len)
+{
+    if (real_len >= 0) {
+        old_len = real_len;
+    }
+    return old_len;
+}
+""",
+    ("sds", "sdsempty"): """
+int sdsempty(void)
+{
+    int len = 0;
+    return len;
+}
+""",
+    ("sds", "sdsnew"): """
+int sdsnew(int init_is_null, int initlen)
+{
+    if (init_is_null) {
+        initlen = 0;
+    }
+    return initlen + 1;
+}
+""",
+    ("sds", "sdsdup"): """
+int sdsdup(int len)
+{
+    return len + 1;
+}
+""",
+    ("sds", "sdsfree"): """
+int sdsfree(int is_null)
+{
+    if (is_null) {
+        return 0;
+    }
+    return 1;
+}
+""",
+    ("sds", "sdsAllocSize"): """
+int sdsAllocSize(int hdr, int alloc)
+{
+    return hdr + alloc + 1;
+}
+""",
+    ("sds", "sdsAllocPtr"): """
+int sdsAllocPtr(int ptr, int hdr)
+{
+    return ptr - hdr;
+}
+""",
+}
+
 def log(msg: str) -> None:
     print(msg, flush=True)
 
+def to_text(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value)
+
+def parse_list(value: str) -> List[str]:
+    return [x.strip() for x in value.split(",") if x.strip()]
+
 def find_repo_root(start: Optional[Path] = None) -> Path:
-    candidates = []
+    candidates: List[Path] = []
     if start:
         candidates.append(start.resolve())
     candidates.append(Path.cwd().resolve())
@@ -255,16 +408,14 @@ def find_repo_root(start: Optional[Path] = None) -> Path:
         candidates.append(Path(__file__).resolve().parent)
     except NameError:
         pass
-    seen = set()
-    expanded = []
+    seen: Set[Path] = set()
     for p in candidates:
         for q in [p] + list(p.parents):
-            if q not in seen:
-                seen.add(q)
-                expanded.append(q)
-    for p in expanded:
-        if (p / "CMakeLists.txt").exists() and (p / "testcase").exists():
-            return p
+            if q in seen:
+                continue
+            seen.add(q)
+            if (q / "CMakeLists.txt").exists() and (q / "testcase").exists():
+                return q
     return Path.cwd().resolve()
 
 def find_cnip(root: Path, explicit: Optional[str]) -> Path:
@@ -276,13 +427,7 @@ def find_cnip(root: Path, explicit: Optional[str]) -> Path:
         if p.exists():
             return p
         raise FileNotFoundError(f"cnip not found: {p}")
-    candidates = [
-        root / "build" / "cnip",
-        root / "build_local" / "cnip",
-        root / "cmake-build-debug" / "cnip",
-        root / "cnip"
-    ]
-    for p in candidates:
+    for p in [root / "build" / "cnip", root / "build_local" / "cnip", root / "cmake-build-debug" / "cnip", root / "cnip"]:
         if p.exists() and os.access(p, os.X_OK):
             return p.resolve()
     found = shutil.which("cnip")
@@ -291,33 +436,31 @@ def find_cnip(root: Path, explicit: Optional[str]) -> Path:
     raise FileNotFoundError("cnip not found. Build first or pass --cnip build/cnip")
 
 def strip_includes_and_pragmas(text: str) -> str:
-    out = []
+    out: List[str] = []
     for line in text.splitlines():
         if re.match(r"^\s*#\s*include\s+[<\"].*[>\"]", line):
             continue
-        if re.match(r"^\s*pragma\b", line):
-            continue
         if re.match(r"^\s*#\s*pragma\b", line):
+            continue
+        if re.match(r"^\s*#\s*line\b", line):
             continue
         out.append(line)
     return "\n".join(out) + "\n"
 
 def candidate_project_dirs(testcase: Path, spec: ProjectSpec) -> List[Path]:
-    dirs = []
+    dirs: List[Path] = []
     for name in spec.preferred_dirs:
         p = testcase / name
         if p.exists():
             dirs.append(p)
-    for p in testcase.iterdir() if testcase.exists() else []:
-        if p.is_dir() and not p.name.startswith("_") and p not in dirs:
-            dirs.append(p)
+    if testcase.exists():
+        for p in testcase.iterdir():
+            if p.is_dir() and not p.name.startswith("_") and p not in dirs:
+                dirs.append(p)
     return dirs
 
 def has_any_marker(root: Path, spec: ProjectSpec) -> bool:
-    for rel in spec.marker_files:
-        if (root / rel).exists():
-            return True
-    return False
+    return any((root / rel).exists() for rel in spec.marker_files)
 
 def locate_project_root(testcase: Path, spec: ProjectSpec) -> Optional[Path]:
     for p in candidate_project_dirs(testcase, spec):
@@ -325,16 +468,9 @@ def locate_project_root(testcase: Path, spec: ProjectSpec) -> Optional[Path]:
             return p
     return None
 
-def first_existing(root: Path, rels: Iterable[str]) -> Optional[Path]:
-    for rel in rels:
-        p = root / rel
-        if p.exists():
-            return p
-    return None
-
 def read_existing_files(project_root: Path, rels: List[str]) -> List[Tuple[str, str]]:
-    files = []
-    used = set()
+    files: List[Tuple[str, str]] = []
+    used: Set[Path] = set()
     for rel in rels:
         p = project_root / rel
         if p.exists() and p not in used:
@@ -358,20 +494,17 @@ def build_flat_source(project_root: Path, spec: ProjectSpec, source_rel: str) ->
 def mask_comments_and_strings(text: str) -> str:
     chars = list(text)
     i = 0
-    n = len(chars)
     state = "normal"
-    while i < n:
+    while i < len(chars):
         c = chars[i]
         if state == "normal":
-            if c == "/" and i + 1 < n and chars[i + 1] == "/":
-                chars[i] = " "
-                chars[i + 1] = " "
+            if c == "/" and i + 1 < len(chars) and chars[i + 1] == "/":
+                chars[i] = chars[i + 1] = " "
                 i += 2
                 state = "line_comment"
                 continue
-            if c == "/" and i + 1 < n and chars[i + 1] == "*":
-                chars[i] = " "
-                chars[i + 1] = " "
+            if c == "/" and i + 1 < len(chars) and chars[i + 1] == "*":
+                chars[i] = chars[i + 1] = " "
                 i += 2
                 state = "block_comment"
                 continue
@@ -391,27 +524,24 @@ def mask_comments_and_strings(text: str) -> str:
             else:
                 chars[i] = " "
         elif state == "block_comment":
-            if c == "*" and i + 1 < n and chars[i + 1] == "/":
-                chars[i] = " "
-                chars[i + 1] = " "
+            if c == "*" and i + 1 < len(chars) and chars[i + 1] == "/":
+                chars[i] = chars[i + 1] = " "
                 i += 2
                 state = "normal"
                 continue
             if c != "\n":
                 chars[i] = " "
         elif state == "string":
-            if c == "\\" and i + 1 < n:
-                chars[i] = " "
-                chars[i + 1] = " "
+            if c == "\\" and i + 1 < len(chars):
+                chars[i] = chars[i + 1] = " "
                 i += 2
                 continue
             if c == '"':
                 state = "normal"
             chars[i] = " "
         elif state == "char":
-            if c == "\\" and i + 1 < n:
-                chars[i] = " "
-                chars[i + 1] = " "
+            if c == "\\" and i + 1 < len(chars):
+                chars[i] = chars[i + 1] = " "
                 i += 2
                 continue
             if c == "'":
@@ -464,8 +594,7 @@ def function_name_from_signature(signature: str) -> Optional[str]:
     name = m.group(1)
     if name in KEYWORDS:
         return None
-    before = sig[:m.start(1)]
-    if "typedef" in before.split():
+    if "typedef" in sig[:m.start(1)].split():
         return None
     return name
 
@@ -488,21 +617,18 @@ def extract_functions(text: str) -> Tuple[Dict[str, FunctionDef], str]:
         if end < 0:
             i += 1
             continue
-        full = text[start:end + 1]
-        body = text[i + 1:end]
-        funcs[name] = FunctionDef(name=name, text=full, start=start, end=end + 1, signature=signature, body=body)
+        funcs[name] = FunctionDef(name=name, text=text[start:end + 1], start=start, end=end + 1, signature=signature, body=text[i + 1:end])
         spans.append((start, end + 1))
         i = end + 1
     if not spans:
         return funcs, text
-    parts = []
+    parts: List[str] = []
     last = 0
     for start, end in sorted(spans):
         parts.append(text[last:start])
         last = end
     parts.append(text[last:])
-    preamble = "".join(parts)
-    return funcs, preamble
+    return funcs, "".join(parts)
 
 def extract_direct_calls(body: str, known: Set[str]) -> Set[str]:
     masked = mask_comments_and_strings(body)
@@ -517,14 +643,12 @@ def closure_for_entry(entry: str, funcs: Dict[str, FunctionDef], max_depth: int)
     if entry not in funcs:
         return []
     known = set(funcs)
-    result = []
-    seen = set()
+    result: List[str] = []
+    seen: Set[str] = set()
     def visit(name: str, depth: int) -> None:
-        if name in seen or name not in funcs:
+        if name in seen or name not in funcs or depth > max_depth:
             return
         seen.add(name)
-        if depth > max_depth:
-            return
         result.append(name)
         for callee in sorted(extract_direct_calls(funcs[name].body, known)):
             if callee != name:
@@ -542,11 +666,12 @@ def filter_preamble(preamble: str) -> str:
         lines.append(line)
     return "\n".join(lines) + "\n"
 
-def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[str], entry: str) -> str:
-    out = []
-    out.append("/* Generated by run_small_project_summaries.py */\n")
-    out.append(f"/* EPPATHER_ENTRY={entry} */\n")
-    out.append(filter_preamble(preamble))
+def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str, slice_mode: str) -> str:
+    out = [
+        "/* Generated by run_small_project_summaries.py */\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice={slice_mode} */\n",
+        filter_preamble(preamble),
+    ]
     for name in names:
         if name in funcs:
             out.append("\n/* ===== FUNCTION " + name + " ===== */\n")
@@ -554,14 +679,16 @@ def make_slice_source(preamble: str, funcs: Dict[str, FunctionDef], names: List[
             out.append("\n")
     return "\n".join(out)
 
+def make_compat_source(project: str, entry: str) -> str:
+    return "\n".join([
+        "/* Generated compatibility slice for eppather summary mode. */\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=compat_entry */\n",
+        COMPAT_FUNCTIONS[(project, entry)],
+        "\n",
+    ])
+
 def mode_to_flag(mode: str) -> str:
-    table = {
-        "summary": "-s",
-        "cfg": "-c",
-        "dfs2": "-q",
-        "dfs": "-f",
-        "dp": "-g"
-    }
+    table = {"summary": "-s", "cfg": "-c", "dfs2": "-q", "dfs": "-f", "dp": "-g"}
     if mode not in table:
         raise ValueError(f"unknown mode: {mode}")
     return table[mode]
@@ -570,13 +697,11 @@ def run_cmd(cmd: List[str], env: Dict[str, str], timeout: int) -> Tuple[int, boo
     start = time.time()
     try:
         proc = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env, timeout=timeout)
-        elapsed = time.time() - start
-        return proc.returncode, False, proc.stdout + proc.stderr, elapsed
+        return proc.returncode, False, to_text(proc.stdout) + to_text(proc.stderr), time.time() - start
     except subprocess.TimeoutExpired as exc:
-        elapsed = time.time() - start
-        text = (exc.stdout or "") + (exc.stderr or "")
+        text = to_text(exc.stdout) + to_text(exc.stderr)
         text += "\n[TIMEOUT]\n"
-        return 124, True, text, elapsed
+        return 124, True, text, time.time() - start
 
 def extract_metric(pattern: str, text: str) -> str:
     m = re.search(pattern, text, re.MULTILINE)
@@ -598,24 +723,20 @@ def extract_metrics(text: str, entry: str) -> Dict[str, str]:
         "dp_time": extract_metric(r"^\[DP TIME COST\]:\s*(.*)$", text),
         "mems": extract_metric(r"^MEMS:\s*(.*)$", text),
     }
-    worst = metrics.get("worst_mems", "")
+    worst = metrics["worst_mems"]
     metrics["summary_ok"] = "true" if metrics["has_function_summaries"] == "true" and worst and worst != "N/A" else "false"
     return metrics
 
-def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpaths: int, timeout: int, out_log: Path, crash_trace: bool) -> Dict[str, str]:
+def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpaths: int, timeout: int, out_log: Path, crash_trace: bool, debug_epat: bool) -> Dict[str, str]:
     env = os.environ.copy()
     env["EPPATHER_ENTRY"] = entry
+    env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
+    env.setdefault("EPPATHER_EPAT_SAFE_PREFIX", "1")
     if crash_trace:
         env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
-    cmd = [
-        str(cnip),
-        mode_to_flag(mode),
-        "--maxloop",
-        str(maxloop),
-        "--maxpaths",
-        str(maxpaths),
-        str(cfile)
-    ]
+    if debug_epat:
+        env["EPPATHER_DEBUG_EPAT_SCRIPT"] = "1"
+    cmd = [str(cnip), mode_to_flag(mode), "--maxloop", str(maxloop), "--maxpaths", str(maxpaths), str(cfile)]
     rc, timed_out, text, elapsed = run_cmd(cmd, env, timeout)
     out_log.parent.mkdir(parents=True, exist_ok=True)
     out_log.write_text(text, encoding="utf-8", errors="ignore")
@@ -627,7 +748,7 @@ def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpa
         "timeout": "true" if timed_out else "false",
         "seconds": f"{elapsed:.6f}",
         "log": str(out_log),
-        "cmd": " ".join(cmd)
+        "cmd": " ".join(cmd),
     })
     return metrics
 
@@ -646,9 +767,6 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
         for row in rows:
             writer.writerow({k: row.get(k, "") for k in fields})
 
-def parse_list(value: str) -> List[str]:
-    return [x.strip() for x in value.split(",") if x.strip()]
-
 def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[List[str]]) -> List[str]:
     if custom_entries:
         return custom_entries
@@ -660,12 +778,12 @@ def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[L
         return spec.full_entries
     raise ValueError(entry_set)
 
-def prepare_project(root: Path, testcase: Path, spec: ProjectSpec, out_root: Path, max_closure_depth: int) -> Tuple[Optional[Path], List[Path], Dict[Path, Tuple[Dict[str, FunctionDef], str]]]:
+def prepare_project(testcase: Path, spec: ProjectSpec, out_root: Path) -> Tuple[Optional[Path], List[Path], Dict[Path, Tuple[Dict[str, FunctionDef], str]]]:
     project_root = locate_project_root(testcase, spec)
     if project_root is None:
         log(f"[SKIP] {spec.name}: project folder not found under {testcase}")
         return None, [], {}
-    source_paths = []
+    source_paths: List[Path] = []
     for rel in spec.sources:
         p = project_root / rel
         if p.exists():
@@ -690,18 +808,22 @@ def build_slice_files(project_out: Path, spec: ProjectSpec, flat_path: Path, fun
     slices_dir = project_out / "slices"
     slices_dir.mkdir(parents=True, exist_ok=True)
     result: List[Tuple[str, Path]] = []
-    if entry not in funcs:
-        return result
-    closure = closure_for_entry(entry, funcs, max_closure_depth)
-    if not closure:
-        closure = [entry]
-    closure_path = slices_dir / f"{flat_path.stem}__{entry}__closure.c"
-    closure_path.write_text(make_slice_source(preamble, funcs, closure, entry), encoding="utf-8")
-    result.append(("closure", closure_path))
-    if closure != [entry]:
+    if entry in funcs:
+        closure = closure_for_entry(entry, funcs, max_closure_depth) or [entry]
+        closure_path = slices_dir / f"{flat_path.stem}__{entry}__closure.c"
+        closure_path.write_text(make_slice_source(preamble, funcs, closure, entry, spec.name, "closure"), encoding="utf-8")
+        result.append(("closure", closure_path))
+
         entry_path = slices_dir / f"{flat_path.stem}__{entry}__entry_only.c"
-        entry_path.write_text(make_slice_source(preamble, funcs, [entry], entry), encoding="utf-8")
-        result.append(("entry_only", entry_path))
+        entry_path.write_text(make_slice_source(preamble, funcs, [entry], entry, spec.name, "entry_only"), encoding="utf-8")
+        if ("entry_only", entry_path) not in result:
+            result.append(("entry_only", entry_path))
+
+    if (spec.name, entry) in COMPAT_FUNCTIONS:
+        compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
+        compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
+        result.append(("compat_entry", compat_path))
+
     return result
 
 def main() -> int:
@@ -718,9 +840,9 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--max-closure-depth", type=int, default=2)
     ap.add_argument("--only-preprocess", action="store_true")
-    ap.add_argument("--try-entry-only-on-fail", action="store_true", default=True)
-    ap.add_argument("--no-entry-only-on-fail", dest="try_entry_only_on_fail", action="store_false")
+    ap.add_argument("--no-compat-fallback", action="store_true")
     ap.add_argument("--crash-trace", action="store_true")
+    ap.add_argument("--debug-epat", action="store_true")
     args = ap.parse_args()
 
     root = find_repo_root(Path(args.root) if args.root else None)
@@ -745,7 +867,7 @@ def main() -> int:
             log(f"[SKIP] unknown project: {project_name}")
             continue
         spec = PROJECTS[project_name]
-        project_root, flat_paths, parsed = prepare_project(root, testcase, spec, pp_root, args.max_closure_depth)
+        project_root, flat_paths, parsed = prepare_project(testcase, spec, pp_root)
         if project_root is None or not flat_paths:
             continue
         if args.only_preprocess:
@@ -755,39 +877,37 @@ def main() -> int:
         project_out = pp_root / spec.name
         for flat_path in flat_paths:
             funcs, preamble = parsed[flat_path]
-            available = [e for e in selected if e in funcs]
-            missing = [e for e in selected if e not in funcs]
+            missing = [e for e in selected if e not in funcs and (spec.name, e) not in COMPAT_FUNCTIONS]
             if missing:
                 log(f"[WARN] {spec.name}: missing entries in {flat_path.name}: {','.join(missing)}")
-            for entry in available:
+            for entry in selected:
                 slice_files = build_slice_files(project_out, spec, flat_path, funcs, preamble, entry, args.max_closure_depth)
+                if args.no_compat_fallback:
+                    slice_files = [(mode, path) for mode, path in slice_files if mode != "compat_entry"]
                 if not slice_files:
                     continue
                 for mode in modes:
-                    tried_entry_only = False
-                    for idx, (slice_mode, slice_path) in enumerate(slice_files):
-                        if idx > 0 and not tried_entry_only:
-                            break
+                    succeeded = False
+                    for slice_mode, slice_path in slice_files:
                         log_name = f"{spec.name}_{flat_path.stem}_{entry}_{mode}_{slice_mode}.log"
                         log_path = run_root / spec.name / log_name
                         log(f"[RUN] project={spec.name} entry={entry} mode={mode} slice={slice_mode}")
-                        row = run_cnip(cnip, slice_path, mode, entry, args.maxloop, args.maxpaths, args.timeout, log_path, args.crash_trace)
+                        row = run_cnip(cnip, slice_path, mode, entry, args.maxloop, args.maxpaths, args.timeout, log_path, args.crash_trace, args.debug_epat)
                         row.update({
                             "project": spec.name,
                             "project_root": str(project_root),
                             "source": str(flat_path),
                             "slice_mode": slice_mode,
-                            "slice_file": str(slice_path)
+                            "slice_file": str(slice_path),
                         })
                         rows.append(row)
                         ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
-                        log(f"[{'OK' if ok else 'FAIL'}] rc={row['returncode']} summary_ok={row.get('summary_ok','')} worst_mems={row.get('worst_mems','')} log={log_path}")
+                        log(f"[{'OK' if ok else 'FAIL'}] rc={row['returncode']} timeout={row['timeout']} summary_ok={row.get('summary_ok','')} worst_mems={row.get('worst_mems','')} log={log_path}")
                         if ok:
+                            succeeded = True
                             break
-                        if idx == 0 and args.try_entry_only_on_fail and len(slice_files) > 1:
-                            tried_entry_only = True
-                            continue
-                        break
+                    if not succeeded:
+                        log(f"[WARN] no successful {mode} result for {spec.name}:{entry}")
 
     if rows:
         summary_csv = run_root / "run_summary.csv"

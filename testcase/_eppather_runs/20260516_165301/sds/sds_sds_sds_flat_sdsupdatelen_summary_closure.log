@@ -1,0 +1,33 @@
+equals!!!!!7!!!!
+equals!!!!!1!!!!
+equals!!!!!3!!!!
+equals!!!!!(newlen << 3)!!!!
+equals!!!!!0 | (newlen << 3)!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!newlen!!!!
+Function summaries are ready to dump ~
+debug: empty type, return int
+sds_sds_flat__sdsupdatelen__closure.c:526:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdsupdatelen__closure.c:528:6 error: expected `,' or `;' or `=' after declarator, got `output'
+* The output will be "2", but if we comment out the call to sdsupdatelen()
+      ^
+sds_sds_flat__sdsupdatelen__closure.c:532:28 warning: missing type specifier, assume `int'
+size_t reallen = strlen(s);
+                            ^
+sds_sds_flat__sdsupdatelen__closure.c:533:23 warning: missing type specifier, assume `int'
+sdssetlen(s, reallen);
+                       ^
+sds_sds_flat__sdsupdatelen__closure.c:533:23 error: expected <identifier> or `(' starting direct-declarator, got `}'
+sdssetlen(s, reallen);
+                       ^
+
+line 1:0 no viable alternative at input 'size_t'
+line 1:7 extraneous input 'newlen' expecting ';'
