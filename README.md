@@ -349,10 +349,10 @@ python3 run_three_projects_experiment.py
 
 | 项目 | 预计函数摘要数 | 当前函数摘要数（report.function_count） | CFG数量（report.cfg_graph_count） | CFG是否已生成 |
 |---|---:|---:|---:|---|
-| cjson | 113 | 0 | 113 | ✅ |
-| lua | 96 | 0 | 96 | ✅ |
-| tinyexpr | 29 | 0 | 29 | ✅ |
-| 合计 | 238 | 0 | 238 | ✅ |
+| cjson | 113 | 113 | 113 | ✅ |
+| lua | 96 | 96 | 96 | ✅ |
+| tinyexpr | 29 | 29 | 29 | ✅ |
+| 合计 | 238 | 238 | 238 | ✅ |
 
 | 汇总指标 | 数值 |
 |---|---:|
