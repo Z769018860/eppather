@@ -1,0 +1,35 @@
+Function summaries are ready to dump ~
+Path:size_t num_left;
+return ini_parse_string_length(string, strlen(string), handler, user);
+
+feasible!!!
+[mem]:6
+[averagemem]:6
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_parse_string:
+signature: int ini_parse_string(const char* string, ini_handler handler, void* user)
+#cases: 1
+DIRECT worst_mems: 6
+DIRECT avg_mems(equal-weight): 6
+APPROX worst_mems: 6
+APPROX avg_mems(equal-weight): 6
+  [case 0] guard_hash=7927986643986668843 path="size_t num_left;
+return ini_parse_string_length(string, strlen(string), handler, user);
+" mems=6 composed_mems=6 volce=N/A prob=N/A callees=[ini_parse_string_length,strlen]
+[CALL GRAPH]
+ini_parse_string -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_parse_string
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=6
+worst_path=ini_parse_string#0{size_t num_left;
+return ini_parse_string_length(string, strlen(string), handler, user);
+}
+weighted_avg_mems=6 (equal-weight; volce disabled)
+notes=external callee omitted=strlen | external callee omitted=ini_parse_string_length

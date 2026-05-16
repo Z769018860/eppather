@@ -1,0 +1,66 @@
+equals!!!!!sdsHdrSize(s[-1])!!!!
+equals!!!!!7!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+return (void*) (s-sdsHdrSize(s[-1]));
+
+feasible!!!
+[mem]:11
+[averagemem]:11
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+
+feasible!!!
+[mem]:7
+[averagemem]:2
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsAllocPtr:
+signature: void *sdsAllocPtr(sds s)
+#cases: 1
+DIRECT worst_mems: 11
+DIRECT avg_mems(equal-weight): 11
+APPROX worst_mems: 18
+APPROX avg_mems(equal-weight): 18
+  [case 0] guard_hash=5802918838168408120 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+return (void*) (s-sdsHdrSize(s[-1]));
+" mems=11 composed_mems=18 volce=N/A prob=N/A callees=[sdsHdrSize]
+Function sdsHdrSize:
+signature: static inline int sdsHdrSize(char type)
+#cases: 1
+DIRECT worst_mems: 7
+DIRECT avg_mems(equal-weight): 7
+APPROX worst_mems: 7
+APPROX avg_mems(equal-weight): 7
+  [case 0] guard_hash=7995239652713872849 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+" mems=7 composed_mems=7 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsHdrSize -> []
+sdsAllocPtr -> [sdsHdrSize]
+[SUMMARY STATS]
+function_count=2
+summary_case_count=2
+call_edge_count=1
+[PROGRAM SUMMARY]
+entry=sdsAllocPtr
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=2, converged=true)
+worst_mems=18
+worst_path=sdsAllocPtr#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+return (void*) (s-sdsHdrSize(s[-1]));
+} -> sdsHdrSize#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+}
+weighted_avg_mems=18 (equal-weight; volce disabled)

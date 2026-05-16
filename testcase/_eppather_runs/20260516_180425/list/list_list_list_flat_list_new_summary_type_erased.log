@@ -1,0 +1,58 @@
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+@(!(!(self = 1)));
+self[3] = 0;
+self[2] = 0;
+self[1] = 0;
+self[1] = 0;
+self[4] = 0;
+return self;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_new:
+signature: int *list_new(void)
+#cases: 1
+DIRECT worst_mems: 5
+DIRECT avg_mems(equal-weight): 5
+APPROX worst_mems: 5
+APPROX avg_mems(equal-weight): 5
+  [case 0] guard_hash=200546724696988698 path="int *self;
+@(!(!(self = 1)));
+self[3] = 0;
+self[2] = 0;
+self[1] = 0;
+self[1] = 0;
+self[4] = 0;
+return self;
+" mems=5 composed_mems=5 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_new -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_new
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=5
+worst_path=list_new#0{int *self;
+@(!(!(self = 1)));
+self[3] = 0;
+self[2] = 0;
+self[1] = 0;
+self[1] = 0;
+self[4] = 0;
+return self;
+}
+weighted_avg_mems=5 (equal-weight; volce disabled)

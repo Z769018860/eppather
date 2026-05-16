@@ -1,0 +1,14 @@
+extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;

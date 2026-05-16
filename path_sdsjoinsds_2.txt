@@ -1,0 +1,14 @@
+extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+int argc;
+const char *sep;
+size_t seplen;
+int j;
+j = 0;
+@(j < argc);
+j++;
+join = sdscatsds(join, argv[j]);
+@(j != argc-1);
+join = sdscatlen(join,sep,seplen);
+@(!(j < argc));
+return join;

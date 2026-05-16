@@ -1,0 +1,125 @@
+equals!!!!!sdslen(s)!!!!
+equals!!!!!1!!!!
+equals!!!!!s+sdslen(s)-1!!!!
+equals!!!!!sp!!!!
+equals!!!!!1!!!!
+equals!!!!!7!!!!
+equals!!!!!1!!!!
+equals!!!!!3!!!!
+equals!!!!!(newlen << 3)!!!!
+equals!!!!!0 | (newlen << 3)!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!newlen!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+size_t newlen;
+unsigned char flags = s[-1];
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+
+feasible!!!
+[mem]:32
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdssetlen:
+signature: static inline void sdssetlen(sds s, size_t newlen)
+#cases: 1
+DIRECT worst_mems: 32
+DIRECT avg_mems(equal-weight): 32
+APPROX worst_mems: 32
+APPROX avg_mems(equal-weight): 32
+  [case 0] guard_hash=17242649141817029565 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+size_t newlen;
+unsigned char flags = s[-1];
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+" mems=32 composed_mems=32 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdssetlen -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdstrim
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__sdstrim__closure.c:526:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdstrim__closure.c:528:9 error: expected `,' or `;' or `=' after declarator, got `will'
+* Output will be just "HelloWorld".
+         ^
+sds_sds_flat__sdstrim__closure.c:533:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdstrim__closure.c:534:8 warning: missing type specifier, assume `int'
+sp = s;
+        ^
+sds_sds_flat__sdstrim__closure.c:535:26 warning: missing type specifier, assume `int'
+ep = end = s+sdslen(s)-1;
+                          ^
+sds_sds_flat__sdstrim__closure.c:535:26 error: expected <identifier> or `(' starting direct-declarator, got `while'
+ep = end = s+sdslen(s)-1;
+                          ^
+sds_sds_flat__sdstrim__closure.c:536:44 warning: missing type specifier, assume `int'
+while(sp <= end && strchr(cset, *sp)) sp++;
+                                            ^
+sds_sds_flat__sdstrim__closure.c:536:44 error: expected <identifier> or `(' starting direct-declarator, got `while'
+while(sp <= end && strchr(cset, *sp)) sp++;
+                                            ^
+sds_sds_flat__sdstrim__closure.c:537:42 warning: missing type specifier, assume `int'
+while(ep > sp && strchr(cset, *ep)) ep--;
+                                          ^
+sds_sds_flat__sdstrim__closure.c:538:17 warning: missing type specifier, assume `int'
+len = (ep-sp)+1;
+                 ^
+sds_sds_flat__sdstrim__closure.c:538:17 error: expected <identifier> or `(' starting direct-declarator, got `if'
+len = (ep-sp)+1;
+                 ^
+sds_sds_flat__sdstrim__closure.c:539:34 warning: missing type specifier, assume `int'
+if (s != sp) memmove(s, sp, len);
+                                  ^
+sds_sds_flat__sdstrim__closure.c:540:15 warning: missing type specifier, assume `int'
+s[len] = '\0';
+               ^
+sds_sds_flat__sdstrim__closure.c:541:18 warning: missing type specifier, assume `int'
+sdssetlen(s,len);
+                  ^
+sds_sds_flat__sdstrim__closure.c:541:18 error: expected <identifier> or `(' starting direct-declarator, got `return'
+sdssetlen(s,len);
+                  ^
+sds_sds_flat__sdstrim__closure.c:542:10 warning: missing type specifier, assume `int'
+return s;
+          ^
+sds_sds_flat__sdstrim__closure.c:542:10 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return s;
+          ^
+

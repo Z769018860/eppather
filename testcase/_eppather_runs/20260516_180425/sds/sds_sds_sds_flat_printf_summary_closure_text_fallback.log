@@ -1,0 +1,404 @@
+equals!!!!!initlen!!!!
+equals!!!!!1!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!1!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!7!!!!
+equals!!!!!5!!!!
+equals!!!!!1<<5!!!!
+equals!!!!!8!!!!
+equals!!!!!1<<8!!!!
+equals!!!!!16!!!!
+equals!!!!!1<<16!!!!
+equals!!!!!32!!!!
+equals!!!!!1ll<<32!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+
+feasible!!!
+[mem]:8
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(string_size < 1<<5);
+return 0;
+
+feasible!!!
+[mem]:9
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(string_size < 1<<8);
+return 1;
+
+feasible!!!
+[mem]:10
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(string_size < 1<<16);
+return 2;
+
+feasible!!!
+[mem]:11
+[averagemem]:1
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(string_size < 1ll<<32);
+return 3;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(!(string_size < 1ll<<32));
+return 4;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsHdrSize:
+signature: static inline int sdsHdrSize(char type)
+#cases: 1
+DIRECT worst_mems: 8
+DIRECT avg_mems(equal-weight): 8
+APPROX worst_mems: 8
+APPROX avg_mems(equal-weight): 8
+  [case 0] guard_hash=5583447279164650230 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+" mems=8 composed_mems=8 volce=N/A prob=N/A callees=[]
+Function sdsReqType:
+signature: static inline char sdsReqType(size_t string_size)
+#cases: 5
+DIRECT worst_mems: 13
+DIRECT avg_mems(equal-weight): 11.2
+APPROX worst_mems: 13
+APPROX avg_mems(equal-weight): 11.2
+  [case 0] guard_hash=14850213462975230926 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(string_size < 1<<5);
+return 0;
+" mems=9 composed_mems=9 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=9784250816481712770 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(string_size < 1<<8);
+return 1;
+" mems=10 composed_mems=10 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=5670685088666311234 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(string_size < 1<<16);
+return 2;
+" mems=11 composed_mems=11 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=9563771416903145966 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(string_size < 1ll<<32);
+return 3;
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=18403262856713840847 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char *fp;
+char type;
+size_t string_size;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(!(string_size < 1ll<<32));
+return 4;
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsReqType -> []
+sdsHdrSize -> []
+[SUMMARY STATS]
+function_count=2
+summary_case_count=6
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=printf
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__printf__closure.c:526:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__printf__closure.c:528:6 error: expected `,' or `;' or `=' after declarator, got `can'
+* You can print the string with printf() as there is an implicit \0 at the
+      ^
+sds_sds_flat__printf__closure.c:536:39 warning: missing type specifier, assume `int'
+* since type 5 is not good at this. */
+                                       ^
+sds_sds_flat__printf__closure.c:536:39 error: expected <identifier> or `(' starting direct-declarator, got `if'
+* since type 5 is not good at this. */
+                                       ^
+sds_sds_flat__printf__closure.c:540:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__printf__closure.c:541:31 warning: missing type specifier, assume `int'
+sh = malloc(hdrlen+initlen+1);
+                               ^
+sds_sds_flat__printf__closure.c:541:31 error: expected <identifier> or `(' starting direct-declarator, got `if'
+sh = malloc(hdrlen+initlen+1);
+                               ^
+sds_sds_flat__printf__closure.c:542:41 warning: missing type specifier, assume `int'
+if (sh == ((void*)0)) return ((void*)0);
+                                         ^
+sds_sds_flat__printf__closure.c:542:41 error: expected <identifier> or `(' starting direct-declarator, got `if'
+if (sh == ((void*)0)) return ((void*)0);
+                                         ^
+sds_sds_flat__printf__closure.c:544:19 warning: missing type specifier, assume `int'
+init = ((void*)0);
+                   ^
+sds_sds_flat__printf__closure.c:544:19 error: expected <identifier> or `(' starting direct-declarator, got `else'
+init = ((void*)0);
+                   ^
+sds_sds_flat__printf__closure.c:546:33 warning: missing type specifier, assume `int'
+memset(sh, 0, hdrlen+initlen+1);
+                                 ^
+sds_sds_flat__printf__closure.c:547:22 warning: missing type specifier, assume `int'
+s = (char*)sh+hdrlen;
+                      ^
+sds_sds_flat__printf__closure.c:548:28 warning: missing type specifier, assume `int'
+fp = ((unsigned char*)s)-1;
+                            ^
+sds_sds_flat__printf__closure.c:548:28 error: expected <identifier> or `(' starting direct-declarator, got `switch'
+fp = ((unsigned char*)s)-1;
+                            ^
+sds_sds_flat__printf__closure.c:551:29 warning: missing type specifier, assume `int'
+*fp = type | (initlen << 3);
+                             ^
+sds_sds_flat__printf__closure.c:551:29 error: expected <identifier> or `(' starting direct-declarator, got `break'
+*fp = type | (initlen << 3);
+                             ^
+sds_sds_flat__printf__closure.c:552:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__printf__closure.c:552:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__printf__closure.c:553:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:553:2 error: expected <identifier> or `(' starting direct-declarator, got `case'
+}
+  ^
+sds_sds_flat__printf__closure.c:555:61 warning: missing type specifier, assume `int'
+struct sdshdr8 *sh = (void*)((s)-(sizeof(struct sdshdr8)));;
+                                                             ^
+sds_sds_flat__printf__closure.c:556:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->len = initlen;
+  ^
+sds_sds_flat__printf__closure.c:556:19 warning: missing type specifier, assume `int'
+sh->len = initlen;
+                   ^
+sds_sds_flat__printf__closure.c:557:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->alloc = initlen;
+  ^
+sds_sds_flat__printf__closure.c:557:21 warning: missing type specifier, assume `int'
+sh->alloc = initlen;
+                     ^
+sds_sds_flat__printf__closure.c:558:12 warning: missing type specifier, assume `int'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:558:12 error: expected <identifier> or `(' starting direct-declarator, got `break'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:559:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__printf__closure.c:559:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__printf__closure.c:560:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:560:2 error: expected <identifier> or `(' starting direct-declarator, got `case'
+}
+  ^
+sds_sds_flat__printf__closure.c:562:63 warning: missing type specifier, assume `int'
+struct sdshdr16 *sh = (void*)((s)-(sizeof(struct sdshdr16)));;
+                                                               ^
+sds_sds_flat__printf__closure.c:563:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->len = initlen;
+  ^
+sds_sds_flat__printf__closure.c:563:19 warning: missing type specifier, assume `int'
+sh->len = initlen;
+                   ^
+sds_sds_flat__printf__closure.c:564:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->alloc = initlen;
+  ^
+sds_sds_flat__printf__closure.c:564:21 warning: missing type specifier, assume `int'
+sh->alloc = initlen;
+                     ^
+sds_sds_flat__printf__closure.c:565:12 warning: missing type specifier, assume `int'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:565:12 error: expected <identifier> or `(' starting direct-declarator, got `break'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:566:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__printf__closure.c:566:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__printf__closure.c:567:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:567:2 error: expected <identifier> or `(' starting direct-declarator, got `case'
+}
+  ^
+sds_sds_flat__printf__closure.c:569:63 warning: missing type specifier, assume `int'
+struct sdshdr32 *sh = (void*)((s)-(sizeof(struct sdshdr32)));;
+                                                               ^
+sds_sds_flat__printf__closure.c:570:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->len = initlen;
+  ^
+sds_sds_flat__printf__closure.c:570:19 warning: missing type specifier, assume `int'
+sh->len = initlen;
+                   ^
+sds_sds_flat__printf__closure.c:571:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->alloc = initlen;
+  ^
+sds_sds_flat__printf__closure.c:571:21 warning: missing type specifier, assume `int'
+sh->alloc = initlen;
+                     ^
+sds_sds_flat__printf__closure.c:572:12 warning: missing type specifier, assume `int'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:572:12 error: expected <identifier> or `(' starting direct-declarator, got `break'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:573:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__printf__closure.c:573:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__printf__closure.c:574:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:574:2 error: expected <identifier> or `(' starting direct-declarator, got `case'
+}
+  ^
+sds_sds_flat__printf__closure.c:576:63 warning: missing type specifier, assume `int'
+struct sdshdr64 *sh = (void*)((s)-(sizeof(struct sdshdr64)));;
+                                                               ^
+sds_sds_flat__printf__closure.c:577:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->len = initlen;
+  ^
+sds_sds_flat__printf__closure.c:577:19 warning: missing type specifier, assume `int'
+sh->len = initlen;
+                   ^
+sds_sds_flat__printf__closure.c:578:2 error: expected `,' or `;' or `=' after declarator, got `->'
+sh->alloc = initlen;
+  ^
+sds_sds_flat__printf__closure.c:578:21 warning: missing type specifier, assume `int'
+sh->alloc = initlen;
+                     ^
+sds_sds_flat__printf__closure.c:579:12 warning: missing type specifier, assume `int'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:579:12 error: expected <identifier> or `(' starting direct-declarator, got `break'
+*fp = type;
+            ^
+sds_sds_flat__printf__closure.c:580:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__printf__closure.c:580:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__printf__closure.c:581:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:581:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+sds_sds_flat__printf__closure.c:582:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__printf__closure.c:582:2 error: expected <identifier> or `(' starting direct-declarator, got `if'
+}
+  ^
+sds_sds_flat__printf__closure.c:584:26 warning: missing type specifier, assume `int'
+memcpy(s, init, initlen);
+                          ^
+sds_sds_flat__printf__closure.c:585:19 warning: missing type specifier, assume `int'
+s[initlen] = '\0';
+                   ^
+sds_sds_flat__printf__closure.c:585:19 error: expected <identifier> or `(' starting direct-declarator, got `return'
+s[initlen] = '\0';
+                   ^
+sds_sds_flat__printf__closure.c:586:10 warning: missing type specifier, assume `int'
+return s;
+          ^
+sds_sds_flat__printf__closure.c:586:10 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return s;
+          ^
+

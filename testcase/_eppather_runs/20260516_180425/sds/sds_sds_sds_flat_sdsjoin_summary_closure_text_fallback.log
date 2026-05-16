@@ -1,0 +1,426 @@
+equals!!!!!0!!!!
+equals!!!!!argc!!!!
+equals!!!!!sdscat(join, argv[j])!!!!
+equals!!!!!1!!!!
+equals!!!!!argc-1!!!!
+equals!!!!!sdscat(join,sep)!!!!
+equals!!!!!sdsMakeRoomFor(s,len)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!curlen!!!!
+equals!!!!!len!!!!
+equals!!!!!len!!!!
+equals!!!!!'\0'!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(!(j < argc));
+return join;
+
+feasible!!!
+[mem]:51
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(!(j != argc-1));
+@(!(j < argc));
+return join;
+
+feasible!!!
+[mem]:46
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(!(j < argc));
+return join;
+
+feasible!!!
+[mem]:34
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(!(j != argc-1));
+@(!(j < argc));
+return join;
+
+feasible!!!
+[mem]:29
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(!(j < argc));
+return join;
+
+feasible!!!
+[mem]:17
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdscatlen(s, t, strlen(t));
+
+feasible!!!
+[mem]:17
+[averagemem]:17
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:18
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+
+feasible!!!
+[mem]:33
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdsnewlen("",0);
+
+feasible!!!
+[mem]:13
+[averagemem]:13
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsjoin:
+signature: sds sdsjoin(char **argv, int argc, char *sep)
+#cases: 5
+DIRECT worst_mems: 51
+DIRECT avg_mems(equal-weight): 35.4
+APPROX worst_mems: 114
+APPROX avg_mems(equal-weight): 82.4
+  [case 0] guard_hash=17348019537895679839 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(!(j < argc));
+return join;
+" mems=51 composed_mems=114 volce=N/A prob=N/A callees=[sdsempty,sdscat]
+  [case 1] guard_hash=18044838768149216276 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(!(j != argc-1));
+@(!(j < argc));
+return join;
+" mems=46 composed_mems=109 volce=N/A prob=N/A callees=[sdsempty,sdscat]
+  [case 2] guard_hash=1361467417299535384 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(!(j < argc));
+return join;
+" mems=34 composed_mems=97 volce=N/A prob=N/A callees=[sdsempty,sdscat]
+  [case 3] guard_hash=16311111584675820746 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(!(j != argc-1));
+@(!(j < argc));
+return join;
+" mems=29 composed_mems=92 volce=N/A prob=N/A callees=[sdsempty,sdscat]
+  [case 4] guard_hash=7201743810554751113 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(!(j < argc));
+return join;
+" mems=17 composed_mems=30 volce=N/A prob=N/A callees=[sdsempty]
+Function sdscat:
+signature: sds sdscat(sds s, const char *t)
+#cases: 1
+DIRECT worst_mems: 17
+DIRECT avg_mems(equal-weight): 17
+APPROX worst_mems: 50
+APPROX avg_mems(equal-weight): 42.5
+  [case 0] guard_hash=7881751891549661357 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdscatlen(s, t, strlen(t));
+" mems=17 composed_mems=50 volce=N/A prob=N/A callees=[sdscatlen,strlen]
+Function sdscatlen:
+signature: sds sdscatlen(sds s, const void *t, size_t len)
+#cases: 2
+DIRECT worst_mems: 33
+DIRECT avg_mems(equal-weight): 25.5
+APPROX worst_mems: 33
+APPROX avg_mems(equal-weight): 25.5
+  [case 0] guard_hash=18086764566466822414 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+" mems=18 composed_mems=18 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor]
+  [case 1] guard_hash=9312951375990847833 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+" mems=33 composed_mems=33 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor,memcpy,sdssetlen]
+Function sdsempty:
+signature: sds sdsempty(void)
+#cases: 1
+DIRECT worst_mems: 13
+DIRECT avg_mems(equal-weight): 13
+APPROX worst_mems: 13
+APPROX avg_mems(equal-weight): 13
+  [case 0] guard_hash=3833451494272442853 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdsnewlen("",0);
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[sdsnewlen]
+[CALL GRAPH]
+sdsempty -> []
+sdscatlen -> []
+sdscat -> [sdscatlen]
+sdsjoin -> [sdscat,sdsempty]
+[SUMMARY STATS]
+function_count=4
+summary_case_count=9
+call_edge_count=3
+[PROGRAM SUMMARY]
+entry=sdsjoin
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=3, converged=true)
+worst_mems=114
+worst_path=sdsjoin#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(j != argc-1);
+join = sdscat(join,sep);
+@(!(j < argc));
+return join;
+} -> sdsempty#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdsnewlen("",0);
+} -> sdscat#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+return sdscatlen(s, t, strlen(t));
+} -> sdscatlen#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+}
+weighted_avg_mems=82.4 (equal-weight; volce disabled)
+notes=external callee omitted=strlen | external callee omitted=sdssetlen | external callee omitted=memcpy | external callee omitted=sdsMakeRoomFor | external callee omitted=sdslen | external callee omitted=sdsnewlen

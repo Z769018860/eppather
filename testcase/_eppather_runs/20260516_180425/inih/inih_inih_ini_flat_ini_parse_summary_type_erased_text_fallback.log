@@ -1,0 +1,446 @@
+equals!!!!!file!!!!
+equals!!!!!1!!!!
+equals!!!!!ini_parse_file(file, handler, user)!!!!
+equals!!!!!offset!!!!
+equals!!!!!1!!!!
+Function summaries are ready to dump ~
+Path:int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+FILE* file;
+FILE* file;
+file = 1;
+@(!file);
+return -1;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+Path:int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+FILE* file;
+FILE* file;
+file = 1;
+@(!(!file));
+error = ini_parse_file(file, handler, user);
+1;
+return error;
+
+feasible!!!
+[mem]:20
+[averagemem]:2
+[testcase]:
+
+Path:int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+return ini_parse_stream((ini_reader)fgets, file, handler, user);
+
+feasible!!!
+[mem]:12
+[averagemem]:4
+[testcase]:
+
+Path:int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+
+feasible!!!
+[mem]:6
+[averagemem]:6
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_parse:
+signature: int *ini_parse(int *filename, int handler, int *user)
+#cases: 2
+DIRECT worst_mems: 20
+DIRECT avg_mems(equal-weight): 16.5
+APPROX worst_mems: 38
+APPROX avg_mems(equal-weight): 25.5
+  [case 0] guard_hash=12008579648002339300 path="int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+FILE* file;
+FILE* file;
+file = 1;
+@(!file);
+return -1;
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=4108010609729487275 path="int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+FILE* file;
+FILE* file;
+file = 1;
+@(!(!file));
+error = ini_parse_file(file, handler, user);
+1;
+return error;
+" mems=20 composed_mems=38 volce=N/A prob=N/A callees=[ini_parse_file]
+Function ini_parse_file:
+signature: int *ini_parse_file(int *file, int handler, int *user)
+#cases: 1
+DIRECT worst_mems: 12
+DIRECT avg_mems(equal-weight): 12
+APPROX worst_mems: 18
+APPROX avg_mems(equal-weight): 18
+  [case 0] guard_hash=9579304764913494852 path="int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+return ini_parse_stream((ini_reader)fgets, file, handler, user);
+" mems=12 composed_mems=18 volce=N/A prob=N/A callees=[ini_parse_stream]
+Function ini_parse_stream:
+signature: int *ini_parse_stream(int reader, int *stream, int handler, int *user)
+#cases: 1
+DIRECT worst_mems: 6
+DIRECT avg_mems(equal-weight): 6
+APPROX worst_mems: 6
+APPROX avg_mems(equal-weight): 6
+  [case 0] guard_hash=3834001117041405263 path="int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+" mems=6 composed_mems=6 volce=N/A prob=N/A callees=[ini_rstrip,ini_lskip]
+[CALL GRAPH]
+ini_parse_stream -> []
+ini_parse_file -> [ini_parse_stream]
+ini_parse -> [ini_parse_file]
+[SUMMARY STATS]
+function_count=3
+summary_case_count=4
+call_edge_count=2
+[PROGRAM SUMMARY]
+entry=ini_parse
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=3, converged=true)
+worst_mems=38
+worst_path=ini_parse#1{int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+FILE* file;
+FILE* file;
+file = 1;
+@(!(!file));
+error = ini_parse_file(file, handler, user);
+1;
+return error;
+} -> ini_parse_file#0{int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+return ini_parse_stream((ini_reader)fgets, file, handler, user);
+} -> ini_parse_stream#0{int *filename;
+int handler;
+int *user;
+int file;
+int error;
+int *file;
+int handler;
+int *user;
+int fgets;
+int ini_reader;
+int reader;
+int *stream;
+int handler;
+int *user;
+int abyss;
+}
+weighted_avg_mems=25.5 (equal-weight; volce disabled)
+notes=external callee omitted=ini_lskip | external callee omitted=ini_rstrip
+<stdin>:93:9: error: macro names must be identifiers
+inih_ini_flat__ini_parse__type_erased.c:45:4 error: expected <identifier> or `(' starting direct-declarator, got `break'
+int break;
+    ^
+inih_ini_flat__ini_parse__type_erased.c:97:39 warning: missing type specifier, assume `int'
+/* Scan through stream line by line */
+                                       ^
+inih_ini_flat__ini_parse__type_erased.c:97:39 error: expected <identifier> or `(' starting direct-declarator, got `while'
+/* Scan through stream line by line */
+                                       ^
+inih_ini_flat__ini_parse__type_erased.c:117:16 warning: missing type specifier, assume `int'
+# 117 "<stdin>"
+                ^
+inih_ini_flat__ini_parse__type_erased.c:118:6 error: expected `,' or `;' or `=' after declarator, got `++'
+lineno++;
+      ^
+inih_ini_flat__ini_parse__type_erased.c:120:69 warning: missing type specifier, assume `int'
+/* If line exceeded INI_MAX_LINE bytes, discard till end of line. */
+                                                                     ^
+inih_ini_flat__ini_parse__type_erased.c:120:69 error: expected <identifier> or `(' starting direct-declarator, got `if'
+/* If line exceeded INI_MAX_LINE bytes, discard till end of line. */
+                                                                     ^
+inih_ini_flat__ini_parse__type_erased.c:124:16 warning: missing type specifier, assume `int'
+error = lineno;
+                ^
+inih_ini_flat__ini_parse__type_erased.c:125:15 warning: missing type specifier, assume `int'
+abyss_len = 1;
+               ^
+inih_ini_flat__ini_parse__type_erased.c:125:15 error: expected <identifier> or `(' starting direct-declarator, got `if'
+abyss_len = 1;
+               ^
+inih_ini_flat__ini_parse__type_erased.c:127:7 warning: missing type specifier, assume `int'
+break;
+       ^
+inih_ini_flat__ini_parse__type_erased.c:127:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+inih_ini_flat__ini_parse__type_erased.c:128:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:128:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:130:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:138:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:140:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:140:1 error: expected <identifier> or `(' starting direct-declarator, got `if'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:156:16 warning: missing type specifier, assume `int'
+# 156 "<stdin>"
+                ^
+inih_ini_flat__ini_parse__type_erased.c:156:16 error: expected <identifier> or `(' starting direct-declarator, got `else'
+# 156 "<stdin>"
+                ^
+inih_ini_flat__ini_parse__type_erased.c:159:47 warning: missing type specifier, assume `int'
+end = ini_find_chars_or_comment(start + 1, 0);
+                                               ^
+inih_ini_flat__ini_parse__type_erased.c:159:47 error: expected <identifier> or `(' starting direct-declarator, got `if'
+end = ini_find_chars_or_comment(start + 1, 0);
+                                               ^
+inih_ini_flat__ini_parse__type_erased.c:161:13 warning: missing type specifier, assume `int'
+*end = '\0';
+             ^
+inih_ini_flat__ini_parse__type_erased.c:162:28 error: expected `)', got `+'
+ini_strncpy0(section, start + 1, 1);
+                            ^
+inih_ini_flat__ini_parse__type_erased.c:169:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:169:1 error: expected <identifier> or `(' starting direct-declarator, got `}'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:170:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:170:2 error: expected <identifier> or `(' starting direct-declarator, got `else'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:173:16 warning: missing type specifier, assume `int'
+error = lineno;
+                ^
+inih_ini_flat__ini_parse__type_erased.c:173:16 error: expected <identifier> or `(' starting direct-declarator, got `}'
+error = lineno;
+                ^
+inih_ini_flat__ini_parse__type_erased.c:174:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:174:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:175:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:175:2 error: expected <identifier> or `(' starting direct-declarator, got `else'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:178:43 warning: missing type specifier, assume `int'
+end = ini_find_chars_or_comment(start, 0);
+                                           ^
+inih_ini_flat__ini_parse__type_erased.c:178:43 error: expected <identifier> or `(' starting direct-declarator, got `if'
+end = ini_find_chars_or_comment(start, 0);
+                                           ^
+inih_ini_flat__ini_parse__type_erased.c:180:13 warning: missing type specifier, assume `int'
+*end = '\0';
+             ^
+inih_ini_flat__ini_parse__type_erased.c:181:31 warning: missing type specifier, assume `int'
+name = ini_rstrip(start, end);
+                               ^
+inih_ini_flat__ini_parse__type_erased.c:186:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:187:26 warning: missing type specifier, assume `int'
+value = ini_lskip(value);
+                          ^
+inih_ini_flat__ini_parse__type_erased.c:193:51 warning: missing type specifier, assume `int'
+/* Valid name[=:]value pair found, call handler */
+                                                   ^
+inih_ini_flat__ini_parse__type_erased.c:193:51 error: expected <identifier> or `(' starting direct-declarator, got `if'
+/* Valid name[=:]value pair found, call handler */
+                                                   ^
+inih_ini_flat__ini_parse__type_erased.c:195:16 warning: missing type specifier, assume `int'
+error = lineno;
+                ^
+inih_ini_flat__ini_parse__type_erased.c:195:16 error: expected <identifier> or `(' starting direct-declarator, got `}'
+error = lineno;
+                ^
+inih_ini_flat__ini_parse__type_erased.c:196:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:196:2 error: expected <identifier> or `(' starting direct-declarator, got `else'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:207:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:207:1 error: expected <identifier> or `(' starting direct-declarator, got `}'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:208:2 warning: missing type specifier, assume `int'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:208:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+inih_ini_flat__ini_parse__type_erased.c:214:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:214:1 error: expected <identifier> or `(' starting direct-declarator, got `}'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:217:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:217:1 error: expected <identifier> or `(' starting direct-declarator, got `1'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:220:1 warning: missing type specifier, assume `int'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:220:1 error: expected <identifier> or `(' starting direct-declarator, got `return'
+
+ ^
+inih_ini_flat__ini_parse__type_erased.c:221:14 warning: missing type specifier, assume `int'
+return error;
+              ^
+inih_ini_flat__ini_parse__type_erased.c:221:14 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return error;
+              ^
+

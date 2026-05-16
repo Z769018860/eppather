@@ -1,0 +1,41 @@
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *t;
+return sdscpylen(s, t, strlen(t));
+
+feasible!!!
+[mem]:14
+[averagemem]:14
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdscpy:
+signature: sds sdscpy(sds s, const char *t)
+#cases: 1
+DIRECT worst_mems: 14
+DIRECT avg_mems(equal-weight): 14
+APPROX worst_mems: 14
+APPROX avg_mems(equal-weight): 14
+  [case 0] guard_hash=16311571217945472378 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *t;
+return sdscpylen(s, t, strlen(t));
+" mems=14 composed_mems=14 volce=N/A prob=N/A callees=[sdscpylen,strlen]
+[CALL GRAPH]
+sdscpy -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdscpy
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=14
+worst_path=sdscpy#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *t;
+return sdscpylen(s, t, strlen(t));
+}
+weighted_avg_mems=14 (equal-weight; volce disabled)
+notes=external callee omitted=strlen | external callee omitted=sdscpylen

@@ -1,0 +1,8 @@
+int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(!(index < self[4]));
+return 0;

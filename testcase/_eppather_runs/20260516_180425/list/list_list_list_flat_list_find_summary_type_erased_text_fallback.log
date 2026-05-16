@@ -1,0 +1,364 @@
+equals!!!!!1!!!!
+equals!!!!!node[1]!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(self[1](val, node[1]));
+1;
+return node;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(val == node[1]);
+1;
+return node;
+
+feasible!!!
+[mem]:16
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(self[1](val, node[1]));
+1;
+return node;
+
+feasible!!!
+[mem]:24
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(val == node[1]);
+1;
+return node;
+
+feasible!!!
+[mem]:27
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+
+feasible!!!
+[mem]:27
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(!(self[1]));
+@(val == node[1]);
+1;
+return node;
+
+feasible!!!
+[mem]:22
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(!(self[1]));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+
+feasible!!!
+[mem]:22
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+
+feasible!!!
+[mem]:16
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(!(self[1]));
+@(val == node[1]);
+1;
+return node;
+
+feasible!!!
+[mem]:11
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(!(self[1]));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+
+feasible!!!
+[mem]:11
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *val;
+int *it;
+int *node;
+@(!((node = 1)));
+1;
+return 0;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_find:
+signature: int *list_find(int *self, int *val)
+#cases: 11
+DIRECT worst_mems: 27
+DIRECT avg_mems(equal-weight): 17.6364
+APPROX worst_mems: 27
+APPROX avg_mems(equal-weight): 17.6364
+  [case 0] guard_hash=2578877314159353492 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(self[1](val, node[1]));
+1;
+return node;
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=1301120540974117291 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(val == node[1]);
+1;
+return node;
+" mems=16 composed_mems=16 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=11806718224358974446 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(self[1](val, node[1]));
+1;
+return node;
+" mems=24 composed_mems=24 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=13955621764757735866 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(val == node[1]);
+1;
+return node;
+" mems=27 composed_mems=27 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=3592611158101203972 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+" mems=27 composed_mems=27 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=12268792501947864721 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(!(self[1]));
+@(val == node[1]);
+1;
+return node;
+" mems=22 composed_mems=22 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=13712227053559839764 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(!(self[1]));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+" mems=22 composed_mems=22 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=16083471034373921562 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+" mems=16 composed_mems=16 volce=N/A prob=N/A callees=[]
+  [case 8] guard_hash=4936818340616020362 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(!(self[1]));
+@(val == node[1]);
+1;
+return node;
+" mems=11 composed_mems=11 volce=N/A prob=N/A callees=[]
+  [case 9] guard_hash=6240985712860996698 path="int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(!(self[1]));
+@(!(val == node[1]));
+@(!((node = 1)));
+1;
+return 0;
+" mems=11 composed_mems=11 volce=N/A prob=N/A callees=[]
+  [case 10] guard_hash=15178762745094303412 path="int *self;
+int *val;
+int *it;
+int *node;
+@(!((node = 1)));
+1;
+return 0;
+" mems=5 composed_mems=5 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_find -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=11
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_find
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=27
+worst_path=list_find#3{int *self;
+int *val;
+int *it;
+int *node;
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(!(val == node[1]));
+@((node = 1));
+@(self[1]);
+@(!(self[1](val, node[1])));
+@(val == node[1]);
+1;
+return node;
+}
+weighted_avg_mems=17.6364 (equal-weight; volce disabled)

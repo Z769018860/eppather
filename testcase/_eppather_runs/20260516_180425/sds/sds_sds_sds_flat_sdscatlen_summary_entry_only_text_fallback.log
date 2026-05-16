@@ -1,0 +1,81 @@
+equals!!!!!sdsMakeRoomFor(s,len)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!curlen!!!!
+equals!!!!!len!!!!
+equals!!!!!len!!!!
+equals!!!!!'\0'!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:13
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+
+feasible!!!
+[mem]:28
+[averagemem]:3
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdscatlen:
+signature: sds sdscatlen(sds s, const void *t, size_t len)
+#cases: 2
+DIRECT worst_mems: 28
+DIRECT avg_mems(equal-weight): 20.5
+APPROX worst_mems: 28
+APPROX avg_mems(equal-weight): 20.5
+  [case 0] guard_hash=1865824846944213885 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor]
+  [case 1] guard_hash=12689745865703548636 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+" mems=28 composed_mems=28 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor,memcpy,sdssetlen]
+[CALL GRAPH]
+sdscatlen -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=2
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdscatlen
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=28
+worst_path=sdscatlen#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+}
+weighted_avg_mems=20.5 (equal-weight; volce disabled)
+notes=external callee omitted=sdssetlen | external callee omitted=memcpy | external callee omitted=sdsMakeRoomFor | external callee omitted=sdslen

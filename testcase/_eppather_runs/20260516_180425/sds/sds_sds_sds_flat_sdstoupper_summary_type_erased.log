@@ -1,0 +1,46 @@
+equals!!!!!0!!!!
+equals!!!!!len!!!!
+equals!!!!!1!!!!
+Function summaries are ready to dump ~
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+Path:int *s;
+int len = 1;
+int j;
+@(!(j < len));
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int j = 1
+
+[FUNCTION SUMMARIES]
+Function sdstoupper:
+signature: int *sdstoupper(int *s)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=6289251116633953592 path="int *s;
+int len = 1;
+int j;
+@(!(j < len));
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdstoupper -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdstoupper
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdstoupper#0{int *s;
+int len = 1;
+int j;
+@(!(j < len));
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

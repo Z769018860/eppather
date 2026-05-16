@@ -1,0 +1,101 @@
+equals!!!!!curlen!!!!
+equals!!!!!curlen!!!!
+equals!!!!!sdsMakeRoomFor(s,len-curlen)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!curlen!!!!
+equals!!!!!curlen!!!!
+equals!!!!!1!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(len <= curlen);
+return s;
+
+feasible!!!
+[mem]:10
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(!(len <= curlen));
+s = sdsMakeRoomFor(s,len-curlen);
+@(s == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:16
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(!(len <= curlen));
+s = sdsMakeRoomFor(s,len-curlen);
+@(!(s == ((void*)0)));
+memset(s+curlen,0,(len-curlen+1));
+sdssetlen(s, len);
+return s;
+
+feasible!!!
+[mem]:25
+[averagemem]:2
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsgrowzero:
+signature: sds sdsgrowzero(sds s, size_t len)
+#cases: 3
+DIRECT worst_mems: 25
+DIRECT avg_mems(equal-weight): 17
+APPROX worst_mems: 25
+APPROX avg_mems(equal-weight): 17
+  [case 0] guard_hash=884427378088748212 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(len <= curlen);
+return s;
+" mems=10 composed_mems=10 volce=N/A prob=N/A callees=[sdslen]
+  [case 1] guard_hash=13771650044575856384 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(!(len <= curlen));
+s = sdsMakeRoomFor(s,len-curlen);
+@(s == ((void*)0));
+return ((void*)0);
+" mems=16 composed_mems=16 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor]
+  [case 2] guard_hash=17956486163452296651 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(!(len <= curlen));
+s = sdsMakeRoomFor(s,len-curlen);
+@(!(s == ((void*)0)));
+memset(s+curlen,0,(len-curlen+1));
+sdssetlen(s, len);
+return s;
+" mems=25 composed_mems=25 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor,memset,sdssetlen]
+[CALL GRAPH]
+sdsgrowzero -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsgrowzero
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=25
+worst_path=sdsgrowzero#2{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t len;
+@(!(len <= curlen));
+s = sdsMakeRoomFor(s,len-curlen);
+@(!(s == ((void*)0)));
+memset(s+curlen,0,(len-curlen+1));
+sdssetlen(s, len);
+return s;
+}
+weighted_avg_mems=17 (equal-weight; volce disabled)
+notes=external callee omitted=sdssetlen | external callee omitted=memset | external callee omitted=sdsMakeRoomFor | external callee omitted=sdslen

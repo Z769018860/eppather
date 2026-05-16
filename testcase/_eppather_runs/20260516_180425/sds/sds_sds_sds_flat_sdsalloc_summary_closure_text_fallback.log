@@ -1,0 +1,88 @@
+equals!!!!!7!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!7!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:20
+[averagemem]:5
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:20
+[averagemem]:5
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsalloc:
+signature: static inline size_t sdsalloc(const sds s)
+#cases: 1
+DIRECT worst_mems: 20
+DIRECT avg_mems(equal-weight): 20
+APPROX worst_mems: 20
+APPROX avg_mems(equal-weight): 20
+  [case 0] guard_hash=10810625141996895114 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=20 composed_mems=20 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+Function sdslen:
+signature: static inline size_t sdslen(const sds s)
+#cases: 1
+DIRECT worst_mems: 20
+DIRECT avg_mems(equal-weight): 20
+APPROX worst_mems: 20
+APPROX avg_mems(equal-weight): 20
+  [case 0] guard_hash=10810625141996895114 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=20 composed_mems=20 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+[CALL GRAPH]
+sdslen -> []
+sdsalloc -> []
+[SUMMARY STATS]
+function_count=2
+summary_case_count=2
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsalloc
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=20
+worst_path=sdsalloc#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+}
+weighted_avg_mems=20 (equal-weight; volce disabled)
+notes=external callee omitted=SDS_TYPE_5_LEN
+sds_sds_flat__sdsalloc__closure.c:549:26 error: expected declaration specifiers or '...', got `('
+define SDS_TYPE_5_LEN(f) ((f)>>3)
+                          ^
+

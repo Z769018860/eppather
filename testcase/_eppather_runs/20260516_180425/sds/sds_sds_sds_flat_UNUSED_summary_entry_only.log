@@ -1,0 +1,432 @@
+equals!!!!!1024!!!!
+equals!!!!!7!!!!
+equals!!!!!oldlen!!!!
+Function summaries are ready to dump ~
+[FUNCTION SUMMARIES]
+[CALL GRAPH]
+[SUMMARY STATS]
+function_count=0
+summary_case_count=0
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=UNUSED
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__UNUSED__entry_only.c:527:27 error: expected `,' or `;' or `=' after declarator, got `int'
+define UNUSED(x) (void)(x)
+                           ^
+sds_sds_flat__UNUSED__entry_only.c:531:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__UNUSED__entry_only.c:532:10 error: expected declaration specifiers or '...', got `"Create a string and obtain the length"'
+test_cond("Create a string and obtain the length",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:535:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:536:24 warning: missing type specifier, assume `int'
+x = sdsnewlen("foo",2);
+                        ^
+sds_sds_flat__UNUSED__entry_only.c:537:10 error: expected declaration specifiers or '...', got `"Create a string with specified length"'
+test_cond("Create a string with specified length",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:540:21 warning: missing type specifier, assume `int'
+x = sdscat(x,"bar");
+                     ^
+sds_sds_flat__UNUSED__entry_only.c:541:10 error: expected declaration specifiers or '...', got `"Strings concatenation"'
+test_cond("Strings concatenation",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:543:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__UNUSED__entry_only.c:544:19 warning: missing type specifier, assume `int'
+x = sdscpy(x,"a");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:545:10 error: expected declaration specifiers or '...', got `"sdscpy() against an originally longer string"'
+test_cond("sdscpy() against an originally longer string",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:548:51 warning: missing type specifier, assume `int'
+x = sdscpy(x,"xyzxxxxxxxxxxyyyyyyyyyykkkkkkkkkk");
+                                                   ^
+sds_sds_flat__UNUSED__entry_only.c:549:10 error: expected declaration specifiers or '...', got `"sdscpy() against an originally shorter string"'
+test_cond("sdscpy() against an originally shorter string",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:553:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:554:39 warning: missing type specifier, assume `int'
+x = sdscatprintf(sdsempty(),"%d",123);
+                                       ^
+sds_sds_flat__UNUSED__entry_only.c:555:10 error: expected declaration specifiers or '...', got `"sdscatprintf() seems working in the base case"'
+test_cond("sdscatprintf() seems working in the base case",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:558:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:559:39 warning: missing type specifier, assume `int'
+x = sdscatprintf(sdsempty(),"a%cb",0);
+                                       ^
+sds_sds_flat__UNUSED__entry_only.c:560:10 error: expected declaration specifiers or '...', got `"sdscatprintf() seems working with \\0 inside of result"'
+test_cond("sdscatprintf() seems working with \\0 inside of result",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:565:24 warning: missing type specifier, assume `int'
+char etalon[1024*1024];
+                        ^
+sds_sds_flat__UNUSED__entry_only.c:565:24 error: expected <identifier> or `(' starting direct-declarator, got `for'
+char etalon[1024*1024];
+                        ^
+sds_sds_flat__UNUSED__entry_only.c:566:19 warning: missing type specifier, assume `int'
+for (size_t i = 0; i < sizeof(etalon); i++) {
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:566:21 error: expected `,' or `;' or `=' after declarator, got `<'
+for (size_t i = 0; i < sizeof(etalon); i++) {
+                     ^
+sds_sds_flat__UNUSED__entry_only.c:566:39 warning: missing type specifier, assume `int'
+for (size_t i = 0; i < sizeof(etalon); i++) {
+                                       ^
+sds_sds_flat__UNUSED__entry_only.c:566:40 error: expected `,' or `;' or `=' after declarator, got `++'
+for (size_t i = 0; i < sizeof(etalon); i++) {
+                                        ^
+sds_sds_flat__UNUSED__entry_only.c:567:17 warning: missing type specifier, assume `int'
+etalon[i] = '0';
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:567:17 error: expected <identifier> or `(' starting direct-declarator, got `}'
+etalon[i] = '0';
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:568:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:569:59 warning: missing type specifier, assume `int'
+x = sdscatprintf(sdsempty(),"%0*d",(int)sizeof(etalon),0);
+                                                           ^
+sds_sds_flat__UNUSED__entry_only.c:570:10 error: expected declaration specifiers or '...', got `"sdscatprintf() can print 1MB"'
+test_cond("sdscatprintf() can print 1MB",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:574:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:575:18 warning: missing type specifier, assume `int'
+x = sdsnew("--");
+                  ^
+sds_sds_flat__UNUSED__entry_only.c:576:84 warning: missing type specifier, assume `int'
+x = sdscatfmt(x, "Hello %s World %I,%I--", "Hi!", LLONG_MIN,9223372036854775807LL);
+                                                                                    ^
+sds_sds_flat__UNUSED__entry_only.c:577:10 error: expected declaration specifiers or '...', got `"sdscatfmt() seems working in the base case"'
+test_cond("sdscatfmt() seems working in the base case",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:583:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:584:18 warning: missing type specifier, assume `int'
+x = sdsnew("--");
+                  ^
+sds_sds_flat__UNUSED__entry_only.c:585:51 warning: missing type specifier, assume `int'
+x = sdscatfmt(x, "%u,%U--", UINT_MAX, ULLONG_MAX);
+                                                   ^
+sds_sds_flat__UNUSED__entry_only.c:586:10 error: expected declaration specifiers or '...', got `"sdscatfmt() seems working with unsigned numbers"'
+test_cond("sdscatfmt() seems working with unsigned numbers",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:590:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:591:19 warning: missing type specifier, assume `int'
+x = sdsnew(" x ");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:592:10 error: expected declaration specifiers or '...', got `" x"'
+sdstrim(x," x");
+          ^
+sds_sds_flat__UNUSED__entry_only.c:592:17 warning: missing type specifier, assume `int'
+sdstrim(x," x");
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:593:10 error: expected declaration specifiers or '...', got `"sdstrim() works when all chars match"'
+test_cond("sdstrim() works when all chars match",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:596:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:597:19 warning: missing type specifier, assume `int'
+x = sdsnew(" x ");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:598:10 error: expected declaration specifiers or '...', got `" "'
+sdstrim(x," ");
+          ^
+sds_sds_flat__UNUSED__entry_only.c:598:16 warning: missing type specifier, assume `int'
+sdstrim(x," ");
+                ^
+sds_sds_flat__UNUSED__entry_only.c:599:10 error: expected declaration specifiers or '...', got `"sdstrim() works when a single char remains"'
+test_cond("sdstrim() works when a single char remains",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:602:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:603:25 warning: missing type specifier, assume `int'
+x = sdsnew("xxciaoyyy");
+                         ^
+sds_sds_flat__UNUSED__entry_only.c:604:10 error: expected declaration specifiers or '...', got `"xy"'
+sdstrim(x,"xy");
+          ^
+sds_sds_flat__UNUSED__entry_only.c:604:17 warning: missing type specifier, assume `int'
+sdstrim(x,"xy");
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:605:10 error: expected declaration specifiers or '...', got `"sdstrim() correctly trims characters"'
+test_cond("sdstrim() correctly trims characters",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:608:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:609:11 error: expected declaration specifiers or '...', got `1'
+sdsrange(y,1,1);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:609:17 warning: missing type specifier, assume `int'
+sdsrange(y,1,1);
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:610:10 error: expected declaration specifiers or '...', got `"sdsrange(...,1,1)"'
+test_cond("sdsrange(...,1,1)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:613:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:614:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:615:11 error: expected declaration specifiers or '...', got `1'
+sdsrange(y,1,-1);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:615:18 warning: missing type specifier, assume `int'
+sdsrange(y,1,-1);
+                  ^
+sds_sds_flat__UNUSED__entry_only.c:616:10 error: expected declaration specifiers or '...', got `"sdsrange(...,1,-1)"'
+test_cond("sdsrange(...,1,-1)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:619:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:620:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:621:11 error: expected declaration specifiers or '...', got `-'
+sdsrange(y,-2,-1);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:621:19 warning: missing type specifier, assume `int'
+sdsrange(y,-2,-1);
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:622:10 error: expected declaration specifiers or '...', got `"sdsrange(...,-2,-1)"'
+test_cond("sdsrange(...,-2,-1)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:625:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:626:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:627:11 error: expected declaration specifiers or '...', got `2'
+sdsrange(y,2,1);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:627:17 warning: missing type specifier, assume `int'
+sdsrange(y,2,1);
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:628:10 error: expected declaration specifiers or '...', got `"sdsrange(...,2,1)"'
+test_cond("sdsrange(...,2,1)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:631:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:632:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:633:11 error: expected declaration specifiers or '...', got `1'
+sdsrange(y,1,100);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:633:19 warning: missing type specifier, assume `int'
+sdsrange(y,1,100);
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:634:10 error: expected declaration specifiers or '...', got `"sdsrange(...,1,100)"'
+test_cond("sdsrange(...,1,100)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:637:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:638:15 warning: missing type specifier, assume `int'
+y = sdsdup(x);
+               ^
+sds_sds_flat__UNUSED__entry_only.c:639:11 error: expected declaration specifiers or '...', got `100'
+sdsrange(y,100,100);
+           ^
+sds_sds_flat__UNUSED__entry_only.c:639:21 warning: missing type specifier, assume `int'
+sdsrange(y,100,100);
+                     ^
+sds_sds_flat__UNUSED__entry_only.c:640:10 error: expected declaration specifiers or '...', got `"sdsrange(...,100,100)"'
+test_cond("sdsrange(...,100,100)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:644:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:645:19 warning: missing type specifier, assume `int'
+x = sdsnew("foo");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:646:19 warning: missing type specifier, assume `int'
+y = sdsnew("foa");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:647:10 error: expected declaration specifiers or '...', got `"sdscmp(foo,foa)"'
+test_cond("sdscmp(foo,foa)", sdscmp(x,y) > 0)
+          ^
+sds_sds_flat__UNUSED__entry_only.c:650:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:651:19 warning: missing type specifier, assume `int'
+x = sdsnew("bar");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:652:19 warning: missing type specifier, assume `int'
+y = sdsnew("bar");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:653:10 error: expected declaration specifiers or '...', got `"sdscmp(bar,bar)"'
+test_cond("sdscmp(bar,bar)", sdscmp(x,y) == 0)
+          ^
+sds_sds_flat__UNUSED__entry_only.c:656:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:657:19 warning: missing type specifier, assume `int'
+x = sdsnew("aar");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:658:19 warning: missing type specifier, assume `int'
+y = sdsnew("bar");
+                   ^
+sds_sds_flat__UNUSED__entry_only.c:659:10 error: expected declaration specifiers or '...', got `"sdscmp(bar,bar)"'
+test_cond("sdscmp(bar,bar)", sdscmp(x,y) < 0)
+          ^
+sds_sds_flat__UNUSED__entry_only.c:662:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:663:32 warning: missing type specifier, assume `int'
+x = sdsnewlen("\a\n\0foo\r",7);
+                                ^
+sds_sds_flat__UNUSED__entry_only.c:664:40 warning: missing type specifier, assume `int'
+y = sdscatrepr(sdsempty(),x,sdslen(x));
+                                        ^
+sds_sds_flat__UNUSED__entry_only.c:665:10 error: expected declaration specifiers or '...', got `"sdscatrepr(...data...)"'
+test_cond("sdscatrepr(...data...)",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:673:12 warning: missing type specifier, assume `int'
+sdsfree(y);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:674:17 warning: missing type specifier, assume `int'
+x = sdsnew("0");
+                 ^
+sds_sds_flat__UNUSED__entry_only.c:675:10 error: expected declaration specifiers or '...', got `"sdsnew() free/len buffers"'
+test_cond("sdsnew() free/len buffers", sdslen(x) == 1 && sdsavail(x) == 0);
+          ^
+sds_sds_flat__UNUSED__entry_only.c:678:23 warning: missing type specifier, assume `int'
+* SDS header types. */
+                       ^
+sds_sds_flat__UNUSED__entry_only.c:678:23 error: expected <identifier> or `(' starting direct-declarator, got `for'
+* SDS header types. */
+                       ^
+sds_sds_flat__UNUSED__entry_only.c:679:12 warning: missing type specifier, assume `int'
+for (i = 0; i < 10; i++) {
+            ^
+sds_sds_flat__UNUSED__entry_only.c:679:14 error: expected `,' or `;' or `=' after declarator, got `<'
+for (i = 0; i < 10; i++) {
+              ^
+sds_sds_flat__UNUSED__entry_only.c:679:20 warning: missing type specifier, assume `int'
+for (i = 0; i < 10; i++) {
+                    ^
+sds_sds_flat__UNUSED__entry_only.c:679:21 error: expected `,' or `;' or `=' after declarator, got `++'
+for (i = 0; i < 10; i++) {
+                     ^
+sds_sds_flat__UNUSED__entry_only.c:680:24 warning: missing type specifier, assume `int'
+int oldlen = sdslen(x);
+                        ^
+sds_sds_flat__UNUSED__entry_only.c:683:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__UNUSED__entry_only.c:684:10 error: expected declaration specifiers or '...', got `"sdsMakeRoomFor() len"'
+test_cond("sdsMakeRoomFor() len", sdslen(x) == oldlen);
+          ^
+sds_sds_flat__UNUSED__entry_only.c:684:56 warning: missing type specifier, assume `int'
+test_cond("sdsMakeRoomFor() len", sdslen(x) == oldlen);
+                                                        ^
+sds_sds_flat__UNUSED__entry_only.c:684:56 error: expected <identifier> or `(' starting direct-declarator, got `if'
+test_cond("sdsMakeRoomFor() len", sdslen(x) == oldlen);
+                                                        ^
+sds_sds_flat__UNUSED__entry_only.c:686:57 warning: missing type specifier, assume `int'
+test_cond("sdsMakeRoomFor() free", sdsavail(x) >= step);
+                                                         ^
+sds_sds_flat__UNUSED__entry_only.c:686:57 error: expected <identifier> or `(' starting direct-declarator, got `}'
+test_cond("sdsMakeRoomFor() free", sdsavail(x) >= step);
+                                                         ^
+sds_sds_flat__UNUSED__entry_only.c:687:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:688:14 warning: missing type specifier, assume `int'
+p = x+oldlen;
+              ^
+sds_sds_flat__UNUSED__entry_only.c:688:14 error: expected <identifier> or `(' starting direct-declarator, got `for'
+p = x+oldlen;
+              ^
+sds_sds_flat__UNUSED__entry_only.c:689:12 warning: missing type specifier, assume `int'
+for (j = 0; j < step; j++) {
+            ^
+sds_sds_flat__UNUSED__entry_only.c:689:14 error: expected `,' or `;' or `=' after declarator, got `<'
+for (j = 0; j < step; j++) {
+              ^
+sds_sds_flat__UNUSED__entry_only.c:689:22 warning: missing type specifier, assume `int'
+for (j = 0; j < step; j++) {
+                      ^
+sds_sds_flat__UNUSED__entry_only.c:689:23 error: expected `,' or `;' or `=' after declarator, got `++'
+for (j = 0; j < step; j++) {
+                       ^
+sds_sds_flat__UNUSED__entry_only.c:690:14 warning: missing type specifier, assume `int'
+p[j] = 'A'+j;
+              ^
+sds_sds_flat__UNUSED__entry_only.c:690:14 error: expected <identifier> or `(' starting direct-declarator, got `}'
+p[j] = 'A'+j;
+              ^
+sds_sds_flat__UNUSED__entry_only.c:691:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:692:20 warning: missing type specifier, assume `int'
+sdsIncrLen(x,step);
+                    ^
+sds_sds_flat__UNUSED__entry_only.c:692:20 error: expected <identifier> or `(' starting direct-declarator, got `}'
+sdsIncrLen(x,step);
+                    ^
+sds_sds_flat__UNUSED__entry_only.c:693:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:694:10 error: expected declaration specifiers or '...', got `"sdsMakeRoomFor() content"'
+test_cond("sdsMakeRoomFor() content",
+          ^
+sds_sds_flat__UNUSED__entry_only.c:695:125 warning: missing type specifier, assume `int'
+memcmp("0ABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJABCDEFGHIJ",x,101) == 0);
+                                                                                                                             ^
+sds_sds_flat__UNUSED__entry_only.c:696:10 error: expected declaration specifiers or '...', got `"sdsMakeRoomFor() final length"'
+test_cond("sdsMakeRoomFor() final length",sdslen(x)==101);
+          ^
+sds_sds_flat__UNUSED__entry_only.c:698:12 warning: missing type specifier, assume `int'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:698:12 error: expected <identifier> or `(' starting direct-declarator, got `}'
+sdsfree(x);
+            ^
+sds_sds_flat__UNUSED__entry_only.c:699:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:699:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:700:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__UNUSED__entry_only.c:701:14 error: expected `,' or `;' or `=' after declarator, got `return'
+test_report()
+              ^
+sds_sds_flat__UNUSED__entry_only.c:702:10 warning: missing type specifier, assume `int'
+return 0;
+          ^
+sds_sds_flat__UNUSED__entry_only.c:702:10 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return 0;
+          ^
+

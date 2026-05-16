@@ -1,0 +1,15 @@
+extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char **argv;
+int argc;
+char *sep;
+int j;
+const char *t;
+size_t len;
+j = 0;
+@(j < argc);
+j++;
+join = sdscat(join, argv[j]);
+@(!(j != argc-1));
+@(!(j < argc));
+return join;

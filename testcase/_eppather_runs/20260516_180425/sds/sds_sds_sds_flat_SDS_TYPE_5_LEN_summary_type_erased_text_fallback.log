@@ -1,0 +1,45 @@
+Function summaries are ready to dump ~
+Path:int f;
+int flagsSDS_TYPE_MASK;
+int len;
+int *flags;
+case SDS_TYPE_5: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:7
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function intSDS_TYPE_5_LEN:
+signature: intSDS_TYPE_5_LEN(int f)
+#cases: 1
+DIRECT worst_mems: 7
+DIRECT avg_mems(equal-weight): 7
+APPROX worst_mems: 7
+APPROX avg_mems(equal-weight): 7
+  [case 0] guard_hash=7876200429060518224 path="int f;
+int flagsSDS_TYPE_MASK;
+int len;
+int *flags;
+case SDS_TYPE_5: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=7 composed_mems=7 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+[CALL GRAPH]
+intSDS_TYPE_5_LEN -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=SDS_TYPE_5_LEN
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__SDS_TYPE_5_LEN__type_erased.c:8:1 warning: missing type specifier, assume `int'
+
+ ^
+

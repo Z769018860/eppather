@@ -1,0 +1,448 @@
+equals!!!!!0!!!!
+equals!!!!!l!!!!
+equals!!!!!0!!!!
+equals!!!!!setlen!!!!
+equals!!!!!from[i]!!!!
+equals!!!!!to[i]!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+
+feasible!!!
+[mem]:60
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+
+feasible!!!
+[mem]:69
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+
+feasible!!!
+[mem]:61
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+
+feasible!!!
+[mem]:52
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+@(!(i < setlen));
+return s;
+
+feasible!!!
+[mem]:41
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+
+feasible!!!
+[mem]:38
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+
+feasible!!!
+[mem]:30
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(!(i < setlen));
+return s;
+
+feasible!!!
+[mem]:21
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(!(j < l));
+return s;
+
+feasible!!!
+[mem]:16
+[averagemem]:4
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsmapchars:
+signature: sds sdsmapchars(sds s, const char *from, const char *to, size_t setlen)
+#cases: 9
+DIRECT worst_mems: 69
+DIRECT avg_mems(equal-weight): 43.1111
+APPROX worst_mems: 69
+APPROX avg_mems(equal-weight): 43.1111
+  [case 0] guard_hash=4643457692474921750 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+" mems=60 composed_mems=60 volce=N/A prob=N/A callees=[sdslen]
+  [case 1] guard_hash=1253027341870994098 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+" mems=69 composed_mems=69 volce=N/A prob=N/A callees=[sdslen]
+  [case 2] guard_hash=14676084488550853944 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+" mems=61 composed_mems=61 volce=N/A prob=N/A callees=[sdslen]
+  [case 3] guard_hash=12350389504561978915 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+" mems=52 composed_mems=52 volce=N/A prob=N/A callees=[sdslen]
+  [case 4] guard_hash=11852367731484812825 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+@(!(i < setlen));
+return s;
+" mems=41 composed_mems=41 volce=N/A prob=N/A callees=[sdslen]
+  [case 5] guard_hash=17040563783304980074 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+" mems=38 composed_mems=38 volce=N/A prob=N/A callees=[sdslen]
+  [case 6] guard_hash=13788166667732214426 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(!(i < setlen));
+return s;
+" mems=30 composed_mems=30 volce=N/A prob=N/A callees=[sdslen]
+  [case 7] guard_hash=11020858152794555648 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(!(i < setlen));
+return s;
+" mems=21 composed_mems=21 volce=N/A prob=N/A callees=[sdslen]
+  [case 8] guard_hash=3017424185209293151 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(!(j < l));
+return s;
+" mems=16 composed_mems=16 volce=N/A prob=N/A callees=[sdslen]
+[CALL GRAPH]
+sdsmapchars -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=9
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsmapchars
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=69
+worst_path=sdsmapchars#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+const char *from;
+const char *to;
+size_t setlen;
+j = 0;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(j < l);
+j++;
+i = 0;
+@(i < setlen);
+i++;
+@(!(s[j] == from[i]));
+@(i < setlen);
+i++;
+@(s[j] == from[i]);
+s[j] = to[i];
+break;
+@(!(j < l));
+return s;
+}
+weighted_avg_mems=43.1111 (equal-weight; volce disabled)
+notes=external callee omitted=sdslen

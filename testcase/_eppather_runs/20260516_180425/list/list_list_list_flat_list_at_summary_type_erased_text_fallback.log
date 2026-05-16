@@ -1,0 +1,282 @@
+equals!!!!!0!!!!
+equals!!!!!LIST_TAIL!!!!
+equals!!!!!~index!!!!
+equals!!!!!self[4]!!!!
+equals!!!!!1!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:24
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:21
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:18
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(!(index < self[4]));
+return 0;
+
+feasible!!!
+[mem]:14
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:18
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(!(index--));
+1;
+return node;
+
+feasible!!!
+[mem]:12
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(!(index < self[4]));
+return 0;
+
+feasible!!!
+[mem]:8
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_at:
+signature: int *list_at(int *self, int index)
+#cases: 8
+DIRECT worst_mems: 24
+DIRECT avg_mems(equal-weight): 16.25
+APPROX worst_mems: 24
+APPROX avg_mems(equal-weight): 16.25
+  [case 0] guard_hash=7626876298494788117 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+" mems=24 composed_mems=24 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=2033462612389425668 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+" mems=21 composed_mems=21 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=5791260584885900967 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(!(index--));
+1;
+return node;
+" mems=18 composed_mems=18 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=8373310867204927841 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(!(index < self[4]));
+return 0;
+" mems=14 composed_mems=14 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=13381369722068686024 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+" mems=18 composed_mems=18 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=3575076333340051571 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+" mems=15 composed_mems=15 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=11143050069774937298 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(index < self[4]);
+int *it;
+int *node;
+@(!(index--));
+1;
+return node;
+" mems=12 composed_mems=12 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=1373116882578696597 path="int *self;
+int index;
+int direction = LIST_HEAD;
+@(!(index < 0));
+@(!(index < self[4]));
+return 0;
+" mems=8 composed_mems=8 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_at -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=8
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_at
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=24
+worst_path=list_at#0{int *self;
+int index;
+int direction = LIST_HEAD;
+@(index < 0);
+direction = LIST_TAIL;
+index = ~index;
+@(index < self[4]);
+int *it;
+int *node;
+@(index--);
+node = 1;
+@(index--);
+node = 1;
+@(!(index--));
+1;
+return node;
+}
+weighted_avg_mems=16.25 (equal-weight; volce disabled)

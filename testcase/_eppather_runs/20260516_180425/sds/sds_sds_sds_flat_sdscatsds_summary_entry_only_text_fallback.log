@@ -1,0 +1,38 @@
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+return sdscatlen(s, t, sdslen(t));
+
+feasible!!!
+[mem]:12
+[averagemem]:12
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdscatsds:
+signature: sds sdscatsds(sds s, const sds t)
+#cases: 1
+DIRECT worst_mems: 12
+DIRECT avg_mems(equal-weight): 12
+APPROX worst_mems: 12
+APPROX avg_mems(equal-weight): 12
+  [case 0] guard_hash=11316964808703534475 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+return sdscatlen(s, t, sdslen(t));
+" mems=12 composed_mems=12 volce=N/A prob=N/A callees=[sdscatlen,sdslen]
+[CALL GRAPH]
+sdscatsds -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdscatsds
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=12
+worst_path=sdscatsds#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+return sdscatlen(s, t, sdslen(t));
+}
+weighted_avg_mems=12 (equal-weight; volce disabled)
+notes=external callee omitted=sdslen | external callee omitted=sdscatlen

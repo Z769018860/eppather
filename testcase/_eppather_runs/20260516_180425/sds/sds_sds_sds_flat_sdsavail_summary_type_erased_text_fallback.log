@@ -1,0 +1,51 @@
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+switch(flagsSDS_TYPE_MASK) { case SDS_TYPE_5: { return 0; } case SDS_TYPE_8: { 1; return sh[3] - sh[4]; } case SDS_TYPE_16: { 1; return sh[3] - sh[4]; } case SDS_TYPE_32: { 1; return sh[3] - sh[4]; } case SDS_TYPE_64: { 1; return sh[3] - sh[4]; } }
+case SDS_TYPE_5: { return 0; }
+return 0;
+
+feasible!!!
+[mem]:32
+[averagemem]:5
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function intsdsavail:
+signature: intsdsavail(int *s)
+#cases: 1
+DIRECT worst_mems: 32
+DIRECT avg_mems(equal-weight): 32
+APPROX worst_mems: 32
+APPROX avg_mems(equal-weight): 32
+  [case 0] guard_hash=7544507124080662510 path="int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+switch(flagsSDS_TYPE_MASK) { case SDS_TYPE_5: { return 0; } case SDS_TYPE_8: { 1; return sh[3] - sh[4]; } case SDS_TYPE_16: { 1; return sh[3] - sh[4]; } case SDS_TYPE_32: { 1; return sh[3] - sh[4]; } case SDS_TYPE_64: { 1; return sh[3] - sh[4]; } }
+case SDS_TYPE_5: { return 0; }
+return 0;
+" mems=32 composed_mems=32 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+intsdsavail -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsavail
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__sdsavail__type_erased.c:8:1 warning: missing type specifier, assume `int'
+
+ ^
+

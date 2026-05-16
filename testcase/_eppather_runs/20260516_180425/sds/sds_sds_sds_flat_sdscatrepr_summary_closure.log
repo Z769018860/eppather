@@ -1,0 +1,284 @@
+equals!!!!!sdscatlen(s,"\"",1)!!!!
+equals!!!!!sdscatprintf(s,"\\%c",*p)!!!!
+equals!!!!!sdscatlen(s,"\\n",2)!!!!
+equals!!!!!sdscatlen(s,"\\r",2)!!!!
+equals!!!!!sdscatlen(s,"\\t",2)!!!!
+equals!!!!!sdscatlen(s,"\\a",2)!!!!
+equals!!!!!sdscatlen(s,"\\b",2)!!!!
+equals!!!!!sdscatprintf(s,"%c",*p)!!!!
+equals!!!!!sdscatprintf(s,"\\x%02x",(unsigned char)*p)!!!!
+equals!!!!!sdsMakeRoomFor(s,len)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!curlen!!!!
+equals!!!!!len!!!!
+equals!!!!!len!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!7!!!!
+equals!!!!!addlen!!!!
+equals!!!!!sdslen(s)!!!!
+equals!!!!!sdsHdrSize(oldtype)!!!!
+equals!!!!!-sdsHdrSize(oldtype)!!!!
+equals!!!!!addlen!!!!
+equals!!!!!(len+addlen)!!!!
+equals!!!!!newlen = (len+addlen)!!!!
+equals!!!!!1024!!!!
+equals!!!!!(1024*1024)!!!!
+equals!!!!!2!!!!
+equals!!!!!1024!!!!
+equals!!!!!(1024*1024)!!!!
+equals!!!!!sdsReqType(newlen)!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!sdsHdrSize(type)!!!!
+equals!!!!!type!!!!
+equals!!!!!newlen!!!!
+equals!!!!!1!!!!
+equals!!!!!realloc(sh, hdrlen+newlen+1)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!+hdrlen!!!!
+equals!!!!!newlen!!!!
+equals!!!!!1!!!!
+equals!!!!!malloc(hdrlen+newlen+1)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!1!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!+hdrlen!!!!
+equals!!!!!type!!!!
+equals!!!!!7!!!!
+equals!!!!!1!!!!
+equals!!!!!3!!!!
+equals!!!!!(newlen << 3)!!!!
+equals!!!!!0 | (newlen << 3)!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!2!!!!
+equals!!!!!sizeof(staticbuf)!!!!
+equals!!!!!malloc(buflen)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!sizeof(staticbuf)!!!!
+equals!!!!!vsnprintf(buf, buflen, fmt, cpy)!!!!
+equals!!!!!0!!!!
+equals!!!!!staticbuf!!!!
+equals!!!!!buflen!!!!
+equals!!!!!staticbuf!!!!
+equals!!!!!1!!!!
+equals!!!!!((size_t)bufstrlen) + 1!!!!
+equals!!!!!malloc(buflen)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!sdscatlen(s, buf, bufstrlen)!!!!
+equals!!!!!staticbuf!!!!
+Function summaries are ready to dump ~
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+warning: a declaration with the name "SDS_NOINIT" already exists!
+debug: empty type, return int
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+debug: empty type, return int
+warning: a declaration with the name "size_t" already exists!
+[FUNCTION SUMMARIES]
+Function sdscatrepr:
+signature: sds sdscatrepr(sds s, const char *p, size_t len)
+#cases: 0
+DIRECT worst_mems: -1
+DIRECT avg_mems: N/A
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+Function sdscatlen:
+signature: sds sdscatlen(sds s, const void *t, size_t len)
+#cases: 0
+DIRECT worst_mems: -1
+DIRECT avg_mems: N/A
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+Function sdsMakeRoomFor:
+signature: sds sdsMakeRoomFor(sds s, size_t addlen)
+#cases: 0
+DIRECT worst_mems: -1
+DIRECT avg_mems: N/A
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+Function sdssetlen:
+signature: static inline void sdssetlen(sds s, size_t newlen)
+#cases: 0
+DIRECT worst_mems: -1
+DIRECT avg_mems: N/A
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+Function sdscatvprintf:
+signature: sds sdscatvprintf(sds s, const char *fmt, va_list ap)
+#cases: 0
+DIRECT worst_mems: -1
+DIRECT avg_mems: N/A
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+[CALL GRAPH]
+sdscatvprintf -> []
+sdssetlen -> []
+sdsMakeRoomFor -> []
+sdscatlen -> []
+sdscatrepr -> []
+[SUMMARY STATS]
+function_count=5
+summary_case_count=0
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdscatrepr
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function has no available summary path
+sds_sds_flat__sdscatrepr__closure.c:665:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdscatrepr__closure.c:666:1 error: expected <identifier> or `(' starting direct-declarator, got `/'
+*/
+ ^
+sds_sds_flat__sdscatrepr__closure.c:669:9 warning: missing type specifier, assume `int'
+char *t;
+         ^
+sds_sds_flat__sdscatrepr__closure.c:670:19 warning: missing type specifier, assume `int'
+va_start(ap, fmt);
+                   ^
+sds_sds_flat__sdscatrepr__closure.c:672:12 warning: missing type specifier, assume `int'
+va_end(ap);
+            ^
+sds_sds_flat__sdscatrepr__closure.c:672:12 error: expected <identifier> or `(' starting direct-declarator, got `return'
+va_end(ap);
+            ^
+sds_sds_flat__sdscatrepr__closure.c:673:10 warning: missing type specifier, assume `int'
+return t;
+          ^
+sds_sds_flat__sdscatrepr__closure.c:673:10 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return t;
+          ^
+
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'
+line 5:0 no viable alternative at input 'size_t'
+line 5:7 extraneous input 'len' expecting ';'
+line 6:0 no viable alternative at input 'size_t'
+line 6:7 extraneous input 'len' expecting ';'
+line 7:0 no viable alternative at input 'size_t'
+line 7:7 extraneous input 'addlen' expecting ';'
+line 8:0 no viable alternative at input 'size_t'
+line 8:7 missing ';' at 'len'

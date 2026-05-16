@@ -1,0 +1,1215 @@
+equals!!!!!0!!!!
+equals!!!!!LLONG_MIN!!!!
+equals!!!!!-value!!!!
+equals!!!!!1!!!!
+equals!!!!!((unsigned long long)LLONG_MAX) + 1!!!!
+equals!!!!!value!!!!
+equals!!!!!s!!!!
+equals!!!!!10!!!!
+equals!!!!!(v%10)!!!!
+equals!!!!!'0'+(v%10)!!!!
+equals!!!!!10!!!!
+equals!!!!!0!!!!
+equals!!!!!'-'!!!!
+equals!!!!!s!!!!
+equals!!!!!p-s!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!p!!!!
+equals!!!!!*s!!!!
+equals!!!!!*p!!!!
+equals!!!!!aux!!!!
+Function summaries are ready to dump ~
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+return 1;
+
+feasible!!!
+[mem]:3
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:77
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:60
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:74
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:57
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:40
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:77
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:60
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:74
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:57
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:40
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:72
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:55
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:38
+[averagemem]:1
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:69
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:52
+[averagemem]:2
+[testcase]:
+
+Path:int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+
+feasible!!!
+[mem]:35
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsfromlonglong:
+signature: int *sdsfromlonglong(int value)
+#cases: 1
+DIRECT worst_mems: 3
+DIRECT avg_mems(equal-weight): 3
+APPROX worst_mems: 3
+APPROX avg_mems(equal-weight): 3
+  [case 0] guard_hash=12377273633217946287 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+return 1;
+" mems=3 composed_mems=3 volce=N/A prob=N/A callees=[]
+Function intsdsll2str:
+signature: intsdsll2str(int *s, int value)
+#cases: 18
+DIRECT worst_mems: 77
+DIRECT avg_mems(equal-weight): 56.8333
+APPROX worst_mems: 77
+APPROX avg_mems(equal-weight): 56.8333
+  [case 0] guard_hash=17897447332910834777 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=77 composed_mems=77 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=412556262061307616 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=60 composed_mems=60 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=10872143435446243852 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=43 composed_mems=43 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=1129396491188846379 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=74 composed_mems=74 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=10770083926920912987 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=57 composed_mems=57 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=11488271492919230539 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(value != LLONG_MIN);
+v = -value;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=40 composed_mems=40 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=15558749858125198060 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=77 composed_mems=77 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=1461098674454296744 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=60 composed_mems=60 volce=N/A prob=N/A callees=[]
+  [case 8] guard_hash=9311820301677943833 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=43 composed_mems=43 volce=N/A prob=N/A callees=[]
+  [case 9] guard_hash=14990850344095709500 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=74 composed_mems=74 volce=N/A prob=N/A callees=[]
+  [case 10] guard_hash=12535134992315961676 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=57 composed_mems=57 volce=N/A prob=N/A callees=[]
+  [case 11] guard_hash=88670426907104404 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(value < 0);
+@(!(value != LLONG_MIN));
+v = ((unsigned long long)LLONG_MAX) + 1;
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=40 composed_mems=40 volce=N/A prob=N/A callees=[]
+  [case 12] guard_hash=2248396465089053513 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=72 composed_mems=72 volce=N/A prob=N/A callees=[]
+  [case 13] guard_hash=5890244908531510992 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=55 composed_mems=55 volce=N/A prob=N/A callees=[]
+  [case 14] guard_hash=5246791525484145141 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(value < 0);
+*p++ = '-';
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=38 composed_mems=38 volce=N/A prob=N/A callees=[]
+  [case 15] guard_hash=16541933345624808772 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=69 composed_mems=69 volce=N/A prob=N/A callees=[]
+  [case 16] guard_hash=2819727474685874801 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(s < p);
+aux = *s;
+*s = *p;
+*p = aux;
+s++;
+p--;
+@(!(s < p));
+return l;
+" mems=52 composed_mems=52 volce=N/A prob=N/A callees=[]
+  [case 17] guard_hash=7102287208379415956 path="int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+@(!(value < 0));
+v = value;
+p = s;
+do { *p++ = '0'+(v%10); v /= 10; } while(v);
+*p++ = '0'+(v%10);
+v /= 10;
+@(!(value < 0));
+l = p-s;
+*p = '\0';
+p--;
+@(!(s < p));
+return l;
+" mems=35 composed_mems=35 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+intsdsll2str -> []
+sdsfromlonglong -> []
+[SUMMARY STATS]
+function_count=2
+summary_case_count=19
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsfromlonglong
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=3
+worst_path=sdsfromlonglong#0{int value;
+int *buf;
+int *s;
+int value;
+int *p;
+int aux;
+int v;
+int l;
+return 1;
+}
+weighted_avg_mems=3 (equal-weight; volce disabled)
+sds_sds_flat__sdsfromlonglong__type_erased.c:22:1 warning: missing type specifier, assume `int'
+
+ ^
+

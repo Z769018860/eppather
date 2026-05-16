@@ -1,0 +1,48 @@
+equals!!!!!7!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:16
+[averagemem]:4
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdslen:
+signature: static inline size_t sdslen(const sds s)
+#cases: 1
+DIRECT worst_mems: 16
+DIRECT avg_mems(equal-weight): 16
+APPROX worst_mems: 16
+APPROX avg_mems(equal-weight): 16
+  [case 0] guard_hash=7077327620817679341 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=16 composed_mems=16 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+[CALL GRAPH]
+sdslen -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=SDS_TYPE_5_LEN
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__SDS_TYPE_5_LEN__closure.c:527:26 error: expected declaration specifiers or '...', got `('
+define SDS_TYPE_5_LEN(f) ((f)>>3)
+                          ^
+

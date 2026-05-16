@@ -1,0 +1,1196 @@
+equals!!!!!addlen!!!!
+equals!!!!!1!!!!
+equals!!!!!sdsHdrSize(oldtype)!!!!
+equals!!!!!s-sdsHdrSize(oldtype)!!!!
+equals!!!!!addlen!!!!
+equals!!!!!(len+addlen)!!!!
+equals!!!!!newlen = (len+addlen)!!!!
+equals!!!!!SDS_MAX_PREALLOC!!!!
+equals!!!!!2!!!!
+equals!!!!!SDS_MAX_PREALLOC!!!!
+equals!!!!!sdsReqType(newlen)!!!!
+equals!!!!!SDS_TYPE_5!!!!
+equals!!!!!SDS_TYPE_8!!!!
+equals!!!!!sdsHdrSize(type)!!!!
+equals!!!!!type!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!newsh+hdrlen!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!newsh+hdrlen!!!!
+equals!!!!!type!!!!
+equals!!!!!5!!!!
+equals!!!!!1<<5!!!!
+equals!!!!!8!!!!
+equals!!!!!1<<8!!!!
+equals!!!!!16!!!!
+equals!!!!!1<<16!!!!
+equals!!!!!32!!!!
+equals!!!!!1ll<<32!!!!
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+equals!!!!!sh[4]!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(avail >= addlen);
+return s;
+
+feasible!!!
+[mem]:12
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:46
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(!(newsh == 0));
+s = newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:54
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:46
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(!(newsh == 0));
+1;
+1;
+s = newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:61
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(!(newsh == 0));
+s = newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:51
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < SDS_MAX_PREALLOC);
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(!(newsh == 0));
+1;
+1;
+s = newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:58
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:46
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(!(newsh == 0));
+s = newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:54
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:46
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(type == SDS_TYPE_5);
+type = SDS_TYPE_8;
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(!(newsh == 0));
+1;
+1;
+s = newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:61
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(oldtype==type);
+newsh = 1;
+@(!(newsh == 0));
+s = newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:51
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(newsh == 0);
+return 0;
+
+feasible!!!
+[mem]:43
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(avail >= addlen));
+len = 1;
+sh = s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < SDS_MAX_PREALLOC));
+newlen += SDS_MAX_PREALLOC;
+type = sdsReqType(newlen);
+@(!(type == SDS_TYPE_5));
+hdrlen = sdsHdrSize(type);
+1;
+@(!(oldtype==type));
+newsh = 1;
+@(!(newsh == 0));
+1;
+1;
+s = newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:58
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;
+
+feasible!!!
+[mem]:23
+[averagemem]:5
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(string_size < 1<<5);
+return SDS_TYPE_5;
+
+feasible!!!
+[mem]:11
+[averagemem]:3
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(string_size < 1<<5));
+@(string_size < 1<<8);
+return SDS_TYPE_8;
+
+feasible!!!
+[mem]:12
+[averagemem]:2
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(string_size < 1<<16);
+return SDS_TYPE_16;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(string_size < 1ll<<32);
+return SDS_TYPE_32;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+@(!(string_size < 1<<5));
+@(!(string_size < 1<<8));
+@(!(string_size < 1<<16));
+@(!(string_size < 1ll<<32));
+return SDS_TYPE_64;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+switch(flagsSDS_TYPE_MASK) { case SDS_TYPE_5: { return 0; } case SDS_TYPE_8: { 1; return sh[3] - sh[4]; } case SDS_TYPE_16: { 1; return sh[3] - sh[4]; } case SDS_TYPE_32: { 1; return sh[3] - sh[4]; } case SDS_TYPE_64: { 1; return sh[3] - sh[4]; } }
+case SDS_TYPE_5: { return 0; }
+return 0;
+
+feasible!!!
+[mem]:39
+[averagemem]:6
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+
+feasible!!!
+[mem]:9
+[averagemem]:9
+[testcase]:
+
+Path:int *s;
+int addlen;
+int avail;
+int *sh;
+int *newsh;
+int len;
+int newlen;
+int reqlen;
+int type;
+int *oldtype;
+int hdrlen;
+int *type;
+int typeSDS_TYPE_MASK;
+int string_size;
+int endif;
+int *s;
+int flagsSDS_TYPE_MASK;
+int sh;
+int *flags;
+int *s;
+int newlen;
+int alloc;
+int *s;
+int newlen;
+
+feasible!!!
+[mem]:9
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:66:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:114:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:149:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:153:4 error: expected <identifier> or `(' starting direct-declarator, got `break'
+int break;
+    ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:173:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:173:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:180:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:183:4 error: expected <identifier> or `(' starting direct-declarator, got `break'
+int break;
+    ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:194:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:194:2 error: expected <identifier> or `(' starting direct-declarator, got `break'
+}
+  ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:195:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:195:7 error: expected <identifier> or `(' starting direct-declarator, got `case'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:197:17 warning: missing type specifier, assume `int'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:197:17 error: expected <identifier> or `(' starting direct-declarator, got `break'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:198:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:198:7 error: expected <identifier> or `(' starting direct-declarator, got `case'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:200:17 warning: missing type specifier, assume `int'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:200:17 error: expected <identifier> or `(' starting direct-declarator, got `break'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:201:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:201:7 error: expected <identifier> or `(' starting direct-declarator, got `case'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:203:17 warning: missing type specifier, assume `int'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:203:17 error: expected <identifier> or `(' starting direct-declarator, got `break'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:204:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:204:7 error: expected <identifier> or `(' starting direct-declarator, got `case'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:206:17 warning: missing type specifier, assume `int'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:206:17 error: expected <identifier> or `(' starting direct-declarator, got `break'
+1->len = newlen;
+                 ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:207:7 warning: missing type specifier, assume `int'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:207:7 error: expected <identifier> or `(' starting direct-declarator, got `}'
+break;
+       ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:208:2 warning: missing type specifier, assume `int'
+}
+  ^
+sds_sds_flat__sdsMakeRoomFor__type_erased.c:208:2 error: expected <identifier> or `(' starting direct-declarator, got `}'
+}
+  ^
+

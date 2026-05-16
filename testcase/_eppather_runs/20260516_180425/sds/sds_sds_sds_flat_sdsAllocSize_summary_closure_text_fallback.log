@@ -1,0 +1,159 @@
+equals!!!!!alloc!!!!
+equals!!!!!1!!!!
+equals!!!!!7!!!!
+equals!!!!!7!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!7!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+return sdsHdrSize(s[-1])+alloc+1;
+
+feasible!!!
+[mem]:19
+[averagemem]:9
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+
+feasible!!!
+[mem]:15
+[averagemem]:5
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:20
+[averagemem]:5
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+
+feasible!!!
+[mem]:20
+[averagemem]:5
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsAllocSize:
+signature: size_t sdsAllocSize(sds s)
+#cases: 1
+DIRECT worst_mems: 19
+DIRECT avg_mems(equal-weight): 19
+APPROX worst_mems: 54
+APPROX avg_mems(equal-weight): 54
+  [case 0] guard_hash=11904049873356665098 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+return sdsHdrSize(s[-1])+alloc+1;
+" mems=19 composed_mems=54 volce=N/A prob=N/A callees=[sdsalloc,sdsHdrSize]
+Function sdsHdrSize:
+signature: static inline int sdsHdrSize(char type)
+#cases: 1
+DIRECT worst_mems: 15
+DIRECT avg_mems(equal-weight): 15
+APPROX worst_mems: 15
+APPROX avg_mems(equal-weight): 15
+  [case 0] guard_hash=15007549768922772515 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+" mems=15 composed_mems=15 volce=N/A prob=N/A callees=[]
+Function sdsalloc:
+signature: static inline size_t sdsalloc(const sds s)
+#cases: 1
+DIRECT worst_mems: 20
+DIRECT avg_mems(equal-weight): 20
+APPROX worst_mems: 20
+APPROX avg_mems(equal-weight): 20
+  [case 0] guard_hash=15100520530683518880 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=20 composed_mems=20 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+Function sdslen:
+signature: static inline size_t sdslen(const sds s)
+#cases: 1
+DIRECT worst_mems: 20
+DIRECT avg_mems(equal-weight): 20
+APPROX worst_mems: 20
+APPROX avg_mems(equal-weight): 20
+  [case 0] guard_hash=15100520530683518880 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+" mems=20 composed_mems=20 volce=N/A prob=N/A callees=[SDS_TYPE_5_LEN]
+[CALL GRAPH]
+sdslen -> []
+sdsalloc -> []
+sdsHdrSize -> []
+sdsAllocSize -> [sdsHdrSize,sdsalloc]
+[SUMMARY STATS]
+function_count=4
+summary_case_count=4
+call_edge_count=2
+[PROGRAM SUMMARY]
+entry=sdsAllocSize
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=2, converged=true)
+worst_mems=54
+worst_path=sdsAllocSize#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+return sdsHdrSize(s[-1])+alloc+1;
+} -> sdsalloc#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+case 0: return SDS_TYPE_5_LEN(flags);
+return SDS_TYPE_5_LEN(flags);
+} -> sdsHdrSize#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char type;
+unsigned char flags = s[-1];
+unsigned char flags = s[-1];
+}
+weighted_avg_mems=54 (equal-weight; volce disabled)
+notes=external callee omitted=SDS_TYPE_5_LEN
+sds_sds_flat__sdsAllocSize__closure.c:585:26 error: expected declaration specifiers or '...', got `('
+define SDS_TYPE_5_LEN(f) ((f)>>3)
+                          ^
+

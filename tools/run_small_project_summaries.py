@@ -909,7 +909,7 @@ def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
         final_rows.append(best)
     return final_rows
 
-def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[List[str]]) -> List[str]:
+def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[List[str]], funcs: Optional[Dict[str, FunctionDef]] = None) -> List[str]:
     if custom_entries:
         return custom_entries
     if entry_set == "safe":
@@ -918,6 +918,10 @@ def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[L
         return spec.core_entries
     if entry_set == "full":
         return spec.full_entries
+    if entry_set == "all":
+        if funcs is None:
+            return []
+        return sorted(funcs.keys())
     raise ValueError(entry_set)
 
 def prepare_project(testcase: Path, spec: ProjectSpec, out_root: Path) -> Tuple[Optional[Path], List[Path], Dict[Path, Tuple[Dict[str, FunctionDef], str]]]:
@@ -1013,13 +1017,14 @@ def main() -> int:
     ap.add_argument("--cnip", default="")
     ap.add_argument("--projects", default="list,inih,sds")
     ap.add_argument("--entries", default="")
-    ap.add_argument("--entry-set", choices=["safe", "core", "full"], default="safe")
+    ap.add_argument("--entry-set", choices=["safe", "core", "full", "all"], default="safe")
     ap.add_argument("--modes", default="summary")
     ap.add_argument("--maxloop", type=int, default=2)
     ap.add_argument("--maxpaths", type=int, default=80)
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--max-closure-depth", type=int, default=2)
     ap.add_argument("--only-preprocess", action="store_true")
+    ap.add_argument("--max-entries", type=int, default=0, help="Limit number of entries after selection; 0 means no limit.")
     ap.add_argument("--no-type-erased", action="store_true")
     ap.add_argument("--no-compat-fallback", action="store_true")
     ap.add_argument("--no-text-fallback", action="store_true")
@@ -1055,10 +1060,12 @@ def main() -> int:
         if args.only_preprocess:
             continue
 
-        selected = select_entries(spec, args.entry_set, custom_entries)
         project_out = pp_root / spec.name
         for flat_path in flat_paths:
             funcs, preamble = parsed[flat_path]
+            selected = select_entries(spec, args.entry_set, custom_entries, funcs)
+            if args.max_entries and args.max_entries > 0:
+                selected = selected[:args.max_entries]
             missing = [e for e in selected if e not in funcs and (spec.name, e) not in COMPAT_FUNCTIONS]
             if missing:
                 log(f"[WARN] {spec.name}: missing entries in {flat_path.name}: {','.join(missing)}")

@@ -1,0 +1,245 @@
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!len <= 0!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!(seplen-1)!!!!
+equals!!!!!(len-(seplen-1))!!!!
+equals!!!!!2!!!!
+equals!!!!!elements+2!!!!
+equals!!!!!2!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!newtokens!!!!
+equals!!!!!1!!!!
+equals!!!!!j!!!!
+equals!!!!!sep[0]!!!!
+equals!!!!!*(s+j) == sep[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!(1 == 0)!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!seplen!!!!
+equals!!!!!j+seplen!!!!
+equals!!!!!seplen!!!!
+equals!!!!!1!!!!
+equals!!!!!j+seplen-1!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!elements!!!!
+equals!!!!!0!!!!
+equals!!!!!elements!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!sdsHdrSize(s[-1])!!!!
+Function summaries are ready to dump ~
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+Path:int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+@(seplen < 1 || len <= 0);
+*count = 0;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int seplen = 0
+int len = 1
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+Error: should not get a right value for unary operator '++', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+Path:int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+@(s == 0);
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int s = 0
+
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+warning: a declaration with the name "s" already exists!
+Path:int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdssplit:
+signature: int *sdssplit(void)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=3655587168646927178 path="int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+@(seplen < 1 || len <= 0);
+*count = 0;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+Function sdsfree:
+signature: int *sdsfree(int *s)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=4736695838887678210 path="int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+@(s == 0);
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+Function intsdsHdrSize:
+signature: intsdsHdrSize(int *type)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=12462420056624270567 path="int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+intsdsHdrSize -> []
+sdsfree -> []
+sdssplit -> []
+[SUMMARY STATS]
+function_count=3
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdssplit
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdssplit#0{int cleanup;
+int count;
+int len;
+int s;
+int sep;
+int seplen;
+int elements = 0;
+int slots = 5;
+int start = 0;
+int j;
+int *tokens;
+int *s;
+int s_free;
+int *type;
+int typeSDS_TYPE_MASK;
+@(seplen < 1 || len <= 0);
+*count = 0;
+return 0;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)
+sds_sds_flat__sdssplit__type_erased.c:85:1 warning: missing type specifier, assume `int'
+
+ ^
+

@@ -1,0 +1,29 @@
+/* Generated typed approximation for eppather summary mode. */
+
+/* project=sds EPPATHER_ENTRY=SDS_TYPE_5_LEN slice=type_erased */
+
+
+/* ===== TYPED APPROX FUNCTION SDS_TYPE_5_LEN ===== */
+
+intSDS_TYPE_5_LEN(int f)
+{
+    int flagsSDS_TYPE_MASK;
+    int len;
+
+    int *flags;
+    switch(flagsSDS_TYPE_MASK) {
+        case SDS_TYPE_5:
+            return SDS_TYPE_5_LEN(flags);
+        case SDS_TYPE_8:
+            return 1->len;
+        case SDS_TYPE_16:
+            return 1->len;
+        case SDS_TYPE_32:
+            return 1->len;
+        case SDS_TYPE_64:
+            return 1->len;
+    }
+    return 0;
+}
+
+

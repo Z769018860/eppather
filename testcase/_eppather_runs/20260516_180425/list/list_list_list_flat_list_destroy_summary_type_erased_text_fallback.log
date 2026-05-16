@@ -1,0 +1,204 @@
+equals!!!!!curr[2]!!!!
+equals!!!!!next!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(!(len--));
+1;
+
+feasible!!!
+[mem]:33
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(len--);
+next = curr[2];
+@(!(self[1]));
+1;
+curr = next;
+@(!(len--));
+1;
+
+feasible!!!
+[mem]:29
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(!(len--));
+1;
+
+feasible!!!
+[mem]:19
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(!(self[1]));
+1;
+curr = next;
+@(!(len--));
+1;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *self;
+int *len;
+int *next;
+int *curr;
+@(!(len--));
+1;
+
+feasible!!!
+[mem]:5
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_destroy:
+signature: int *list_destroy(int *self)
+#cases: 5
+DIRECT worst_mems: 33
+DIRECT avg_mems(equal-weight): 20.2
+APPROX worst_mems: 33
+APPROX avg_mems(equal-weight): 20.2
+  [case 0] guard_hash=6833398730315810918 path="int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(!(len--));
+1;
+" mems=33 composed_mems=33 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=2237183940369816357 path="int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(len--);
+next = curr[2];
+@(!(self[1]));
+1;
+curr = next;
+@(!(len--));
+1;
+" mems=29 composed_mems=29 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=3422142534222922044 path="int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(!(len--));
+1;
+" mems=19 composed_mems=19 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=16864043855713168488 path="int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(!(self[1]));
+1;
+curr = next;
+@(!(len--));
+1;
+" mems=15 composed_mems=15 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=7074694556672916417 path="int *self;
+int *len;
+int *next;
+int *curr;
+@(!(len--));
+1;
+" mems=5 composed_mems=5 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_destroy -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=5
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_destroy
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=33
+worst_path=list_destroy#0{int *self;
+int *len;
+int *next;
+int *curr;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(len--);
+next = curr[2];
+@(self[1]);
+self[1](curr[1]);
+1;
+curr = next;
+@(!(len--));
+1;
+}
+weighted_avg_mems=20.2 (equal-weight; volce disabled)

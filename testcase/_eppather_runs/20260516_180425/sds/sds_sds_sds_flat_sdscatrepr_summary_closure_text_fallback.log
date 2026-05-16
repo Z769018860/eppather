@@ -1,0 +1,3388 @@
+equals!!!!!sdscatlen(s,"\"",1)!!!!
+equals!!!!!sdscatprintf(s,"\\%c",*p)!!!!
+equals!!!!!sdscatlen(s,"\\n",2)!!!!
+equals!!!!!sdscatlen(s,"\\r",2)!!!!
+equals!!!!!sdscatlen(s,"\\t",2)!!!!
+equals!!!!!sdscatlen(s,"\\a",2)!!!!
+equals!!!!!sdscatlen(s,"\\b",2)!!!!
+equals!!!!!sdscatprintf(s,"%c",*p)!!!!
+equals!!!!!sdscatprintf(s,"\\x%02x",(unsigned char)*p)!!!!
+equals!!!!!sdsMakeRoomFor(s,len)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!curlen!!!!
+equals!!!!!len!!!!
+equals!!!!!len!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!7!!!!
+equals!!!!!addlen!!!!
+equals!!!!!sdslen(s)!!!!
+equals!!!!!sdsHdrSize(oldtype)!!!!
+equals!!!!!-sdsHdrSize(oldtype)!!!!
+equals!!!!!addlen!!!!
+equals!!!!!(len+addlen)!!!!
+equals!!!!!newlen = (len+addlen)!!!!
+equals!!!!!1024!!!!
+equals!!!!!(1024*1024)!!!!
+equals!!!!!2!!!!
+equals!!!!!1024!!!!
+equals!!!!!(1024*1024)!!!!
+equals!!!!!sdsReqType(newlen)!!!!
+equals!!!!!0!!!!
+equals!!!!!1!!!!
+equals!!!!!sdsHdrSize(type)!!!!
+equals!!!!!type!!!!
+equals!!!!!newlen!!!!
+equals!!!!!1!!!!
+equals!!!!!realloc(sh, hdrlen+newlen+1)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!+hdrlen!!!!
+equals!!!!!newlen!!!!
+equals!!!!!1!!!!
+equals!!!!!malloc(hdrlen+newlen+1)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!1!!!!
+equals!!!!!hdrlen!!!!
+equals!!!!!+hdrlen!!!!
+equals!!!!!type!!!!
+equals!!!!!7!!!!
+equals!!!!!1!!!!
+equals!!!!!3!!!!
+equals!!!!!(newlen << 3)!!!!
+equals!!!!!0 | (newlen << 3)!!!!
+equals!!!!!(sizeof(struct sdshdr8))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr16))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr32))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!(sizeof(struct sdshdr64))!!!!
+equals!!!!!newlen!!!!
+equals!!!!!2!!!!
+equals!!!!!sizeof(staticbuf)!!!!
+equals!!!!!malloc(buflen)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!sizeof(staticbuf)!!!!
+equals!!!!!vsnprintf(buf, buflen, fmt, cpy)!!!!
+equals!!!!!0!!!!
+equals!!!!!staticbuf!!!!
+equals!!!!!buflen!!!!
+equals!!!!!staticbuf!!!!
+equals!!!!!1!!!!
+equals!!!!!((size_t)bufstrlen) + 1!!!!
+equals!!!!!malloc(buflen)!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!sdscatlen(s, buf, bufstrlen)!!!!
+equals!!!!!staticbuf!!!!
+Function summaries are ready to dump ~
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdscatlen(s,"\"",1);
+@(len--);
+switch(*p) { case '\\': case '"': s = sdscatprintf(s,"\\%c",*p); break; case '\n': s = sdscatlen(s,"\\n",2); break; case '\r': s = sdscatlen(s,"\\r",2); break; case '\t': s = sdscatlen(s,"\\t",2); break; case '\a': s = sdscatlen(s,"\\a",2); break; case '\b': s = sdscatlen(s,"\\b",2); break; default: if (isprint(*p)) s = sdscatprintf(s,"%c",*p); else s = sdscatprintf(s,"\\x%02x",(unsigned char)*p); break; }
+case '\\': case '"': s = sdscatprintf(s,"\\%c",*p);
+case '"': s = sdscatprintf(s,"\\%c",*p);
+s = sdscatprintf(s,"\\%c",*p);
+break;
+return sdscatlen(s,"\"",1);
+
+feasible!!!
+[mem]:127
+[averagemem]:14
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdscatlen(s,"\"",1);
+@(!(len--));
+return sdscatlen(s,"\"",1);
+
+feasible!!!
+[mem]:36
+[averagemem]:9
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:35
+[averagemem]:8
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+
+feasible!!!
+[mem]:50
+[averagemem]:6
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(avail >= addlen);
+return s;
+
+feasible!!!
+[mem]:32
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:69
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:77
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:68
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:92
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:67
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:75
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:66
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:90
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:68
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:76
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:67
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:91
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:66
+[averagemem]:3
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:74
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:65
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+
+feasible!!!
+[mem]:89
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+
+feasible!!!
+[mem]:50
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:34
+[averagemem]:4
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return ((void*)0);
+
+feasible!!!
+[mem]:55
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(!(buf != staticbuf));
+return ((void*)0);
+
+feasible!!!
+[mem]:51
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:65
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:80
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:76
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:61
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:76
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:72
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:65
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:61
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:47
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:43
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return ((void*)0);
+
+feasible!!!
+[mem]:50
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(!(buf != staticbuf));
+return ((void*)0);
+
+feasible!!!
+[mem]:46
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:60
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:75
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:71
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+
+feasible!!!
+[mem]:56
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:71
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:67
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:60
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:56
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+
+feasible!!!
+[mem]:42
+[averagemem]:2
+[testcase]:
+
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+
+feasible!!!
+[mem]:38
+[averagemem]:2
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdscatrepr:
+signature: sds sdscatrepr(sds s, const char *p, size_t len)
+#cases: 2
+DIRECT worst_mems: 127
+DIRECT avg_mems(equal-weight): 81.5
+APPROX worst_mems: 230703
+APPROX avg_mems(equal-weight): 449.943
+  [case 0] guard_hash=16445905477112246660 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdscatlen(s,"\"",1);
+@(len--);
+switch(*p) { case '\\': case '"': s = sdscatprintf(s,"\\%c",*p); break; case '\n': s = sdscatlen(s,"\\n",2); break; case '\r': s = sdscatlen(s,"\\r",2); break; case '\t': s = sdscatlen(s,"\\t",2); break; case '\a': s = sdscatlen(s,"\\a",2); break; case '\b': s = sdscatlen(s,"\\b",2); break; default: if (isprint(*p)) s = sdscatprintf(s,"%c",*p); else s = sdscatprintf(s,"\\x%02x",(unsigned char)*p); break; }
+case '\\': case '"': s = sdscatprintf(s,"\\%c",*p);
+case '"': s = sdscatprintf(s,"\\%c",*p);
+s = sdscatprintf(s,"\\%c",*p);
+break;
+return sdscatlen(s,"\"",1);
+" mems=127 composed_mems=281801 volce=N/A prob=N/A callees=[sdscatlen,sdscatprintf]
+  [case 1] guard_hash=9058780884036618214 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdscatlen(s,"\"",1);
+@(!(len--));
+return sdscatlen(s,"\"",1);
+" mems=36 composed_mems=281710 volce=N/A prob=N/A callees=[sdscatlen]
+Function sdscatlen:
+signature: sds sdscatlen(sds s, const void *t, size_t len)
+#cases: 2
+DIRECT worst_mems: 50
+DIRECT avg_mems(equal-weight): 42.5
+APPROX worst_mems: 281674
+APPROX avg_mems(equal-weight): 368.5
+  [case 0] guard_hash=13509012923951955398 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(s == ((void*)0));
+return ((void*)0);
+" mems=35 composed_mems=154993 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor]
+  [case 1] guard_hash=2199250932145840660 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+" mems=50 composed_mems=344108 volce=N/A prob=N/A callees=[sdslen,sdsMakeRoomFor,memcpy,sdssetlen]
+Function sdsMakeRoomFor:
+signature: sds sdsMakeRoomFor(sds s, size_t addlen)
+#cases: 17
+DIRECT worst_mems: 92
+DIRECT avg_mems(equal-weight): 72.4706
+APPROX worst_mems: 154958
+APPROX avg_mems(equal-weight): 153.605
+  [case 0] guard_hash=8771152376859036170 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(avail >= addlen);
+return s;
+" mems=32 composed_mems=32 volce=N/A prob=N/A callees=[sdsavail]
+  [case 1] guard_hash=15400543232375107009 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=69 composed_mems=69 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc]
+  [case 2] guard_hash=12482153780386324637 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+" mems=77 composed_mems=77 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc,sdssetalloc]
+  [case 3] guard_hash=10171622182524322416 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=68 composed_mems=68 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc]
+  [case 4] guard_hash=7048357932635658932 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+" mems=92 composed_mems=189192 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc,memcpy,free,sdssetlen,sdssetalloc]
+  [case 5] guard_hash=14499478213031211531 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=67 composed_mems=67 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc]
+  [case 6] guard_hash=1390003305413002995 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+" mems=75 composed_mems=75 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc,sdssetalloc]
+  [case 7] guard_hash=1441456309397288918 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=66 composed_mems=66 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc]
+  [case 8] guard_hash=3216803015876149182 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+" mems=90 composed_mems=189190 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc,memcpy,free,sdssetlen,sdssetalloc]
+  [case 9] guard_hash=15829900774964660762 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=68 composed_mems=68 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc]
+  [case 10] guard_hash=10294170166592813659 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+" mems=76 composed_mems=76 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc,sdssetalloc]
+  [case 11] guard_hash=3795340254320828361 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=67 composed_mems=67 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc]
+  [case 12] guard_hash=15595122262146077798 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+" mems=91 composed_mems=189191 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc,memcpy,free,sdssetlen,sdssetalloc]
+  [case 13] guard_hash=12188942769082116472 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=66 composed_mems=66 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc]
+  [case 14] guard_hash=15353458108526131383 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(oldtype==type);
+newsh = realloc(sh, hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+s = (char*)newsh+hdrlen;
+sdssetalloc(s, newlen);
+return s;
+" mems=74 composed_mems=74 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,realloc,sdssetalloc]
+  [case 15] guard_hash=13129226151703743799 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(newsh == ((void*)0));
+return ((void*)0);
+" mems=65 composed_mems=65 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc]
+  [case 16] guard_hash=3429813097391194610 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(!(newlen < (1024*1024)));
+newlen += (1024*1024);
+type = sdsReqType(newlen);
+@(!(type == 0));
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+" mems=89 composed_mems=189189 volce=N/A prob=N/A callees=[sdsavail,sdslen,sdsHdrSize,sdsReqType,malloc,memcpy,free,sdssetlen,sdssetalloc]
+Function sdssetlen:
+signature: static inline void sdssetlen(sds s, size_t newlen)
+#cases: 1
+DIRECT worst_mems: 50
+DIRECT avg_mems(equal-weight): 50
+APPROX worst_mems: 189100
+APPROX avg_mems(equal-weight): 344.878
+  [case 0] guard_hash=14783196477089181302 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+" mems=50 composed_mems=230706 volce=N/A prob=N/A callees=[sdscatvprintf]
+Function sdscatvprintf:
+signature: sds sdscatvprintf(sds s, const char *fmt, va_list ap)
+#cases: 25
+DIRECT worst_mems: 80
+DIRECT avg_mems(equal-weight): 59.12
+APPROX worst_mems: 230656
+APPROX avg_mems(equal-weight): 294.924
+  [case 0] guard_hash=13267314564995150272 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+" mems=34 composed_mems=34 volce=N/A prob=N/A callees=[strlen,malloc]
+  [case 1] guard_hash=13923200734207447391 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return ((void*)0);
+" mems=55 composed_mems=55 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,free]
+  [case 2] guard_hash=18005834156875937949 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(!(buf != staticbuf));
+return ((void*)0);
+" mems=51 composed_mems=51 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end]
+  [case 3] guard_hash=13079842282080046511 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+" mems=65 composed_mems=65 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,free]
+  [case 4] guard_hash=12655519857476659464 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=80 composed_mems=281754 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,free,sdscatlen]
+  [case 5] guard_hash=1389941648029451295 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=76 composed_mems=281750 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,free,sdscatlen]
+  [case 6] guard_hash=5301454358578332392 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+" mems=61 composed_mems=61 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end]
+  [case 7] guard_hash=3036232351493419118 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=76 composed_mems=281750 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,sdscatlen,free]
+  [case 8] guard_hash=1050629694140612011 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=72 composed_mems=281746 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,sdscatlen]
+  [case 9] guard_hash=11771661157045613989 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=65 composed_mems=281739 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,sdscatlen,free]
+  [case 10] guard_hash=12814279852129892296 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=61 composed_mems=281735 volce=N/A prob=N/A callees=[strlen,malloc,va_copy,vsnprintf,va_end,sdscatlen]
+  [case 11] guard_hash=14757652500276869069 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=47 composed_mems=281721 volce=N/A prob=N/A callees=[strlen,malloc,sdscatlen,free]
+  [case 12] guard_hash=4525034971786753835 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=43 composed_mems=281717 volce=N/A prob=N/A callees=[strlen,malloc,sdscatlen]
+  [case 13] guard_hash=17120529281368333253 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return ((void*)0);
+" mems=50 composed_mems=50 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,free]
+  [case 14] guard_hash=5502198945454415588 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(bufstrlen < 0);
+@(!(buf != staticbuf));
+return ((void*)0);
+" mems=46 composed_mems=46 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end]
+  [case 15] guard_hash=5525922554061021651 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+" mems=60 composed_mems=60 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,free,malloc]
+  [case 16] guard_hash=5379144110249792994 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=75 composed_mems=281749 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,free,malloc,sdscatlen]
+  [case 17] guard_hash=114863067161100901 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=71 composed_mems=281745 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,free,malloc,sdscatlen]
+  [case 18] guard_hash=16114235901435287709 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(buf == ((void*)0));
+return ((void*)0);
+" mems=56 composed_mems=56 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,malloc]
+  [case 19] guard_hash=4434139657076628402 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=71 composed_mems=281745 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,malloc,sdscatlen,free]
+  [case 20] guard_hash=14750193584718240273 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(!(buf != staticbuf));
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=67 composed_mems=281741 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,malloc,sdscatlen]
+  [case 21] guard_hash=13333093639589577378 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=60 composed_mems=281734 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,sdscatlen,free]
+  [case 22] guard_hash=14275791778028319021 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(!(((size_t)bufstrlen) >= buflen));
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=56 composed_mems=281730 volce=N/A prob=N/A callees=[strlen,va_copy,vsnprintf,va_end,sdscatlen]
+  [case 23] guard_hash=10815963492714167509 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+" mems=42 composed_mems=281716 volce=N/A prob=N/A callees=[strlen,sdscatlen,free]
+  [case 24] guard_hash=10757785639185754535 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(1));
+t = sdscatlen(s, buf, bufstrlen);
+@(!(buf != staticbuf));
+return t;
+" mems=38 composed_mems=281712 volce=N/A prob=N/A callees=[strlen,sdscatlen]
+[CALL GRAPH]
+sdscatvprintf -> [sdscatlen]
+sdssetlen -> [sdscatvprintf]
+sdsMakeRoomFor -> [sdssetlen]
+sdscatlen -> [sdssetlen,sdsMakeRoomFor]
+sdscatrepr -> [sdscatlen]
+[SUMMARY STATS]
+function_count=5
+summary_case_count=47
+call_edge_count=6
+[PROGRAM SUMMARY]
+entry=sdscatrepr
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=32, converged=false)
+worst_mems=230703
+worst_path=sdscatrepr#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdscatlen(s,"\"",1);
+@(len--);
+switch(*p) { case '\\': case '"': s = sdscatprintf(s,"\\%c",*p); break; case '\n': s = sdscatlen(s,"\\n",2); break; case '\r': s = sdscatlen(s,"\\r",2); break; case '\t': s = sdscatlen(s,"\\t",2); break; case '\a': s = sdscatlen(s,"\\a",2); break; case '\b': s = sdscatlen(s,"\\b",2); break; default: if (isprint(*p)) s = sdscatprintf(s,"%c",*p); else s = sdscatprintf(s,"\\x%02x",(unsigned char)*p); break; }
+case '\\': case '"': s = sdscatprintf(s,"\\%c",*p);
+case '"': s = sdscatprintf(s,"\\%c",*p);
+s = sdscatprintf(s,"\\%c",*p);
+break;
+return sdscatlen(s,"\"",1);
+} -> sdscatlen#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+} -> sdsMakeRoomFor#4{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+@(!(avail >= addlen));
+len = sdslen(s);
+sh = (char*)s-sdsHdrSize(oldtype);
+reqlen = newlen = (len+addlen);
+@(newlen < (1024*1024));
+newlen *= 2;
+type = sdsReqType(newlen);
+@(type == 0);
+type = 1;
+hdrlen = sdsHdrSize(type);
+((void)0);
+@(!(oldtype==type));
+newsh = malloc(hdrlen+newlen+1);
+@(!(newsh == ((void*)0)));
+memcpy((char*)newsh+hdrlen, s, len+1);
+free(sh);
+free(sh);
+s = (char*)newsh+hdrlen;
+s[-1] = type;
+sdssetlen(s, len);
+sdssetalloc(s, newlen);
+return s;
+} -> sdssetlen#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+} -> sdscatvprintf#4{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+} -> sdscatlen#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+} -> sdscatlen{FIXPOINT_APPROX} -> sdssetlen#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+case 0: { unsigned char *fp = ((unsigned char*)s)-1; *fp = 0 | (newlen << 3); }
+unsigned char *fp = ((unsigned char*)s)-1;
+*fp = 0 | (newlen << 3);
+break;
+break;
+break;
+break;
+break;
+} -> sdscatvprintf#4{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+@(1);
+va_copy(cpy,ap);
+bufstrlen = vsnprintf(buf, buflen, fmt, cpy);
+va_end(cpy);
+va_end(cpy);
+@(!(bufstrlen < 0));
+@(((size_t)bufstrlen) >= buflen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+buflen = ((size_t)bufstrlen) + 1;
+buf = malloc(buflen);
+@(!(buf == ((void*)0)));
+continue;
+break;
+t = sdscatlen(s, buf, bufstrlen);
+@(buf != staticbuf);
+free(buf);
+free(buf);
+return t;
+} -> sdscatlen#1{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char *t;
+const char *p;
+size_t len;
+size_t len;
+size_t addlen;
+size_t len, newlen, reqlen;
+char type, oldtype = s[-1] & 7;
+int hdrlen;
+size_t newlen;
+unsigned char flags = s[-1];
+const char *fmt;
+char staticbuf[1024], *buf = staticbuf, *t;
+int bufstrlen;
+s = sdsMakeRoomFor(s,len);
+@(!(s == ((void*)0)));
+memcpy(s+curlen, t, len);
+sdssetlen(s, curlen+len);
+s[curlen+len] = '\0';
+return s;
+} -> sdscatlen{FIXPOINT_APPROX}
+weighted_avg_mems=449.943 (equal-weight; volce disabled)
+notes=external callee omitted=sdscatprintf | recursive SCC summarized by fixpoint at sdscatlen | external callee omitted=strlen | external callee omitted=malloc | external callee omitted=vsnprintf | external callee omitted=va_end | external callee omitted=sdsHdrSize | external callee omitted=free | external callee omitted=sdssetalloc | external callee omitted=sdsavail | external callee omitted=va_copy | external callee omitted=memcpy | external callee omitted=sdsReqType | external callee omitted=sdslen | external callee omitted=realloc
+sds_sds_flat__sdscatrepr__closure.c:665:1 warning: missing type specifier, assume `int'
+
+ ^
+sds_sds_flat__sdscatrepr__closure.c:666:1 error: expected <identifier> or `(' starting direct-declarator, got `/'
+*/
+ ^
+sds_sds_flat__sdscatrepr__closure.c:669:9 warning: missing type specifier, assume `int'
+char *t;
+         ^
+sds_sds_flat__sdscatrepr__closure.c:670:19 warning: missing type specifier, assume `int'
+va_start(ap, fmt);
+                   ^
+sds_sds_flat__sdscatrepr__closure.c:672:12 warning: missing type specifier, assume `int'
+va_end(ap);
+            ^
+sds_sds_flat__sdscatrepr__closure.c:672:12 error: expected <identifier> or `(' starting direct-declarator, got `return'
+va_end(ap);
+            ^
+sds_sds_flat__sdscatrepr__closure.c:673:10 warning: missing type specifier, assume `int'
+return t;
+          ^
+sds_sds_flat__sdscatrepr__closure.c:673:10 error: expected <identifier> or `(' starting direct-declarator, got `}'
+return t;
+          ^
+
