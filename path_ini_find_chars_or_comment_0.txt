@@ -1,6 +1,10 @@
-int *s;
-int *chars;
-int endif;
-int isspace;
-@(!(*s && (!chars || !1)));
-return s;
+size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;

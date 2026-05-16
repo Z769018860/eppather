@@ -1,4 +1,6 @@
-unsigned long string_size;
-@(!(string_size < 32));
-@(string_size < 256);
+extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+size_t string_size;
+@(!(string_size < 1<<5));
+@(string_size < 1<<8);
 return 1;

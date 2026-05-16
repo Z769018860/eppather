@@ -1,3 +1,4 @@
-int len;
-len = 0;
-return len;
+extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+sdssetlen(s, 0);
+s[0] = '\0';

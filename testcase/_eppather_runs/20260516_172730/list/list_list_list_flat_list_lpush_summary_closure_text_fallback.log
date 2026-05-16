@@ -1,0 +1,72 @@
+equals!!!!!self->head!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!node!!!!
+equals!!!!!node!!!!
+equals!!!!!node!!!!
+equals!!!!!self->tail = node!!!!
+equals!!!!!((void*)0)!!!!
+equals!!!!!node->next = ((void*)0)!!!!
+Function summaries are ready to dump ~
+Path:unsigned int len;
+@(!node);
+return ((void*)0);
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+
+Path:unsigned int len;
+@(!(!node));
+return node;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+
+Path:unsigned int len;
+@(!(!node));
+return node;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_lpush:
+signature: list_node_t * list_lpush(list_t *self, list_node_t *node)
+#cases: 3
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1.66667
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1.66667
+  [case 0] guard_hash=9357510634237799491 path="unsigned int len;
+@(!node);
+return ((void*)0);
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=9294758559792282203 path="unsigned int len;
+@(!(!node));
+return node;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=9294758559792282203 path="unsigned int len;
+@(!(!node));
+return node;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_lpush -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_lpush
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=list_lpush#1{unsigned int len;
+@(!(!node));
+return node;
+}
+weighted_avg_mems=1.66667 (equal-weight; volce disabled)
+<stdin>:95: error: unterminated #ifndef

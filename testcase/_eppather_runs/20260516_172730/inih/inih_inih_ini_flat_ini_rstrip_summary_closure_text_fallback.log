@@ -1,0 +1,83 @@
+equals!!!!!s!!!!
+equals!!!!!isspace((unsigned char)(*--end))!!!!
+equals!!!!!'\0'!!!!
+Function summaries are ready to dump ~
+Path:size_t num_left;
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+
+feasible!!!
+[mem]:22
+[averagemem]:2
+[testcase]:
+
+Path:size_t num_left;
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+
+feasible!!!
+[mem]:14
+[averagemem]:2
+[testcase]:
+
+Path:size_t num_left;
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+
+feasible!!!
+[mem]:6
+[averagemem]:2
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_rstrip:
+signature: static char* ini_rstrip(char* s, char* end)
+#cases: 3
+DIRECT worst_mems: 22
+DIRECT avg_mems(equal-weight): 14
+APPROX worst_mems: 22
+APPROX avg_mems(equal-weight): 14
+  [case 0] guard_hash=12360162346099798748 path="size_t num_left;
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+" mems=22 composed_mems=22 volce=N/A prob=N/A callees=[isspace]
+  [case 1] guard_hash=14569480947395521345 path="size_t num_left;
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+" mems=14 composed_mems=14 volce=N/A prob=N/A callees=[isspace]
+  [case 2] guard_hash=5248182957104787007 path="size_t num_left;
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+" mems=6 composed_mems=6 volce=N/A prob=N/A callees=[isspace]
+[CALL GRAPH]
+ini_rstrip -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_rstrip
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=22
+worst_path=ini_rstrip#0{size_t num_left;
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(end > s && isspace((unsigned char)(*--end)));
+*end = '\0';
+@(!(end > s && isspace((unsigned char)(*--end))));
+return s;
+}
+weighted_avg_mems=14 (equal-weight; volce disabled)
+notes=external callee omitted=isspace

@@ -1,5 +1,13 @@
-int num_left;
+size_t num_left;
 int num;
-@(!(num_left == 0 || num < 2));
-num_left = num_left - 1;
-return num_left + 1;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(c == '\n');
+break;
+*strp = '\0';
+return str;

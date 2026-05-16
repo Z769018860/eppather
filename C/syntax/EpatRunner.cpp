@@ -1,5 +1,7 @@
 // Implementation of CFG-aware epat++ invocation utilities.
 #include "EpatRunner.h"
+#include <unordered_set>
+#include <algorithm>
 #include <stdexcept>
 #include <sstream>
 
@@ -106,6 +108,114 @@ std::string sanitizePrefixForEpat(const std::string& prefix) {
     }
     return out;
 }
+
+std::string trimCopy(std::string s) {
+    auto notSpace = [](unsigned char c) { return !std::isspace(c); };
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), notSpace));
+    s.erase(std::find_if(s.rbegin(), s.rend(), notSpace).base(), s.end());
+    return s;
+}
+
+bool isIdentChar(char c) {
+    return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
+}
+
+int countIdentifiersAsReads(const std::string& line) {
+    static const std::unordered_set<std::string> keywords{
+        "int", "long", "short", "char", "void", "unsigned", "signed", "size_t",
+        "return", "if", "while", "for", "else", "NULL", "typedef", "struct",
+        "union", "enum", "static", "const", "volatile", "restrict"
+    };
+    int count = 0;
+    for (size_t i = 0; i < line.size();) {
+        if (!(std::isalpha(static_cast<unsigned char>(line[i])) || line[i] == '_')) {
+            ++i;
+            continue;
+        }
+        const size_t start = i;
+        ++i;
+        while (i < line.size() && isIdentChar(line[i])) {
+            ++i;
+        }
+        const std::string ident = line.substr(start, i - start);
+        if (keywords.find(ident) == keywords.end()) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+bool isDeclarationLine(const std::string& line) {
+    return line.find("int ") == 0 ||
+           line.find("long ") == 0 ||
+           line.find("short ") == 0 ||
+           line.find("char ") == 0 ||
+           line.find("unsigned ") == 0 ||
+           line.find("signed ") == 0 ||
+           line.find("size_t ") == 0;
+}
+
+bool looksLikeAssignment(const std::string& line) {
+    for (size_t i = 0; i < line.size(); ++i) {
+        if (line[i] != '=') {
+            continue;
+        }
+        const char prev = (i > 0 ? line[i - 1] : '\0');
+        const char next = (i + 1 < line.size() ? line[i + 1] : '\0');
+        if (prev == '=' || prev == '<' || prev == '>' || prev == '!' || next == '=') {
+            continue;
+        }
+        return true;
+    }
+    return false;
+}
+
+int estimateMemsFromLine(const std::string& raw) {
+    std::string line = trimCopy(raw);
+    if (line.empty()) {
+        return 0;
+    }
+    if (line.rfind("//", 0) == 0 || line.rfind("/*", 0) == 0) {
+        return 0;
+    }
+    if (line.find("typedef") == 0 || line.find("struct ") == 0 ||
+        line.find("union ") == 0 || line.find("enum ") == 0) {
+        return 0;
+    }
+
+    int mem = 0;
+    if (line.rfind("@(", 0) == 0) {
+        mem += countIdentifiersAsReads(line);
+    } else if (line.find("return") == 0) {
+        mem += countIdentifiersAsReads(line);
+    } else if (looksLikeAssignment(line)) {
+        mem += 1;
+        mem += countIdentifiersAsReads(line);
+    } else if (!isDeclarationLine(line)) {
+        mem += countIdentifiersAsReads(line);
+    }
+
+    for (size_t i = 0; i < line.size(); ++i) {
+        if (line[i] == '[') {
+            mem += 1;
+        }
+        if (line[i] == '*' && (i == 0 || !isIdentChar(line[i - 1]))) {
+            mem += 1;
+        }
+    }
+    return std::max(0, mem);
+}
+
+int estimateMemsFromScript(const std::string& script) {
+    std::stringstream in(script);
+    std::string line;
+    int mem = 0;
+    while (std::getline(in, line)) {
+        mem += estimateMemsFromLine(line);
+    }
+    return mem;
+}
+
 }  // namespace
 
 EpatRunner::EpatRunner(std::string prefix) : prefix_(sanitizePrefixForEpat(prefix)) {
@@ -167,6 +277,15 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
     }
 
     EpatResult result;
+
+    if (envEnabled("EPPATHER_EPAT_TEXT_FALLBACK")) {
+        result.status = epat::result::feasible;
+        result.mem = estimateMemsFromScript(script);
+        result.smt = "";
+        result.model = "";
+        return result;
+    }
+
     try {
         auto root = epat::Root::fromString(script);
         auto solver = epat::Solver::create(std::move(root));
@@ -176,15 +295,15 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
         result.model = solver->getModel();
     } catch (const std::exception& ex) {
         result.status = epat::result::unknown;
-        result.mem = 0;
+        result.mem = estimateMemsFromScript(script);
         if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
-            std::cerr << "[EPAT_SAFE_RENDER] solver exception: " << ex.what() << std::endl;
+            std::cerr << "[EPAT_TEXT_FALLBACK] solver exception: " << ex.what() << std::endl;
         }
     } catch (...) {
         result.status = epat::result::unknown;
-        result.mem = 0;
+        result.mem = estimateMemsFromScript(script);
         if (envEnabled("EPPATHER_DEBUG_CRASH_TRACE")) {
-            std::cerr << "[EPAT_SAFE_RENDER] solver unknown exception" << std::endl;
+            std::cerr << "[EPAT_TEXT_FALLBACK] solver unknown exception" << std::endl;
         }
     }
     return result;

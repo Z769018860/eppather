@@ -1,0 +1,81 @@
+equals!!!!!isspace((unsigned char)(*s))!!!!
+Function summaries are ready to dump ~
+Path:size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+
+feasible!!!
+[mem]:18
+[averagemem]:2
+[testcase]:
+
+Path:size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+
+feasible!!!
+[mem]:12
+[averagemem]:2
+[testcase]:
+
+Path:size_t num_left;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+
+feasible!!!
+[mem]:6
+[averagemem]:2
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_lskip:
+signature: static char* ini_lskip(const char* s)
+#cases: 3
+DIRECT worst_mems: 18
+DIRECT avg_mems(equal-weight): 12
+APPROX worst_mems: 18
+APPROX avg_mems(equal-weight): 12
+  [case 0] guard_hash=7153707924942488680 path="size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+" mems=18 composed_mems=18 volce=N/A prob=N/A callees=[isspace]
+  [case 1] guard_hash=13657105472116727174 path="size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+" mems=12 composed_mems=12 volce=N/A prob=N/A callees=[isspace]
+  [case 2] guard_hash=524831744040163993 path="size_t num_left;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+" mems=6 composed_mems=6 volce=N/A prob=N/A callees=[isspace]
+[CALL GRAPH]
+ini_lskip -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_lskip
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=18
+worst_path=ini_lskip#0{size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;
+}
+weighted_avg_mems=12 (equal-weight; volce disabled)
+notes=external callee omitted=isspace

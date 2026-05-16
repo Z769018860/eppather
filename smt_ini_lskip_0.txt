@@ -1,14 +1,1 @@
-; 
-(set-info :status unknown)
-(declare-fun pos@0@0 () (_ BitVec 32))
-(declare-fun is_space@0@0 () (_ BitVec 32))
-(assert
- (let (($x57 (and (and (distinct is_space@0@0 (_ bv0 32)) true) (and (distinct (ite (bvslt pos@0@0 (_ bv3 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
- (let ((?x56 (ite $x57 (_ bv1 32) (_ bv0 32))))
- (and (distinct ?x56 (_ bv0 32)) true))))
-(assert
- (let (($x45 (and (and (distinct (_ bv0 32) (_ bv0 32)) true) (and (distinct (ite (bvslt (bvadd pos@0@0 (_ bv1 32)) (_ bv3 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true))))
- (let ((?x44 (ite (not (and (distinct (ite $x45 (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
- (and (distinct ?x44 (_ bv0 32)) true))))
-(check-sat)
 

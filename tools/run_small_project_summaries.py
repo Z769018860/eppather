@@ -963,37 +963,64 @@ def extract_metrics(text: str, entry: str) -> Dict[str, str]:
     return metrics
 
 def run_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, maxpaths: int, timeout: int, out_log: Path, crash_trace: bool, debug_epat: bool) -> Dict[str, str]:
-    env = os.environ.copy()
-    env["EPPATHER_ENTRY"] = entry
-    env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
-    env.setdefault("EPPATHER_EPAT_SAFE_PREFIX", "1")
-    if crash_trace:
-        env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
-    if debug_epat:
-        env["EPPATHER_DEBUG_EPAT_SCRIPT"] = "1"
-    cmd = [str(cnip), mode_to_flag(mode), "--maxloop", str(maxloop), "--maxpaths", str(maxpaths), str(cfile)]
-    rc, timed_out, text, elapsed = run_cmd(cmd, env, timeout)
-    out_log.parent.mkdir(parents=True, exist_ok=True)
-    out_log.write_text(text, encoding="utf-8", errors="ignore")
-    metrics = extract_metrics(text, entry)
-    metrics.update({
-        "entry": entry,
-        "mode": mode,
-        "returncode": str(rc),
-        "timeout": "true" if timed_out else "false",
-        "seconds": f"{elapsed:.6f}",
-        "log": str(out_log),
-        "cmd": " ".join(cmd),
-    })
-    return metrics
+    def invoke(use_text_fallback: bool, log_path: Path) -> Dict[str, str]:
+        env = os.environ.copy()
+        env["EPPATHER_ENTRY"] = entry
+        env.setdefault("EPPATHER_EPAT_SAFE_RENDER", "1")
+        env.setdefault("EPPATHER_EPAT_SAFE_PREFIX", "1")
+        if use_text_fallback:
+            env["EPPATHER_EPAT_TEXT_FALLBACK"] = "1"
+        if crash_trace:
+            env["EPPATHER_DEBUG_CRASH_TRACE"] = "1"
+        if debug_epat:
+            env["EPPATHER_DEBUG_EPAT_SCRIPT"] = "1"
+
+        cmd = [str(cnip), mode_to_flag(mode), "--maxloop", str(maxloop), "--maxpaths", str(maxpaths), str(cfile)]
+        rc, timed_out, text, elapsed = run_cmd(cmd, env, timeout)
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        log_path.write_text(text, encoding="utf-8", errors="ignore")
+        metrics = extract_metrics(text, entry)
+        metrics.update({
+            "entry": entry,
+            "mode": mode,
+            "returncode": str(rc),
+            "timeout": "true" if timed_out else "false",
+            "seconds": f"{elapsed:.6f}",
+            "log": str(log_path),
+            "cmd": " ".join(cmd),
+            "epat_mode": "text_fallback" if use_text_fallback else "pafi-rs",
+        })
+        return metrics
+
+    row = invoke(False, out_log)
+    ok = row.get("summary_ok") == "true" if mode == "summary" else row.get("returncode") == "0"
+
+    retry_enabled = os.environ.get("EPPATHER_DISABLE_TEXT_FALLBACK_RETRY", "0") != "1"
+    should_retry = retry_enabled and mode == "summary" and not ok
+
+    if should_retry:
+        fallback_log = out_log.with_name(out_log.stem + "_text_fallback" + out_log.suffix)
+        fallback_row = invoke(True, fallback_log)
+        fallback_ok = fallback_row.get("summary_ok") == "true"
+        if fallback_ok:
+            fallback_row["original_returncode"] = row.get("returncode", "")
+            fallback_row["original_timeout"] = row.get("timeout", "")
+            fallback_row["original_log"] = row.get("log", "")
+            return fallback_row
+
+    row.setdefault("original_returncode", "")
+    row.setdefault("original_timeout", "")
+    row.setdefault("original_log", "")
+    return row
 
 def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
     fields = [
         "project", "project_root", "source", "slice_mode", "slice_file",
-        "entry", "mode", "returncode", "timeout", "seconds",
+        "entry", "mode", "epat_mode", "returncode", "timeout", "seconds",
         "summary_ok", "has_function_summaries", "has_program_summary", "entry_seen",
         "worst_mems", "weighted_avg_mems", "function_count", "summary_case_count",
-        "call_edge_count", "mems", "dfs_time", "dp_time", "reason", "notes", "log", "cmd"
+        "call_edge_count", "mems", "dfs_time", "dp_time", "reason", "notes",
+        "original_returncode", "original_timeout", "original_log", "log", "cmd"
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -1001,6 +1028,37 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
         writer.writeheader()
         for row in rows:
             writer.writerow({k: row.get(k, "") for k in fields})
+
+def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
+    priority = {
+        "closure": 0,
+        "entry_only": 1,
+        "type_erased": 2,
+        "compat_entry": 3,
+    }
+    grouped: Dict[Tuple[str, str, str], List[Dict[str, str]]] = {}
+    for row in rows:
+        key = (row.get("project", ""), row.get("entry", ""), row.get("mode", ""))
+        grouped.setdefault(key, []).append(row)
+
+    final_rows: List[Dict[str, str]] = []
+    for key in sorted(grouped):
+        candidates = grouped[key]
+        ok_rows = [r for r in candidates if r.get("summary_ok") == "true" or (r.get("mode") != "summary" and r.get("returncode") == "0")]
+        pool = ok_rows if ok_rows else candidates
+        best = sorted(
+            pool,
+            key=lambda r: (
+                0 if r.get("summary_ok") == "true" else 1,
+                priority.get(r.get("slice_mode", ""), 99),
+                0 if r.get("epat_mode") == "pafi-rs" else 1,
+                float(r.get("seconds", "999999") or 999999),
+            )
+        )[0].copy()
+        best["attempt_count"] = str(len(candidates))
+        best["successful_attempt_count"] = str(len(ok_rows))
+        final_rows.append(best)
+    return final_rows
 
 def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[List[str]]) -> List[str]:
     if custom_entries:
@@ -1153,6 +1211,10 @@ def main() -> int:
         summary_csv = run_root / "run_summary.csv"
         write_csv(summary_csv, rows)
         log(f"[SUMMARY] {summary_csv}")
+
+        final_csv = run_root / "final_summary.csv"
+        write_csv(final_csv, select_final_rows(rows))
+        log(f"[FINAL SUMMARY] {final_csv}")
     return 0
 
 if __name__ == "__main__":

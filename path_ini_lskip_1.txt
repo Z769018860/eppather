@@ -1,4 +1,5 @@
-int pos;
-int is_space;
-@(!(is_space && pos < 3));
-return pos;
+size_t num_left;
+@(*s && isspace((unsigned char)(*s)));
+s++;
+@(!(*s && isspace((unsigned char)(*s))));
+return (char*)s;

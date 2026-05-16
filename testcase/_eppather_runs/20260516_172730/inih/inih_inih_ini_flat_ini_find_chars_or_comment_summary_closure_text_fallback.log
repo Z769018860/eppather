@@ -1,0 +1,100 @@
+equals!!!!!!strchr(chars, *s)!!!!
+equals!!!!!(!chars || !strchr(chars, *s))!!!!
+equals!!!!!strchr(";", *s)!!!!
+equals!!!!!!(was_space && strchr(";", *s))!!!!
+equals!!!!!isspace((unsigned char)(*s))!!!!
+Function summaries are ready to dump ~
+Path:size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+
+feasible!!!
+[mem]:48
+[averagemem]:4
+[testcase]:
+
+Path:size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+
+feasible!!!
+[mem]:31
+[averagemem]:3
+[testcase]:
+
+Path:size_t num_left;
+int was_space = 0;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+
+feasible!!!
+[mem]:14
+[averagemem]:3
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_find_chars_or_comment:
+signature: static char* ini_find_chars_or_comment(const char* s, const char* chars)
+#cases: 3
+DIRECT worst_mems: 48
+DIRECT avg_mems(equal-weight): 31
+APPROX worst_mems: 48
+APPROX avg_mems(equal-weight): 31
+  [case 0] guard_hash=9735162824824704773 path="size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+" mems=48 composed_mems=48 volce=N/A prob=N/A callees=[strchr,isspace]
+  [case 1] guard_hash=718607239404822561 path="size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+" mems=31 composed_mems=31 volce=N/A prob=N/A callees=[strchr,isspace]
+  [case 2] guard_hash=8933240977516440949 path="size_t num_left;
+int was_space = 0;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+" mems=14 composed_mems=14 volce=N/A prob=N/A callees=[strchr]
+[CALL GRAPH]
+ini_find_chars_or_comment -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=3
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_find_chars_or_comment
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=48
+worst_path=ini_find_chars_or_comment#0{size_t num_left;
+int was_space = 0;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s)));
+was_space = isspace((unsigned char)(*s));
+s++;
+@(!(*s && (!chars || !strchr(chars, *s)) && !(was_space && strchr(";", *s))));
+return (char*)s;
+}
+weighted_avg_mems=31 (equal-weight; volce disabled)
+notes=external callee omitted=isspace | external callee omitted=strchr

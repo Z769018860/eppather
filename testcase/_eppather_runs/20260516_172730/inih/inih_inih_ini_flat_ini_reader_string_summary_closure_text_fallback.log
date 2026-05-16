@@ -1,0 +1,257 @@
+equals!!!!!ctx!!!!
+equals!!!!!!!!!
+equals!!!!!0!!!!
+equals!!!!!2!!!!
+equals!!!!!num < 2!!!!
+equals!!!!!1!!!!
+equals!!!!!0!!!!
+equals!!!!!ctx_num_left != 0!!!!
+equals!!!!!*ctx_ptr++!!!!
+equals!!!!!c!!!!
+equals!!!!!'\n'!!!!
+equals!!!!!'\0'!!!!
+equals!!!!!ctx_ptr!!!!
+equals!!!!!ctx_num_left!!!!
+Function summaries are ready to dump ~
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(ctx_num_left == 0 || num < 2);
+return ((void*)0);
+
+feasible!!!
+[mem]:7
+[averagemem]:1
+[testcase]:
+
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(c == '\n');
+break;
+*strp = '\0';
+return str;
+
+feasible!!!
+[mem]:25
+[averagemem]:1
+[testcase]:
+
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(c == '\n');
+break;
+*strp = '\0';
+return str;
+
+feasible!!!
+[mem]:39
+[averagemem]:1
+[testcase]:
+
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+
+feasible!!!
+[mem]:41
+[averagemem]:1
+[testcase]:
+
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+
+feasible!!!
+[mem]:27
+[averagemem]:1
+[testcase]:
+
+Path:size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+
+feasible!!!
+[mem]:13
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function ini_reader_string:
+signature: static char* ini_reader_string(char* str, int num, void* stream)
+#cases: 6
+DIRECT worst_mems: 41
+DIRECT avg_mems(equal-weight): 25.3333
+APPROX worst_mems: 41
+APPROX avg_mems(equal-weight): 25.3333
+  [case 0] guard_hash=11948717524327256787 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(ctx_num_left == 0 || num < 2);
+return ((void*)0);
+" mems=7 composed_mems=7 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=12461869279168258791 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(c == '\n');
+break;
+*strp = '\0';
+return str;
+" mems=25 composed_mems=25 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=16969772640433149837 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(c == '\n');
+break;
+*strp = '\0';
+return str;
+" mems=39 composed_mems=39 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=9128834875685866140 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+" mems=41 composed_mems=41 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=16398319547050704325 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+" mems=27 composed_mems=27 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=9675154290645965413 path="size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+" mems=13 composed_mems=13 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+ini_reader_string -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=6
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=ini_reader_string
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=41
+worst_path=ini_reader_string#3{size_t num_left;
+int num;
+char c;
+ini_parse_string_ctx* ctx = (ini_parse_string_ctx*)stream;
+@(!(ctx_num_left == 0 || num < 2));
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(num > 1 && ctx_num_left != 0);
+c = *ctx_ptr++;
+ctx_num_left--;
+*strp++ = c;
+@(!(c == '\n'));
+num--;
+@(!(num > 1 && ctx_num_left != 0));
+*strp = '\0';
+return str;
+}
+weighted_avg_mems=25.3333 (equal-weight; volce disabled)
