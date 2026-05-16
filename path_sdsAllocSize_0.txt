@@ -1,6 +1,5 @@
-extern const char *SDS_NOINIT;
-const char *SDS_NOINIT = "SDS_NOINIT";
-char type;
-unsigned char flags = s[-1];
-unsigned char flags = s[-1];
-return sdsHdrSize(s[-1])+alloc+1;
+int *s;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+return 0;

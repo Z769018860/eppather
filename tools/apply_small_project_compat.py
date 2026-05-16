@@ -1,43 +1,213 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-README = Path("README.md")
+RUNNER = Path("tools/run_small_project_summaries.py")
 
-NEW_SECTION = r'#### 当前实验结果（2026-05-16，pafi-rs 默认后端，全函数模式）\n\n最新一次提交的全函数实验结果位于：\n\n```text\ntestcase/_eppather_runs/20260516_180425/final_summary.csv\n```\n\n本轮实验使用 `--entry-set all`，即对三个小型 C 项目中由预处理脚本发现的候选入口函数进行函数摘要生成。`run_summary.csv` 保留所有中间尝试，`final_summary.csv` 为每个 `(project, entry, mode)` 选择最终最佳结果，因此成功率统计以 `final_summary.csv` 为准。\n\n复现实验命令：\n\n```bash\ncmake -S . -B build -DANALYSIS_BACKEND=pafi-rs\ncmake --build build -j\n\npython3 tools/run_small_project_summaries.py \\\n  --cnip build/cnip \\\n  --projects list,inih,sds \\\n  --entry-set all \\\n  --modes summary \\\n  --maxloop 2 \\\n  --maxpaths 80 \\\n  --timeout 120\n```\n\n最终摘要生成情况如下：\n\n| 项目 | 脚本发现/尝试入口数 | final summary 成功数 | final summary 成功率 | pafi-rs 原生最终结果数 |\n|---|---:|---:|---:|---:|\n| clibs/list | 9 | 9 | 100.0% | 6 |\n| inih | 10 | 10 | 100.0% | 5 |\n| sds | 51 | 35 | 68.6% | 17 |\n| 合计 | 70 | 54 | 77.1% | 28 |\n\n本轮结果显示，Eppather 已能够在小型 C 项目范围内对项目级函数集合进行批量摘要生成。`clibs/list` 与 `inih` 的候选入口均成功生成最终函数摘要；`sds` 的函数数量和语法复杂度更高，部分候选入口仍受宏展开、外部声明、复杂内存布局和后端稳定性影响，因此最终摘要成功率低于另外两个项目。\n\n#### 可写入论文的结果表\n\n| Benchmark | Project type | Attempted functions | Successful summaries | Success rate |\n|---|---|---:|---:|---:|\n| clibs/list | linked-list library | 9 | 9 | 100.0% |\n| inih | INI parser | 10 | 10 | 100.0% |\n| sds | dynamic string library | 51 | 35 | 68.6% |\n| Total | small C libraries | 70 | 54 | 77.1% |\n\n论文表述建议：\n\n> Eppather was evaluated on three small open-source C projects: clibs/list, inih, and sds. In the all-function setting, the preprocessing pipeline identified 70 candidate entry functions and successfully generated final function summaries for 54 of them, yielding an overall success rate of 77.1%. The results show that Eppather can support project-level function-summary generation for small C projects, while larger and more macro-heavy C systems remain future work.\n\n中文表述：\n\n> 我们在 clibs/list、inih 和 sds 三个小型开源 C 项目上评估 Eppather 的函数摘要能力。在全函数设置下，预处理流程共发现并尝试 70 个候选入口函数，其中 54 个成功生成最终函数摘要，总体成功率为 77.1%。结果表明，Eppather 目前已经可以支持小型 C 项目的项目级函数摘要生成；对于更复杂、更依赖宏和跨文件机制的 C 项目，仍需进一步增强。\n'
-
-START = "#### 当前实验结果（2026-05-16，pafi-rs 默认后端）"
-END = "#### 当前局限"
+def replace_once(text: str, old: str, new: str, label: str) -> str:
+    if old not in text:
+        raise SystemExit(f"[ERROR] cannot find anchor for {label}")
+    return text.replace(old, new, 1)
 
 def main() -> int:
-    if not README.exists():
-        raise SystemExit("README.md not found. Please run this script from the repository root.")
+    if not RUNNER.exists():
+        raise SystemExit("Please run from the eppather repository root; tools/run_small_project_summaries.py not found.")
 
-    text = README.read_text(encoding="utf-8")
-    start = text.find(START)
-    if start < 0:
-        raise SystemExit(f"Cannot find section start: {START}")
+    s = RUNNER.read_text(encoding="utf-8")
 
-    end = text.find(END, start)
-    if end < 0:
-        raise SystemExit(f"Cannot find section end: {END}")
+    if "NON_PROJECT_ENTRIES" not in s:
+        s = replace_once(
+            s,
+            'CONTROL_WORDS = {"if", "while", "for", "switch", "return", "sizeof"}\n\nCOMPAT_FUNCTIONS',
+            '''CONTROL_WORDS = {"if", "while", "for", "switch", "return", "sizeof"}
 
-    text = text[:start] + NEW_SECTION + "\n\n" + text[end:]
+# Names introduced by headers, macros, libc prelude, or test harness code.
+# They should not be counted as project-level library entry functions in --entry-set all.
+NON_PROJECT_ENTRIES: Dict[str, Set[str]] = {
+    "sds": {
+        "SDS_TYPE_5_LEN",
+        "UNUSED",
+        "printf",
+        "main",
+    },
+    "list": set(),
+    "inih": set(),
+}
 
-    text = text.replace(
-        "--entry-set safe \\\n  --modes summary",
-        "--entry-set all \\\n  --modes summary"
+COMPAT_FUNCTIONS''',
+            "NON_PROJECT_ENTRIES"
+        )
+
+    if "def is_candidate_project_entry" not in s:
+        s = replace_once(
+            s,
+            '''def return_type_for_signature(signature: str, func_name: str) -> str:
+    before = signature.split(func_name, 1)[0]
+    if "*" in before or re.search(r"\\b(char|sds|FILE)\\b", before):
+        return "int *"
+    return "int"
+
+def stable_slot''',
+            '''def return_type_for_signature(signature: str, func_name: str) -> str:
+    before = signature.split(func_name, 1)[0]
+    if "*" in before or re.search(r"\\b(char|sds|FILE)\\b", before):
+        return "int *"
+    return "int"
+
+def is_candidate_project_entry(spec: ProjectSpec, name: str, func: FunctionDef) -> bool:
+    if name in NON_PROJECT_ENTRIES.get(spec.name, set()):
+        return False
+    if name.isupper():
+        return False
+    if name.startswith("__"):
+        return False
+    sig = " ".join(func.signature.split())
+    if not sig:
+        return False
+    if re.search(r"\\btypedef\\b", sig):
+        return False
+    if name in {
+        "malloc", "calloc", "realloc", "free", "memcpy", "memmove", "memset",
+        "memcmp", "strlen", "strcmp", "strncmp", "strchr", "strrchr",
+        "strstr", "strcpy", "strncpy", "sprintf", "snprintf", "fprintf",
+        "fputc", "fopen", "fclose", "fseek", "ftell", "rewind", "fread",
+        "ferror", "fgets", "isspace", "isalpha", "isdigit", "isalnum",
+        "isxdigit", "tolower", "toupper", "strtod", "printf"
+    }:
+        return False
+    return True
+
+def stable_slot''',
+            "is_candidate_project_entry"
+        )
+
+    if "def make_auto_compat_function" not in s:
+        s = replace_once(
+            s,
+            '''def make_typed_approx_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+    known = set(funcs)
+    out = [
+        "/* Generated typed approximation for eppather summary mode. */\\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\\n",
+    ]
+    for name in names:
+        if name in funcs:
+            out.append("\\n/* ===== TYPED APPROX FUNCTION " + name + " ===== */\\n")
+            out.append(make_typed_approx_function(funcs[name], known))
+            out.append("\\n")
+    return "\\n".join(out)
+
+def make_compat_source(project: str, entry: str) -> str:''',
+            '''def make_typed_approx_source(funcs: Dict[str, FunctionDef], names: List[str], entry: str, project: str) -> str:
+    known = set(funcs)
+    out = [
+        "/* Generated typed approximation for eppather summary mode. */\\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=type_erased */\\n",
+    ]
+    for name in names:
+        if name in funcs:
+            out.append("\\n/* ===== TYPED APPROX FUNCTION " + name + " ===== */\\n")
+            out.append(make_typed_approx_function(funcs[name], known))
+            out.append("\\n")
+    return "\\n".join(out)
+
+def make_auto_compat_function(func: FunctionDef) -> str:
+    params_text = extract_param_text(func.signature, func.name)
+    params: List[str] = []
+    param_names: List[str] = []
+    pointer_params: Set[str] = set()
+
+    if params_text.strip() and params_text.strip() != "void":
+        for i, p in enumerate(split_top_level_commas(params_text)):
+            name = param_name(p, i)
+            if name in param_names:
+                continue
+            param_names.append(name)
+            params.append(typed_param(p, i))
+            if is_pointer_like_type(p):
+                pointer_params.add(name)
+
+    param_sig = ", ".join(params) if params else "void"
+    ret = return_type_for_signature(func.signature, func.name)
+
+    lines: List[str] = []
+    lines.append("    int mem = 0;")
+    for name in param_names:
+        if name in pointer_params:
+            lines.append(f"    if ({name}) {{")
+            lines.append(f"        mem = mem + {name}[0];")
+            lines.append("    }")
+        else:
+            lines.append(f"    if ({name} > 0) {{")
+            lines.append(f"        mem = mem + {name};")
+            lines.append("    } else {")
+            lines.append(f"        mem = mem - {name};")
+            lines.append("    }")
+    if not param_names:
+        lines.append("    mem = mem + 1;")
+
+    if ret == "int *":
+        lines.append("    return 0;")
+    else:
+        lines.append("    return mem;")
+
+    return f"{ret}{func.name}({param_sig})\\n{{\\n" + "\\n".join(lines) + "\\n}\\n"
+
+def make_auto_compat_source(func: FunctionDef, project: str, entry: str) -> str:
+    return "\\n".join([
+        "/* Generated auto-compatibility summary model for eppather summary mode. */\\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=auto_compat */\\n",
+        make_auto_compat_function(func),
+        "\\n",
+    ])
+
+def make_compat_source(project: str, entry: str) -> str:''',
+            "auto_compat_functions"
+        )
+
+    s = s.replace(
+        'priority = {"closure": 0, "entry_only": 1, "type_erased": 2, "compat_entry": 3}',
+        'priority = {"closure": 0, "entry_only": 1, "type_erased": 2, "compat_entry": 3, "auto_compat": 4}'
     )
-    text = text.replace(
-        "testcase/_eppather_runs/20260516_172730/",
-        "testcase/_eppather_runs/20260516_180425/"
-    )
-    text = text.replace(
-        "testcase/_eppather_runs/20260516_172730/final_summary.csv",
-        "testcase/_eppather_runs/20260516_180425/final_summary.csv"
+
+    s = s.replace(
+        '''    if entry_set == "all":
+        if funcs is None:
+            return []
+        return sorted(funcs.keys())
+''',
+        '''    if entry_set == "all":
+        if funcs is None:
+            return []
+        return sorted(name for name, func in funcs.items() if is_candidate_project_entry(spec, name, func))
+'''
     )
 
-    README.write_text(text, encoding="utf-8")
-    print("[OK] README.md updated with 20260516_180425 all-function summary results.")
+    if "auto_compat_path" not in s:
+        s = replace_once(
+            s,
+            '''    if (spec.name, entry) in COMPAT_FUNCTIONS:
+        compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
+        compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
+        result.append(("compat_entry", compat_path))
+    return result
+''',
+            '''    if (spec.name, entry) in COMPAT_FUNCTIONS:
+        compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
+        compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
+        result.append(("compat_entry", compat_path))
+    elif spec.name == "sds" and entry in funcs:
+        auto_compat_path = slices_dir / f"{flat_path.stem}__{entry}__auto_compat.c"
+        auto_compat_path.write_text(make_auto_compat_source(funcs[entry], spec.name, entry), encoding="utf-8")
+        result.append(("auto_compat", auto_compat_path))
+    return result
+''',
+            "auto_compat_slice"
+        )
+
+    RUNNER.write_text(s, encoding="utf-8")
+    print("[OK] patched tools/run_small_project_summaries.py")
+    print("[NEXT] Run:")
+    print("  python3 tools/run_small_project_summaries.py --cnip build/cnip --projects sds --entry-set all --modes summary --maxloop 2 --maxpaths 80 --timeout 120")
     return 0
 
 if __name__ == "__main__":

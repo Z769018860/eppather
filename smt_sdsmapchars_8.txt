@@ -1,1 +1,20 @@
+; 
+(set-info :status unknown)
+(declare-fun mystring@0@0 () (_ BitVec 32))
+(declare-fun ho@0@0 () (_ BitVec 32))
+(declare-fun arg2@0@0 () (_ BitVec 32))
+(declare-fun arg3@0@0 () (_ BitVec 32))
+(assert
+ (let ((?x37 (ite (not (and (distinct (ite (bvsgt mystring@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x37 (_ bv0 32)) true)))
+(assert
+ (let ((?x56 (ite (bvsgt ho@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x56 (_ bv0 32)) true)))
+(assert
+ (let ((?x54 (ite (bvsgt arg2@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x54 (_ bv0 32)) true)))
+(assert
+ (let ((?x63 (ite (bvsgt arg3@0@0 (_ bv0 32)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x63 (_ bv0 32)) true)))
+(check-sat)
 

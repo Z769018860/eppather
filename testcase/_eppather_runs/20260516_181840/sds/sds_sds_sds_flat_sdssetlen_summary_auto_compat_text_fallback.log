@@ -1,0 +1,121 @@
+equals!!!!!s[0]!!!!
+equals!!!!!mem + s[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!newlen!!!!
+equals!!!!!mem + newlen!!!!
+equals!!!!!newlen!!!!
+equals!!!!!mem - newlen!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int newlen;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(newlen > 0);
+mem = mem + newlen;
+return mem;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int newlen;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(newlen > 0));
+mem = mem - newlen;
+return mem;
+
+feasible!!!
+[mem]:15
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int newlen;
+int mem = 0;
+@(!(s));
+@(newlen > 0);
+mem = mem + newlen;
+return mem;
+
+feasible!!!
+[mem]:10
+[averagemem]:1
+[testcase]:
+
+Path:int *s;
+int newlen;
+int mem = 0;
+@(!(s));
+@(!(newlen > 0));
+mem = mem - newlen;
+return mem;
+
+feasible!!!
+[mem]:10
+[averagemem]:1
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function intsdssetlen:
+signature: intsdssetlen(int *s, int newlen)
+#cases: 4
+DIRECT worst_mems: 15
+DIRECT avg_mems(equal-weight): 12.5
+APPROX worst_mems: 15
+APPROX avg_mems(equal-weight): 12.5
+  [case 0] guard_hash=17072070664790575997 path="int *s;
+int newlen;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(newlen > 0);
+mem = mem + newlen;
+return mem;
+" mems=15 composed_mems=15 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=8304462916172121674 path="int *s;
+int newlen;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(newlen > 0));
+mem = mem - newlen;
+return mem;
+" mems=15 composed_mems=15 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=17367880233406640243 path="int *s;
+int newlen;
+int mem = 0;
+@(!(s));
+@(newlen > 0);
+mem = mem + newlen;
+return mem;
+" mems=10 composed_mems=10 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=10966673855820790347 path="int *s;
+int newlen;
+int mem = 0;
+@(!(s));
+@(!(newlen > 0));
+mem = mem - newlen;
+return mem;
+" mems=10 composed_mems=10 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+intsdssetlen -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=4
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdssetlen
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=N/A
+worst_path=N/A
+weighted_avg_mems=N/A
+reason=entry function not found
+sds_sds_flat__sdssetlen__auto_compat.c:5:1 warning: missing type specifier, assume `int'
+
+ ^
+

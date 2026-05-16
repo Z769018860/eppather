@@ -1,0 +1,281 @@
+equals!!!!!argv[0]!!!!
+equals!!!!!mem + argv[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!argc!!!!
+equals!!!!!mem + argc!!!!
+equals!!!!!argc!!!!
+equals!!!!!mem - argc!!!!
+equals!!!!!sep[0]!!!!
+equals!!!!!mem + sep[0]!!!!
+Function summaries are ready to dump ~
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(argc > 0);
+mem = mem + argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int argc = 1
+int *sep[0] = 4294967295
+int *argv[0] = 4294967295
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(argc > 0);
+mem = mem + argc;
+@(!(sep));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *argv[0] = 4294967295
+int argc = 1
+int *sep[0] = 0
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(!(argc > 0));
+mem = mem - argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int argc = 0
+int *argv[0] = 4294967295
+int *sep[0] = 4294967295
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(!(argc > 0));
+mem = mem - argc;
+@(!(sep));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int argc = 0
+int *argv[0] = 4294967295
+int *sep[0] = 0
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(argc > 0);
+mem = mem + argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int argc = 1
+int *sep[0] = 4294967295
+int *argv[0] = 0
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(argc > 0);
+mem = mem + argc;
+@(!(sep));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int argc = 1
+int *argv[0] = 0
+int *sep[0] = 0
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(!(argc > 0));
+mem = mem - argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *sep[0] = 4294967295
+int argc = 0
+int *argv[0] = 0
+
+Path:int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(!(argc > 0));
+mem = mem - argc;
+@(!(sep));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int argc = 0
+int *argv[0] = 0
+int *sep[0] = 0
+
+[FUNCTION SUMMARIES]
+Function sdsjoin:
+signature: int *sdsjoin(int *argv, int argc, int *sep)
+#cases: 8
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=13108098763436353713 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(argc > 0);
+mem = mem + argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=4871596913411879882 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(argc > 0);
+mem = mem + argc;
+@(!(sep));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=14249678525010815207 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(!(argc > 0));
+mem = mem - argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=16899466006880010817 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(!(argc > 0));
+mem = mem - argc;
+@(!(sep));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=17409099889972990420 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(argc > 0);
+mem = mem + argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=2391137816502110374 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(argc > 0);
+mem = mem + argc;
+@(!(sep));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=13500510369479079858 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(!(argc > 0));
+mem = mem - argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=7540235535229065319 path="int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(!(argv));
+@(!(argc > 0));
+mem = mem - argc;
+@(!(sep));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsjoin -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=8
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsjoin
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=sdsjoin#0{int *argv;
+int argc;
+int *sep;
+int mem = 0;
+@(argv);
+mem = mem + argv[0];
+@(argc > 0);
+mem = mem + argc;
+@(sep);
+mem = mem + sep[0];
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

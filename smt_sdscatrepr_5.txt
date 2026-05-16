@@ -1,0 +1,23 @@
+; 
+(set-info :status unknown)
+(declare-fun s@0@0 () (_ BitVec 32))
+(declare-fun p@0@0 () (_ BitVec 32))
+(declare-fun len@0@0 () (_ BitVec 32))
+(declare-fun %a () (Array (_ BitVec 32) (_ BitVec 32)))
+(assert
+ (let ((?x77 (ite (not (and (distinct s@0@0 (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x77 (_ bv0 32)) true)))
+(assert
+ (and (distinct p@0@0 (_ bv0 32)) true))
+(assert
+ (let ((?x56 (store %a (_ bv0 32) s@0@0)))
+ (let ((?x68 (store ?x56 (_ bv1 32) p@0@0)))
+ (let ((?x27 (store ?x68 (_ bv3 32) (_ bv0 32))))
+ (let ((?x32 (store ?x27 (_ bv2 32) len@0@0)))
+ (let ((?x101 (bvadd (_ bv0 32) (select ?x32 p@0@0))))
+ (let ((?x61 (store ?x32 (_ bv3 32) ?x101)))
+ (let ((?x14 (select ?x61 (_ bv2 32))))
+ (let ((?x86 (ite (not (and (distinct (ite (bvsgt ?x14 (_ bv0 32)) (_ bv1 32) (_ bv0 32)) (_ bv0 32)) true)) (_ bv1 32) (_ bv0 32))))
+ (and (distinct ?x86 (_ bv0 32)) true))))))))))
+(check-sat)
+

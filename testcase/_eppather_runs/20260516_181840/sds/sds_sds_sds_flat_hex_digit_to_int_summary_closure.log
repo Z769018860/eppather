@@ -1,0 +1,47 @@
+Function summaries are ready to dump ~
+warning: a declaration with the name "SDS_NOINIT" already exists!
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+switch(c) { case '0': return 0; case '1': return 1; case '2': return 2; case '3': return 3; case '4': return 4; case '5': return 5; case '6': return 6; case '7': return 7; case '8': return 8; case '9': return 9; case 'a': case 'A': return 10; case 'b': case 'B': return 11; case 'c': case 'C': return 12; case 'd': case 'D': return 13; case 'e': case 'E': return 14; case 'f': case 'F': return 15; default: return 0; }
+case '0': return 0;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function hex_digit_to_int:
+signature: int hex_digit_to_int(char c)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=11381234528807186048 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+switch(c) { case '0': return 0; case '1': return 1; case '2': return 2; case '3': return 3; case '4': return 4; case '5': return 5; case '6': return 6; case '7': return 7; case '8': return 8; case '9': return 9; case 'a': case 'A': return 10; case 'b': case 'B': return 11; case 'c': case 'C': return 12; case 'd': case 'D': return 13; case 'e': case 'E': return 14; case 'f': case 'F': return 15; default: return 0; }
+case '0': return 0;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+hex_digit_to_int -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=hex_digit_to_int
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=hex_digit_to_int#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+switch(c) { case '0': return 0; case '1': return 1; case '2': return 2; case '3': return 3; case '4': return 4; case '5': return 5; case '6': return 6; case '7': return 7; case '8': return 8; case '9': return 9; case 'a': case 'A': return 10; case 'b': case 'B': return 11; case 'c': case 'C': return 12; case 'd': case 'D': return 13; case 'e': case 'E': return 14; case 'f': case 'F': return 15; default: return 0; }
+case '0': return 0;
+return 0;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

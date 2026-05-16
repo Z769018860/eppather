@@ -152,6 +152,19 @@ KEYWORDS = {
 
 CONTROL_WORDS = {"if", "while", "for", "switch", "return", "sizeof"}
 
+# Names introduced by headers, macros, libc prelude, or test harness code.
+# They should not be counted as project-level library entry functions in --entry-set all.
+NON_PROJECT_ENTRIES: Dict[str, Set[str]] = {
+    "sds": {
+        "SDS_TYPE_5_LEN",
+        "UNUSED",
+        "printf",
+        "main",
+    },
+    "list": set(),
+    "inih": set(),
+}
+
 COMPAT_FUNCTIONS: Dict[Tuple[str, str], str] = {
     ("list", "list_rpush"): """
 int list_rpush(int len, int node_ok)
@@ -618,6 +631,29 @@ def return_type_for_signature(signature: str, func_name: str) -> str:
         return "int *"
     return "int"
 
+def is_candidate_project_entry(spec: ProjectSpec, name: str, func: FunctionDef) -> bool:
+    if name in NON_PROJECT_ENTRIES.get(spec.name, set()):
+        return False
+    if name.isupper():
+        return False
+    if name.startswith("__"):
+        return False
+    sig = " ".join(func.signature.split())
+    if not sig:
+        return False
+    if re.search(r"\btypedef\b", sig):
+        return False
+    if name in {
+        "malloc", "calloc", "realloc", "free", "memcpy", "memmove", "memset",
+        "memcmp", "strlen", "strcmp", "strncmp", "strchr", "strrchr",
+        "strstr", "strcpy", "strncpy", "sprintf", "snprintf", "fprintf",
+        "fputc", "fopen", "fclose", "fseek", "ftell", "rewind", "fread",
+        "ferror", "fgets", "isspace", "isalpha", "isdigit", "isalnum",
+        "isxdigit", "tolower", "toupper", "strtod", "printf"
+    }:
+        return False
+    return True
+
 def stable_slot(name: str) -> int:
     h = 0
     for ch in name:
@@ -795,6 +831,56 @@ def make_typed_approx_source(funcs: Dict[str, FunctionDef], names: List[str], en
             out.append("\n")
     return "\n".join(out)
 
+def make_auto_compat_function(func: FunctionDef) -> str:
+    params_text = extract_param_text(func.signature, func.name)
+    params: List[str] = []
+    param_names: List[str] = []
+    pointer_params: Set[str] = set()
+
+    if params_text.strip() and params_text.strip() != "void":
+        for i, p in enumerate(split_top_level_commas(params_text)):
+            name = param_name(p, i)
+            if name in param_names:
+                continue
+            param_names.append(name)
+            params.append(typed_param(p, i))
+            if is_pointer_like_type(p):
+                pointer_params.add(name)
+
+    param_sig = ", ".join(params) if params else "void"
+    ret = return_type_for_signature(func.signature, func.name)
+
+    lines: List[str] = []
+    lines.append("    int mem = 0;")
+    for name in param_names:
+        if name in pointer_params:
+            lines.append(f"    if ({name}) {{")
+            lines.append(f"        mem = mem + {name}[0];")
+            lines.append("    }")
+        else:
+            lines.append(f"    if ({name} > 0) {{")
+            lines.append(f"        mem = mem + {name};")
+            lines.append("    } else {")
+            lines.append(f"        mem = mem - {name};")
+            lines.append("    }")
+    if not param_names:
+        lines.append("    mem = mem + 1;")
+
+    if ret == "int *":
+        lines.append("    return 0;")
+    else:
+        lines.append("    return mem;")
+
+    return f"{ret}{func.name}({param_sig})\n{{\n" + "\n".join(lines) + "\n}\n"
+
+def make_auto_compat_source(func: FunctionDef, project: str, entry: str) -> str:
+    return "\n".join([
+        "/* Generated auto-compatibility summary model for eppather summary mode. */\n",
+        f"/* project={project} EPPATHER_ENTRY={entry} slice=auto_compat */\n",
+        make_auto_compat_function(func),
+        "\n",
+    ])
+
 def make_compat_source(project: str, entry: str) -> str:
     return "\n".join([
         "/* Generated compatibility slice for eppather summary mode. */\n",
@@ -888,7 +974,7 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
             writer.writerow({k: row.get(k, "") for k in fields})
 
 def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
-    priority = {"closure": 0, "entry_only": 1, "type_erased": 2, "compat_entry": 3}
+    priority = {"closure": 0, "entry_only": 1, "type_erased": 2, "compat_entry": 3, "auto_compat": 4}
     grouped: Dict[Tuple[str, str, str], List[Dict[str, str]]] = {}
     for row in rows:
         key = (row.get("project", ""), row.get("entry", ""), row.get("mode", ""))
@@ -921,7 +1007,7 @@ def select_entries(spec: ProjectSpec, entry_set: str, custom_entries: Optional[L
     if entry_set == "all":
         if funcs is None:
             return []
-        return sorted(funcs.keys())
+        return sorted(name for name, func in funcs.items() if is_candidate_project_entry(spec, name, func))
     raise ValueError(entry_set)
 
 def prepare_project(testcase: Path, spec: ProjectSpec, out_root: Path) -> Tuple[Optional[Path], List[Path], Dict[Path, Tuple[Dict[str, FunctionDef], str]]]:
@@ -969,6 +1055,10 @@ def build_slice_files(project_out: Path, spec: ProjectSpec, flat_path: Path, fun
         compat_path = slices_dir / f"{flat_path.stem}__{entry}__compat_entry.c"
         compat_path.write_text(make_compat_source(spec.name, entry), encoding="utf-8")
         result.append(("compat_entry", compat_path))
+    elif spec.name == "sds" and entry in funcs:
+        auto_compat_path = slices_dir / f"{flat_path.stem}__{entry}__auto_compat.c"
+        auto_compat_path.write_text(make_auto_compat_source(funcs[entry], spec.name, entry), encoding="utf-8")
+        result.append(("auto_compat", auto_compat_path))
     return result
 
 def run_attempts_native_first(cnip: Path, slice_files: List[Tuple[str, Path]], mode: str, entry: str, spec: ProjectSpec, flat_path: Path, project_root: Path, run_root: Path, maxloop: int, maxpaths: int, timeout: int, crash_trace: bool, debug_epat: bool, disable_fallback: bool) -> Tuple[List[Dict[str, str]], bool]:

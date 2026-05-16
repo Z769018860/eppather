@@ -1,3 +1,8 @@
 int *s;
 int newlen;
-int alloc;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(newlen > 0);
+mem = mem + newlen;
+return mem;

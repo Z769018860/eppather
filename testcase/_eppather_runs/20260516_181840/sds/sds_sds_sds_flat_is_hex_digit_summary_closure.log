@@ -1,0 +1,52 @@
+equals!!!!!'0'!!!!
+equals!!!!!'9'!!!!
+equals!!!!!c <= '9'!!!!
+equals!!!!!'a'!!!!
+equals!!!!!'f'!!!!
+equals!!!!!c <= 'f'!!!!
+equals!!!!!(c >= 'a' && c <= 'f')!!!!
+equals!!!!!'A'!!!!
+equals!!!!!'F'!!!!
+equals!!!!!c <= 'F'!!!!
+equals!!!!!(c >= 'A' && c <= 'F')!!!!
+Function summaries are ready to dump ~
+warning: a declaration with the name "SDS_NOINIT" already exists!
+Path:extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function is_hex_digit:
+signature: int is_hex_digit(char c)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=14829179957696114348 path="extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+is_hex_digit -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=is_hex_digit
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=is_hex_digit#0{extern const char *SDS_NOINIT;
+const char *SDS_NOINIT = "SDS_NOINIT";
+char c;
+return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

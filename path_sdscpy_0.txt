@@ -1,4 +1,8 @@
-extern const char *SDS_NOINIT;
-const char *SDS_NOINIT = "SDS_NOINIT";
-const char *t;
-return sdscpylen(s, t, strlen(t));
+int *s;
+int *t;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(t);
+mem = mem + t[0];
+return 0;

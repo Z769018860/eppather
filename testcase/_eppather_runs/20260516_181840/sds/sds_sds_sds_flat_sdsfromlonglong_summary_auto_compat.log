@@ -1,0 +1,67 @@
+equals!!!!!0!!!!
+equals!!!!!value!!!!
+equals!!!!!mem + value!!!!
+equals!!!!!value!!!!
+equals!!!!!mem - value!!!!
+Function summaries are ready to dump ~
+Path:int value;
+int mem = 0;
+@(value > 0);
+mem = mem + value;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int value = 1
+
+Path:int value;
+int mem = 0;
+@(!(value > 0));
+mem = mem - value;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int value = 0
+
+[FUNCTION SUMMARIES]
+Function sdsfromlonglong:
+signature: int *sdsfromlonglong(int value)
+#cases: 2
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=13219887202116530968 path="int value;
+int mem = 0;
+@(value > 0);
+mem = mem + value;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=12858879703157515741 path="int value;
+int mem = 0;
+@(!(value > 0));
+mem = mem - value;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsfromlonglong -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=2
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsfromlonglong
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdsfromlonglong#0{int value;
+int mem = 0;
+@(value > 0);
+mem = mem + value;
+return 0;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)
