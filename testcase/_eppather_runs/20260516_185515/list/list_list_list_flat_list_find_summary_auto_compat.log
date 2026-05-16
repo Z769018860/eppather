@@ -1,0 +1,125 @@
+equals!!!!!self[0]!!!!
+equals!!!!!mem + self[0]!!!!
+equals!!!!!val[0]!!!!
+equals!!!!!mem + val[0]!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int *val;
+int mem = 0;
+@(self);
+mem = mem + self[0];
+@(val);
+mem = mem + val[0];
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int *self[0] = 4294967295
+int *val[0] = 4294967295
+
+Path:int *self;
+int *val;
+int mem = 0;
+@(self);
+mem = mem + self[0];
+@(!(val));
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *self[0] = 4294967295
+int *val[0] = 0
+
+Path:int *self;
+int *val;
+int mem = 0;
+@(!(self));
+@(val);
+mem = mem + val[0];
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *val[0] = 4294967295
+int *self[0] = 0
+
+Path:int *self;
+int *val;
+int mem = 0;
+@(!(self));
+@(!(val));
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int *val[0] = 0
+int *self[0] = 0
+
+[FUNCTION SUMMARIES]
+Function list_find:
+signature: int *list_find(int *self, int *val)
+#cases: 4
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=7000436303657027110 path="int *self;
+int *val;
+int mem = 0;
+@(self);
+mem = mem + self[0];
+@(val);
+mem = mem + val[0];
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=151567919094668293 path="int *self;
+int *val;
+int mem = 0;
+@(self);
+mem = mem + self[0];
+@(!(val));
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=10754851565303497957 path="int *self;
+int *val;
+int mem = 0;
+@(!(self));
+@(val);
+mem = mem + val[0];
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=734676519270592573 path="int *self;
+int *val;
+int mem = 0;
+@(!(self));
+@(!(val));
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_find -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=4
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_find
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=list_find#0{int *self;
+int *val;
+int mem = 0;
+@(self);
+mem = mem + self[0];
+@(val);
+mem = mem + val[0];
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

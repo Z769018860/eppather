@@ -1,0 +1,68 @@
+equals!!!!!3!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int *type;
+int typeSDS_TYPE_MASK;
+return (s-3);
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+Path:int *s;
+int *type;
+int typeSDS_TYPE_MASK;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsAllocPtr:
+signature: int *sdsAllocPtr(int *s)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=2258829185585665979 path="int *s;
+int *type;
+int typeSDS_TYPE_MASK;
+return (s-3);
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+Function sdsHdrSize:
+signature: int sdsHdrSize(int *type)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=15518673904236014068 path="int *s;
+int *type;
+int typeSDS_TYPE_MASK;
+switch(typeSDS_TYPE_MASK) { case SDS_TYPE_5: return 1; case SDS_TYPE_8: return 1; case SDS_TYPE_16: return 1; case SDS_TYPE_32: return 1; case SDS_TYPE_64: return 1; }
+case SDS_TYPE_5: return 1;
+return 1;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsHdrSize -> []
+sdsAllocPtr -> []
+[SUMMARY STATS]
+function_count=2
+summary_case_count=2
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsAllocPtr
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdsAllocPtr#0{int *s;
+int *type;
+int typeSDS_TYPE_MASK;
+return (s-3);
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

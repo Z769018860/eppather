@@ -1,0 +1,93 @@
+equals!!!!!32!!!!
+equals!!!!!256!!!!
+equals!!!!!65536!!!!
+Function summaries are ready to dump ~
+Path:unsigned long string_size;
+@(string_size < 32);
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int string_size = 31
+
+Path:unsigned long string_size;
+@(!(string_size < 32));
+@(string_size < 256);
+return 1;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int string_size = 128
+
+Path:unsigned long string_size;
+@(!(string_size < 32));
+@(!(string_size < 256));
+@(string_size < 65536);
+return 2;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int string_size = 32768
+
+Path:unsigned long string_size;
+@(!(string_size < 32));
+@(!(string_size < 256));
+@(!(string_size < 65536));
+return 3;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int string_size = 67108864
+
+[FUNCTION SUMMARIES]
+Function sdsReqType:
+signature: int sdsReqType(unsigned long string_size)
+#cases: 4
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=6865216262801714350 path="unsigned long string_size;
+@(string_size < 32);
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=8834645035140979062 path="unsigned long string_size;
+@(!(string_size < 32));
+@(string_size < 256);
+return 1;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=2437257364367944443 path="unsigned long string_size;
+@(!(string_size < 32));
+@(!(string_size < 256));
+@(string_size < 65536);
+return 2;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=9596113320254148708 path="unsigned long string_size;
+@(!(string_size < 32));
+@(!(string_size < 256));
+@(!(string_size < 65536));
+return 3;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsReqType -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=4
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsReqType
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdsReqType#0{unsigned long string_size;
+@(string_size < 32);
+return 0;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)

@@ -1,0 +1,53 @@
+equals!!!!!node[2]!!!!
+equals!!!!!node[2]!!!!
+equals!!!!!(self[3] = node[2])!!!!
+equals!!!!!node[1]!!!!
+equals!!!!!node[1]!!!!
+equals!!!!!(self[2] = node[1])!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int *node;
+;
+;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function list_remove:
+signature: int *list_remove(int *self, int *node)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=7951542927161802604 path="int *self;
+int *node;
+;
+;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_remove -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_remove
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=list_remove#0{int *self;
+int *node;
+;
+;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)
+list_list_flat__list_remove__semantic_stubbed.c:20:13 warning: missing type specifier, assume `int'
+if (self[1]) self->0;
+             ^
+list_list_flat__list_remove__semantic_stubbed.c:20:17 error: expected `,' or `;' or `=' after declarator, got `->'
+if (self[1]) self->0;
+                 ^
+

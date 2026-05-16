@@ -1,0 +1,132 @@
+equals!!!!!s[0]!!!!
+equals!!!!!mem + s[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!len!!!!
+equals!!!!!mem + len!!!!
+equals!!!!!len!!!!
+equals!!!!!mem - len!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *s[0] = 4294967295
+int len = 1
+
+Path:int *s;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int len = 0
+int *s[0] = 4294967295
+
+Path:int *s;
+int len;
+int mem = 0;
+@(!(s));
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int len = 1
+int *s[0] = 0
+
+Path:int *s;
+int len;
+int mem = 0;
+@(!(s));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int len = 0
+int *s[0] = 0
+
+[FUNCTION SUMMARIES]
+Function sdsgrowzero:
+signature: int *sdsgrowzero(int *s, int len)
+#cases: 4
+DIRECT worst_mems: 1
+DIRECT avg_mems(equal-weight): 0.5
+APPROX worst_mems: 1
+APPROX avg_mems(equal-weight): 0.5
+  [case 0] guard_hash=10541502632995171434 path="int *s;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=17973614578493625801 path="int *s;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=13290917360299807142 path="int *s;
+int len;
+int mem = 0;
+@(!(s));
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=17695427972891480579 path="int *s;
+int len;
+int mem = 0;
+@(!(s));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsgrowzero -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=4
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsgrowzero
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=1
+worst_path=sdsgrowzero#0{int *s;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+}
+weighted_avg_mems=0.5 (equal-weight; volce disabled)

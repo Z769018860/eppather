@@ -1,0 +1,56 @@
+equals!!!!!node[1]!!!!
+equals!!!!!0!!!!
+equals!!!!!0!!!!
+equals!!!!!self[3] = 0!!!!
+equals!!!!!0!!!!
+equals!!!!!node[1] = 0!!!!
+Function summaries are ready to dump ~
+Path:int *self;
+int next;
+int *node;
+@(!self[4]);
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *self[0] = 4294967284
+int next = 0
+int *node[0] = 0
+
+Error: should not get a right value for unary operator '--', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+Error: should not get a right value for unary operator '--', file: /home/zhangliwei/eppather/epat++/libepat++/include/c1_solver.h, line: 589
+
+[FUNCTION SUMMARIES]
+Function list_rpop:
+signature: int *list_rpop(int *self)
+#cases: 1
+DIRECT worst_mems: 1
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 1
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=10867369015099308106 path="int *self;
+int next;
+int *node;
+@(!self[4]);
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+list_rpop -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=list_rpop
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=1
+worst_path=list_rpop#0{int *self;
+int next;
+int *node;
+@(!self[4]);
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

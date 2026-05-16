@@ -1,0 +1,281 @@
+equals!!!!!s[0]!!!!
+equals!!!!!mem + s[0]!!!!
+equals!!!!!p[0]!!!!
+equals!!!!!mem + p[0]!!!!
+equals!!!!!0!!!!
+equals!!!!!len!!!!
+equals!!!!!mem + len!!!!
+equals!!!!!len!!!!
+equals!!!!!mem - len!!!!
+Function summaries are ready to dump ~
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(p);
+mem = mem + p[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int *p[0] = 4294967295
+int len = 1
+int *s[0] = 4294967295
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(p);
+mem = mem + p[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:2
+[averagemem]:0
+[testcase]:
+int len = 0
+int *s[0] = 4294967295
+int *p[0] = 4294967295
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(p));
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *s[0] = 4294967295
+int len = 1
+int *p[0] = 0
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(p));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int len = 0
+int *s[0] = 4294967295
+int *p[0] = 0
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(p);
+mem = mem + p[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int *p[0] = 4294967295
+int len = 1
+int *s[0] = 0
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(p);
+mem = mem + p[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:1
+[averagemem]:0
+[testcase]:
+int len = 0
+int *p[0] = 4294967295
+int *s[0] = 0
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(!(p));
+@(len > 0);
+mem = mem + len;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int len = 1
+int *s[0] = 0
+int *p[0] = 0
+
+Path:int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(!(p));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+int len = 0
+int *s[0] = 0
+int *p[0] = 0
+
+[FUNCTION SUMMARIES]
+Function sdscatrepr:
+signature: int *sdscatrepr(int *s, int *p, int len)
+#cases: 8
+DIRECT worst_mems: 2
+DIRECT avg_mems(equal-weight): 1
+APPROX worst_mems: 2
+APPROX avg_mems(equal-weight): 1
+  [case 0] guard_hash=2135733017363906274 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(p);
+mem = mem + p[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 1] guard_hash=12790806105837686273 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(p);
+mem = mem + p[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=2 composed_mems=2 volce=N/A prob=N/A callees=[]
+  [case 2] guard_hash=14341472544984711609 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(p));
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 3] guard_hash=10161599789049558259 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(!(p));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 4] guard_hash=4273101100982883783 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(p);
+mem = mem + p[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 5] guard_hash=3866971142648783174 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(p);
+mem = mem + p[0];
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=1 composed_mems=1 volce=N/A prob=N/A callees=[]
+  [case 6] guard_hash=1238625254884125692 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(!(p));
+@(len > 0);
+mem = mem + len;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+  [case 7] guard_hash=15221978810161811293 path="int *s;
+int *p;
+int len;
+int mem = 0;
+@(!(s));
+@(!(p));
+@(!(len > 0));
+mem = mem - len;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdscatrepr -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=8
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdscatrepr
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=2
+worst_path=sdscatrepr#0{int *s;
+int *p;
+int len;
+int mem = 0;
+@(s);
+mem = mem + s[0];
+@(p);
+mem = mem + p[0];
+@(len > 0);
+mem = mem + len;
+return 0;
+}
+weighted_avg_mems=1 (equal-weight; volce disabled)

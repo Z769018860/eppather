@@ -1,0 +1,39 @@
+equals!!!!!1!!!!
+equals!!!!!mem + 1!!!!
+Function summaries are ready to dump ~
+Path:int mem = 0;
+mem = mem + 1;
+return 0;
+
+feasible!!!
+[mem]:0
+[averagemem]:0
+[testcase]:
+
+[FUNCTION SUMMARIES]
+Function sdsalloc:
+signature: int *sdsalloc(void)
+#cases: 1
+DIRECT worst_mems: 0
+DIRECT avg_mems(equal-weight): 0
+APPROX worst_mems: 0
+APPROX avg_mems(equal-weight): 0
+  [case 0] guard_hash=4085007828392566891 path="int mem = 0;
+mem = mem + 1;
+return 0;
+" mems=0 composed_mems=0 volce=N/A prob=N/A callees=[]
+[CALL GRAPH]
+sdsalloc -> []
+[SUMMARY STATS]
+function_count=1
+summary_case_count=1
+call_edge_count=0
+[PROGRAM SUMMARY]
+entry=sdsalloc
+recursion_policy=FUNCTION_SUMMARY_FIXPOINT_APPROX(max_iters=32, used_iters=1, converged=true)
+worst_mems=0
+worst_path=sdsalloc#0{int mem = 0;
+mem = mem + 1;
+return 0;
+}
+weighted_avg_mems=0 (equal-weight; volce disabled)
