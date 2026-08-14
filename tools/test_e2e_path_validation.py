@@ -36,6 +36,14 @@ def test_signature_parser():
 def test_loop_instrumentation_enforces_bound():
     code = e2e.instrument_conditions("int f(int x){while(x){x=x-1;}return x;}", 1, "f")
     assert "EPP_LOOP_TRACE" in code
+    assert "epp_loop_count[0] = 0; while" in code
+
+
+def test_nested_loop_counter_resets_at_each_lexical_entry():
+    source = "int f(int x){for(int i=0;i<x;i=i+1){while(x>i){break;}}return x;}"
+    code = e2e.instrument_conditions(source, 2, "f")
+    assert "epp_loop_count[0] = 0; for" in code
+    assert "epp_loop_count[1] = 0; while" in code
 
 
 def test_only_selected_function_is_instrumented():
