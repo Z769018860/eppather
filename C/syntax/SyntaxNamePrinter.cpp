@@ -908,8 +908,10 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                 bool joinToBodyEnd = false;
                 if (!loopStack.empty()) {
                     auto& L = loopStack.back();
-                    // 只有“离开循环体”才指向 bodyEnd
-                    joinToBodyEnd = (nodeLevel <= L.level);
+                    // 只有 if 位于该循环内部且正在离开循环体时才回环。
+                    // 外层 if 包含内层循环时，不能把 if.join 接到内层 bodyEnd，
+                    // 否则 false 分支会错误地进入循环。
+                    joinToBodyEnd = (fr.level > L.level && nodeLevel <= L.level);
                 }
 
                 if (joinToBodyEnd) {
