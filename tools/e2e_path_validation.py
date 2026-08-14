@@ -66,7 +66,7 @@ def expected_outcomes(path: str) -> list[int]:
     return outcomes
 
 
-def instrument_conditions(source: str) -> str:
+def instrument_conditions(source: str, max_loop: int) -> str:
     counter = 0
     pattern = re.compile(r"\b(if|while)\s*\(([^{};]*)\)|\bfor\s*\(([^;]*);([^;]*);([^)]*)\)")
 
@@ -75,9 +75,11 @@ def instrument_conditions(source: str) -> str:
         idx = counter
         counter += 1
         if match.group(1):
-            return f"{match.group(1)} (EPP_TRACE({idx}, ({match.group(2)})))"
+            keyword = match.group(1)
+            tracer = "EPP_LOOP_TRACE" if keyword == "while" else "EPP_TRACE"
+            return f"{keyword} ({tracer}({idx}, ({match.group(2)})))"
         condition = match.group(4).strip() or "1"
-        return f"for ({match.group(3)}; EPP_TRACE({idx}, ({condition})); {match.group(5)})"
+        return f"for ({match.group(3)}; EPP_LOOP_TRACE({idx}, ({condition})); {match.group(5)})"
 
     return pattern.sub(replace, source)
 
@@ -86,13 +88,15 @@ def run(cmd: list[str], cwd: Path, env: dict[str, str] | None = None) -> subproc
     return subprocess.run(cmd, cwd=cwd, env=env, text=True, capture_output=True, timeout=120)
 
 
-def concrete_trace(source: str, function: str, params: list[str], inputs: dict[str, int], work: Path) -> list[int]:
+def concrete_trace(source: str, function: str, params: list[str], inputs: dict[str, int], work: Path, max_loop: int) -> list[int]:
     arguments = ", ".join(str(inputs[p]) for p in params)
     program = (
         '#include <stdio.h>\n'
+        'static unsigned epp_loop_count[4096];\n'
         'static int epp_trace(int id,int v){printf("EPP_BRANCH %d %d\\n",id,!!v);return v;}\n'
         '#define EPP_TRACE(id,expr) epp_trace((id),(expr))\n'
-        + instrument_conditions(source)
+        f'#define EPP_LOOP_TRACE(id,expr) epp_trace((id),(epp_loop_count[(id)]++ < {max_loop}) && !!(expr))\n'
+        + instrument_conditions(source, max_loop)
         + f"\nint main(void){{(void){function}({arguments});return 0;}}\n"
     )
     cfile = work / "replay.c"
@@ -136,7 +140,7 @@ def main() -> int:
             path = (work / f"path_{function}_{path_id}.txt").read_text(encoding="utf-8", errors="replace")
             inputs, expected = parse_model(result_text, params), expected_outcomes(path)
             try:
-                actual = concrete_trace(source, function, params, inputs, work)
+                actual = concrete_trace(source, function, params, inputs, work, args.max_loop)
                 status = "match" if actual == expected else "mismatch"
                 detail = "" if status == "match" else "ordered branch outcomes differ"
             except Exception as exc:
