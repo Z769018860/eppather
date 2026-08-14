@@ -565,6 +565,13 @@ testcase/_eppather_runs/<timestamp>/run_summary.csv
 | R2 | `20260516_181840` | 过滤非项目入口；为 SDS 增加 `auto_compat` | 过滤后的项目级函数集合 | 66 | 61 | 92.4% | 52 |
 | R3 | `20260516_183533` | 修复生成函数头；将 `auto_compat` 扩展到三个项目 | 最终项目级函数集合 | 66 | 66 | 100.0% | 66 |
 | R4 | `20260516_185515` | 增加 `semantic_stubbed`，在保留语义的情况下进行局部简化和兼容 | 最终项目级函数集合 | 66 | 66 | 100.0% | 66 |
+| R5 | `20260814_173835` | 当前后端全函数复验，并增加 DFS2/DP 路径与 MEMS 交叉验证 | 最终项目级函数集合 | 66 | 66 | 100.0% | 66 |
+
+R5 的详细迭代过程、slice 分布、逐项目 MEMS 结果及 DFS2/DP 严格一致率见
+[`docs/small-project-summary-iteration-validation-2026-08-14.md`](docs/small-project-summary-iteration-validation-2026-08-14.md)。
+同一最终 slice 上 64/66（97.0%）完成并得到一致 MEMS，另外两个 inih 字符串处理入口
+为 DP 60 秒超时；允许继续降级到 auto-compat 时可完成 66/66，但不应将其解释为
+66 个函数均保持完整源码语义。
 
 其中 R4 相比 R1 的主要提升为：
 
