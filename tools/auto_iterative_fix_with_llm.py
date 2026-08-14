@@ -3,7 +3,7 @@
 Generic LLM-driven iterative repair runner for parser/semantic failures.
 
 Usage example:
-  export OPENAI_API_KEY=...
+  export DEEPSEEK_API_KEY=...
   python3 tools/auto_iterative_fix_with_llm.py \
     --input experiment_results/cjson/cjson.compat.i \
     --workdir experiment_results/cjson \
@@ -37,6 +37,7 @@ Hard constraints:
 3) Never invent unrelated business logic.
 4) Keep edits minimal and deterministic.
 5) Output ONLY the full repaired C source code, no markdown, no explanation.
+6) Use decimal integer literals; Eppather's path parser does not accept hexadecimal literals.
 """
 
 
@@ -108,7 +109,8 @@ def format_diagnostics(points: List[Dict], source_text: str) -> str:
     return "\n\n".join(blocks) if blocks else "(no precise line extracted; use overall output)"
 
 
-def call_openai(base_url: str, api_key: str, model: str, system_prompt: str, user_prompt: str) -> str:
+def call_openai(base_url: str, api_key: str, model: str, system_prompt: str,
+                user_prompt: str, request_timeout: int) -> str:
     url = base_url.rstrip("/") + "/chat/completions"
     payload = {
         "model": model,
@@ -121,7 +123,7 @@ def call_openai(base_url: str, api_key: str, model: str, system_prompt: str, use
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=180) as resp:
+        with urllib.request.urlopen(req, timeout=request_timeout) as resp:
             body = resp.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as e:
         detail = e.read().decode("utf-8", errors="replace") if hasattr(e, "read") else str(e)
@@ -137,14 +139,17 @@ def main():
     ap.add_argument("--cmd", required=True, help="Analyzer command; use {input} placeholder.")
     ap.add_argument("--project", default="generic-c-project")
     ap.add_argument("--max-iters", type=int, default=6)
-    ap.add_argument("--model", default=os.environ.get("OPENAI_MODEL", "gpt-5-mini"))
-    ap.add_argument("--fallback-model", default=os.environ.get("OPENAI_FALLBACK_MODEL", "gpt-5-nano"))
-    ap.add_argument("--base-url", default=os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1"))
+    ap.add_argument("--model", default=os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-pro"))
+    ap.add_argument("--fallback-model", default=os.environ.get("DEEPSEEK_FALLBACK_MODEL", "deepseek-v4-pro"))
+    ap.add_argument("--base-url", default=os.environ.get("DEEPSEEK_BASE_URL", "https://api.deepseek.com"))
+    ap.add_argument("--request-timeout", type=int,
+                    default=int(os.environ.get("DEEPSEEK_TIMEOUT", "900")),
+                    help="Per-request API timeout in seconds (default: 900).")
     args = ap.parse_args()
 
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("DEEPSEEK_API_KEY") or os.environ.get("OPENAI_API_KEY")
     if not api_key:
-        raise SystemExit("OPENAI_API_KEY is required")
+        raise SystemExit("DEEPSEEK_API_KEY is required")
 
     inp = Path(args.input).resolve()
     workdir = Path(args.workdir).resolve()
@@ -175,10 +180,12 @@ def main():
             source=current,
         )
         try:
-            repaired = call_openai(args.base_url, api_key, args.model, SYSTEM_PROMPT, user_prompt)
+            repaired = call_openai(args.base_url, api_key, args.model, SYSTEM_PROMPT,
+                                   user_prompt, args.request_timeout)
         except Exception as e1:
             print(f"[ITER {it}] primary model {args.model} failed: {e1}")
-            repaired = call_openai(args.base_url, api_key, args.fallback_model, SYSTEM_PROMPT, user_prompt)
+            repaired = call_openai(args.base_url, api_key, args.fallback_model, SYSTEM_PROMPT,
+                                   user_prompt, args.request_timeout)
             print(f"[ITER {it}] fallback model {args.fallback_model} succeeded")
         repaired = repaired.strip()
         if not repaired:
@@ -192,4 +199,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
