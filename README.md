@@ -667,6 +667,18 @@ python3 tools/auto_iterative_fix_with_llm.py \
 `deepseek-v4-pro` 模型；可通过 `DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL` 与
 `DEEPSEEK_TIMEOUT` 覆盖。API Key 只从环境变量读取，不应写入仓库。
 
+DeepSeek 生成并经过 Eppather 子集规范化的 cJSON、tinyexpr、Lua 摘要位于
+`testcase/llm_summaries/`。可批量检查 C 编译、DFS2/DP 执行状态以及两种
+算法的最大 MEMS 一致性：
+
+```bash
+CNIP=./cnip MAXLOOP=1 MAXPATHS=40 RUN_TIMEOUT=120 \
+  bash tools/validate_llm_summaries.sh
+```
+
+验证脚本对每个模式施加独立超时，并在编译失败、崩溃、超时、结果缺失或
+DFS2/DP 最大 MEMS 不一致时返回非零状态。
+
 脚本会在 `--workdir` 下生成：
 
 - `*.iterN.c`：第 N 轮修复输入；
