@@ -2256,6 +2256,14 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         if ((int)vec.size() < want) vec.resize(want, false);
     };
     auto is_decision_feasible = [&](const std::vector<PathDecision>& nextDecisions) {
+        // Prefix scripts are not complete C paths.  In particular, a prefix
+        // ending at a negated loop guard can underflow epat++'s expression
+        // stack.  Solve complete leaf paths by default; keep prefix pruning as
+        // an explicit experimental opt-in.
+        const char* prefixCheck = std::getenv("EPPATHER_PREFIX_FEASIBILITY");
+        if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
+            return true;
+        }
         static const EpatRunner rawRunner("");
         const std::string rawPath = rawRunner.render(nextDecisions);
         return isPathFeasible(nextDecisions, rawPath);
@@ -2333,18 +2341,23 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             // 下钻（用 True 的 loop 计数）
             auto saved = loopCount;
             loopCount  = lc_t;
-            if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+            const bool firstCheck = loopCount[d] == 1;
+            if (firstCheck && !node->initstmt_str.empty() && node->initstmt_str != ";") {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
             }
+            if (!firstCheck && !node->expr_str.empty()) {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
+            }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
                 DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
-            decisions.pop_back();
-            if (loopCount[d] == 1 && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+            if (!firstCheck && !node->expr_str.empty()) {
+                decisions.pop_back();
+            }
+            if (firstCheck && !node->initstmt_str.empty() && node->initstmt_str != ";") {
                 decisions.pop_back();
             }
             loopCount = saved;
@@ -2356,12 +2369,25 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
 
+            const bool firstCheck = snap_lc[d] == 0;
+            if (firstCheck && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopInit});
+            }
+            if (!firstCheck && !node->expr_str.empty()) {
+                decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
+            }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
                 DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
+            if (!firstCheck && !node->expr_str.empty()) {
+                decisions.pop_back();
+            }
+            if (firstCheck && !node->initstmt_str.empty() && node->initstmt_str != ";") {
+                decisions.pop_back();
+            }
         }
         return;
     }
