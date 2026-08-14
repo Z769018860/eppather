@@ -52,10 +52,15 @@ def parse_signature(source: str, requested: str | None) -> tuple[str, list[str]]
     return match.group("name"), params
 
 
-def parse_model(text: str, params: list[str]) -> dict[str, int]:
+def parse_model(text: str, params: list[str], source: str = "") -> dict[str, int]:
     values = {m.group("name"): signed_int32(int(m.group("value"))) for m in MODEL_RE.finditer(text)}
-    # Z3 omits unconstrained constants; zero is a deterministic completion.
-    return {name: values.get(name, 0) for name in params}
+    # Z3 omits unconstrained constants. Prefer zero, except for parameters used as
+    # a divisor: one keeps concrete replay defined without changing path choices.
+    divisor_params = {
+        name for name in params
+        if re.search(rf"(?:/|%)\s*\b{re.escape(name)}\b", source)
+    }
+    return {name: values.get(name, 1 if name in divisor_params else 0) for name in params}
 
 
 def expected_outcomes(path: str) -> list[int]:
@@ -66,7 +71,7 @@ def expected_outcomes(path: str) -> list[int]:
     return outcomes
 
 
-def instrument_conditions(source: str, max_loop: int) -> str:
+def instrument_conditions(source: str, max_loop: int, function: str) -> str:
     counter = 0
     pattern = re.compile(r"\b(if|while)\s*\(([^{};]*)\)|\bfor\s*\(([^;]*);([^;]*);([^)]*)\)")
 
@@ -81,7 +86,24 @@ def instrument_conditions(source: str, max_loop: int) -> str:
         condition = match.group(4).strip() or "1"
         return f"for ({match.group(3)}; EPP_LOOP_TRACE({idx}, ({condition})); {match.group(5)})"
 
-    return pattern.sub(replace, source)
+    match = next((m for m in FUNC_RE.finditer(source) if m.group("name") == function), None)
+    if not match:
+        raise ValueError(f"cannot instrument function {function!r}")
+    opening = match.end() - 1
+    depth, closing = 0, None
+    for pos in range(opening, len(source)):
+        if source[pos] == "{":
+            depth += 1
+        elif source[pos] == "}":
+            depth -= 1
+            if depth == 0:
+                closing = pos
+                break
+    if closing is None:
+        raise ValueError(f"unterminated function {function!r}")
+    body = pattern.sub(replace, source[opening + 1:closing])
+    guard = "\nint epp_trace_enabled = !epp_in_entry; epp_in_entry = 1;\n"
+    return source[:opening + 1] + guard + body + source[closing:]
 
 
 def run(cmd: list[str], cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
@@ -93,10 +115,11 @@ def concrete_trace(source: str, function: str, params: list[str], inputs: dict[s
     program = (
         '#include <stdio.h>\n'
         'static unsigned epp_loop_count[4096];\n'
+        'static int epp_in_entry;\n'
         'static int epp_trace(int id,int v){printf("EPP_BRANCH %d %d\\n",id,!!v);return v;}\n'
-        '#define EPP_TRACE(id,expr) epp_trace((id),(expr))\n'
-        f'#define EPP_LOOP_TRACE(id,expr) epp_trace((id),(epp_loop_count[(id)]++ < {max_loop}) && !!(expr))\n'
-        + instrument_conditions(source, max_loop)
+        '#define EPP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(expr)) : (expr))\n'
+        f'#define EPP_LOOP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(epp_loop_count[(id)]++ < {max_loop}) && !!(expr)) : (expr))\n'
+        + instrument_conditions(source, max_loop, function)
         + f"\nint main(void){{(void){function}({arguments});return 0;}}\n"
     )
     cfile = work / "replay.c"
@@ -138,7 +161,7 @@ def main() -> int:
             if not re.search(r"(?m)^feasible$", result_text):
                 continue
             path = (work / f"path_{function}_{path_id}.txt").read_text(encoding="utf-8", errors="replace")
-            inputs, expected = parse_model(result_text, params), expected_outcomes(path)
+            inputs, expected = parse_model(result_text, params, source), expected_outcomes(path)
             try:
                 actual = concrete_trace(source, function, params, inputs, work, args.max_loop)
                 status = "match" if actual == expected else "mismatch"
