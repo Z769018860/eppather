@@ -878,7 +878,38 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                 }
             }
             if (enteringElse) {
+                // Finish any ifs nested in the then arm before entering the
+                // outer else arm.  Leaving them on ifStack lets B1 treat their
+                // join nodes as predecessors of elseFirst, which incorrectly
+                // creates a then -> else fall-through edge.
+                while (static_cast<int>(ifStack.size()) - 1 > enteringElseIdx) {
+                    auto nested = ifStack.back();
+                    if (lastNode && lastNode != nested.join) {
+                        lastNode->setNextNode(nested.join);
+                    }
+                    lastNode = nested.join;
+                    ifStack.pop_back();
+                }
                 auto& fr = ifStack[enteringElseIdx];
+                // Loops wholly contained in the then arm must likewise finish
+                // at the outer if join.  Otherwise B2 later resolves their
+                // false edge to elseFirst and executes both arms.
+                while (!loopStack.empty() && loopStack.back().level > fr.level) {
+                    auto lf = loopStack.back();
+                    if (lf.lastInBody && lf.lastInBody->nodeLevel > lf.level &&
+                        lf.lastInBody != lf.bodyEnd) {
+                        lf.lastInBody->setNextNode(lf.bodyEnd);
+                    }
+                    if (lastNode && lastNode->nodeLevel > lf.level &&
+                        lastNode != lf.bodyEnd) {
+                        lastNode->setNextNode(lf.bodyEnd);
+                    }
+                    lf.bodyEnd->setNextNode(lf.cond);
+                    for (auto& br : lf.breaks) br->setNextNode(lf.join);
+                    lf.join->setNextNode(fr.join);
+                    loopStack.pop_back();
+                    lastNode = fr.join;
+                }
                 if (lastNode && lastNode != fr.join) {
                     lastNode->setNextNode(fr.join);
                 }
@@ -943,14 +974,22 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                 // break → join
                 for (auto& br : lf.breaks) br->setNextNode(lf.join);
 
-                // join 的外部后继延迟到“当前结点 n 创建后”回填
-                pendingLoopJoinsToOutside.push_back(lf.join);
-
                 loopStack.pop_back();
                 closedSomething = true;
 
-                // 离开循环后断开顺序边
-                lastNode = nullptr;
+                // If this loop is nested in another loop that is also being
+                // closed, its false/join edge finishes one outer iteration;
+                // it must not jump directly to the statement outside both
+                // loops (which would skip the outer update/back edge).
+                if (!loopStack.empty() && nodeLevel <= loopStack.back().level) {
+                    lf.join->setNextNode(loopStack.back().bodyEnd);
+                    loopStack.back().lastInBody = loopStack.back().bodyEnd;
+                    lastNode = loopStack.back().bodyEnd;
+                } else {
+                    // Outermost join is resolved once the current node exists.
+                    pendingLoopJoinsToOutside.push_back(lf.join);
+                    lastNode = nullptr;
+                }
             }
 
             // C) 创建当前 CFG 结点 n
@@ -1089,7 +1128,8 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             }
 
             // 更新“体内最后观测到的结点”（凡是比循环层级更深的都算体内）
-            for (auto& L : loopStack) {
+            if (!loopStack.empty()) {
+                auto& L = loopStack.back();
                 if (n->nodeLevel > L.level) L.lastInBody = n;
             }
 
