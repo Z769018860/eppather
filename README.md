@@ -941,6 +941,39 @@ The script will:
 - print a compact report;
 - print `[ISSUES DETECTED]` and exit non-zero on failures (CI-friendly).
 
+### LeetCode → Eppather → Concrete Replay Validation
+
+For normalized LeetCode C functions whose entry parameters are scalar `int`s,
+the complete path/test-input chain can be checked with:
+
+```bash
+python3 tools/e2e_path_validation.py \
+  testcase/output_complete2/greatest-common-divisor-1.c \
+  --function gcd_iter \
+  --cnip ./cnip \
+  --max-loop 3 \
+  --output e2e-path-report.json
+```
+
+The command performs these steps in a fresh temporary directory:
+
+1. run DFS2 and collect `path_<function>_<id>.txt` and matching feasible
+   `result_<function>_<id>.txt` artifacts;
+2. parse the Z3 model, convert unsigned 32-bit bit patterns to valid signed C
+   `int` values, and deterministically complete unconstrained inputs with zero;
+3. instrument every `if`, `while`, and `for` condition in the original source;
+4. compile a concrete replay harness with `-O0 -fno-strict-overflow`;
+5. execute every generated input and compare the ordered runtime branch truth
+   values with the ordered `@(...)` decisions in the Eppather path;
+6. write a JSON report and return non-zero on a mismatch, replay error, empty
+   result set, or non-zero Eppather exit.
+
+Pointer and variable-length array parameters are intentionally rejected by the
+automatic harness. Normalize them to the fixed-array/scalar subset first; this
+prevents a test driver from guessing array ownership or length and accidentally
+validating a different program. The generated report records each model and
+both decision sequences so failures are directly reproducible.
+
 ---
 
 ### Summary Logging Note (Updated)
