@@ -2157,8 +2157,10 @@ void SyntaxNamePrinter::DFS(
             // True分支（进入循环体）
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
+            const int savedLoopCount = loopCount[node->depth];
             loopCount[node->depth]++;
             DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
+            loopCount[node->depth] = savedLoopCount;
             decisions.pop_back();
             decisions.pop_back();
             if (pushedInit) decisions.pop_back();
@@ -2178,8 +2180,10 @@ void SyntaxNamePrinter::DFS(
             }
             // True分支（进入循环体）
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            const int savedLoopCount = loopCount[node->depth];
             loopCount[node->depth]++;
             DFS(node->getNextNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
+            loopCount[node->depth] = savedLoopCount;
             decisions.pop_back();
         }
     }
@@ -2577,6 +2581,13 @@ inline bool isPathFeasibleCached(
     SyntaxNamePrinter* self,
     const std::vector<PathDecision>& decisions,
     const std::string& fullExpr) {
+    // An incomplete prefix can leave epat++'s expression stack in an invalid
+    // state and is not a sound feasibility query.  Match DFS2: prune prefixes
+    // only when explicitly requested, and always solve complete leaf paths.
+    const char* prefixCheck = std::getenv("EPPATHER_PREFIX_FEASIBILITY");
+    if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
+        return true;
+    }
     auto it = feasCache.find(fullExpr);
     if (it != feasCache.end()) return it->second;
 
@@ -2607,9 +2618,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     std::vector<PathDecision> decisions
 ) {
     auto makeKey = [&](CFGNode* node) {
-        // 你的 .h 里 dpMemo 的类型是 unordered_map<tuple<CFGNode*,string,string>, PathInfo>
-        // 第三个字段传空串，等效于 (node, LoopMapKey)
-        return std::make_tuple(node, LoopMapKey(loopUnrollMap), std::string());
+        // Feasibility of a suffix depends on the constraints accumulated before
+        // reaching this node.  Reusing a suffix across different prefixes can
+        // turn an infeasible branch into the reported maximum path.  Keep the
+        // prefix in the key; the loop map alone is not a sufficient DP state.
+        return std::make_tuple(node, LoopMapKey(loopUnrollMap), pathPrefix);
     };
 
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
@@ -2682,7 +2695,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::Code});
             }
         }
-        if (!isPathFeasibleCached(this, curDecisions, vartemp + curPath)) {
+        if (!feasibleWithVartemp(this, curDecisions, curPath)) {
             dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
             return PathInfo(0, curPath, false);
         }
@@ -2908,7 +2921,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
 
         std::cout << "[MAX MEMS PATH]:\n";
         const std::string fullPath = vartemp + result.path; // 只在这里拼接一次
-        if (!result.feasible || !isPathFeasible(result.path)) {
+        if (!result.feasible) {
             // 按要求：没有可行路径也输出 MEMS=-1
             // 如需查看组合出的路径，可取消下一行注释
             // std::cout << fullPath << "\n";
@@ -2916,7 +2929,14 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             std::cout << "[VolCE] N/A" << std::endl;
         } else {
             std::cout << fullPath << std::endl;
-            std::cout << "MEMS: " << result.mems << std::endl;
+            // MaxMemsDP ranks paths with per-CFG-node estimates.  Re-evaluate the
+            // selected complete script before reporting it so -g and -q use the
+            // same whole-path MEMS semantics.  This also avoids boundary-node
+            // double counting when a memoized loop suffix is replayed.
+            const auto verifiedEval = EpatRunner("").solveScript(fullPath);
+            const int verifiedMems =
+                verifiedEval.status == result::feasible ? verifiedEval.mem : result.mems;
+            std::cout << "MEMS: " << verifiedMems << std::endl;
             if (enableVolce) {
                 const auto eval = EpatRunner("").solveScript(fullPath);
                 const auto volceResult = runVolce(eval.smt, -8, 8);
