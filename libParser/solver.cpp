@@ -1,5 +1,7 @@
 ﻿#include <ostream>
 #include <ranges>
+#include <cstdint>
+#include <limits>
 #include <regex>
 #include <sstream>
 
@@ -331,6 +333,34 @@ void tool::Solver::restoreVarName()
         return;
     m_model_str = m_model.to_string();
     restoreVarName(m_model_str);
+    // Z3 renders 32-bit bit-vectors as unsigned decimals, while Epat declares
+    // them as C `int`.  Preserve the bit pattern but emit a valid signed C
+    // literal so concrete replay cannot silently take a different branch.
+    {
+        regex assignment(R"((\bint\s+[A-Za-z_][A-Za-z_0-9]*(?:\[[0-9]+\])?\s*=\s*)([0-9]+)(\b))");
+        string normalized, remaining = m_model_str;
+        smatch match;
+        while (regex_search(remaining, match, assignment)) {
+            normalized += match.prefix().str() + match[1].str();
+            try {
+                const auto raw = stoull(match[2].str());
+                if (raw <= numeric_limits<uint32_t>::max()) {
+                    const auto signedValue = raw <= static_cast<uint64_t>(numeric_limits<int32_t>::max())
+                        ? static_cast<int64_t>(raw)
+                        : static_cast<int64_t>(raw) - (int64_t{1} << 32);
+                    normalized += to_string(signedValue);
+                } else {
+                    normalized += match[2].str();
+                }
+            } catch (const exception&) {
+                normalized += match[2].str();
+            }
+            normalized += match[3].str();
+            remaining = match.suffix().str();
+        }
+        normalized += remaining;
+        m_model_str.swap(normalized);
+    }
     restoreVarName(m_smt2);
     m_restored = true;
 }
