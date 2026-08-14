@@ -26,3 +26,8 @@ def test_path_decisions_preserve_order():
 
 def test_signature_parser():
     assert e2e.parse_signature("int solve(int x, int y) { return x+y; }", None) == ("solve", ["x", "y"])
+
+
+def test_loop_instrumentation_enforces_bound():
+    code = e2e.instrument_conditions("int f(int x){while(x){x=x-1;}return x;}", 1)
+    assert "EPP_LOOP_TRACE" in code
