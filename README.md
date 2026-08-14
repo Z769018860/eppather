@@ -968,17 +968,34 @@ The command performs these steps in a fresh temporary directory:
    so replay validates the bounded program analyzed by Eppather; recursive calls
    still execute normally but only the outer entry invocation contributes trace
    events, matching Eppather's intraprocedural path artifacts;
-4. compile a concrete replay harness with `-O0 -fno-strict-overflow`;
+4. compile a concrete replay harness with `-O0` and UndefinedBehaviorSanitizer;
 5. execute every generated input and compare the ordered runtime branch truth
    values with the ordered `@(...)` decisions in the Eppather path;
 6. write a JSON report and return non-zero on a mismatch, replay error, empty
-   result set, or non-zero Eppather exit.
+   result set, or non-zero Eppather exit; executions that reach undefined ISO C
+   behavior are reported separately as `undefined` instead of as mismatches.
 
 Pointer and variable-length array parameters are intentionally rejected by the
 automatic harness. Normalize them to the fixed-array/scalar subset first; this
 prevents a test driver from guessing array ownership or length and accidentally
 validating a different program. The generated report records each model and
 both decision sequences so failures are directly reproducible.
+
+Run the maintained 20-program regression manifest in parallel with:
+
+```bash
+python3 tools/e2e_batch_validation.py \
+  --cnip ./cnip \
+  --max-loop 3 \
+  --jobs 2 \
+  --output-dir e2e-batch-reports
+```
+
+The batch runner writes one detailed JSON report per function plus an aggregate
+`summary.json`. It returns non-zero only for a real ordered-path mismatch or an
+execution error; undefined source-program behavior such as negating `INT_MIN`
+is retained in the report for diagnosis without being misclassified as an
+Eppather path-generation defect.
 
 ---
 
