@@ -28,6 +28,10 @@ class CaseResult:
     detail: str = ""
 
 
+class UndefinedBehaviorError(RuntimeError):
+    """Concrete replay reached behavior for which ISO C defines no result."""
+
+
 def signed_int32(value: int) -> int:
     if -(1 << 31) <= value < 0:
         return value
@@ -82,9 +86,11 @@ def instrument_conditions(source: str, max_loop: int, function: str) -> str:
         if match.group(1):
             keyword = match.group(1)
             tracer = "EPP_LOOP_TRACE" if keyword == "while" else "EPP_TRACE"
-            return f"{keyword} ({tracer}({idx}, ({match.group(2)})))"
+            prefix = f"epp_loop_count[{idx}] = 0; " if keyword == "while" else ""
+            return f"{prefix}{keyword} ({tracer}({idx}, ({match.group(2)})))"
         condition = match.group(4).strip() or "1"
-        return f"for ({match.group(3)}; EPP_LOOP_TRACE({idx}, ({condition})); {match.group(5)})"
+        return (f"epp_loop_count[{idx}] = 0; for ({match.group(3)}; "
+                f"EPP_LOOP_TRACE({idx}, ({condition})); {match.group(5)})")
 
     match = next((m for m in FUNC_RE.finditer(source) if m.group("name") == function), None)
     if not match:
@@ -124,11 +130,15 @@ def concrete_trace(source: str, function: str, params: list[str], inputs: dict[s
     )
     cfile = work / "replay.c"
     cfile.write_text(program, encoding="utf-8")
-    built = run(["cc", "-std=c11", "-O0", "-fno-strict-overflow", str(cfile), "-o", "replay"], work)
+    built = run(["cc", "-std=c11", "-O0",
+                 "-fsanitize=undefined", "-fno-sanitize-recover=undefined",
+                 str(cfile), "-o", "replay"], work)
     if built.returncode:
         raise RuntimeError("compile failed: " + built.stderr[-1500:])
     replay = run([str(work / "replay")], work)
     if replay.returncode:
+        if "runtime error:" in replay.stderr:
+            raise UndefinedBehaviorError(replay.stderr.strip().splitlines()[-1])
         raise RuntimeError(f"replay exited {replay.returncode}: {replay.stderr[-500:]}")
     return [int(m.group(1)) for m in re.finditer(r"^EPP_BRANCH\s+\d+\s+([01])$", replay.stdout, re.M)]
 
@@ -166,16 +176,18 @@ def main() -> int:
                 actual = concrete_trace(source, function, params, inputs, work, args.max_loop)
                 status = "match" if actual == expected else "mismatch"
                 detail = "" if status == "match" else "ordered branch outcomes differ"
+            except UndefinedBehaviorError as exc:
+                actual, status, detail = [], "undefined", str(exc)
             except Exception as exc:
                 actual, status, detail = [], "error", str(exc)
             cases.append(CaseResult(path_id, status, expected, actual, inputs, detail))
 
-    summary = {key: sum(c.status == key for c in cases) for key in ("match", "mismatch", "error")}
+    summary = {key: sum(c.status == key for c in cases) for key in ("match", "mismatch", "undefined", "error")}
     summary["total"] = len(cases)
     report = {"source": str(source_path), "function": function, "summary": summary, "cases": [asdict(c) for c in cases]}
     args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(summary, ensure_ascii=False))
-    return 0 if cases and all(c.status == "match" for c in cases) else 1
+    return 0 if cases and all(c.status in ("match", "undefined") for c in cases) else 1
 
 
 if __name__ == "__main__":
