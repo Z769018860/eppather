@@ -653,14 +653,19 @@ testcase/_eppather_runs/<timestamp>/run_summary.csv
 运行示例：
 
 ```bash
-export OPENAI_API_KEY=your_key
+export DEEPSEEK_API_KEY=your_key
 python3 tools/auto_iterative_fix_with_llm.py \
   --input experiment_results/cjson/cjson.compat.i \
   --workdir experiment_results/cjson \
   --cmd "./build/cnip -s --maxloop 1 --maxpaths 20 {input}" \
   --project cjson \
-  --max-iters 6
+  --max-iters 6 \
+  --request-timeout 900
 ```
+
+默认使用 DeepSeek 官方兼容接口 `https://api.deepseek.com` 和
+`deepseek-v4-pro` 模型；可通过 `DEEPSEEK_BASE_URL`、`DEEPSEEK_MODEL` 与
+`DEEPSEEK_TIMEOUT` 覆盖。API Key 只从环境变量读取，不应写入仓库。
 
 脚本会在 `--workdir` 下生成：
 
