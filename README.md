@@ -962,6 +962,8 @@ The command performs these steps in a fresh temporary directory:
 2. parse the Z3 model, convert unsigned 32-bit bit patterns to valid signed C
    `int` values, and deterministically complete unconstrained inputs with zero;
 3. instrument every `if`, `while`, and `for` condition in the original source;
+   concrete `while`/`for` execution uses the same `--max-loop` bound as DFS2,
+   so replay validates the bounded program analyzed by Eppather;
 4. compile a concrete replay harness with `-O0 -fno-strict-overflow`;
 5. execute every generated input and compare the ordered runtime branch truth
    values with the ordered `@(...)` decisions in the Eppather path;
