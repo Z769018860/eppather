@@ -352,7 +352,7 @@ void tool::Solver::restoreVarName()
                 } else {
                     normalized += match[2].str();
                 }
-            } catch (const exception&) {
+            } catch (const std::exception&) {
                 normalized += match[2].str();
             }
             normalized += match[3].str();
