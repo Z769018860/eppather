@@ -960,10 +960,14 @@ The command performs these steps in a fresh temporary directory:
 1. run DFS2 and collect `path_<function>_<id>.txt` and matching feasible
    `result_<function>_<id>.txt` artifacts;
 2. parse the Z3 model, convert unsigned 32-bit bit patterns to valid signed C
-   `int` values, and deterministically complete unconstrained inputs with zero;
-3. instrument every `if`, `while`, and `for` condition in the original source;
+   `int` values, and deterministically complete unconstrained inputs with zero
+   (or one when an omitted parameter is used as a divisor, preventing undefined
+   divide/modulo-by-zero during concrete replay);
+3. instrument every `if`, `while`, and `for` condition in the selected function;
    concrete `while`/`for` execution uses the same `--max-loop` bound as DFS2,
-   so replay validates the bounded program analyzed by Eppather;
+   so replay validates the bounded program analyzed by Eppather; recursive calls
+   still execute normally but only the outer entry invocation contributes trace
+   events, matching Eppather's intraprocedural path artifacts;
 4. compile a concrete replay harness with `-O0 -fno-strict-overflow`;
 5. execute every generated input and compare the ordered runtime branch truth
    values with the ordered `@(...)` decisions in the Eppather path;
