@@ -152,7 +152,9 @@ def one_problem(problem:Path,cnip:Path,maxloop:int,maxpaths:int)->dict:
         # Every retry regenerates the explicit loop counters with the same
         # bound passed to Eppather, so a bounded exit is always satisfiable.
         bounds=[]
-        for bound in (maxloop,3,2):
+        # Geometric fallback keeps high bounds useful without paying every
+        # intermediate bound.  For the full experiment this is 10, 5, 3, 2.
+        for bound in (maxloop,maxloop//2,3,2):
             if 0 < bound <= maxloop and bound not in bounds: bounds.append(bound)
         for bound in bounds:
           try:
