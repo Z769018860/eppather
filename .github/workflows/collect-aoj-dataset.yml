@@ -1,0 +1,57 @@
+name: Collect AOJ Eppather dataset
+
+on:
+  workflow_dispatch:
+    inputs:
+      problem_limit:
+        description: 'Number of problems to collect'
+        required: false
+        default: '100'
+      solutions_per_problem:
+        description: 'Accepted C solutions per problem'
+        required: false
+        default: '10'
+      max_system_tests:
+        description: 'Maximum official tests per problem (0 = all)'
+        required: false
+        default: '20'
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install C compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc
+      - name: Run resumable AOJ collection
+        env:
+          PROBLEM_LIMIT: ${{ inputs.problem_limit }}
+          SOLUTIONS_PER_PROBLEM: ${{ inputs.solutions_per_problem }}
+          MAX_SYSTEM_TESTS: ${{ inputs.max_system_tests }}
+        run: |
+          python3 tools/collect_aoj_eppather_dataset.py \
+            --problem-limit "$PROBLEM_LIMIT" \
+            --solutions-per-problem "$SOLUTIONS_PER_PROBLEM" \
+            --max-system-tests "$MAX_SYSTEM_TESTS" \
+            --verify --delay 1 --retries 4 --verbose
+      - name: Validate manifest
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path('testcase/aoj_eppather_dataset/manifest.json')
+          d = json.loads(p.read_text())
+          assert d['collected_problems'] == int('${{ inputs.problem_limit }}')
+          for x in d['problems']:
+              assert len(x['solutions']) == int('${{ inputs.solutions_per_problem }}')
+              assert all(s.get('verification', {}).get('compiled') for s in x['solutions'])
+              assert all(s.get('verification', {}).get('passed', 0) == s.get('verification', {}).get('total', -1) for s in x['solutions'])
+          print('AOJ dataset validation passed')
+          PY
+      - name: Upload dataset artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aoj-eppather-dataset
+          path: testcase/aoj_eppather_dataset/
+          retention-days: 14
