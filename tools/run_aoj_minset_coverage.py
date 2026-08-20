@@ -27,7 +27,29 @@ def block(source: str, match: re.Match[str]) -> tuple[int,int,str]:
             if depth==0: return opening,pos,source[opening+1:pos]
     raise ValueError('unterminated main')
 
-def normalize(source: str) -> tuple[str,int]:
+def bound_loops(body: str, limit: int) -> str:
+    """Give every lexical loop an explicit, reset-on-entry bound.
+
+    Eppather otherwise emits a final not-taken original guard after reaching
+    maxloop.  For fixed loops such as i < 10 with maxloop < 10 this makes the
+    bounded path contradictory.  The synthetic counter provides the intended
+    bounded-semantics exit without requiring the source guard to become false.
+    """
+    names=[]
+    loop_re=re.compile(r'\bwhile\s*\(([^{};]*)\)|\bfor\s*\(([^;]*);([^;]*);([^)]*)\)')
+    def repl(m: re.Match[str]) -> str:
+        name=f'epp_bound_{len(names)}'; names.append(name)
+        if m.group(1) is not None:
+            cond=m.group(1).strip() or '1'
+            return f'for ({name} = 0; {name} < {limit} && ({cond}); {name} = {name} + 1)'
+        init=m.group(2).strip(); cond=m.group(3).strip() or '1'; inc=m.group(4).strip()
+        bounded_init=f'{init}, {name} = 0' if init else f'{name} = 0'
+        bounded_inc=f'{inc}, {name} = {name} + 1' if inc else f'{name} = {name} + 1'
+        return f'for ({bounded_init}; {name} < {limit} && ({cond}); {bounded_inc})'
+    body=loop_re.sub(repl,body)
+    return (('int '+', '.join(names)+';\n') if names else '')+body
+
+def normalize(source: str, maxloop: int) -> tuple[str,int]:
     m=FUNC.search(source)
     if not m: raise ValueError('no plain int main')
     _,_,body=block(source,m)
@@ -52,6 +74,7 @@ def normalize(source: str) -> tuple[str,int]:
     body=re.sub(r'\+\+\s*([A-Za-z_]\w*)\b',r'\1 = \1 + 1',body)
     body=re.sub(r'\b([A-Za-z_]\w*)\s*--',r'\1 = \1 - 1',body)
     body=re.sub(r'--\s*([A-Za-z_]\w*)\b',r'\1 = \1 - 1',body)
+    body=bound_loops(body,maxloop)
     calls=set(CALL.findall(body))-{'if','for','while','sizeof','return','abs'}
     if calls: raise ValueError('helper/external calls: '+','.join(sorted(calls)))
     if re.search(r'\b(static|extern)\b',body): raise ValueError('storage duration')
@@ -124,12 +147,19 @@ def one_problem(problem:Path,cnip:Path,maxloop:int,maxpaths:int)->dict:
     meta=json.loads((problem/'metadata.json').read_text()); errors=[]
     for sol in meta['solutions'][:3]:
         source=(problem/'solutions'/f"{sol['judge_id']}.c").read_text(errors='replace')
-        try: model,token_hint=normalize(source)
-        except Exception as e: errors.append(str(e)); continue
-        try:
+        # Prefer the requested, more complete loop bound, but preserve useful
+        # results for path-explosive programs by falling back monotonically.
+        # Every retry regenerates the explicit loop counters with the same
+        # bound passed to Eppather, so a bounded exit is always satisfiable.
+        bounds=[]
+        for bound in (maxloop,3,2):
+            if 0 < bound <= maxloop and bound not in bounds: bounds.append(bound)
+        for bound in bounds:
+          try:
+            model,token_hint=normalize(source,bound)
             with tempfile.TemporaryDirectory() as td:
                 w=Path(td); mp=w/'model.c'; mp.write_text(model)
-                cases=candidate_cases(mp,cnip,w,maxloop,maxpaths)
+                cases=candidate_cases(mp,cnip,w,bound,maxpaths)
                 if not cases: raise ValueError('no feasible paths')
                 model_bin,model_branches=compile_traced(model,re.compile(r'\bint\s+epp_model\s*\([^)]*\)\s*\{'),
                     '\nint main(int argc,char**argv){int input[64]={0};for(int i=1;i<argc&&i<=64;i++)input[i-1]=atoi(argv[i]);return epp_model(input);}\n',w,'model_run')
@@ -161,6 +191,7 @@ def one_problem(problem:Path,cnip:Path,maxloop:int,maxpaths:int)->dict:
                     rr=run([str(original_bin)],w,ip.read_text(),5); official |= trace(rr.stderr)[1]; official_runs+=1
                 denom=2*original_branches
                 return {'problem_id':meta['problem_id'],'judge_id':sol['judge_id'],'status':'ok','branches':original_branches,
+                    'effective_maxloop':bound,
                     'candidate_paths':len(cases),'validated_candidates':len(valid),'minimum_tests':len(picked),
                     'eppather_predicted_edges':len(predicted_union),'eppather_predicted_coverage':100*len(predicted_union)/denom if denom else 100,
                     'eppather_covered_edges':len(gen_union),'eppather_coverage':100*len(gen_union)/denom if denom else 100,
@@ -168,7 +199,9 @@ def one_problem(problem:Path,cnip:Path,maxloop:int,maxpaths:int)->dict:
                     'coverage_prediction_correct':gen_union==predicted_union,
                     'path_replay_matches':sum(x['original_match'] for x in generated),
                     'generated_tests':[valid[i]['stdin'] for i in picked]}
-        except Exception as e: errors.append(str(e)); continue
+          except Exception as e:
+            errors.append(f'maxloop={bound}: {e}')
+            continue
     return {'problem_id':meta['problem_id'],'status':'not_applicable','detail':' | '.join(errors[-5:])}
 
 def main():
