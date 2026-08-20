@@ -22,7 +22,7 @@ jobs:
       - name: Prepare experiment
         run: |
           unzip -q dataset-artifact/aoj-eppather-dataset-100.zip -d dataset || true
-          if [ ! -d dataset/testcase/aoj_eppather_dataset ]; then cp -a dataset-artifact/testcase dataset/; fi
+          if [ ! -d dataset/testcase/aoj_eppather_dataset ]; then mkdir -p dataset; cp -a dataset-artifact/testcase dataset/; fi
           python3 -m pip install --disable-pip-version-check pulp
       - name: Run Eppather, minimum set, and concrete replay
         run: |
