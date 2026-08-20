@@ -29,7 +29,7 @@ jobs:
           python3 tools/run_aoj_minset_coverage.py \
             --dataset dataset/testcase/aoj_eppather_dataset --cnip ./cnip \
             --shard-index "${{ matrix.shard }}" --shard-count 10 \
-            --maxloop 5 --maxpaths 200 --output "coverage-${{ matrix.shard }}.json"
+            --maxloop 10 --maxpaths 400 --output "coverage-${{ matrix.shard }}.json"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
