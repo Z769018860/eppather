@@ -1,7 +1,9 @@
 # SANER 2027 research-track manuscript
 
-This directory contains the double-anonymous SANER 2027 version of the
-Eppather worst-case path exploration paper.
+This directory contains the full-length, double-anonymous SANER 2027 version
+of the Eppather worst-case path exploration paper. The current build is a
+10-page research-track manuscript, expanded from the original long paper
+rather than a shortened summary.
 
 ## Build
 
@@ -33,3 +35,25 @@ The manuscript's project-summary numbers come from
 `testcase/_eppather_runs/20260814_173835/`. The cJSON/tinyexpr/Lua results are
 reported only as stress-case limitations because the stored program summaries
 do not contain valid worst-path results.
+
+
+## Full-paper content
+
+The ten-page version retains and expands the original manuscript's substantive
+material:
+
+- analysis scope and detailed MEMS counting rules;
+- bounded-DP recurrence, state-merging example, correctness argument, and
+  complexity/bound sensitivity;
+- compositional summaries, recursive SCC fixed points, and an interprocedural
+  worked example;
+- concrete path-witness replay under the same loop bound;
+- full RQ1/RQ2/RQ3 protocol and evidence interpretation;
+- per-project list/inih/SDS analysis and compatibility provenance;
+- the condensed Zephyr work-queue path case study;
+- expanded related work, threats, artifact instructions, and research-question
+  answers.
+
+The manuscript deliberately preserves the revised evidence boundaries: it does
+not restore unsupported cJSON/tinyexpr/Lua success claims or interpret MEMS as
+cycle-accurate WCET.
