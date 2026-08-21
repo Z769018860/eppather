@@ -32,6 +32,20 @@ Eppather 综合并扩展了以下关键技术组件：
 ---
 
 
+### 最新路径真值验证语义（2026-08）
+
+最近的路径验证修复统一了符号路径与具体执行的循环语义：
+
+- DFS2 默认只对完整叶路径执行 SMT 可行性检查。不完整路径前缀，特别是以否定循环守卫结尾的前缀，不再送入 epat++，避免表达式栈下溢；旧的前缀剪枝仅可通过 **EPPATHER_PREFIX_FEASIBILITY=1** 显式启用，属于实验选项。
+- for/while 路径脚本按照实际执行顺序记录循环初始化、守卫、更新和最终退出守卫，使生成的路径决策序列能够与运行时分支序列逐项比较。
+- tools/e2e_path_validation.py 从可行路径的 Z3 模型生成输入，在原函数中插桩并以 -O0 和 UndefinedBehaviorSanitizer 编译重放。
+- 具体重放和 DFS2 使用同一个 --max-loop 上界，因此验证对象是同一个有界程序，而不是无界原程序。
+- 报告区分 matched、真实路径不一致、执行错误和源程序未定义行为；未定义行为不会被错误统计为路径不一致。
+
+这条验证链检查的是“模型输入在具体执行中是否复现同一有界分支序列”。它加强了测试输入和路径证据的可信度，但不能单独证明前端翻译、MEMS 计数或未建模 C 语义完全正确。
+
+---
+
 ### 后端切换（pafi-rs / epat++）
 
 当前构建系统已支持后端切换参数：
@@ -810,6 +824,20 @@ The input to Eppather is a **C source file (`.c`)**, and the outputs include:
 - Feasible test inputs (models) that can trigger the worst-case path  
 
 In addition, Eppather can also serve as a **general-purpose static path exploration and analysis framework**, supporting full path coverage analysis and exporting intermediate results.
+
+---
+
+### Latest Path-Ground-Truth Semantics (2026-08)
+
+Recent fixes align symbolic paths with bounded concrete execution:
+
+- DFS2 checks SMT feasibility on complete leaf paths by default. Incomplete prefixes, especially prefixes ending at a negated loop guard, are not sent to epat++, avoiding expression-stack underflow. Legacy prefix pruning is an experimental opt-in through **EPPATHER_PREFIX_FEASIBILITY=1**.
+- for/while scripts record initialization, guard, update, and final exit guard in execution order, so generated path decisions can be compared with runtime branch outcomes.
+- tools/e2e_path_validation.py derives inputs from feasible Z3 models, instruments the original function, and compiles the replay harness with -O0 and UndefinedBehaviorSanitizer.
+- Concrete replay and DFS2 use the same --max-loop bound; the replay therefore validates the same bounded program analyzed by Eppather.
+- Reports distinguish a matched path, a real ordered-path mismatch, an execution error, and undefined source-program behavior. Undefined behavior is not counted as a path mismatch.
+
+This chain validates that a generated model reproduces the same bounded branch sequence during concrete execution. It strengthens path/test-input evidence but does not by itself prove frontend, MEMS-counting, or full-C semantic correctness.
 
 ---
 
