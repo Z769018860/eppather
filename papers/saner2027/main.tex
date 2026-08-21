@@ -15,7 +15,7 @@
 \maketitle
 
 \begin{abstract}
-Finding executions with high resource demand early is useful when a target platform or a complete timing model is unavailable. We present \tool, a static analyzer that ranks bounded feasible paths in C programs by \mems, a source-level count of reads and writes. \tool constructs a control-flow graph (CFG), prunes infeasible paths, and uses dynamic programming (DP) over CFG locations and loop counters to avoid repeatedly expanding common suffixes. For multi-function code, it composes path-sensitive function summaries and applies bounded fixed-point iteration to recursive call-graph components. We evaluate three questions: whether \mems tracks runtime trends, whether DP preserves the bounded maximum found by exhaustive exploration, and how well summary-based analysis transfers to real C libraries. On five controlled kernels, \mems and runtime have Pearson correlations between 0.9990 and 0.99996. On 266 normalized C programs, DP and bounded exhaustive exploration agree on every reported maximum. On 66 functions from three open-source libraries, the pipeline emits a final summary for every function; however, only 30 summaries (45.5\%) directly retain source bodies, 11 (16.7\%) use semantics-preserving approximations, and 25 (37.9\%) require compatibility models. Under identical final slices, DP and exhaustive exploration agree for 64/66 functions; the remaining two time out in DP rather than disagree. These results support bounded worst-path exploration while also exposing a central limitation: summary availability is not summary fidelity. We therefore report both coverage and transformation provenance instead of treating successful generation as semantic correctness.
+Finding executions with high resource demand early is useful when a target platform or a complete timing model is unavailable. We present \tool, a static analyzer that ranks bounded feasible paths in C programs by \mems, a source-level count of reads and writes. \tool constructs a control-flow graph (CFG), prunes infeasible paths, and uses dynamic programming (DP) over CFG locations and loop counters to avoid repeatedly expanding common suffixes. For multi-function code, it composes path-sensitive function summaries and applies bounded fixed-point iteration to recursive call-graph components. We evaluate three questions: whether \mems tracks runtime trends, whether DP preserves the bounded maximum found by exhaustive exploration, and how well summary-based analysis transfers to real C libraries. On five controlled kernels, \mems and runtime have Pearson correlations between 0.9990 and 0.99996. On 266 normalized C programs, DP and bounded exhaustive exploration agree on every reported maximum. On 66 functions from three open-source libraries, the pipeline emits a final summary for every function; however, only 30 summaries (45.5\%) directly retain source bodies, 11 (16.7\%) use semantics-preserving approximations, and 25 (37.9\%) require compatibility models. Under identical final slices, DP and exhaustive exploration agree for 64/66 functions; the remaining two time out in DP rather than disagree. The latest validation pipeline additionally replays solver-generated inputs on an instrumented original function under the same loop bound and compares the ordered runtime branch trace with the static path witness. These results support bounded worst-path exploration while also exposing a central limitation: summary availability is not summary fidelity. We therefore report both coverage and transformation provenance instead of treating successful generation as semantic correctness.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -35,7 +35,7 @@ This paper makes three contributions:
 \begin{itemize}
   \item a bounded DP formulation for maximal-\mems feasible-path exploration;
   \item a compositional summary scheme for propagating local path costs through acyclic and recursive call graphs; and
-  \item an artifact-backed evaluation that cross-checks DP against exhaustive exploration and reports summary coverage together with transformation fidelity.
+  \item an artifact-backed evaluation that cross-checks DP against exhaustive exploration, validates path witnesses through bounded concrete replay, and reports summary coverage together with transformation fidelity.
 \end{itemize}
 
 \section{Problem and Cost Model}
@@ -84,7 +84,11 @@ Solve(v, U, phi):
 \end{figure}
 
 \subsection{Feasibility and witness validation}
-Branch predicates are translated into solver constraints over the supported integer, array, and pointer-slot subset. Loop exits are represented explicitly, preventing a candidate that only lists repeated loop-body guards from being accepted as a complete path. The same frontend, loop bound, and feasibility checker are used by DFS and DP during cross-validation. A mismatch is classified separately from parsing failure, crash, and timeout; this distinction is important because incomplete results do not demonstrate contradictory maxima.
+Branch predicates are translated into solver constraints over the supported integer, array, and pointer-slot subset. The latest DFS2 implementation sends complete leaf paths to the feasibility backend by default. Incomplete prefixes---especially a prefix ending at a negated loop guard---are not solver inputs because they are not complete C executions and previously could underflow the backend expression stack. Prefix pruning remains an explicit experimental option through \code{EPPATHER\_PREFIX\_FEASIBILITY=1}.
+
+Loop witnesses record initialization, guard evaluation, update, and the final false exit guard in execution order. The concrete-replay driver parses a feasible Z3 model, completes unconstrained scalar inputs deterministically, instruments the original function, and compiles a harness with \code{-O0} and UndefinedBehaviorSanitizer. Runtime branch truth values are then compared, in order, with the static path decisions. DFS2 and replay use the same loop bound, so the comparison concerns the same bounded program. The report distinguishes path mismatch, execution error, and undefined source behavior; undefined behavior is not reclassified as a static-path mismatch.
+
+The same frontend, loop bound, and feasibility checker are used by DFS and DP during cross-validation. A mismatch is classified separately from parsing failure, crash, and timeout; incomplete results do not demonstrate contradictory maxima. Concrete replay strengthens witness validity, but it cannot independently validate frontend translation or \mems counting.
 
 \subsection{Function summaries}
 For every feasible internal path $p$ of $f$, a summary element records
@@ -176,6 +180,11 @@ Normalized Rosetta C & 266 & 266/266 & 266/266\\
 \bottomrule
 \end{tabular}
 \end{table}
+
+\subsection{Bounded concrete replay of path witnesses}
+The repository's end-to-end validator adds an execution-grounded check after static feasibility. For a supported scalar-entry function, it (1) collects a feasible DFS2 path and its solver model, (2) converts the model to signed C inputs, (3) instruments every conditional and loop guard, (4) enforces the same loop bound used during analysis, (5) executes the harness, and (6) compares the ordered decision sequences. A maintained batch manifest runs this procedure over normalized programs and emits one JSON report per function plus an aggregate summary.
+
+This is a validation-method improvement introduced by the latest commits, not a new aggregate accuracy result for RQ2: the committed changes provide the loop-ordering fix, a regression test for bounded instrumentation, and the replay documentation, but do not record a new corpus-wide matched-path percentage. We therefore incorporate the stronger validation protocol without replacing the 266-program DP--DFS result or inventing a replay success rate.
 
 \subsection{RQ3: project summaries}
 The summary pipeline emits a final result for all 66 project functions (Table~\ref{tab:summary}). This headline coverage requires qualification. Only 30/66 functions use direct source bodies; 11/66 use structured approximations; and 25/66 use compatibility models (Table~\ref{tab:fidelity}). Thus 100\% generation coverage does not mean 100\% semantic support.
@@ -283,7 +292,7 @@ First, future performance experiments should compare DP and DFS under fixed benc
 \section{Threats to Validity}
 \textbf{Construct validity.} \mems ignores architecture, allocation cost, caches, and compiler effects. RQ1 uses controlled kernels and very high correlations can partly reflect monotonic input scaling. More diverse hardware and workloads are required.
 
-\textbf{Internal validity.} Agreement between two modes can share frontend or counting defects. Feasibility is bounded and depends on the implemented translation. Time figures sum only the selected final attempts, not failed earlier attempts.
+\textbf{Internal validity.} Agreement between two static modes can share frontend or counting defects. Concrete replay reduces the risk of accepting an inconsistent path witness, but the instrumentation and analyzer can still share normalization assumptions. Feasibility and replay are bounded and depend on the implemented translation. Time figures sum only the selected final attempts, not failed earlier attempts.
 
 \textbf{External validity.} RQ2 is dominated by normalized, mostly function-level C. RQ3 covers three small, mostly single-source libraries. The cJSON/tinyexpr/Lua failures show that results do not yet generalize to large multi-file C systems.
 
@@ -293,7 +302,7 @@ First, future performance experiments should compare DP and DFS under fixed benc
 \tool combines bounded feasibility checking, DP worst-path exploration, and compositional summaries for source-level memory-access costs. DP agrees with exhaustive exploration on 266/266 normalized programs. The project experiment achieves 66/66 summary-generation coverage, but its provenance and zero-cost distribution show that coverage alone overstates semantic support. The main next step is therefore not broader fallback generation; it is stronger native modeling of structures, pointer effects, external memory operations, and multi-file call graphs, followed by independent validation of summary costs.
 
 \section{Data Availability}
-An anonymized artifact containing the analyzer, experiment scripts, selected benchmark inputs, and raw CSV/log files will be supplied through the SANER submission system. The public repository link is omitted in this double-anonymous version because it reveals author identity. The artifact records the configuration and final-slice provenance used in Tables~\ref{tab:summary} and~\ref{tab:fidelity}.
+An anonymized artifact containing the analyzer, experiment scripts, selected benchmark inputs, concrete-replay JSON reports, and raw CSV/log files will be supplied through the SANER submission system. The public repository link is omitted in this double-anonymous version because it reveals author identity. The artifact records the configuration and final-slice provenance used in Tables~\ref{tab:summary} and~\ref{tab:fidelity}.
 
 \begin{thebibliography}{10}
 \bibitem{wilhelm2008wcet} R. Wilhelm et al., ``The worst-case execution-time problem---overview of methods and survey of tools,'' \emph{ACM TECS}, vol. 7, no. 3, 2008.
