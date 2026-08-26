@@ -87,8 +87,8 @@ int Driver::execute(int argc, char* argv[])
             ("volce",
                 "Enable VolCE model counting.")
             ("maxloop",
-                "Set loop unroll upper bound.",
-                cxxopts::value<int>()->default_value("3"))
+                "Set the safety cap for predicted loop unrolling.",
+                cxxopts::value<int>()->default_value("64"))
             ("maxpaths",
                 "Set maximum path count.",
                 cxxopts::value<int>()->default_value("1000"))

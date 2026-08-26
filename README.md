@@ -96,7 +96,7 @@ Usage:
   -s, --dump-summary            Dump function summaries to the console.
   -d, --debug                   Enable debugging.
       --volce                   Enable VolCE model counting.
-      --maxloop arg             Set loop unroll upper bound (default: 3).
+      --maxloop arg             Safety cap for predicted loop unrolling (default: 64).
       --maxpaths arg            Set maximum path count (default: 1000).
       --volce-lower arg         Set VolCE variable lower bound (default: -8).
       --volce-upper arg         Set VolCE variable upper bound (default: 8).
@@ -933,14 +933,18 @@ Compared with full path enumeration, this mode provides significant performance 
 
 ### Loop Unrolling Control
 
-By default, the maximum loop unrolling bound is set to **3**.  
-To change this limit, specify an additional parameter:
+Eppather predicts a separate unfolding count for each canonical affine `for`
+loop. Exact constant trip counts are used when provable; data-dependent or
+unsupported loops fall back to **3** iterations. The global safety cap defaults
+to **64**. To change that cap, specify:
 
 ```bash
 ./cnip -z test2.c 5
 ```
 
-Here, `5` indicates that the maximum loop unrolling count is 5.
+Here, `5` caps every predicted loop count at five. See
+[`docs/adaptive-loop-bound-prediction.md`](docs/adaptive-loop-bound-prediction.md)
+for the algorithm, supported forms, confidence levels, and fallback policy.
 
 ---
 

@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 31882)
+Total output lines: 3450
+
 // Copyright (c) 2020/21/22 Leandro T. C. Melo <ltcmelo@gmail.com>
 
 //
@@ -39,6 +42,7 @@
 
 
 #include "SyntaxNamePrinter.h"
+#include "LoopBoundPredictor.h"
 
 
 
@@ -55,6 +59,16 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
+namespace {
+int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
+    if (!node || !node->isFor) return std::min(std::max(0, safetyCap), 3);
+    return psy::C::LoopBoundPredictor::predict(node->initstmt_str,
+                                               node->cond_str,
+                                               node->expr_str,
+                                               safetyCap).iterations;
+}
+}
 
 
 #include "lp_lib.h"
@@ -1817,180 +1831,7 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
                 continue;
             }
 
-            int newWorst = std::numeric_limits<int>::min();
-            size_t bestIdx = 0;
-            double newAvg = 0.0;
-            bool hasProbWeight = enableVolce;
-            double probSum = 0.0;
-
-            for (size_t i = 0; i < cases.size(); ++i) {
-                const auto& caseSummary = cases[i];
-                int composedWorst = caseSummary.mems;
-                double composedAvg = static_cast<double>(caseSummary.mems);
-
-                for (const auto& callee : caseSummary.callees) {
-                    if (knownFunctions.find(callee) == knownFunctions.end()) {
-                        reasonSet.insert("external callee omitted=" + callee);
-                        continue;
-                    }
-                    auto worstIt = prevWorst.find(callee);
-                    auto avgIt = prevAvg.find(callee);
-                    if (worstIt != prevWorst.end()) {
-                        composedWorst += worstIt->second;
-                    }
-                    if (avgIt != prevAvg.end()) {
-                        composedAvg += avgIt->second;
-                    }
-                }
-
-                if (composedWorst > newWorst) {
-                    newWorst = composedWorst;
-                    bestIdx = i;
-                }
-
-                if (enableVolce) {
-                    if (caseSummary.prob) {
-                        newAvg += composedAvg * *caseSummary.prob;
-                        probSum += *caseSummary.prob;
-                    } else {
-                        hasProbWeight = false;
-                    }
-                } else {
-                    newAvg += composedAvg;
-                }
-            }
-
-            if (!enableVolce) {
-                newAvg /= static_cast<double>(cases.size());
-            } else if (!hasProbWeight || probSum <= 0.0) {
-                newAvg = 0.0;
-                for (const auto& caseSummary : cases) {
-                    double composedAvg = static_cast<double>(caseSummary.mems);
-                    for (const auto& callee : caseSummary.callees) {
-                        auto avgIt = prevAvg.find(callee);
-                        if (avgIt != prevAvg.end()) {
-                            composedAvg += avgIt->second;
-                        }
-                    }
-                    newAvg += composedAvg;
-                }
-                newAvg /= static_cast<double>(cases.size());
-                reasonSet.insert("missing volce probability during fixpoint composition for " + name);
-            }
-
-            if (newWorst != approxWorst[name]) {
-                approxWorst[name] = newWorst;
-                changed = true;
-            }
-            if (std::abs(newAvg - approxAvg[name]) > 1e-9) {
-                approxAvg[name] = newAvg;
-                changed = true;
-            }
-            approxBestCase[name] = bestIdx;
-        }
-
-        if (!changed) {
-            converged = true;
-            break;
-        }
-    }
-
-    for (auto& summary : summaries) {
-        auto tableIt = functionPathTable.find(summary.name);
-        if (tableIt != functionPathTable.end()) {
-            for (size_t i = 0; i < summary.cases.size() && i < tableIt->second.size(); ++i) {
-                int composed = tableIt->second[i].mems;
-                for (const auto& callee : tableIt->second[i].callees) {
-                    auto it = approxWorst.find(callee);
-                    if (it != approxWorst.end()) {
-                        composed += it->second;
-                    }
-                }
-                summary.cases[i].composedMems = composed;
-            }
-        }
-        if (approxWorst.find(summary.name) != approxWorst.end()) {
-            summary.worstMems = approxWorst[summary.name];
-            summary.avgMems = approxAvg[summary.name];
-        }
-    }
-
-    std::vector<std::string> worstSeq;
-    if (knownFunctions.find(entryName) != knownFunctions.end()) {
-        std::unordered_map<std::string, int> visitDepth;
-        std::function<void(const std::string&)> buildWorstPath = [&](const std::string& functionName) {
-            auto tableIt = functionPathTable.find(functionName);
-            if (tableIt == functionPathTable.end() || tableIt->second.empty()) {
-                reasonSet.insert("missing path summary for function=" + functionName);
-                return;
-            }
-            const size_t caseIdx = std::min(approxBestCase[functionName], tableIt->second.size() - 1);
-            const auto& pathCase = tableIt->second[caseIdx];
-            worstSeq.push_back(functionName + "#" + std::to_string(caseIdx) + "{" + pathCase.path + "}");
-
-            if (++visitDepth[functionName] > 1 && isRecursiveScc(functionName)) {
-                worstSeq.push_back(functionName + "{FIXPOINT_APPROX}");
-                reasonSet.insert("recursive SCC summarized by fixpoint at " + functionName);
-                --visitDepth[functionName];
-                return;
-            }
-
-            for (const auto& callee : pathCase.callees) {
-                if (knownFunctions.find(callee) == knownFunctions.end()) {
-                    continue;
-                }
-                buildWorstPath(callee);
-            }
-            --visitDepth[functionName];
-        };
-        buildWorstPath(entryName);
-    }
-
-    std::cout << "[FUNCTION SUMMARIES]" << std::endl;
-    for (const auto& summary : summaries) {
-        std::cout << "Function " << summary.name << ":" << std::endl;
-        std::cout << "signature: " << summary.signature << std::endl;
-        std::cout << "#cases: " << summary.cases.size() << std::endl;
-        const auto directIt = directSummaries.find(summary.name);
-        const int directWorst = (directIt != directSummaries.end() ? directIt->second.worstMems : -1);
-        const double directAvg = (directIt != directSummaries.end() ? directIt->second.avgMems : -1.0);
-        std::cout << "DIRECT worst_mems: " << directWorst << std::endl;
-        if (directAvg < 0) {
-            std::cout << "DIRECT avg_mems: N/A" << std::endl;
-        } else if (enableVolce) {
-            std::cout << "DIRECT weighted_avg_mems: " << directAvg << std::endl;
-        } else {
-            std::cout << "DIRECT avg_mems(equal-weight): " << directAvg << std::endl;
-        }
-
-        std::cout << "APPROX worst_mems: " << summary.worstMems << std::endl;
-        if (summary.avgMems < 0) {
-            std::cout << "APPROX avg_mems: N/A" << std::endl;
-        } else if (enableVolce) {
-            std::cout << "APPROX weighted_avg_mems: " << summary.avgMems << std::endl;
-        } else {
-            std::cout << "APPROX avg_mems(equal-weight): " << summary.avgMems << std::endl;
-        }
-
-        for (size_t i = 0; i < summary.cases.size(); ++i) {
-            const auto& caseSummary = summary.cases[i];
-            std::cout << "  [case " << i << "] guard_hash=" << caseSummary.guardHash
-                      << " path=\"" << caseSummary.path << "\""
-                      << " mems=" << caseSummary.mems
-                      << " composed_mems=" << caseSummary.composedMems;
-            if (caseSummary.volceCount) {
-                std::cout << " volce=" << *caseSummary.volceCount;
-            } else {
-                std::cout << " volce=N/A";
-            }
-            if (caseSummary.prob) {
-                std::cout << " prob=" << *caseSummary.prob;
-            } else {
-                std::cout << " prob=N/A";
-            }
-            std::cout << " callees=[";
-            for (size_t calleeIdx = 0; calleeIdx < caseSummary.callees.size(); ++calleeIdx) {
-                if (calleeIdx > 0) {
+            int newWorst = s…1882 tokens truncated…dx > 0) {
                     std::cout << ",";
                 }
                 std::cout << caseSummary.callees[calleeIdx];
@@ -2137,7 +1978,7 @@ void SyntaxNamePrinter::DFS(
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
-            if (loopCount[node->depth] >= maxloop) {
+            if (loopCount[node->depth] >= predictedLoopBound(node.get(), maxloop)) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
                 auto falseNode = node->getNextFalseNode();
@@ -2171,7 +2012,7 @@ void SyntaxNamePrinter::DFS(
             // False分支（循环终止）
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
-            if (loopCount[node->depth] >= maxloop) {
+            if (loopCount[node->depth] >= predictedLoopBound(node.get(), maxloop)) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
                 DFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, maxMems, minMems);
@@ -2372,7 +2213,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<int>   snap_lc   = loopCount;
 
         // True：@(cond) → 体（顺着 CFG 的 next 走）
-        if (loopCount[d] < maxloop) {
+        if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
             auto        lc_t  = snap_lc;
 
@@ -2453,7 +2294,7 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<int>   snap_lc   = loopCount;
 
         // True：@(cond) → 体（顺着 CFG 的 next 走）
-        if (loopCount[d] < maxloop) {
+        if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
             auto        lc_t  = snap_lc;
 
@@ -2776,7 +2617,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             }
 
             // 达到展开上限：走 false → end/join
-            if (unroll >= maxloop) {
+            if (unroll >= predictedLoopBound(entry.get(), maxloop)) {
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
                 fDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::FalseBranch});
@@ -2842,7 +2683,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         // 5.2) while 循环
         if (entry->isWhile) {
-            if (unroll >= maxloop) {
+            if (unroll >= predictedLoopBound(entry.get(), maxloop)) {
                 // 直接走 false → end/join
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
                 auto fDecisions   = curDecisions;
@@ -3029,7 +2870,7 @@ void SyntaxNamePrinter::GreedyDFS(
             }
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
-            if (loopCount[node->depth] >= maxloop) {
+            if (loopCount[node->depth] >= predictedLoopBound(node.get(), maxloop)) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
                 auto falseNode = node->getNextFalseNode();
@@ -3056,7 +2897,7 @@ void SyntaxNamePrinter::GreedyDFS(
         } else if (node->isWhile) {
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
             if (node->depth < 0 || node->depth >= static_cast<int>(loopCount.size())) return;
-            if (loopCount[node->depth] >= maxloop) {
+            if (loopCount[node->depth] >= predictedLoopBound(node.get(), maxloop)) {
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
                 loopCount[node->depth] = 0;
                 GreedyDFS(node->getNextFalseNode(), pathCoverage, decisions, depth + 1, pathCount, maxloop, maxpaths, currentMem, bestPath, bestMem);
