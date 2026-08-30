@@ -1,0 +1,53 @@
+name: AOJ Eppather minimum-set coverage experiment
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [codex/aoj-100-dataset]
+    paths: [experiments/trigger-aoj-coverage]
+
+jobs:
+  analyze:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0,1,2,3,4,5,6,7,8,9]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download verified 100-problem dataset
+        env: {GH_TOKEN: "${{ github.token }}"}
+        run: gh run download 32353651730 -n aoj-eppather-dataset-100 -D dataset-artifact
+      - name: Prepare experiment
+        run: |
+          unzip -q dataset-artifact/aoj-eppather-dataset-100.zip -d dataset || true
+          if [ ! -d dataset/testcase/aoj_eppather_dataset ]; then mkdir -p dataset; cp -a dataset-artifact/testcase dataset/; fi
+          python3 -m pip install --disable-pip-version-check pulp
+      - name: Run Eppather, minimum set, and concrete replay
+        run: |
+          python3 tools/run_aoj_minset_coverage.py \
+            --dataset dataset/testcase/aoj_eppather_dataset --cnip ./cnip \
+            --shard-index "${{ matrix.shard }}" --shard-count 10 \
+            --maxloop 10 --maxpaths 400 --output "coverage-${{ matrix.shard }}.json"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aoj-coverage-${{ matrix.shard }}
+          path: coverage-${{ matrix.shard }}.json
+          retention-days: 14
+
+  report:
+    needs: analyze
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {pattern: aoj-coverage-*, path: coverage-shards}
+      - run: python3 tools/merge_aoj_coverage_results.py --input coverage-shards --output coverage-report
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aoj-eppather-coverage-report
+          path: coverage-report/
+          retention-days: 14
