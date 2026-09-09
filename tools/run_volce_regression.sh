@@ -13,7 +13,7 @@ cases=(
   testcase/dp_maxmem_branch.c
   testcase/dp_maxmem_single.c
   testcase/dp_maxmem_nested.c
-  testcase/test03.c
+  testcase/summary_global_multi.c
   testcase/test08.c
   testcase/test09.c
   testcase/test17.c
@@ -29,11 +29,16 @@ for source in "${cases[@]}"; do
   compile=PASS
   run=PASS
 
+  case_maxloop=1
+  if [[ "$source" == testcase/dp_maxmem_single.c || "$source" == testcase/dp_maxmem_nested.c ]]; then
+    case_maxloop=3
+  fi
+
   if ! gcc -std=c11 -fsyntax-only "$source" >"$OUT_DIR/logs/$tag.gcc.log" 2>&1; then
     compile=FAIL
     run=SKIP
     failures=$((failures + 1))
-  elif ! timeout 120 "$CNIP" -q --maxloop 1 --maxpaths 30 \
+  elif ! timeout 120 "$CNIP" -q --maxloop "$case_maxloop" --maxpaths 30 \
       --volce --volce-lower -1 --volce-upper 1 "$source" >"$log" 2>&1; then
     run=FAIL
     failures=$((failures + 1))
