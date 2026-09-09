@@ -11,15 +11,15 @@ echo "case,c_compile,eppather_run,path_count,solution_space_count,weighted_mems_
 
 cases=(
   testcase/test01.c
-  testcase/test03.c
-  testcase/test06.c
-  testcase/test09.c
+  testcase/test02.c
+  testcase/test04.c
+  testcase/test12.c
   testcase/test13.c
+  testcase/test14.c
+  testcase/test15.c
+  testcase/test16.c
   testcase/dp_maxmem_single.c
   testcase/dp_maxmem_nested.c
-  testcase/warshall.c
-  testcase/volce/selection_sort.c
-  testcase/volce/insertion_sort.c
 )
 
 failures=0
