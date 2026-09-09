@@ -13,7 +13,7 @@ cases=(
   testcase/test01.c
   testcase/test02.c
   testcase/test04.c
-  testcase/test12.c
+  testcase/dp_maxmem_branch.c
   testcase/test13.c
   testcase/test14.c
   testcase/test15.c
