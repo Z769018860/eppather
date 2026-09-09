@@ -1,0 +1,35 @@
+name: VolCE weighted average regression
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "C/syntax/SyntaxNamePrinter.cpp"
+      - "volce/**"
+      - "tools/run_volce_regression.sh"
+      - ".github/workflows/volce-weighted-average.yml"
+
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+      - name: Build
+        run: |
+          cmake -S . -B build_ci
+          cmake --build build_ci -j2
+      - name: Run ten-case regression
+        run: |
+          CNIP=./build_ci/cnip bash tools/run_volce_regression.sh
+      - name: Upload regression report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: volce-weighted-average-results
+          path: volce-regression-results/
+          if-no-files-found: error
