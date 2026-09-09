@@ -41,6 +41,9 @@ fi
 
 volce_range_line="$(rg -n "\[VOLCE RANGE\]: \[-4, 4\]" /tmp/eppather_volce.log | head -n 1 || true)"
 volce_total_line="$(rg -n "\[VOLCE TOTAL COUNT \(LattE\)\]:" /tmp/eppather_volce.log | tail -n 1 || true)"
+volce_solution_space_line="$(rg -n "\[VOLCE SOLUTION SPACE COUNT\]:" /tmp/eppather_volce.log | tail -n 1 || true)"
+volce_weighted_sum_line="$(rg -n "\[VOLCE WEIGHTED MEMS SUM\]:" /tmp/eppather_volce.log | tail -n 1 || true)"
+volce_weighted_average_line="$(rg -n "\[VOLCE WEIGHTED AVERAGE MEMS\]:" /tmp/eppather_volce.log | tail -n 1 || true)"
 volce_weight_line="$(rg -n "\[WEIGHTED AVG MEMS BY PROB\]:" /tmp/eppather_volce.log | tail -n 1 || true)"
 prob_sum="$(awk '{
   for(i=1;i<=NF;i++) if($i ~ /^prob=/){split($i,a,"="); s+=a[2]}
@@ -51,6 +54,9 @@ if [[ -z "$volce_range_line" ]]; then
 fi
 if [[ -z "$volce_total_line" ]]; then
   issues+=("VolCE total model count line missing")
+fi
+if [[ -z "$volce_solution_space_line" || -z "$volce_weighted_sum_line" || -z "$volce_weighted_average_line" ]]; then
+  issues+=("VolCE solution-space weighted-average output missing")
 fi
 if [[ -z "$volce_weight_line" ]]; then
   issues+=("VolCE weighted average MEMS line missing")
@@ -87,6 +93,9 @@ cat <<REPORT
 [CHECK 2] VolCE range / model count / probabilities / weighted average
   range line: $volce_range_line
   total count: $volce_total_line
+  solution space: $volce_solution_space_line
+  weighted mems sum: $volce_weighted_sum_line
+  weighted average: $volce_weighted_average_line
   weighted avg mems: $volce_weight_line
   probability sum: $prob_sum
   sample path prob lines:
