@@ -745,6 +745,18 @@ R5 的详细迭代过程、slice 分布、逐项目 MEMS 结果及 DFS2/DP 严�
 - 输出汇总报告；
 - 若发现异常，打印 `[ISSUES DETECTED]` 并以非 0 退出（便于 CI 集成）。
 
+启用 `--volce` 后，每条可行路径的 `volce` 字段是该路径约束下的解数量。
+所有已枚举可行路径的解数量之和作为解空间大小，并按下式计算 MEMS 加权平均值：
+
+```text
+weighted_average_mems = sum(path_mems_i * path_solution_count_i)
+                        / sum(path_solution_count_i)
+```
+
+终端会输出 `[VOLCE SOLUTION SPACE COUNT]`、`[VOLCE WEIGHTED MEMS SUM]` 和
+`[VOLCE WEIGHTED AVERAGE MEMS]`；`volce_paths.csv` 同时保留逐路径解数量和概率。
+当 `--maxpaths` 截断枚举时，这些统计对应已枚举的有界路径解空间。
+
 ---
 
 ### LLM 自动迭代修复流程（新增）
