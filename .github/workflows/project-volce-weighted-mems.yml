@@ -1,0 +1,34 @@
+name: Project VolCE weighted MEMS
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "C/syntax/SyntaxNamePrinter.cpp"
+      - "volce/**"
+      - "tools/run_project_volce_regression.sh"
+      - ".github/workflows/project-volce-weighted-mems.yml"
+
+jobs:
+  project-volce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+      - name: Build
+        run: |
+          cmake -S . -B build_ci
+          cmake --build build_ci -j2
+      - name: Run project weighted-MEMS analysis
+        run: CNIP=./build_ci/cnip bash tools/run_project_volce_regression.sh
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: project-volce-weighted-mems-results
+          path: project-volce-results/
+          if-no-files-found: error
