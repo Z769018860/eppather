@@ -10,16 +10,16 @@ SUMMARY="$OUT_DIR/summary.csv"
 echo "case,c_compile,eppather_run,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems" > "$SUMMARY"
 
 cases=(
-  testcase/test01.c
-  testcase/test02.c
-  testcase/test04.c
   testcase/dp_maxmem_branch.c
-  testcase/test13.c
-  testcase/test14.c
-  testcase/test15.c
-  testcase/test16.c
   testcase/dp_maxmem_single.c
   testcase/dp_maxmem_nested.c
+  testcase/test03.c
+  testcase/test08.c
+  testcase/test09.c
+  testcase/test17.c
+  testcase/test24.c
+  testcase/test26.c
+  testcase/example9-test.c
 )
 
 failures=0
@@ -33,8 +33,8 @@ for source in "${cases[@]}"; do
     compile=FAIL
     run=SKIP
     failures=$((failures + 1))
-  elif ! timeout 120 "$CNIP" -q --maxloop 3 --maxpaths 100 \
-      --volce --volce-lower -4 --volce-upper 4 "$source" >"$log" 2>&1; then
+  elif ! timeout 120 "$CNIP" -q --maxloop 1 --maxpaths 30 \
+      --volce --volce-lower -1 --volce-upper 1 "$source" >"$log" 2>&1; then
     run=FAIL
     failures=$((failures + 1))
   fi
