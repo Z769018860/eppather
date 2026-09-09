@@ -1513,26 +1513,37 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
         std::cout << "  (none)" << std::endl;
     }
 
-    double weightedMemSum = 0.0;
-    double probSum = 0.0;
-    double probWeightedByMemSum = 0.0;
-    double memSumForProb = 0.0;
+    // Model counts are the weights.  Accumulate the numerator directly instead
+    // of converting every count to double probability and normalizing again.
+    std::uint64_t countedSolutionSpace = 0;
+    long double weightedMemsSum = 0.0L;
+    bool countOverflow = false;
+
+    for (const auto& info : feasiblePaths_) {
+        if (!info.volceCount) {
+            continue;
+        }
+        if (countedSolutionSpace >
+            std::numeric_limits<std::uint64_t>::max() - *info.volceCount) {
+            countOverflow = true;
+            break;
+        }
+        countedSolutionSpace += *info.volceCount;
+        weightedMemsSum += static_cast<long double>(info.mem)
+                           * static_cast<long double>(*info.volceCount);
+    }
 
     for (const auto& info : feasiblePaths_) {
         std::cout << "  [path " << info.pathIndex << "] mem=" << info.mem;
         std::optional<double> prob;
         if (enableVolce) {
             if (info.volceCount) {
-                const double probValue = totalVolceCount_ > 0
+                const double probValue = countedSolutionSpace > 0 && !countOverflow
                                              ? static_cast<double>(*info.volceCount)
-                                                   / static_cast<double>(totalVolceCount_)
+                                                   / static_cast<double>(countedSolutionSpace)
                                              : 0.0;
                 prob = probValue;
                 std::cout << " volce=" << *info.volceCount << " prob=" << probValue;
-                weightedMemSum += static_cast<double>(info.mem) * probValue;
-                probSum += probValue;
-                probWeightedByMemSum += probValue * static_cast<double>(info.mem);
-                memSumForProb += static_cast<double>(info.mem);
             } else {
                 std::cout << " volce=N/A prob=N/A";
             }
@@ -1560,25 +1571,27 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
     }
 
     if (enableVolce) {
-        std::cout << "[VOLCE TOTAL COUNT (LattE)]: " << totalVolceCount_ << std::endl;
+        if (countOverflow) {
+            std::cout << "[VOLCE SOLUTION SPACE COUNT]: OVERFLOW" << std::endl;
+            std::cout << "[VOLCE TOTAL COUNT (LattE)]: OVERFLOW" << std::endl;
+        } else {
+            std::cout << "[VOLCE SOLUTION SPACE COUNT]: " << countedSolutionSpace << std::endl;
+            // Preserve the legacy label for existing experiment parsers.
+            std::cout << "[VOLCE TOTAL COUNT (LattE)]: " << countedSolutionSpace << std::endl;
+        }
     }
 
-    if (enableVolce && totalVolceCount_ > 0) {
-        if (probSum > 0.0) {
-            const double avgMemWeightedByProb = weightedMemSum / probSum;
-            std::cout << "[WEIGHTED AVG MEMS BY PROB]: " << avgMemWeightedByProb << std::endl;
-        } else {
-            std::cout << "[WEIGHTED AVG MEMS BY PROB]: N/A" << std::endl;
-        }
-        if (memSumForProb > 0.0) {
-            const double avgProbWeightedByMem = probWeightedByMemSum / memSumForProb;
-            std::cout << "[WEIGHTED AVG PROB BY MEMS]: " << avgProbWeightedByMem << std::endl;
-        } else {
-            std::cout << "[WEIGHTED AVG PROB BY MEMS]: N/A" << std::endl;
-        }
+    if (enableVolce && countedSolutionSpace > 0 && !countOverflow) {
+        const long double weightedAverage =
+            weightedMemsSum / static_cast<long double>(countedSolutionSpace);
+        std::cout << "[VOLCE WEIGHTED MEMS SUM]: " << weightedMemsSum << std::endl;
+        std::cout << "[VOLCE WEIGHTED AVERAGE MEMS]: " << weightedAverage << std::endl;
+        // Preserve the legacy label for existing experiment parsers.
+        std::cout << "[WEIGHTED AVG MEMS BY PROB]: " << weightedAverage << std::endl;
     } else if (enableVolce) {
+        std::cout << "[VOLCE WEIGHTED MEMS SUM]: N/A" << std::endl;
+        std::cout << "[VOLCE WEIGHTED AVERAGE MEMS]: N/A" << std::endl;
         std::cout << "[WEIGHTED AVG MEMS BY PROB]: N/A" << std::endl;
-        std::cout << "[WEIGHTED AVG PROB BY MEMS]: N/A" << std::endl;
     }
 }
 
