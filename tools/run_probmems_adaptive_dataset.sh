@@ -82,6 +82,8 @@ while IFS=',' read -r id source category features lower upper requested_maxloop 
       elapsed=$((elapsed + SECONDS))
 
       paths="$(grep -c '^  \[path [0-9][0-9]*\] mem=' "$log" 2>/dev/null || true)"
+      program_paths="$(sed -n 's/^\[PROGRAM PATH COUNT\]: //p' "$log" 2>/dev/null | tail -1)"
+      if [[ "$program_paths" =~ ^[0-9]+$ ]]; then paths="$program_paths"; fi
       count="$(sed -n 's/^\[VOLCE SOLUTION SPACE COUNT\]: //p' "$log" 2>/dev/null | tail -1)"
       weighted_sum="$(sed -n 's/^\[VOLCE WEIGHTED MEMS SUM\]: //p' "$log" 2>/dev/null | tail -1)"
       weighted_average="$(sed -n 's/^\[VOLCE WEIGHTED AVERAGE MEMS\]: //p' "$log" 2>/dev/null | tail -1)"
