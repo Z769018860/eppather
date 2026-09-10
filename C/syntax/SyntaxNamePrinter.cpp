@@ -2113,6 +2113,9 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
         std::cout << "[VOLCE WEIGHTED MEMS SUM]: " << programWeightedSum << std::endl;
         std::cout << "[VOLCE WEIGHTED AVERAGE MEMS]: " << approxAvg[entryName] << std::endl;
     }
+    const size_t programPathCount =
+        entryIt == directSummaries.end() ? 0 : entryIt->second.cases.size();
+    std::cout << "[PROGRAM PATH COUNT]: " << programPathCount << std::endl;
     std::cout << "[DFS MAX MEMS]: " << worstMem << std::endl;
 
     if (!reasonSet.empty()) {
