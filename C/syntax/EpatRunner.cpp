@@ -64,6 +64,36 @@ void appendSafeLine(std::string& script, const std::string& line, bool addSemico
     script += "\n";
 }
 
+std::string trimCopy(std::string s);
+bool isIdentChar(char c);
+
+// epat++'s path language has no function-call expression. Feeding a C call to
+// its parser can abort the process before an exception can be reported. Keep
+// the caller's assignment/write in the direct summary and let the existing
+// function-summary composition add the callee cost.
+std::string abstractCallForEpat(const std::string& line) {
+    const size_t assign = line.find('=');
+    if (assign != std::string::npos) {
+        size_t name = assign + 1;
+        while (name < line.size() && std::isspace(static_cast<unsigned char>(line[name]))) ++name;
+        if (name < line.size() &&
+            (std::isalpha(static_cast<unsigned char>(line[name])) || line[name] == '_')) {
+            size_t end = name + 1;
+            while (end < line.size() && isIdentChar(line[end])) ++end;
+            size_t open = end;
+            while (open < line.size() && std::isspace(static_cast<unsigned char>(line[open]))) ++open;
+            if (open < line.size() && line[open] == '(') {
+                return line.substr(0, assign + 1) + " 0;";
+            }
+        }
+    }
+    const std::string trimmed = trimCopy(line);
+    if (trimmed.rfind("return ", 0) == 0 && trimmed.find('(') != std::string::npos) {
+        return "return 0;";
+    }
+    return "";
+}
+
 bool isSafePrefixLine(const std::string& line) {
     if (line.empty()) {
         return false;
@@ -261,7 +291,12 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
             default: {
                 auto code = step.node->getCode();
                 if (!code.empty()) {
-                    appendSafeLine(script, code, false);
+                    if (step.node->hasCallExpr) {
+                        code = abstractCallForEpat(code);
+                    }
+                    if (!code.empty()) {
+                        appendSafeLine(script, code, false);
+                    }
                 }
                 break;
             }

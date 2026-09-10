@@ -1,0 +1,50 @@
+name: ProbMEMS multi-function and exact oracle
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "C/syntax/EpatRunner.cpp"
+      - "testcase/probmems_ground_truth/gt20_function_call.c"
+      - "tools/run_probmems_exact_oracle.py"
+      - ".github/workflows/probmems-multifunction-oracle.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+          cmake -S . -B build_ci -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build_ci -j2
+      - name: Multi-function crash regression
+        run: |
+          timeout 30 ./build_ci/cnip -q --maxloop 1 --maxpaths 100 --volce \
+            --volce-lower -1 --volce-upper 1 \
+            testcase/probmems_ground_truth/gt20_function_call.c |
+            tee gt20-multifunction.log
+          test "$(grep -c '^\[VOLCE WEIGHTED AVERAGE MEMS\]:' gt20-multifunction.log)" -eq 2
+          test "$(grep -c '^\[DFS MAX MEMS\]:' gt20-multifunction.log)" -eq 2
+          EPPATHER_ENTRY=probmems_function_call timeout 30 ./build_ci/cnip -s \
+            --maxloop 1 --maxpaths 100 --volce --volce-lower -1 --volce-upper 1 \
+            testcase/probmems_ground_truth/gt20_function_call.c |
+            tee gt20-program-summary.log
+          grep -q '^entry=probmems_function_call$' gt20-program-summary.log
+          grep -q '^worst_mems=1$' gt20-program-summary.log
+          grep -q '^weighted_avg_mems=1' gt20-program-summary.log
+      - name: Ten-case exhaustive oracle
+        env:
+          CNIP: ./build_ci/cnip
+        run: python3 tools/run_probmems_exact_oracle.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: probmems-multifunction-oracle
+          path: |
+            gt20-multifunction.log
+            gt20-program-summary.log
+            probmems-oracle-results/
+          if-no-files-found: error
