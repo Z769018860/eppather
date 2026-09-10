@@ -59,7 +59,11 @@
 
 namespace {
 int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
-    if (!node || !node->isFor) return std::min(std::max(0, safetyCap), 3);
+    if (!node) return 0;
+    // The affine predictor currently has initializer/update metadata only for
+    // for-loops. A while-loop must therefore honor the configured safety cap;
+    // the old hard-coded fallback of 3 silently ignored --maxloop values > 3.
+    if (!node->isFor) return std::max(0, safetyCap);
     return psy::C::LoopBoundPredictor::predict(node->initstmt_str,
                                                node->cond_str,
                                                node->expr_str,
@@ -3387,6 +3391,10 @@ std::vector<std::vector<int>> SyntaxNamePrinter::ReadCoverageMatrix(const std::s
 //这个部分改成了贪心算法，可以得出结果
 
 void SyntaxNamePrinter::SolveLinearProgram(const std::vector<std::vector<int>>& coverageMatrix) {
+    if (coverageMatrix.empty() || coverageMatrix.front().empty()) {
+        std::cout << "[COVERAGE MATRIX]: empty; no feasible paths to optimize" << std::endl;
+        return;
+    }
     int numStatements = coverageMatrix[0].size();
     int numPaths = coverageMatrix.size();
     std::vector<bool> isStatementCovered(numStatements, false);
