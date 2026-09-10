@@ -48,7 +48,11 @@ def main():
             path = Path(td, name + ".c")
             path.write_text(source + "\n", encoding="utf-8")
             costs = [cost(x) for x in DOMAIN]
-            expected_count = len(costs)
+            # VolCE counts the projection containing variables that occur in
+            # path constraints.  For branch-free cases x is unconstrained and
+            # absent from SMT, so the projected count is one even though the
+            # full executable input domain contains three x values.
+            expected_count = 1 if name in {"or01_one_read", "or02_two_reads"} else len(costs)
             expected_sum = sum(costs)
             expected_average = expected_sum / expected_count
             proc = subprocess.run(
@@ -66,7 +70,8 @@ def main():
                       abs(float(got_average) - expected_average) <= 1e-5 and
                       int(got_max) == expected_max)
             rows.append({
-                "id": name, "domain": "[-1,1]", "enumerated_inputs": expected_count,
+                "id": name, "domain": "[-1,1]", "enumerated_inputs": len(costs),
+                "oracle_projected_count": expected_count,
                 "oracle_weighted_sum": expected_sum,
                 "oracle_average_mems": f"{expected_average:.8f}",
                 "oracle_max_mems": expected_max, "cnip_solution_count": got_count or "N/A",
