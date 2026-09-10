@@ -28,7 +28,7 @@ append_candidate() {
 }
 
 failures=0
-while IFS=',' read -r id source category features lower upper requested_maxloop expected_support; do
+while IFS=',' read -r id source category features lower upper requested_maxloop expected_support entry_function; do
   if [[ "$CATEGORY" != all && "$category" != "$CATEGORY" ]]; then continue; fi
   lower="${lower//[[:space:]]/}"
   upper="${upper//[[:space:]]/}"
@@ -73,7 +73,9 @@ while IFS=',' read -r id source category features lower upper requested_maxloop 
       attempted_maxloops+="$candidate"
       log="$SHARD/logs/$id.maxloop-$candidate.log"
       SECONDS=0
-      timeout "$TIMEOUT_SECONDS" "$CNIP" -q \
+      analysis_flag="-q"
+      if [[ -n "${entry_function:-}" ]]; then analysis_flag="-s"; fi
+      timeout "$TIMEOUT_SECONDS" env EPPATHER_ENTRY="${entry_function:-main}" "$CNIP" "$analysis_flag" \
         --maxloop "$candidate" --maxpaths "$MAXPATHS" --volce \
         --volce-lower "$lower" --volce-upper "$upper" "$source" >"$log" 2>&1
       exit_code=$?
