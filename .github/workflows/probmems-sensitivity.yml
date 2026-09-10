@@ -1,0 +1,90 @@
+name: ProbMEMS sensitivity pilot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "tools/run_probmems_sensitivity.sh"
+      - ".github/workflows/probmems-sensitivity.yml"
+
+jobs:
+  sensitivity:
+    name: ${{ matrix.subject }} / ${{ matrix.domain.label }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        subject: [cjson, tinyexpr, lua, list, inih, sds]
+        domain:
+          - label: d1
+            lower: "-1"
+            upper: "1"
+          - label: d3
+            lower: "-3"
+            upper: "3"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+
+      - name: Build
+        run: |
+          cmake -S . -B build_ci
+          cmake --build build_ci -j2
+
+      - name: Run loop/domain sensitivity shard
+        env:
+          CNIP: ./build_ci/cnip
+          SUBJECT_KEY: ${{ matrix.subject }}
+          DOMAIN_LABEL: ${{ matrix.domain.label }}
+          LOWER: ${{ matrix.domain.lower }}
+          UPPER: ${{ matrix.domain.upper }}
+          MAXLOOPS: "1 2 3 5"
+          MAXPATHS: "40"
+          TIMEOUT_SECONDS: "180"
+          STRICT: "0"
+        run: bash tools/run_probmems_sensitivity.sh
+
+      - name: Upload shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probmems-sensitivity-${{ matrix.subject }}-${{ matrix.domain.label }}
+          path: probmems-sensitivity-results/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate sensitivity CSV
+    if: always()
+    needs: sensitivity
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download shards
+        uses: actions/download-artifact@v4
+        with:
+          pattern: probmems-sensitivity-*
+          path: combined
+
+      - name: Merge CSV files
+        run: |
+          mkdir -p aggregate
+          mapfile -t files < <(find combined -name summary.csv -type f | sort)
+          if (( ${#files[@]} == 0 )); then
+            echo "No sensitivity summaries found" >&2
+            exit 1
+          fi
+          awk 'FNR == 1 && NR != 1 { next } { print }' "${files[@]}" > aggregate/probmems-sensitivity.csv
+          cat aggregate/probmems-sensitivity.csv
+
+      - name: Upload aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: probmems-sensitivity-aggregate
+          path: aggregate/
+          if-no-files-found: error
