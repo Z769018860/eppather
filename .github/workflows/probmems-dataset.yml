@@ -1,4 +1,4 @@
-name: ProbMEMS 20-case pilot dataset
+name: ProbMEMS 40-case memory-access dataset
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ jobs:
   dataset:
     name: ${{ matrix.category }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       max-parallel: 5
@@ -37,6 +37,7 @@ jobs:
           CNIP: ./build_ci/cnip
           CATEGORY: ${{ matrix.category }}
           MAXPATHS: "100"
+          MAXLOOP_OVERRIDE: "8"
           TIMEOUT_SECONDS: "120"
           STRICT: "0"
         run: bash tools/run_probmems_dataset.sh
@@ -50,7 +51,7 @@ jobs:
           if-no-files-found: error
 
   aggregate:
-    name: Aggregate 20-case pilot
+    name: Aggregate 40-case dataset
     if: always()
     needs: dataset
     runs-on: ubuntu-24.04
