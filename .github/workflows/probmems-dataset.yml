@@ -6,6 +6,7 @@ on:
     paths:
       - "testcase/probmems_ground_truth/**"
       - "tools/run_probmems_dataset.sh"
+      - "tools/run_probmems_adaptive_dataset.sh"
       - 'epat\\+\\+/libepat\\+\\+/utils/mem_visitor.h'
       - ".github/workflows/probmems-dataset.yml"
 
@@ -38,9 +39,11 @@ jobs:
           CNIP: ./build_ci/cnip
           CATEGORY: ${{ matrix.category }}
           MAXPATHS: "100"
+          MAXLOOP_CEILING: "12"
+          ADAPTIVE_RADIUS: "4"
           TIMEOUT_SECONDS: "120"
           STRICT: "0"
-        run: bash tools/run_probmems_dataset.sh
+        run: bash tools/run_probmems_adaptive_dataset.sh
 
       - name: Upload category results
         if: always()
