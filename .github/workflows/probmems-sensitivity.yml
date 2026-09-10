@@ -11,7 +11,7 @@ jobs:
   sensitivity:
     name: ${{ matrix.subject }} / ${{ matrix.domain.label }}
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -45,8 +45,8 @@ jobs:
           DOMAIN_LABEL: ${{ matrix.domain.label }}
           LOWER: ${{ matrix.domain.lower }}
           UPPER: ${{ matrix.domain.upper }}
-          MAXLOOPS: "1 2 3 5"
-          MAXPATHS: "40"
+          MAXLOOPS: "1 2 3 5 8 10"
+          MAXPATHS: "80"
           TIMEOUT_SECONDS: "180"
           STRICT: "0"
         run: bash tools/run_probmems_sensitivity.sh
