@@ -1,0 +1,80 @@
+name: ProbMEMS 20-case pilot dataset
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "testcase/probmems_ground_truth/**"
+      - "tools/run_probmems_dataset.sh"
+      - ".github/workflows/probmems-dataset.yml"
+
+jobs:
+  dataset:
+    name: ${{ matrix.category }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        category: [scalar, array, pointer, mixed, call]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+
+      - name: Build
+        run: |
+          cmake -S . -B build_ci
+          cmake --build build_ci -j2
+
+      - name: Run category
+        env:
+          CNIP: ./build_ci/cnip
+          CATEGORY: ${{ matrix.category }}
+          MAXPATHS: "100"
+          TIMEOUT_SECONDS: "120"
+          STRICT: "0"
+        run: bash tools/run_probmems_dataset.sh
+
+      - name: Upload category results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probmems-dataset-${{ matrix.category }}
+          path: probmems-dataset-results/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate 20-case pilot
+    if: always()
+    needs: dataset
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Download category results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: probmems-dataset-*
+          path: combined
+
+      - name: Merge CSV files
+        run: |
+          mkdir -p aggregate
+          mapfile -t files < <(find combined -name summary.csv -type f | sort)
+          if (( ${#files[@]} == 0 )); then
+            echo "No dataset summaries found" >&2
+            exit 1
+          fi
+          awk 'FNR == 1 && NR != 1 { next } { print }' "${files[@]}" > aggregate/probmems-dataset-summary.csv
+          cat aggregate/probmems-dataset-summary.csv
+
+      - name: Upload aggregate
+        uses: actions/upload-artifact@v4
+        with:
+          name: probmems-dataset-aggregate
+          path: aggregate/
+          if-no-files-found: error
