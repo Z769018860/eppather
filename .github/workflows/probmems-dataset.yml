@@ -6,6 +6,7 @@ on:
     paths:
       - "testcase/probmems_ground_truth/**"
       - "tools/run_probmems_dataset.sh"
+      - "epat++/libepat++/utils/mem_visitor.h"
       - ".github/workflows/probmems-dataset.yml"
 
 jobs:
@@ -37,7 +38,6 @@ jobs:
           CNIP: ./build_ci/cnip
           CATEGORY: ${{ matrix.category }}
           MAXPATHS: "100"
-          MAXLOOP_OVERRIDE: "8"
           TIMEOUT_SECONDS: "120"
           STRICT: "0"
         run: bash tools/run_probmems_dataset.sh
