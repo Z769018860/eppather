@@ -1,0 +1,116 @@
+name: ProbMEMS adaptive maxloop reproducibility
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/probmems-reproducibility.yml"
+
+jobs:
+  repeat:
+    name: repeat-${{ matrix.repeat }}-${{ matrix.category }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      max-parallel: 5
+      matrix:
+        repeat: [1, 2, 3]
+        category: [scalar, array, pointer, mixed, call]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++ libz3-dev liblpsolve55-dev
+
+      - name: Build
+        run: |
+          cmake -S . -B build_ci
+          cmake --build build_ci -j2
+
+      - name: Run repetition
+        env:
+          CNIP: ./build_ci/cnip
+          CATEGORY: ${{ matrix.category }}
+          OUT_DIR: probmems-reproducibility/repeat-${{ matrix.repeat }}
+          MAXPATHS: "100"
+          MAXLOOP_CEILING: "12"
+          ADAPTIVE_RADIUS: "4"
+          TIMEOUT_SECONDS: "30"
+          STRICT: "0"
+        run: bash tools/run_probmems_adaptive_dataset.sh
+
+      - name: Upload repetition shard
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: probmems-repro-${{ matrix.repeat }}-${{ matrix.category }}
+          path: probmems-reproducibility/
+          if-no-files-found: error
+
+  aggregate:
+    name: Aggregate reproducibility data
+    if: always()
+    needs: repeat
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: probmems-repro-*
+          path: combined
+
+      - name: Build 120-run CSV and stability summary
+        shell: bash
+        run: |
+          mkdir -p aggregate
+          output=aggregate/probmems-reproducibility-raw.csv
+          echo "repeat,id,source,category,features,memory_access_syntax,expected_support,lower,upper,requested_maxloop,selected_maxloop,attempted_maxloops,adaptive_retry_count,maxpaths,compile_status,run_status,elapsed_seconds,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems,path_limit_hit,zero_diagnostic,average_to_max_ratio" > "$output"
+          while IFS= read -r file; do
+            repeat=$(sed -n 's#.*repeat-\([123]\)/.*#\1#p' <<< "$file" | head -1)
+            tail -n +2 "$file" | sed "s/^/$repeat,/" >> "$output"
+          done < <(find combined -name summary.csv -type f | sort)
+
+          python3 - <<'PY'
+          import csv, statistics
+          from collections import defaultdict
+          raw = "aggregate/probmems-reproducibility-raw.csv"
+          rows = list(csv.DictReader(open(raw)))
+          groups = defaultdict(list)
+          for row in rows:
+              groups[row["id"]].append(row)
+          fields = ["id","runs","pass_runs","stable_status","stable_selected_maxloop",
+                    "stable_solution_space_count","stable_weighted_average_mems",
+                    "stable_dfs_max_mems","elapsed_min","elapsed_median","elapsed_max"]
+          with open("aggregate/probmems-reproducibility-summary.csv","w",newline="") as f:
+              out = csv.DictWriter(f, fieldnames=fields)
+              out.writeheader()
+              for case_id in sorted(groups):
+                  rs = groups[case_id]
+                  def stable(key):
+                      vals = {r[key] for r in rs}
+                      return next(iter(vals)) if len(vals) == 1 else "NO"
+                  elapsed = [int(r["elapsed_seconds"]) for r in rs]
+                  out.writerow({
+                      "id": case_id, "runs": len(rs),
+                      "pass_runs": sum(r["run_status"] == "PASS" for r in rs),
+                      "stable_status": stable("run_status"),
+                      "stable_selected_maxloop": stable("selected_maxloop"),
+                      "stable_solution_space_count": stable("solution_space_count"),
+                      "stable_weighted_average_mems": stable("weighted_average_mems"),
+                      "stable_dfs_max_mems": stable("dfs_max_mems"),
+                      "elapsed_min": min(elapsed),
+                      "elapsed_median": statistics.median(elapsed),
+                      "elapsed_max": max(elapsed),
+                  })
+          print(f"rows={len(rows)} cases={len(groups)}")
+          PY
+          cat aggregate/probmems-reproducibility-summary.csv
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: probmems-reproducibility-aggregate
+          path: aggregate/
+          if-no-files-found: error
