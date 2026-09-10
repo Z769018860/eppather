@@ -54,7 +54,7 @@ def main():
             # full executable input domain contains three x values.
             expected_count = 1 if name in {"or01_one_read", "or02_two_reads"} else len(costs)
             expected_sum = sum(costs)
-            expected_average = expected_sum / expected_count
+            expected_average = expected_sum / len(costs)
             proc = subprocess.run(
                 [CNIP, "-q", "--maxloop", "1", "--maxpaths", "100", "--volce",
                  "--volce-lower", "-1", "--volce-upper", "1", str(path)],
