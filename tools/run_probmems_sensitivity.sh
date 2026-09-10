@@ -61,7 +61,8 @@ if ! gcc -std=c11 -fsyntax-only "$SOURCE" >"$SHARD/logs/compile.log" 2>&1; then
 fi
 
 failures=0
-for maxloop in $MAXLOOPS; do
+IFS=' ' read -r -a maxloop_values <<< "$MAXLOOPS"
+for maxloop in "${maxloop_values[@]}"; do
   log="$SHARD/logs/maxloop-${maxloop}.log"
   run_status=PASS
   elapsed=0
