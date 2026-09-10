@@ -21,6 +21,16 @@ namespace epat {
         {
             ++mem_;
         }
+
+        // A pointer dereference is a memory access just like an array
+        // subscript. Address-of and arithmetic unary operators do not
+        // access the pointed-to object and therefore are not counted.
+        virtual void processUnaryOperator(const epat::UnaryOperator& uop) override
+        {
+            if (uop.getOperator() == epat::UnaryOperator::Uop::Deref) {
+                ++mem_;
+            }
+        }
     };
 }
 
