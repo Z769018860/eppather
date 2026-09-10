@@ -1,0 +1,21 @@
+id,source,category,features,default_lower,default_upper,recommended_maxloop,expected_support
+gt01,testcase/probmems_ground_truth/gt01_scalar_three_way.c,scalar,branch, -1,1,1,supported
+gt02,testcase/probmems_ground_truth/gt02_scalar_nested.c,scalar,nested_branch,-1,1,1,supported
+gt03,testcase/probmems_ground_truth/gt03_short_circuit.c,scalar,short_circuit,-1,1,1,supported
+gt04,testcase/probmems_ground_truth/gt04_infeasible_condition.c,scalar,infeasible_path,-1,1,1,supported
+gt05,testcase/probmems_ground_truth/gt05_zero_memory.c,scalar,zero_memory,-1,1,1,supported
+gt06,testcase/probmems_ground_truth/gt06_fixed_loop_array.c,array,array_fixed_loop,-1,1,5,supported
+gt07,testcase/probmems_ground_truth/gt07_bounded_input_loop.c,array,array_input_loop,-1,1,5,supported
+gt08,testcase/probmems_ground_truth/gt08_array_index_branch.c,array,array_symbolic_index,-1,1,1,supported
+gt09,testcase/probmems_ground_truth/gt09_array_sum_threshold.c,array,array_branch,-1,1,1,supported
+gt10,testcase/probmems_ground_truth/gt10_array_first_match.c,array,array_early_return_loop,-1,1,5,supported
+gt11,testcase/probmems_ground_truth/gt11_array_prefix_conditional.c,array,array_loop_branch,-1,1,5,supported
+gt12,testcase/probmems_ground_truth/gt12_pointer_read.c,pointer,pointer_read,-1,1,1,measure
+gt13,testcase/probmems_ground_truth/gt13_pointer_write.c,pointer,pointer_write,-1,1,1,measure
+gt14,testcase/probmems_ground_truth/gt14_pointer_two_element.c,pointer,pointer_read_branch,-1,1,1,measure
+gt15,testcase/probmems_ground_truth/gt15_pointer_branch_write.c,pointer,pointer_read_write,-1,1,1,measure
+gt16,testcase/probmems_ground_truth/gt16_pointer_alias_candidate.c,pointer,pointer_aliasing,-1,1,1,expected_unsupported
+gt17,testcase/probmems_ground_truth/gt17_array_pointer_mix.c,mixed,array_pointer,-1,1,1,measure
+gt18,testcase/probmems_ground_truth/gt18_pointer_loop.c,pointer,pointer_loop,-1,1,5,measure
+gt19,testcase/probmems_ground_truth/gt19_nested_loop_array.c,array,nested_loop_array,-1,1,5,supported
+gt20,testcase/probmems_ground_truth/gt20_function_call.c,call,array_pointer_call,-1,1,1,measure
