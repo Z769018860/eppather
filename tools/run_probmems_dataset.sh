@@ -19,7 +19,7 @@ SUMMARY="$SHARD/summary.csv"
 echo "id,source,category,features,memory_access_syntax,expected_support,lower,upper,maxloop,maxpaths,compile_status,run_status,elapsed_seconds,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems,path_limit_hit,zero_diagnostic,average_to_max_ratio" > "$SUMMARY"
 
 failures=0
-tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower upper maxloop expected_support; do
+while IFS=',' read -r id source category features lower upper maxloop expected_support; do
   if [[ "$CATEGORY" != all && "$category" != "$CATEGORY" ]]; then
     continue
   fi
@@ -117,8 +117,8 @@ tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower
     ratio="$(awk -v a="$weighted_average" -v m="$max_mems" 'BEGIN { printf "%.8f", a/m }')"
   fi
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'     "$id" "$source" "$category" "$features" "$memory_access_syntax" "$expected_support" "$lower" "$upper"     "$maxloop" "$MAXPATHS" "$compile_status" "$run_status" "$elapsed" "$paths"     "$count" "$weighted_sum" "$weighted_average" "$max_mems" "$path_limit_hit"     "$zero_diagnostic" "$ratio" >> "$SUMMARY"
-done
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'     "$id" "$source" "$category" "$features" "$memory_access_syntax" "$expected_support" "$lower" "$upper"     "$maxloop" "$MAXPATHS" "$compile_status" "$run_status" "$elapsed" "$paths"     "$count" "$weighted_sum" "$weighted_average" "$max_mems" "$path_limit_hit"     "$zero_diagnostic" "$ratio" >> "$SUMMARY"
+done < <(tail -n +2 "$MANIFEST")
 
 cat "$SUMMARY"
 if [[ "$STRICT" == 1 ]]; then
