@@ -2096,6 +2096,28 @@ void SyntaxNamePrinter::dumpFunctionSummaries(int maxloop, int maxpaths, bool en
     }
     std::cout << std::endl;
 
+    // Machine-readable program-level metrics.  For multi-function inputs these
+    // deliberately follow the same labels as DFS2, so experiment runners do
+    // not accidentally report the caller's direct (uncomposed) zero cost.
+    std::uint64_t entryCount = 0;
+    const auto entryIt = directSummaries.find(entryName);
+    if (entryIt != directSummaries.end()) {
+        for (const auto& pathCase : entryIt->second.cases) {
+            if (pathCase.volceCount) entryCount += *pathCase.volceCount;
+        }
+    }
+    if (enableVolce && entryCount > 0) {
+        const long double programWeightedSum =
+            static_cast<long double>(approxAvg[entryName]) * entryCount;
+        std::cout << "[VOLCE SOLUTION SPACE COUNT]: " << entryCount << std::endl;
+        std::cout << "[VOLCE WEIGHTED MEMS SUM]: " << programWeightedSum << std::endl;
+        std::cout << "[VOLCE WEIGHTED AVERAGE MEMS]: " << approxAvg[entryName] << std::endl;
+    }
+    const size_t programPathCount =
+        entryIt == directSummaries.end() ? 0 : entryIt->second.cases.size();
+    std::cout << "[PROGRAM PATH COUNT]: " << programPathCount << std::endl;
+    std::cout << "[DFS MAX MEMS]: " << worstMem << std::endl;
+
     if (!reasonSet.empty()) {
         std::cout << "notes=";
         size_t idx = 0;

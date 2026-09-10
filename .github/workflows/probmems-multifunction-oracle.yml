@@ -35,6 +35,9 @@ jobs:
           grep -q '^entry=probmems_function_call$' gt20-program-summary.log
           grep -q '^worst_mems=1$' gt20-program-summary.log
           grep -q '^weighted_avg_mems=1' gt20-program-summary.log
+          grep -q '^\[VOLCE SOLUTION SPACE COUNT\]: 3$' gt20-program-summary.log
+          grep -q '^\[VOLCE WEIGHTED AVERAGE MEMS\]: 1' gt20-program-summary.log
+          grep -q '^\[DFS MAX MEMS\]: 1$' gt20-program-summary.log
       - name: Ten-case exhaustive oracle
         env:
           CNIP: ./build_ci/cnip
