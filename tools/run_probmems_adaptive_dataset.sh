@@ -58,11 +58,12 @@ while IFS=',' read -r id source category features lower upper requested_maxloop 
   else
     candidates=()
     append_candidate "$requested_maxloop"
-    for ((delta=1; delta<=ADAPTIVE_RADIUS; delta++)); do
-      append_candidate $((requested_maxloop + delta))
-    done
+    # Prefer a nearby smaller bound first: excessive while-loop expansion can
+    # cause state explosion, while an insufficient bound is recovered by the
+    # immediately following larger candidate.
     for ((delta=1; delta<=ADAPTIVE_RADIUS; delta++)); do
       append_candidate $((requested_maxloop - delta))
+      append_candidate $((requested_maxloop + delta))
     done
     append_candidate "$MAXLOOP_CEILING"
 
@@ -112,6 +113,7 @@ while IFS=',' read -r id source category features lower upper requested_maxloop 
 
   zero_diagnostic=NONZERO_OR_ZERO_COST
   if [[ "$run_status" != PASS ]]; then
+    retry_count="$attempt_index"
     zero_diagnostic="$last_failure"
     count=N/A
     weighted_sum=N/A
