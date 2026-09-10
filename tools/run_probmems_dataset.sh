@@ -9,16 +9,17 @@ OUT_DIR="${OUT_DIR:-probmems-dataset-results}"
 LOWER_OVERRIDE="${LOWER_OVERRIDE:-}"
 UPPER_OVERRIDE="${UPPER_OVERRIDE:-}"
 MAXPATHS="${MAXPATHS:-100}"
+MAXLOOP_OVERRIDE="${MAXLOOP_OVERRIDE:-}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-120}"
 STRICT="${STRICT:-0}"
 
 SHARD="$OUT_DIR/$CATEGORY"
 mkdir -p "$SHARD/logs"
 SUMMARY="$SHARD/summary.csv"
-echo "id,source,category,features,expected_support,lower,upper,maxloop,maxpaths,compile_status,run_status,elapsed_seconds,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems,path_limit_hit,zero_diagnostic,average_to_max_ratio" > "$SUMMARY"
+echo "id,source,category,features,memory_access_syntax,expected_support,lower,upper,maxloop,maxpaths,compile_status,run_status,elapsed_seconds,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems,path_limit_hit,zero_diagnostic,average_to_max_ratio" > "$SUMMARY"
 
 failures=0
-tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower upper maxloop expected_support; do
+while IFS=',' read -r id source category features lower upper maxloop expected_support; do
   if [[ "$CATEGORY" != all && "$category" != "$CATEGORY" ]]; then
     continue
   fi
@@ -27,11 +28,19 @@ tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower
   upper="${upper//[[:space:]]/}"
   maxloop="${maxloop//[[:space:]]/}"
   expected_support="${expected_support//[[:space:]]/}"
+  if [[ -n "$MAXLOOP_OVERRIDE" ]]; then
+    maxloop="$MAXLOOP_OVERRIDE"
+  fi
   if [[ -n "$LOWER_OVERRIDE" ]]; then
     lower="$LOWER_OVERRIDE"
   fi
   if [[ -n "$UPPER_OVERRIDE" ]]; then
     upper="$UPPER_OVERRIDE"
+  fi
+
+  memory_access_syntax=NO
+  if grep -Eq '\[[^]]+\]|\*[[:space:]]*[A-Za-z_]' "$source"; then
+    memory_access_syntax=YES
   fi
 
   compile_status=PASS
@@ -66,6 +75,13 @@ tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower
   weighted_average="${weighted_average:-N/A}"
   max_mems="${max_mems:-N/A}"
 
+  if [[ "$run_status" != PASS ]]; then
+    count=N/A
+    weighted_sum=N/A
+    weighted_average=N/A
+    max_mems=N/A
+  fi
+
   path_limit_hit=NO
   if [[ "$paths" =~ ^[0-9]+$ ]] && (( paths >= MAXPATHS )); then
     path_limit_hit=YES
@@ -79,10 +95,16 @@ tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower
   elif [[ "$count" == N/A || "$weighted_average" == N/A ]]; then
     zero_diagnostic=MISSING_METRIC
     run_status=FAIL
+  elif [[ "$count" =~ ^[0-9]+$ ]] && (( count == 0 )); then
+    zero_diagnostic=EMPTY_SOLUTION_SPACE
   elif awk -v s="$weighted_sum" -v m="$max_mems" 'BEGIN { exit !((s+0)==0 && (m+0)>0) }'; then
     zero_diagnostic=ZERO_WEIGHT_REQUIRES_DIAGNOSIS
   elif awk -v s="$weighted_sum" -v m="$max_mems" 'BEGIN { exit !((s+0)==0 && (m+0)==0) }'; then
-    zero_diagnostic=ZERO_COST_PATHS
+    if [[ "$memory_access_syntax" == YES ]]; then
+      zero_diagnostic=ZERO_WITH_MEMORY_SYNTAX
+    else
+      zero_diagnostic=ZERO_NO_MEMORY_ACCESS
+    fi
   fi
 
   if [[ "$compile_status" != PASS || "$run_status" != PASS ]]; then
@@ -95,8 +117,8 @@ tail -n +2 "$MANIFEST" | while IFS=',' read -r id source category features lower
     ratio="$(awk -v a="$weighted_average" -v m="$max_mems" 'BEGIN { printf "%.8f", a/m }')"
   fi
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'     "$id" "$source" "$category" "$features" "$expected_support" "$lower" "$upper"     "$maxloop" "$MAXPATHS" "$compile_status" "$run_status" "$elapsed" "$paths"     "$count" "$weighted_sum" "$weighted_average" "$max_mems" "$path_limit_hit"     "$zero_diagnostic" "$ratio" >> "$SUMMARY"
-done
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n'     "$id" "$source" "$category" "$features" "$memory_access_syntax" "$expected_support" "$lower" "$upper"     "$maxloop" "$MAXPATHS" "$compile_status" "$run_status" "$elapsed" "$paths"     "$count" "$weighted_sum" "$weighted_average" "$max_mems" "$path_limit_hit"     "$zero_diagnostic" "$ratio" >> "$SUMMARY"
+done < <(tail -n +2 "$MANIFEST")
 
 cat "$SUMMARY"
 if [[ "$STRICT" == 1 ]]; then

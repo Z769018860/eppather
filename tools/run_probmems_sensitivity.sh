@@ -9,7 +9,7 @@ DOMAIN_LABEL="${DOMAIN_LABEL:-d1}"
 LOWER="${LOWER:--1}"
 UPPER="${UPPER:-1}"
 MAXPATHS="${MAXPATHS:-40}"
-MAXLOOPS="${MAXLOOPS:-1 2 3 5}"
+MAXLOOPS="${MAXLOOPS:-1 2 3 5 8 10}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-180}"
 STRICT="${STRICT:-0}"
 
@@ -95,6 +95,13 @@ for maxloop in "${maxloop_values[@]}"; do
   weighted_average="${weighted_average:-N/A}"
   max_mems="${max_mems:-N/A}"
 
+  if [[ "$run_status" != PASS ]]; then
+    count=N/A
+    weighted_sum=N/A
+    weighted_average=N/A
+    max_mems=N/A
+  fi
+
   path_limit_hit=NO
   if [[ "$paths" =~ ^[0-9]+$ ]] && (( paths >= MAXPATHS )); then
     path_limit_hit=YES
@@ -109,10 +116,12 @@ for maxloop in "${maxloop_values[@]}"; do
     zero_diagnostic=MISSING_METRIC
     run_status=FAIL
     failures=$((failures + 1))
+  elif [[ "$count" =~ ^[0-9]+$ ]] && (( count == 0 )); then
+    zero_diagnostic=EMPTY_SOLUTION_SPACE
   elif awk -v s="$weighted_sum" -v m="$max_mems" 'BEGIN { exit !((s+0)==0 && (m+0)>0) }'; then
     zero_diagnostic=ZERO_WEIGHT_REQUIRES_DIAGNOSIS
   elif awk -v s="$weighted_sum" -v m="$max_mems" 'BEGIN { exit !((s+0)==0 && (m+0)==0) }'; then
-    zero_diagnostic=ZERO_COST_PATHS
+    zero_diagnostic=ZERO_NO_MEMORY_ACCESS
   fi
 
   ratio=N/A
