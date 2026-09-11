@@ -12,14 +12,20 @@ printf 'id,status,solution_count,applied,rejected,weighted_average\n'   > "$OUT_
 for id in 01 04 08 11 19; do
   src="$(find "$ROOT/testcase/loop_hybrid" -maxdepth 1 -name "$id"_*.c -print -quit)"
   log="$OUT_DIR/$id.log"
-  if timeout "$TIMEOUT_SECONDS" "$CNIP" -q --maxloop 64 --maxpaths 40       --volce --volce-lower -4 --volce-upper 8 "$src" >"$log" 2>&1; then
+  work="$OUT_DIR/work-$id"
+  mkdir -p "$work"
+  if (cd "$work" && timeout "$TIMEOUT_SECONDS" "$CNIP" -q --maxloop 64 --maxpaths 40       --volce --volce-lower -4 --volce-upper 8 "$src") >"$log" 2>&1; then
     count="$(sed -n 's/^\[VOLCE SOLUTION SPACE COUNT\]: //p' "$log" | tail -1)"
     applied="$(sed -n 's/^\[VOLCE LOOP SUMMARIES APPLIED\]: //p' "$log" |       awk '{s+=$1} END {print s+0}')"
     rejected="$(sed -n 's/^\[VOLCE LOOP SUMMARIES REJECTED\]: //p' "$log" |       awk '{s+=$1} END {print s+0}')"
     avg="$(sed -n 's/^\[VOLCE WEIGHTED AVERAGE MEMS\]: //p' "$log" | tail -1)"
     status=PASS
     [[ "$count" =~ ^[0-9]+$ ]] || status=FAIL
-    (( applied > 0 )) || status=FAIL
+    if (( applied == 0 )); then
+      status=FAIL
+      echo "[SUMMARY SSA DIAGNOSTIC $id]"
+      grep -hE '^\(declare-(fun|const)' "$work"/smt_*.txt 2>/dev/null | head -n 30 || true
+    fi
     printf '%s,%s,%s,%s,%s,%s\n' "$id" "$status" "${count:-N/A}"       "$applied" "$rejected" "${avg:-N/A}" >> "$OUT_DIR/summary.csv"
   else
     printf '%s,FAIL,N/A,0,0,N/A\n' "$id" >> "$OUT_DIR/summary.csv"
