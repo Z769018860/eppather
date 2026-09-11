@@ -24,3 +24,23 @@ jobs:
         with:
           name: hybrid-loop-results
           path: loop-hybrid-results/
+
+  eppather-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Eppather
+        run: cmake -S . -B build -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build --target cnip -j2
+      - name: Execute all 20 loop programs through DFS2
+        env:
+          CNIP: ${{ github.workspace }}/build/cnip
+          TIMEOUT_SECONDS: 60
+        run: bash tools/validate_hybrid_loops.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hybrid-loop-eppather-results
+          path: loop-hybrid-results/
