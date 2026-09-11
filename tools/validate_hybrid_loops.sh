@@ -26,7 +26,7 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   elif [[ -x "$CNIP" ]]; then
     work="$OUT_DIR/work-$id"
     mkdir -p "$work"
-    if (cd "$work" && timeout "$TIMEOUT_SECONDS" "$CNIP" -q         --maxloop "$maxloop" --maxpaths "$ "$MAXPATHS" "$src")         >"$OUT_DIR/logs/$id.cnip.log" 2>&1; then
+    if (cd "$work" && timeout "$TIMEOUT_SECONDS" "$CNIP" -q         --maxloop "$maxloop" --maxpaths "$MAXPATHS" "$src")         >"$OUT_DIR/logs/$id.cnip.log" 2>&1; then
       mems="$(sed -n 's/^\[DFS MAX MEMS\]: //p'         "$OUT_DIR/logs/$id.cnip.log" | tail -1)"
       mems="${mems:-N/A}"
       if [[ "$mems" =~ ^[0-9]+$ ]]; then
