@@ -28,11 +28,21 @@ struct PathDecision {
     PathDecisionKind kind{PathDecisionKind::Code};
 };
 
+struct AffineLoopStateSummary {
+    std::string variable;
+    long long initialValue{0};
+    long long step{0};
+    long long iterations{0};
+    long long finalValue{0};
+    std::string sourceRelation;
+};
+
 struct EpatResult {
     epat::result status{epat::result::unknown};
     int mem{0};
     std::string smt;
     std::string model;
+    std::vector<AffineLoopStateSummary> loopStateSummaries;
 };
 
 class EpatRunner {
