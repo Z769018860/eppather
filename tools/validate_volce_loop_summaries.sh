@@ -34,4 +34,10 @@ done
 cat "$OUT_DIR/summary.csv"
 echo "[SMT DECLARATION DIAGNOSTICS]"
 find "$OUT_DIR" -path '*/work-*/*smt*' -type f -print0 |   xargs -0 grep -hE '^\(declare-(fun|const)' 2>/dev/null | sort -u | head -80 || true
+find "$OUT_DIR/work-01" -maxdepth 2 -type f -print
+for diagnostic in "$OUT_DIR"/work-01/*; do
+  [[ -f "$diagnostic" ]] || continue
+  echo "===== $diagnostic ====="
+  sed -n '1,80p' "$diagnostic"
+done
 awk -F, 'NR>1 && $2!="PASS" {bad=1} END {exit bad}' "$OUT_DIR/summary.csv"
