@@ -207,7 +207,12 @@ std::optional<VolceResult> runVolce(
             summary.iterations,
             summary.finalValue});
     }
-    const auto countResult = summaries.empty()
+    const char* disableSummaries =
+        std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");
+    const bool summariesDisabled =
+        disableSummaries && *disableSummaries &&
+        std::string(disableSummaries) != "0";
+    const auto countResult = summaries.empty() || summariesDisabled
         ? volce::countModelsFromSmt2(smt2, {}, range)
         : volce::countModelsFromSmt2WithSummaries(
               smt2, summaries, {}, range);
