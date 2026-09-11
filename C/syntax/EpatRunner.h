@@ -43,6 +43,7 @@ struct EpatResult {
     std::string smt;
     std::string model;
     std::vector<AffineLoopStateSummary> loopStateSummaries;
+    std::vector<std::string> loopStateSummaryDiagnostics;
 };
 
 class EpatRunner {

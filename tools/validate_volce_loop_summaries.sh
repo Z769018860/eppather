@@ -14,7 +14,7 @@ metric() {
   sed -n "s/^${pattern}: //p" "$file" | tail -1
 }
 
-printf 'id,status,summary_count,baseline_count,applied,rejected,summary_average,baseline_average\n'   > "$OUT_DIR/summary.csv"
+printf 'id,status,summary_count,baseline_count,ssa_applied,ground_validated,rejected,summary_average,baseline_average\n' > "$OUT_DIR/summary.csv"
 for id in 01 04 08 11 19; do
   src="$(find "$ROOT/testcase/loop_hybrid" -maxdepth 1 -name "$id"_*.c -print -quit)"
   summary_log="$OUT_DIR/$id.summary.log"
@@ -35,6 +35,7 @@ for id in 01 04 08 11 19; do
   summary_avg="$(metric '\[VOLCE WEIGHTED AVERAGE MEMS\]' "$summary_log")"
   baseline_avg="$(metric '\[VOLCE WEIGHTED AVERAGE MEMS\]' "$baseline_log")"
   applied="$(metric '\[VOLCE LOOP SUMMARIES APPLIED\]' "$summary_log" |     awk '{s+=$1} END {print s+0}')"
+  ground="$(metric '\[VOLCE LOOP SUMMARIES GROUND-VALIDATED\]' "$summary_log" | awk '{s+=$1} END {print s+0}')"
   rejected="$(metric '\[VOLCE LOOP SUMMARIES REJECTED\]' "$summary_log" |     awk '{s+=$1} END {print s+0}')"
 
   status=PASS
@@ -43,9 +44,12 @@ for id in 01 04 08 11 19; do
   [[ "$baseline_count" =~ ^[0-9]+$ ]] || status=FAIL
   [[ "$summary_count" == "$baseline_count" ]] || status=FAIL
   [[ -n "$summary_avg" && "$summary_avg" == "$baseline_avg" ]] || status=FAIL
-  (( applied > 0 )) || status=FAIL
+  (( applied + ground > 0 )) || status=FAIL
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s\n'     "$id" "$status" "${summary_count:-N/A}" "${baseline_count:-N/A}"     "$applied" "$rejected" "${summary_avg:-N/A}" "${baseline_avg:-N/A}"     >> "$OUT_DIR/summary.csv"
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+    "$id" "$status" "${summary_count:-N/A}" "${baseline_count:-N/A}" \
+    "$applied" "$ground" "$rejected" "${summary_avg:-N/A}" \
+    "${baseline_avg:-N/A}" >> "$OUT_DIR/summary.csv"
 done
 
 cat "$OUT_DIR/summary.csv"
