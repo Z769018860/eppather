@@ -1,0 +1,26 @@
+name: Hybrid loop validation
+
+on:
+  push:
+    branches:
+      - feature/hybrid-loop-summary-validation
+  pull_request:
+    paths:
+      - 'C/syntax/LoopBoundPredictor.h'
+      - 'tests/LoopBoundPredictorTests.cpp'
+      - 'testcase/loop_hybrid/**'
+      - 'tools/validate_hybrid_loops.sh'
+      - '.github/workflows/hybrid-loop-validation.yml'
+
+jobs:
+  predictor-and-cases:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate 20 loop summaries and compile C cases
+        run: bash tools/validate_hybrid_loops.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hybrid-loop-results
+          path: loop-hybrid-results/
