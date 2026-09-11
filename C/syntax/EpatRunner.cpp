@@ -9,9 +9,11 @@
 #include <cctype>
 #include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <utility>
 
 #include "SyntaxNamePrinter.h"
+#include "LoopBoundPredictor.h"
 
 namespace psy {
 namespace C {
@@ -374,7 +376,45 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
 }
 
 EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
-    return solveScript(render(decisions));
+    EpatResult result = solveScript(render(decisions));
+
+    // Build exact source-level state transitions only after the concrete path
+    // has been rendered. Early exits and truncated paths are rejected because
+    // their observed iteration count differs from the closed-form trip count.
+    std::unordered_map<CFGNode*, long long> observedIterations;
+    std::vector<CFGNode*> order;
+    for (const auto& decision : decisions) {
+        if (!decision.node || !decision.node->isFor) {
+            continue;
+        }
+        if (observedIterations.emplace(decision.node, 0).second) {
+            order.push_back(decision.node);
+        }
+        if (decision.kind == PathDecisionKind::TrueBranch) {
+            ++observedIterations[decision.node];
+        }
+    }
+    for (CFGNode* loop : order) {
+        const auto prediction = LoopBoundPredictor::predict(
+            loop->initstmt_str, loop->cond_str, loop->expr_str,
+            std::numeric_limits<int>::max());
+        const long long observed = observedIterations[loop];
+        if (!prediction.exact() || observed != prediction.iterations) {
+            continue;
+        }
+        AffineLoopStateSummary summary;
+        summary.variable = prediction.inductionVariable;
+        summary.initialValue = prediction.start;
+        summary.step = prediction.step;
+        summary.iterations = observed;
+        summary.finalValue = prediction.start + prediction.step * observed;
+        summary.sourceRelation = summary.variable + "_out = " +
+            std::to_string(summary.initialValue) + " + (" +
+            std::to_string(summary.step) + " * " +
+            std::to_string(summary.iterations) + ")";
+        result.loopStateSummaries.push_back(std::move(summary));
+    }
+    return result;
 }
 
 }  // namespace C

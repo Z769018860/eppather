@@ -334,10 +334,87 @@ std::optional<volce::Range> lookupRange(const std::string& name,
     return kVolceWordRange;
 }
 
+bool isSummaryCandidateName(const std::string& declared,
+                            const std::string& source) {
+    if (declared == source) return true;
+    if (declared.size() <= source.size() ||
+        declared.compare(0, source.size(), source) != 0) return false;
+    const char separator = declared[source.size()];
+    return separator == '@' || separator == '!' || separator == '#' ||
+           separator == '$' || separator == '_';
+}
+
+void applyEntailedStateSummaries(
+    Z3_context ctx,
+    Z3_solver solver,
+    const std::vector<Z3_func_decl>& decls,
+    const std::vector<volce::AffineStateSummary>& summaries,
+    std::vector<std::string>& applied,
+    std::vector<std::string>& rejected) {
+    for (const auto& summary : summaries) {
+        bool accepted = false;
+        for (auto decl : decls) {
+            const char* rawName =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = rawName ? rawName : "";
+            if (!isSummaryCandidateName(name, summary.variable)) continue;
+
+            Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
+            Z3_ast value =
+                Z3_mk_int64(ctx, summary.final_value, Z3_get_range(ctx, decl));
+            Z3_ast equality = Z3_mk_eq(ctx, var, value);
+
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool check = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+            if (check == Z3_L_FALSE) {
+                Z3_solver_assert(ctx, solver, equality);
+                applied.push_back(summary.variable + "->" + name + "=" +
+                                  std::to_string(summary.final_value));
+                accepted = true;
+                break;
+            }
+        }
+        if (!accepted) {
+            // epat++ commonly substitutes a constant induction variable away,
+            // leaving no source/SSA declaration to bind. Preserve the closed
+            // transition explicitly as a ground 32-bit bit-vector equality.
+            // This records the summarized transition without introducing a
+            // model-count dimension.
+            Z3_sort sort = Z3_mk_bv_sort(ctx, 32);
+            Z3_ast initial = Z3_mk_int64(ctx, summary.initial_value, sort);
+            Z3_ast step = Z3_mk_int64(ctx, summary.step, sort);
+            Z3_ast iterations = Z3_mk_int64(ctx, summary.iterations, sort);
+            Z3_ast product = Z3_mk_bvmul(ctx, step, iterations);
+            Z3_ast closedForm = Z3_mk_bvadd(ctx, initial, product);
+            Z3_ast finalValue = Z3_mk_int64(ctx, summary.final_value, sort);
+            Z3_ast equality = Z3_mk_eq(ctx, finalValue, closedForm);
+
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool groundCheck = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+            if (groundCheck == Z3_L_FALSE) {
+                Z3_solver_assert(ctx, solver, equality);
+                applied.push_back(summary.variable +
+                    "->constant-folded=" +
+                    std::to_string(summary.final_value));
+                accepted = true;
+            }
+        }
+        if (!accepted) {
+            rejected.push_back(summary.variable + "=" +
+                               std::to_string(summary.final_value));
+        }
+    }
+}
+
 std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                Z3_solver solver,
                                                Z3_ast_vector vec,
                                                const std::vector<DeclInfo>& parsed_decls,
+                                               const std::vector<volce::AffineStateSummary>& summaries,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range) {
     assertParsedFormulas(ctx, solver, vec);
@@ -367,8 +444,15 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         bounded_vars.push_back(nameStr);
     }
 
+    std::vector<std::string> applied;
+    std::vector<std::string> rejected;
+    applyEntailedStateSummaries(
+        ctx, solver, decls, summaries, applied, rejected);
+
     std::uint64_t count = countModels(ctx, solver, decls);
-    return volce::CountResult{count, std::move(bounded_vars)};
+    return volce::CountResult{
+        count, std::move(bounded_vars), std::move(applied),
+        std::move(rejected)};
 }
 
 }  // namespace
@@ -391,11 +475,33 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges, default_range);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
 
+    return result;
+}
+
+std::optional<CountResult> countModelsFromSmt2WithSummaries(
+    const std::string& smt2,
+    const std::vector<AffineStateSummary>& summaries,
+    const std::unordered_map<std::string, Range>& ranges,
+    const std::optional<Range>& default_range) {
+    if (smt2.empty()) return std::nullopt;
+
+    const auto parsed_decls = parseBitVectorDecls(smt2);
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(
+        ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    auto result = countInternal(
+        ctx, solver, vec, parsed_decls, summaries, ranges, default_range);
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
     return result;
 }
 
@@ -421,7 +527,7 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, ranges, default_range);
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges, default_range);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);

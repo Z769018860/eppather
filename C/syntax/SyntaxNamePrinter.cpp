@@ -98,6 +98,8 @@ namespace {
 struct VolceResult {
     std::string output;
     std::optional<std::string> count;
+    std::vector<std::string> appliedStateSummaries;
+    std::vector<std::string> rejectedStateSummaries;
 };
 
 std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::string& snippet);
@@ -185,13 +187,35 @@ std::optional<std::uint64_t> parseVolceCount(const std::optional<VolceResult>& r
     return value;
 }
 
-std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int upperBound) {
+std::optional<VolceResult> runVolce(
+    const std::string& smt2,
+    int lowerBound,
+    int upperBound,
+    const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
 
     const volce::Range range{lowerBound, upperBound};
-    const auto countResult = volce::countModelsFromSmt2(smt2, {}, range);
+    std::vector<volce::AffineStateSummary> summaries;
+    summaries.reserve(loopSummaries.size());
+    for (const auto& summary : loopSummaries) {
+        summaries.push_back(volce::AffineStateSummary{
+            summary.variable,
+            summary.initialValue,
+            summary.step,
+            summary.iterations,
+            summary.finalValue});
+    }
+    const char* disableSummaries =
+        std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");
+    const bool summariesDisabled =
+        disableSummaries && *disableSummaries &&
+        std::string(disableSummaries) != "0";
+    const auto countResult = summaries.empty() || summariesDisabled
+        ? volce::countModelsFromSmt2(smt2, {}, range)
+        : volce::countModelsFromSmt2WithSummaries(
+              smt2, summaries, {}, range);
     if (!countResult) {
         return std::nullopt;
     }
@@ -200,6 +224,8 @@ std::optional<VolceResult> runVolce(const std::string& smt2, int lowerBound, int
     const std::string countString = std::to_string(countResult->count);
     result.output = "the total count (LattE): " + countString;
     result.count = countString;
+    result.appliedStateSummaries = countResult->applied_state_summaries;
+    result.rejectedStateSummaries = countResult->rejected_state_summaries;
     return result;
 }
 
@@ -3321,12 +3347,22 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"[testcase]:"<<endl<<model<<endl;
         if (enableVolce) {
             cout << "[VolCE range]: [" << volceLower << ", " << volceUpper << "]" << endl;
-            const auto volceResult = runVolce(smt2, volceLower, volceUpper);
+            const auto volceResult = runVolce(
+            smt2, volceLower, volceUpper, eval.loopStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 resultFile << "[volce]:" << volceResult->output << "\n";
                 cout << "[VolCE]" << endl;
                 cout << volceResult->output << endl;
+                cout << "[VOLCE LOOP SUMMARIES APPLIED]: "
+                     << volceResult->appliedStateSummaries.size() << endl;
+                cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
+                     << volceResult->rejectedStateSummaries.size() << endl;
+                resultFile << "[volce_loop_summaries_applied]:"
+                           << volceResult->appliedStateSummaries.size() << "\n";
+                for (const auto& applied : volceResult->appliedStateSummaries) {
+                    resultFile << "[volce_loop_summary]:" << applied << "\n";
+                }
             } else {
                 resultFile << "[volce]: N/A\n";
                 cout << "[VolCE] N/A" << endl;
