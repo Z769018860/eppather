@@ -1,0 +1,46 @@
+name: Hybrid loop validation
+
+on:
+  push:
+    branches:
+      - feature/hybrid-loop-summary-validation
+  pull_request:
+    paths:
+      - 'C/syntax/LoopBoundPredictor.h'
+      - 'tests/LoopBoundPredictorTests.cpp'
+      - 'testcase/loop_hybrid/**'
+      - 'tools/validate_hybrid_loops.sh'
+      - '.github/workflows/hybrid-loop-validation.yml'
+
+jobs:
+  predictor-and-cases:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate 20 loop summaries and compile C cases
+        run: bash tools/validate_hybrid_loops.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hybrid-loop-results
+          path: loop-hybrid-results/
+
+  eppather-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Eppather
+        run: cmake -S . -B build_ci_hybrid -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_ci_hybrid --target cnip -j2
+      - name: Execute all 20 loop programs through DFS2
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_hybrid/cnip
+          TIMEOUT_SECONDS: 60
+        run: bash tools/validate_hybrid_loops.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hybrid-loop-eppather-results
+          path: loop-hybrid-results/
