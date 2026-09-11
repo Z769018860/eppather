@@ -32,4 +32,6 @@ for id in 01 04 08 11 19; do
   fi
 done
 cat "$OUT_DIR/summary.csv"
+echo "[SMT DECLARATION DIAGNOSTICS]"
+find "$OUT_DIR" -path '*/work-*/*smt*' -type f -print0 |   xargs -0 grep -hE '^\(declare-(fun|const)' 2>/dev/null | sort -u | head -80 || true
 awk -F, 'NR>1 && $2!="PASS" {bad=1} END {exit bad}' "$OUT_DIR/summary.csv"
