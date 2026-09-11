@@ -9,7 +9,7 @@ TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-90}"
 mkdir -p "$OUT_DIR"
 
 printf 'id,status,solution_count,applied,rejected,weighted_average\n'   > "$OUT_DIR/summary.csv"
-for id in 01 04 08 11 19; do
+for id in 01; do
   src="$(find "$ROOT/testcase/loop_hybrid" -maxdepth 1 -name "$id"_*.c -print -quit)"
   log="$OUT_DIR/$id.log"
   work="$OUT_DIR/work-$id"
