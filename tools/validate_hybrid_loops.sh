@@ -26,11 +26,16 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   elif [[ -x "$CNIP" ]]; then
     work="$OUT_DIR/work-$id"
     mkdir -p "$work"
-    if (cd "$work" && timeout "$TIMEOUT_SECONDS" "$CNIP" -q         --maxloop "$maxloop" --maxpaths "$MAXPATHS" "$src")         >"$OUT_DIR/logs/$id.cnip.log" 2>&1; then
-      run=PASS
-      reason=OK
+    if (cd "$work" && timeout "$TIMEOUT_SECONDS" "$CNIP" -q         --maxloop "$maxloop" --maxpaths "$ "$MAXPATHS" "$src")         >"$OUT_DIR/logs/$id.cnip.log" 2>&1; then
       mems="$(sed -n 's/^\[DFS MAX MEMS\]: //p'         "$OUT_DIR/logs/$id.cnip.log" | tail -1)"
       mems="${mems:-N/A}"
+      if [[ "$mems" =~ ^[0-9]+$ ]]; then
+        run=PASS
+        reason=OK
+      else
+        run=FAIL
+        reason=NO_FEASIBLE_MEMS
+      fi
     else
       run=FAIL
       reason=CNIP_FAILURE_OR_TIMEOUT
@@ -42,5 +47,5 @@ done < "$ROOT/testcase/loop_hybrid/manifest.csv"
 cat "$OUT_DIR/integration-results.csv"
 awk -F, 'NR>1 && $2!="PASS" {bad=1} END {exit bad}'   "$OUT_DIR/integration-results.csv"
 if [[ -x "$CNIP" ]]; then
-  awk -F, 'NR>1 && $3!="PASS" {bad=1} END {exit bad}'     "$OUT_DIR/integration-results.csv"
+  awk -F, 'NR>1 && ($3!="PASS" || $4 !~ /^[0-9]+$/) {bad=1} END {exit bad}'     "$OUT_DIR/integration-results.csv"
 fi
