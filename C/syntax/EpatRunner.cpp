@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
+#include <regex>
 
 #include <cctype>
 #include <cstdlib>
@@ -150,6 +151,34 @@ bool isIdentChar(char c) {
     return std::isalnum(static_cast<unsigned char>(c)) || c == '_';
 }
 
+// Normalize standard C increment/compound updates to the small assignment
+// language accepted by epat++. This keeps the source CFG unchanged while making
+// loop-summary and path-feasibility handling agree for i++, ++i, i += k, etc.
+std::string normalizeLoopUpdateForEpat(const std::string& raw) {
+    const std::string line = trimCopy(raw);
+    std::smatch m;
+    static const std::regex postfix(
+        "^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\\+\\+|--)[[:space:]]*;?$");
+    static const std::regex prefix(
+        "^(\\+\\+|--)[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*;?$");
+    static const std::regex compound(
+        "^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\\+=|-=)[[:space:]]*"
+        "([0-9]+)[[:space:]]*;?$");
+    if (std::regex_match(line, m, postfix)) {
+        const std::string op = m[2].str() == "++" ? " + 1" : " - 1";
+        return m[1].str() + " = " + m[1].str() + op;
+    }
+    if (std::regex_match(line, m, prefix)) {
+        const std::string op = m[1].str() == "++" ? " + 1" : " - 1";
+        return m[2].str() + " = " + m[2].str() + op;
+    }
+    if (std::regex_match(line, m, compound)) {
+        const std::string op = m[2].str() == "+=" ? " + " : " - ";
+        return m[1].str() + " = " + m[1].str() + op + m[3].str();
+    }
+    return line;
+}
+
 int countIdentifiersAsReads(const std::string& line) {
     static const std::unordered_set<std::string> keywords{
         "int", "long", "short", "char", "void", "unsigned", "signed", "size_t",
@@ -283,7 +312,7 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
             }
             case PathDecisionKind::LoopUpdate: {
                 if (!step.node->expr_str.empty()) {
-                    appendSafeLine(script, step.node->expr_str, true);
+                    appendSafeLine(script, normalizeLoopUpdateForEpat(step.node->expr_str), true);
                 }
                 break;
             }
