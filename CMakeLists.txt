@@ -155,6 +155,12 @@ add_executable(volce_tool
 set_target_properties(volce_tool PROPERTIES OUTPUT_NAME volce_bin)
 target_link_libraries(volce_tool ${Z3_LIB})
 
+add_executable(volce-summary-tests
+    ${PROJECT_SOURCE_DIR}/tests/VolceStateSummaryTests.cpp
+    ${PROJECT_SOURCE_DIR}/volce/volce_api.cpp
+)
+target_link_libraries(volce-summary-tests ${Z3_LIB})
+
 #if (NOT WIN32 AND NOT MINGW)
     set(PSYCHE_TESTS test-suite)
     add_executable(${PSYCHE_TESTS} ${PSYCHE_TESTS_SOURCES})

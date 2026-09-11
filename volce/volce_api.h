@@ -25,6 +25,10 @@ struct CountResult {
     std::uint64_t count;
     std::vector<std::string> bounded_vars;
     std::vector<std::string> applied_state_summaries;
+    // The affine identity is valid, but the source variable was constant-folded
+    // out of the SMT formula.  These summaries document the transition; they do
+    // not constrain the model space and must not be reported as "applied".
+    std::vector<std::string> validated_ground_state_summaries;
     std::vector<std::string> rejected_state_summaries;
 };
 

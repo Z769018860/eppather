@@ -58,16 +58,37 @@
 #include <unordered_set>
 
 namespace {
+int exactLoopAutoliftCap(int requestedCap) {
+    const char* raw = std::getenv("EPPATHER_EXACT_LOOP_AUTOLIFT_CAP");
+    if (!raw || !*raw) {
+        return std::max(requestedCap, 64);
+    }
+    char* end = nullptr;
+    const long parsed = std::strtol(raw, &end, 10);
+    if (end == raw || *end != '\0' || parsed <= 0) {
+        return requestedCap;
+    }
+    return static_cast<int>(std::min<long>(
+        parsed, std::numeric_limits<int>::max()));
+}
+
 int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
     if (!node) return 0;
     // The affine predictor currently has initializer/update metadata only for
     // for-loops. A while-loop must therefore honor the configured safety cap;
     // the old hard-coded fallback of 3 silently ignored --maxloop values > 3.
     if (!node->isFor) return std::max(0, safetyCap);
-    return psy::C::LoopBoundPredictor::predict(node->initstmt_str,
-                                               node->cond_str,
-                                               node->expr_str,
-                                               safetyCap).iterations;
+    // A small user-supplied maxloop used to make a provably finite loop end in
+    // an infeasible synthetic exit (for example, i < 4 with --maxloop 2).
+    // Lift only canonical affine loops, and only to a modest configurable hard
+    // cap. Data-dependent/unsupported loops still honor maxloop exactly.
+    const auto lifted = psy::C::LoopBoundPredictor::predict(
+        node->initstmt_str, node->cond_str, node->expr_str,
+        exactLoopAutoliftCap(std::max(0, safetyCap)));
+    if (lifted.exact()) return lifted.iterations;
+    return psy::C::LoopBoundPredictor::predict(
+        node->initstmt_str, node->cond_str, node->expr_str,
+        safetyCap).iterations;
 }
 }
 
@@ -99,6 +120,7 @@ struct VolceResult {
     std::string output;
     std::optional<std::string> count;
     std::vector<std::string> appliedStateSummaries;
+    std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
 };
 
@@ -225,6 +247,8 @@ std::optional<VolceResult> runVolce(
     result.output = "the total count (LattE): " + countString;
     result.count = countString;
     result.appliedStateSummaries = countResult->applied_state_summaries;
+    result.validatedGroundStateSummaries =
+        countResult->validated_ground_state_summaries;
     result.rejectedStateSummaries = countResult->rejected_state_summaries;
     return result;
 }
@@ -3356,12 +3380,33 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << volceResult->output << endl;
                 cout << "[VOLCE LOOP SUMMARIES APPLIED]: "
                      << volceResult->appliedStateSummaries.size() << endl;
+                cout << "[VOLCE LOOP SUMMARIES GROUND-VALIDATED]: "
+                     << volceResult->validatedGroundStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
                      << volceResult->rejectedStateSummaries.size() << endl;
                 resultFile << "[volce_loop_summaries_applied]:"
                            << volceResult->appliedStateSummaries.size() << "\n";
                 for (const auto& applied : volceResult->appliedStateSummaries) {
                     resultFile << "[volce_loop_summary]:" << applied << "\n";
+                }
+                for (const auto& validated :
+                     volceResult->validatedGroundStateSummaries) {
+                    resultFile << "[volce_loop_summary_ground_validated]:"
+                               << validated << "\n";
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedStateSummaries) {
+                    resultFile << "[volce_loop_summary_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOP SUMMARY REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& diagnostic :
+                     eval.loopStateSummaryDiagnostics) {
+                    resultFile << "[volce_loop_summary_diagnostic]:"
+                               << diagnostic << "\n";
+                    cout << "[VOLCE LOOP SUMMARY DIAGNOSTIC]: "
+                         << diagnostic << endl;
                 }
             } else {
                 resultFile << "[volce]: N/A\n";

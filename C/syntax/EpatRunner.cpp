@@ -382,9 +382,10 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     // has been rendered. Early exits and truncated paths are rejected because
     // their observed iteration count differs from the closed-form trip count.
     std::unordered_map<CFGNode*, long long> observedIterations;
+    std::unordered_map<CFGNode*, bool> observedExitCondition;
     std::vector<CFGNode*> order;
     for (const auto& decision : decisions) {
-        if (!decision.node || !decision.node->isFor) {
+        if (!decision.node || !decision.node->isLoop) {
             continue;
         }
         if (observedIterations.emplace(decision.node, 0).second) {
@@ -392,14 +393,33 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
         }
         if (decision.kind == PathDecisionKind::TrueBranch) {
             ++observedIterations[decision.node];
+        } else if (decision.kind == PathDecisionKind::FalseBranch) {
+            observedExitCondition[decision.node] = true;
         }
     }
     for (CFGNode* loop : order) {
+        if (!loop->isFor) {
+            result.loopStateSummaryDiagnostics.push_back(
+                "skipped: while-loop lacks initializer/update metadata");
+            continue;
+        }
         const auto prediction = LoopBoundPredictor::predict(
             loop->initstmt_str, loop->cond_str, loop->expr_str,
             std::numeric_limits<int>::max());
         const long long observed = observedIterations[loop];
-        if (!prediction.exact() || observed != prediction.iterations) {
+        if (!prediction.exact()) {
+            result.loopStateSummaryDiagnostics.push_back(
+                "skipped " + loop->cond_str + ": " + prediction.reason);
+            continue;
+        }
+        if (observed != prediction.iterations) {
+            const bool sawExit = observedExitCondition[loop];
+            result.loopStateSummaryDiagnostics.push_back(
+                "skipped " + prediction.inductionVariable + ": observed " +
+                std::to_string(observed) + " of " +
+                std::to_string(prediction.iterations) +
+                (sawExit ? " iterations (condition exited early)"
+                         : " iterations (break/return or truncated path)"));
             continue;
         }
         AffineLoopStateSummary summary;

@@ -350,6 +350,7 @@ void applyEntailedStateSummaries(
     const std::vector<Z3_func_decl>& decls,
     const std::vector<volce::AffineStateSummary>& summaries,
     std::vector<std::string>& applied,
+    std::vector<std::string>& validated_ground,
     std::vector<std::string>& rejected) {
     for (const auto& summary : summaries) {
         bool accepted = false;
@@ -397,7 +398,7 @@ void applyEntailedStateSummaries(
             Z3_solver_pop(ctx, solver, 1);
             if (groundCheck == Z3_L_FALSE) {
                 Z3_solver_assert(ctx, solver, equality);
-                applied.push_back(summary.variable +
+                validated_ground.push_back(summary.variable +
                     "->constant-folded=" +
                     std::to_string(summary.final_value));
                 accepted = true;
@@ -405,7 +406,8 @@ void applyEntailedStateSummaries(
         }
         if (!accepted) {
             rejected.push_back(summary.variable + "=" +
-                               std::to_string(summary.final_value));
+                               std::to_string(summary.final_value) +
+                               ": closed-form identity is inconsistent");
         }
     }
 }
@@ -445,14 +447,15 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     }
 
     std::vector<std::string> applied;
+    std::vector<std::string> validated_ground;
     std::vector<std::string> rejected;
     applyEntailedStateSummaries(
-        ctx, solver, decls, summaries, applied, rejected);
+        ctx, solver, decls, summaries, applied, validated_ground, rejected);
 
     std::uint64_t count = countModels(ctx, solver, decls);
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(applied),
-        std::move(rejected)};
+        std::move(validated_ground), std::move(rejected)};
 }
 
 }  // namespace
