@@ -377,6 +377,33 @@ void applyEntailedStateSummaries(
             }
         }
         if (!accepted) {
+            // epat++ commonly substitutes a constant induction variable away,
+            // leaving no source/SSA declaration to bind. Preserve the closed
+            // transition explicitly as a ground 32-bit bit-vector equality.
+            // This records the summarized transition without introducing a
+            // model-count dimension.
+            Z3_sort sort = Z3_mk_bv_sort(ctx, 32);
+            Z3_ast initial = Z3_mk_int64(ctx, summary.initial_value, sort);
+            Z3_ast step = Z3_mk_int64(ctx, summary.step, sort);
+            Z3_ast iterations = Z3_mk_int64(ctx, summary.iterations, sort);
+            Z3_ast product = Z3_mk_bvmul(ctx, step, iterations);
+            Z3_ast closedForm = Z3_mk_bvadd(ctx, initial, product);
+            Z3_ast finalValue = Z3_mk_int64(ctx, summary.final_value, sort);
+            Z3_ast equality = Z3_mk_eq(ctx, finalValue, closedForm);
+
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool groundCheck = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+            if (groundCheck == Z3_L_FALSE) {
+                Z3_solver_assert(ctx, solver, equality);
+                applied.push_back(summary.variable +
+                    "->constant-folded=" +
+                    std::to_string(summary.final_value));
+                accepted = true;
+            }
+        }
+        if (!accepted) {
             rejected.push_back(summary.variable + "=" +
                                std::to_string(summary.final_value));
         }
