@@ -138,6 +138,14 @@ def candidate_ids() -> list[str]:
     return ids
 
 
+def all_problem_ids(client: Client) -> list[str]:
+    """Return the complete public catalogue, prioritising well-solved tasks."""
+    items = records(client.get(f"{API}/problems?page=0&size=10000"))
+    items = [x for x in items if x.get("available", 1)]
+    items.sort(key=lambda x: (-int(x.get("solvedUser", 0) or 0), str(x.get("id", ""))))
+    return [str(x["id"]) for x in items if x.get("id")]
+
+
 def records(value: Any) -> list[dict[str, Any]]:
     if isinstance(value, list): return [x for x in value if isinstance(x, dict)]
     if isinstance(value, dict):
@@ -208,7 +216,15 @@ def collect(args: argparse.Namespace) -> int:
     root = args.output.resolve(); root.mkdir(parents=True, exist_ok=True)
     client = Client(args.delay, args.retries, root / ".cache", args.user_agent)
     selected: list[dict[str, Any]] = []
-    ids = [x.strip() for x in args.problem_ids.split(",") if x.strip()] if args.problem_ids else candidate_ids()
+    if args.problem_ids:
+        ids = [x.strip() for x in args.problem_ids.split(",") if x.strip()]
+    elif args.all_problems:
+        ids = all_problem_ids(client)
+    else:
+        ids = candidate_ids()
+    if args.shard_count < 1 or not 0 <= args.shard_index < args.shard_count:
+        raise ValueError("shard-index must satisfy 0 <= index < shard-count")
+    ids = ids[args.shard_index::args.shard_count]
     for problem_id in ids:
         if len(selected) >= args.problem_limit: break
         try:
@@ -237,6 +253,8 @@ def collect(args: argparse.Namespace) -> int:
             if not source or digest in seen: continue
             report = compatibility(source)
             if not report.accepted: continue
+            if args.require_memory_feature and not ({"array", "pointer"} & set(report.features)):
+                continue
             seen.add(digest)
             path = solutions_dir / f"{judge_id}.c"; path.write_text(source, encoding="utf-8")
             kept.append({"judge_id": judge_id, "language": item.get("language"), "user_id": item.get("userId"),
@@ -274,6 +292,10 @@ def parser() -> argparse.ArgumentParser:
     p.add_argument("--output", type=Path, default=Path("testcase/aoj_eppather_dataset"))
     p.add_argument("--problem-limit", type=int, default=100)
     p.add_argument("--problem-ids", default="", help="comma-separated IDs; useful for a smoke test")
+    p.add_argument("--all-problems", action="store_true", help="discover the complete AOJ public problem catalogue")
+    p.add_argument("--shard-index", type=int, default=0)
+    p.add_argument("--shard-count", type=int, default=1)
+    p.add_argument("--require-memory-feature", action="store_true", help="require an array or pointer in every retained solution")
     p.add_argument("--solutions-per-problem", type=int, default=10)
     p.add_argument("--solution-scan", type=int, default=100)
     p.add_argument("--languages", default="C,C11,C99")

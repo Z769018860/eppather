@@ -1,57 +1,72 @@
-name: Collect AOJ Eppather dataset
+name: Collect and validate 100 AOJ C problems
 
 on:
   workflow_dispatch:
-    inputs:
-      problem_limit:
-        description: 'Number of problems to collect'
-        required: false
-        default: '100'
-      solutions_per_problem:
-        description: 'Accepted C solutions per problem'
-        required: false
-        default: '10'
-      max_system_tests:
-        description: 'Maximum official tests per problem (0 = all)'
-        required: false
-        default: '20'
+  push:
+    branches: [main, codex/aoj-100-dataset]
+    paths:
+      - tools/collect_aoj_eppather_dataset.py
+      - tools/merge_aoj_dataset_shards.py
+      - .github/workflows/collect-aoj-dataset.yml
 
 jobs:
   collect:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
-      - name: Install C compiler
-        run: sudo apt-get update && sudo apt-get install -y gcc
-      - name: Run resumable AOJ collection
-        env:
-          PROBLEM_LIMIT: ${{ inputs.problem_limit }}
-          SOLUTIONS_PER_PROBLEM: ${{ inputs.solutions_per_problem }}
-          MAX_SYSTEM_TESTS: ${{ inputs.max_system_tests }}
+      - name: Collect verified shard
         run: |
           python3 tools/collect_aoj_eppather_dataset.py \
-            --problem-limit "$PROBLEM_LIMIT" \
-            --solutions-per-problem "$SOLUTIONS_PER_PROBLEM" \
-            --max-system-tests "$MAX_SYSTEM_TESTS" \
-            --verify --delay 1 --retries 4 --verbose
-      - name: Validate manifest
+            --all-problems --shard-index "${{ matrix.shard }}" --shard-count 20 \
+            --problem-limit 7 --solutions-per-problem 10 --solution-scan 200 \
+            --min-topic-score 0 --require-memory-feature \
+            --max-system-tests 20 --verify --delay 0.75 --retries 4 \
+            --output "aoj-shards/shard-${{ matrix.shard }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: aoj-shard-${{ matrix.shard }}
+          path: aoj-shards/shard-${{ matrix.shard }}/
+          retention-days: 14
+
+  merge-and-report:
+    needs: collect
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: aoj-shard-*
+          path: downloaded-shards
+      - name: Merge and enforce the 100-problem contract
+        run: |
+          python3 tools/merge_aoj_dataset_shards.py \
+            --shards downloaded-shards --output testcase/aoj_eppather_dataset \
+            --problem-limit 100 --solutions-per-problem 10 | tee aoj-experiment-summary.json
+      - name: Validate exact cardinality and all replay results
         run: |
           python3 - <<'PY'
-          import json
+          import csv, json
           from pathlib import Path
-          p = Path('testcase/aoj_eppather_dataset/manifest.json')
-          d = json.loads(p.read_text())
-          assert d['collected_problems'] == int('${{ inputs.problem_limit }}')
-          for x in d['problems']:
-              assert len(x['solutions']) == int('${{ inputs.solutions_per_problem }}')
-              assert all(s.get('verification', {}).get('compiled') for s in x['solutions'])
-              assert all(s.get('verification', {}).get('passed', 0) == s.get('verification', {}).get('total', -1) for s in x['solutions'])
-          print('AOJ dataset validation passed')
+          root = Path('testcase/aoj_eppather_dataset')
+          data = json.loads((root / 'manifest.json').read_text())
+          rows = list(csv.DictReader((root / 'experiment_results.csv').open()))
+          assert data['collected_problems'] == 100
+          assert data['solutions'] == 1000 and len(rows) == 1000
+          assert all(r['compiled'] == 'True' for r in rows)
+          assert all(int(r['passed_tests']) == int(r['official_tests']) > 0 for r in rows)
+          print('100 problems / 1000 verified C solutions: PASS')
           PY
-      - name: Upload dataset artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: aoj-eppather-dataset
-          path: testcase/aoj_eppather_dataset/
+          name: aoj-eppather-dataset-100
+          path: |
+            testcase/aoj_eppather_dataset/
+            aoj-experiment-summary.json
           retention-days: 14
