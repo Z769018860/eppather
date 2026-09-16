@@ -96,3 +96,23 @@ done <"$ROOT/testcase/loop_hybrid/manifest.csv"
 cat "$OUT_DIR/effect.csv"
 awk -F, 'NR > 1 && $5 != "PASS" {bad=1} END {exit bad}' \
   "$OUT_DIR/effect.csv"
+
+awk -F, '
+  NR > 1 {
+    total++
+    if ($5 == "PASS") passed++
+    if ($6 == "SSA_APPLIED") ssa++
+    if ($6 == "GROUND_VALIDATED") ground++
+    if ($6 == "FALLBACK") fallback++
+    if ($6 == "REJECTED") rejected++
+    summary_ms += $15
+    baseline_ms += $16
+  }
+  END {
+    print "total,passed,ssa_applied_cases,ground_validated_cases,fallback_cases,rejected_cases,summary_ms,baseline_ms,aggregate_speedup"
+    speedup = summary_ms > 0 ? baseline_ms / summary_ms : 0
+    printf "%d,%d,%d,%d,%d,%d,%d,%d,%.4f\n", total, passed, ssa,
+      ground, fallback, rejected, summary_ms, baseline_ms, speedup
+  }
+' "$OUT_DIR/effect.csv" >"$OUT_DIR/aggregate.csv"
+cat "$OUT_DIR/aggregate.csv"
