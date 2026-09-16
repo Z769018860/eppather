@@ -19,7 +19,7 @@ metric() {
 }
 
 printf '%s\n' \
-  'id,category,features,maxloop,mode,compile_status,run_status,path_count,solution_space_count,weighted_average_mems,dfs_max_mems,memory_projection_arity,memory_projection_status,max_bounded_memory_terms,zero_diagnostic' \
+  'id,category,features,maxloop,mode,compile_status,run_status,path_count,solution_space_count,weighted_average_mems,dfs_max_mems,canonical_memory_regions,memory_projection_arity,memory_projection_status,max_bounded_memory_terms,zero_diagnostic' \
   > "$OUT_DIR/summary.csv"
 
 while IFS=',' read -r id source category features maxloop; do
@@ -58,6 +58,7 @@ while IFS=',' read -r id source category features maxloop; do
     max_mems="$(metric '\[DFS MAX MEMS\]' "$log")"
     arity="$(metric '\[VOLCE MEMORY PROJECTION ARITY\]' "$log")"
     projection_status="$(metric '\[VOLCE MEMORY PROJECTION STATUS\]' "$log")"
+    canonical_regions="$(sed -n 's/^\[VOLCE CANONICAL MEMORY REGIONS\]: //p' "$log" | sort -nr | head -1)"
     max_terms="$(sed -n 's/^\[VOLCE BOUNDED MEMORY TERMS\]: //p' "$log" | \
       sort -nr | head -1)"
     paths="${paths:-0}"
@@ -66,6 +67,7 @@ while IFS=',' read -r id source category features maxloop; do
     max_mems="${max_mems:-N/A}"
     arity="${arity:-N/A}"
     projection_status="${projection_status:-N/A}"
+    canonical_regions="${canonical_regions:-0}"
     max_terms="${max_terms:-0}"
 
     zero_diagnostic=NONZERO
@@ -85,10 +87,10 @@ while IFS=',' read -r id source category features maxloop; do
       zero_diagnostic=ZERO_MEMORY_COST
     fi
 
-    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
       "$id" "$category" "$features" "$maxloop" "$mode" \
       "$compile_status" "$run_status" "$paths" "$count" "$average" \
-      "$max_mems" "$arity" "$projection_status" "$max_terms" \
+      "$max_mems" "$canonical_regions" "$arity" "$projection_status" "$max_terms" \
       "$zero_diagnostic" >> "$OUT_DIR/summary.csv"
   done
 done < <(tail -n +2 "$MANIFEST")

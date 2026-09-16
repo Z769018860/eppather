@@ -85,6 +85,12 @@ struct PathInfo {
 // 全局可行性缓存
 extern std::unordered_map<std::string, bool> feasCache;
 
+struct SourceMemoryRegion {
+    std::string name;
+    std::size_t cells{0};
+    bool variableLength{false};
+};
+
 
 class FunctionParameterExtractor : public SyntaxVisitor {
 public:
@@ -190,6 +196,7 @@ public:
     int minmem;
     using SyntaxDumper::SyntaxDumper;
     std::string vartemp = "";
+    std::vector<SourceMemoryRegion> inputMemoryRegions_;
     int temp_loopcount;
 
 

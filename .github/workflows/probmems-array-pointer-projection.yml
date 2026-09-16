@@ -20,7 +20,7 @@ jobs:
       - run: cmake -S . -B build_ci_array_pointer -DANALYSIS_BACKEND=epat++
       - run: cmake --build build_ci_array_pointer --target cnip volce-summary-tests -j2
       - run: ./build_ci_array_pointer/volce-summary-tests
-      - name: Run 16 array and pointer subjects
+      - name: Run 20 array pointer and VLA subjects
         env:
           CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip
           TIMEOUT_SECONDS: 60
