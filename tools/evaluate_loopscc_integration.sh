@@ -7,6 +7,8 @@ CNIP="${CNIP:-$ROOT/build_ci_volce_summary/cnip}"
 OUT_DIR="${OUT_DIR:-$ROOT/loopscc-effect-results}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-90}"
 MAXPATHS="${MAXPATHS:-80}"
+VOLCE_LOWER="${VOLCE_LOWER:--8}"
+VOLCE_UPPER="${VOLCE_UPPER:-8}"
 mkdir -p "$OUT_DIR/logs"
 
 metric() {
@@ -27,11 +29,12 @@ run_mode() {
   if [[ "$mode" == baseline ]]; then
     timeout "$TIMEOUT_SECONDS" env EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES=1 \
       "$CNIP" -q --maxloop "$maxloop" --maxpaths "$MAXPATHS" --volce \
-      --volce-lower -1 --volce-upper 1 "$src" >"$log" 2>&1 || rc=$?
+      --volce-lower "$VOLCE_LOWER" --volce-upper "$VOLCE_UPPER" \
+      "$src" >"$log" 2>&1 || rc=$?
   else
     timeout "$TIMEOUT_SECONDS" "$CNIP" -q --maxloop "$maxloop" \
-      --maxpaths "$MAXPATHS" --volce --volce-lower -1 --volce-upper 1 \
-      "$src" >"$log" 2>&1 || rc=$?
+      --maxpaths "$MAXPATHS" --volce --volce-lower "$VOLCE_LOWER" \
+      --volce-upper "$VOLCE_UPPER" "$src" >"$log" 2>&1 || rc=$?
   fi
   end_ns="$(date +%s%N)"
   printf '%s\n' "$(((end_ns - start_ns) / 1000000))" >"$time_file"
@@ -76,10 +79,11 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
 
   status=PASS
   (( summary_ok == 1 && baseline_ok == 1 )) || status=FAIL
-  [[ "$summary_count" =~ ^[0-9]+$ ]] || status=FAIL
-  [[ "$baseline_count" =~ ^[0-9]+$ ]] || status=FAIL
+  [[ "$summary_count" =~ ^[1-9][0-9]*$ ]] || status=FAIL
+  [[ "$baseline_count" =~ ^[1-9][0-9]*$ ]] || status=FAIL
   [[ "$summary_count" == "$baseline_count" ]] || status=FAIL
-  [[ -n "$summary_wmems" && "$summary_wmems" == "$baseline_wmems" ]] || status=FAIL
+  [[ -n "$summary_wmems" && "$summary_wmems" != N/A && \
+     "$summary_wmems" == "$baseline_wmems" ]] || status=FAIL
 
   printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$id" "$category" "$expected_mode" "$maxloop" "$status" "$effect" \
@@ -92,4 +96,3 @@ done <"$ROOT/testcase/loop_hybrid/manifest.csv"
 cat "$OUT_DIR/effect.csv"
 awk -F, 'NR > 1 && $5 != "PASS" {bad=1} END {exit bad}' \
   "$OUT_DIR/effect.csv"
-
