@@ -459,12 +459,13 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                const std::vector<volce::AffineStateSummary>& summaries,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range,
-                                               bool include_memory_terms) {
+                                               bool include_memory_terms,
+                                               const std::vector<volce::MemoryRegionProjection>& memory_regions) {
     assertParsedFormulas(ctx, solver, vec);
 
     auto decls = collectZeroArityDecls(ctx, vec);
     addDeclaredBitVectors(ctx, parsed_decls, decls);
-    auto memory_terms = include_memory_terms
+    auto memory_terms = include_memory_terms && memory_regions.empty()
         ? collectBitVectorSelects(ctx, vec) : std::vector<Z3_ast>{};
     std::vector<Z3_ast> projection_terms;
     projection_terms.reserve(decls.size() + memory_terms.size());
@@ -490,6 +491,42 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         assertBound(ctx, solver, var, *rangeOpt);
         projection_terms.push_back(var);
         bounded_vars.push_back(nameStr);
+    }
+
+    if (include_memory_terms && !memory_regions.empty()) {
+        Z3_sort word = Z3_mk_bv_sort(ctx, 32);
+        Z3_sort memory_sort = Z3_mk_array_sort(ctx, word, word);
+        Z3_ast memory = Z3_mk_const(
+            ctx, Z3_mk_string_symbol(ctx, "%a"), memory_sort);
+        std::unordered_set<unsigned> seen_memory_terms;
+        std::size_t fallback_base = 0;
+        for (const auto& region : memory_regions) {
+            Z3_ast base = nullptr;
+            for (auto decl : decls) {
+                const char* raw = Z3_get_symbol_string(
+                    ctx, Z3_get_decl_name(ctx, decl));
+                const std::string name = raw ? raw : "";
+                if (isSummaryCandidateName(name, region.source_name)) {
+                    base = Z3_mk_app(ctx, decl, 0, nullptr);
+                    break;
+                }
+            }
+            if (!base) {
+                base = Z3_mk_int64(
+                    ctx, static_cast<std::int64_t>(fallback_base), word);
+            }
+            for (std::size_t cell = 0; cell < region.cells; ++cell) {
+                Z3_ast offset = Z3_mk_int64(
+                    ctx, static_cast<std::int64_t>(cell), word);
+                Z3_ast address = cell == 0
+                    ? base : Z3_mk_bvadd(ctx, base, offset);
+                Z3_ast term = Z3_mk_select(ctx, memory, address);
+                if (seen_memory_terms.insert(Z3_get_ast_id(ctx, term)).second) {
+                    memory_terms.push_back(term);
+                }
+            }
+            fallback_base += std::max<std::size_t>(region.cells, 1);
+        }
     }
 
     std::vector<std::string> bounded_memory_terms;
@@ -530,7 +567,8 @@ std::optional<CountResult> countModelsFromSmt2(
     const std::string& smt2,
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range,
-    bool include_memory_terms) {
+    bool include_memory_terms,
+    const std::vector<MemoryRegionProjection>& memory_regions) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -544,7 +582,8 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
-                                default_range, include_memory_terms);
+                                default_range, include_memory_terms,
+                                memory_regions);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
@@ -557,7 +596,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::vector<AffineStateSummary>& summaries,
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range,
-    bool include_memory_terms) {
+    bool include_memory_terms,
+    const std::vector<MemoryRegionProjection>& memory_regions) {
     if (smt2.empty()) return std::nullopt;
 
     const auto parsed_decls = parseBitVectorDecls(smt2);
@@ -570,7 +610,7 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(
         ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
-        include_memory_terms);
+        include_memory_terms, memory_regions);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -600,7 +640,7 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
-                                default_range, include_memory_terms);
+                                default_range, include_memory_terms, {});
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);

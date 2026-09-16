@@ -49,5 +49,20 @@ int main() {
     std::cout << "array-memory-projection: "
               << (memoryOk ? "PASS" : "FAIL") << '\n';
     failures += !memoryOk;
+
+    const std::string canonicalSmt =
+        "(declare-const p (_ BitVec 32))\n"
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= p (_ bv0 32)))\n";
+    const std::vector<volce::MemoryRegionProjection> regions{
+        {"p", 2, true}};
+    const auto canonicalResult = volce::countModelsFromSmt2(
+        canonicalSmt, {}, volce::Range{-1, 1}, true, regions);
+    const bool canonicalOk = canonicalResult &&
+        canonicalResult->count == 9 &&
+        canonicalResult->bounded_memory_terms.size() == 2;
+    std::cout << "canonical-memory-region: "
+              << (canonicalOk ? "PASS" : "FAIL") << '\n';
+    failures += !canonicalOk;
     return failures == 0 ? 0 : 1;
 }

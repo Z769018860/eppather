@@ -37,6 +37,41 @@ bool containsAny(const std::string& s, std::initializer_list<const char*> needle
     return false;
 }
 
+std::size_t boundedVlaCap() {
+    constexpr std::size_t kDefault = 5;
+    constexpr std::size_t kMaximum = 64;
+    const char* raw = std::getenv("EPPATHER_VLA_MAX_ELEMENTS");
+    if (!raw || !*raw) return kDefault;
+    char* end = nullptr;
+    const unsigned long parsed = std::strtoul(raw, &end, 10);
+    if (end == raw || *end != '\0' || parsed == 0) return kDefault;
+    return std::min<std::size_t>(parsed, kMaximum);
+}
+
+std::string normalizeBoundedVlaDeclaration(const std::string& line) {
+    if (envEnabled("EPPATHER_DISABLE_BOUNDED_VLA")) return line;
+    static const std::regex declarationPrefix(
+        "^[[:space:]]*(?:const[[:space:]]+)?"
+        "(?:unsigned[[:space:]]+|signed[[:space:]]+)?"
+        "(?:int|long|short|char)[[:space:]]+");
+    if (!std::regex_search(line, declarationPrefix)) return line;
+    static const std::regex variableExtent(
+        "\\[[[:space:]]*(?:[A-Za-z_][A-Za-z0-9_]*)?[[:space:]]*\\]");
+    return std::regex_replace(
+        line, variableExtent,
+        "[" + std::to_string(boundedVlaCap()) + "]");
+}
+
+std::string normalizeBoundedVlaPrefix(const std::string& prefix) {
+    std::stringstream input(prefix);
+    std::string output;
+    std::string line;
+    while (std::getline(input, line)) {
+        output += normalizeBoundedVlaDeclaration(line) + "\n";
+    }
+    return output;
+}
+
 bool probablyUnsafeForEpat(const std::string& line) {
     if (line.empty()) {
         return false;
@@ -60,7 +95,7 @@ void appendSafeLine(std::string& script, const std::string& line, bool addSemico
         }
         return;
     }
-    script += line;
+    script += normalizeBoundedVlaDeclaration(line);
     if (addSemicolon && !endsWithSemicolon(line)) {
         script += ";";
     }
@@ -279,7 +314,8 @@ int estimateMemsFromScript(const std::string& script) {
 
 }  // namespace
 
-EpatRunner::EpatRunner(std::string prefix) : prefix_(sanitizePrefixForEpat(prefix)) {
+EpatRunner::EpatRunner(std::string prefix)
+    : prefix_(sanitizePrefixForEpat(normalizeBoundedVlaPrefix(prefix))) {
     if (!prefix_.empty() && prefix_.back() != '\n') prefix_.push_back('\n');
 }
 

@@ -146,6 +146,7 @@ struct VolceResult {
     std::string output;
     std::optional<std::string> count;
     std::size_t boundedMemoryTerms{0};
+    std::size_t canonicalMemoryRegions{0};
     std::vector<std::string> appliedStateSummaries;
     std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
@@ -171,6 +172,67 @@ std::string normalizeIdentifier(std::string ident) {
         --end;
     }
     return ident.substr(start, end - start);
+}
+
+std::size_t configuredVlaCellCap() {
+    constexpr std::size_t kDefault = 5;
+    constexpr std::size_t kHardMaximum = 64;
+    const char* raw = std::getenv("EPPATHER_VLA_MAX_ELEMENTS");
+    if (!raw || !*raw) return kDefault;
+    char* end = nullptr;
+    const unsigned long parsed = std::strtoul(raw, &end, 10);
+    if (end == raw || *end != '\0' || parsed == 0) return kDefault;
+    return std::min<std::size_t>(parsed, kHardMaximum);
+}
+
+std::optional<psy::C::SourceMemoryRegion> parseSourceMemoryRegion(
+    const std::string& declaration) {
+    std::smatch match;
+    static const std::regex arrayPattern(
+        "\\b([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\\["
+        "[[:space:]]*([^\\]]*)[[:space:]]*\\]");
+    if (std::regex_search(declaration, match, arrayPattern)) {
+        const std::string extent = normalizeIdentifier(match[2].str());
+        const bool fixed = !extent.empty() &&
+            std::all_of(extent.begin(), extent.end(), [](unsigned char c) {
+                return std::isdigit(c) != 0;
+            });
+        std::size_t cells = configuredVlaCellCap();
+        if (fixed) {
+            cells = std::min<std::size_t>(
+                std::strtoul(extent.c_str(), nullptr, 10), 64);
+        }
+        if (cells == 0) return std::nullopt;
+        return psy::C::SourceMemoryRegion{
+            match[1].str(), cells, !fixed};
+    }
+
+    static const std::regex pointerPattern(
+        "\\*+[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)\\b");
+    if (std::regex_search(declaration, match, pointerPattern)) {
+        return psy::C::SourceMemoryRegion{
+            match[1].str(), configuredVlaCellCap(), true};
+    }
+    return std::nullopt;
+}
+
+std::vector<psy::C::SourceMemoryRegion> parseSignatureMemoryRegions(
+    const std::string& signature) {
+    std::vector<psy::C::SourceMemoryRegion> regions;
+    const size_t open = signature.find('(');
+    const size_t close = signature.rfind(')');
+    if (open == std::string::npos || close == std::string::npos ||
+        close <= open) {
+        return regions;
+    }
+    std::stringstream parameters(signature.substr(open + 1, close - open - 1));
+    std::string parameter;
+    while (std::getline(parameters, parameter, ',')) {
+        if (auto region = parseSourceMemoryRegion(parameter)) {
+            regions.push_back(*region);
+        }
+    }
+    return regions;
 }
 
 std::optional<std::string> extractFunctionIdentifierFromDeclarator(const DeclaratorSyntax* declarator) {
@@ -240,7 +302,8 @@ std::optional<VolceResult> runVolce(
     const std::string& smt2,
     int lowerBound,
     int upperBound,
-    const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {}) {
+    const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {},
+    const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -266,11 +329,17 @@ std::optional<VolceResult> runVolce(
     const bool includeMemoryTerms =
         projectMemory && *projectMemory &&
         std::string(projectMemory) != "0";
+    std::vector<volce::MemoryRegionProjection> memoryRegions;
+    memoryRegions.reserve(sourceMemoryRegions.size());
+    for (const auto& region : sourceMemoryRegions) {
+        memoryRegions.push_back(volce::MemoryRegionProjection{
+            region.name, region.cells, region.variableLength});
+    }
     const auto countResult = summaries.empty() || summariesDisabled
         ? volce::countModelsFromSmt2(
-              smt2, {}, range, includeMemoryTerms)
+              smt2, {}, range, includeMemoryTerms, memoryRegions)
         : volce::countModelsFromSmt2WithSummaries(
-              smt2, summaries, {}, range, includeMemoryTerms);
+              smt2, summaries, {}, range, includeMemoryTerms, memoryRegions);
     if (!countResult) {
         return std::nullopt;
     }
@@ -280,6 +349,7 @@ std::optional<VolceResult> runVolce(
     result.output = "the total count (LattE): " + countString;
     result.count = countString;
     result.boundedMemoryTerms = countResult->bounded_memory_terms.size();
+    result.canonicalMemoryRegions = memoryRegions.size();
     result.appliedStateSummaries = countResult->applied_state_summaries;
     result.validatedGroundStateSummaries =
         countResult->validated_ground_state_summaries;
@@ -835,6 +905,7 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
     globalVarDefs.clear();
     VarDefStack_.clear();
     vartemp.clear();
+    inputMemoryRegions_.clear();
 
     bool callExprFlag = false;
     int  depth_count  = 0;
@@ -945,6 +1016,14 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             }
             f->setCode(formatSnippet(signature, false));
             funcDefStack_.push_back(f);
+            for (const auto& region : parseSignatureMemoryRegions(signature)) {
+                const bool duplicate = std::any_of(
+                    inputMemoryRegions_.begin(), inputMemoryRegions_.end(),
+                    [&](const SourceMemoryRegion& existing) {
+                        return existing.name == region.name;
+                    });
+                if (!duplicate) inputMemoryRegions_.push_back(region);
+            }
 
             // 形参收集
             FunctionParameterExtractor extractor(syn->syntaxTree());
@@ -959,6 +1038,14 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                 std::string sn(ps, pe - ps);
                 v->setCode(formatSnippet(sn, false));
                 VarDefStack_.push_back(v);
+                if (auto region = parseSourceMemoryRegion(sn)) {
+                    const bool duplicate = std::any_of(
+                        inputMemoryRegions_.begin(), inputMemoryRegions_.end(),
+                        [&](const SourceMemoryRegion& existing) {
+                            return existing.name == region->name;
+                        });
+                    if (!duplicate) inputMemoryRegions_.push_back(*region);
+                }
             }
         }
 
@@ -1298,6 +1385,26 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
         for (auto& br : lf.breaks) br->setNextNode(lf.join);
         loopStack.pop_back();
         lastNode = lf.join;
+    }
+
+    // Keep exact fixed-array extents. For multiple pointer/VLA parameters,
+    // share a finite unknown-memory budget to avoid exponential 3^N model
+    // enumeration (two default five-cell pointers would already add 59,049
+    // memory/address combinations over [-1,1]).
+    const std::size_t variableRegionCount = static_cast<std::size_t>(
+        std::count_if(inputMemoryRegions_.begin(), inputMemoryRegions_.end(),
+            [](const SourceMemoryRegion& region) {
+                return region.variableLength;
+            }));
+    if (variableRegionCount > 1) {
+        constexpr std::size_t kSharedVariableCellBudget = 6;
+        const std::size_t perRegion = std::max<std::size_t>(
+            1, kSharedVariableCellBudget / variableRegionCount);
+        for (auto& region : inputMemoryRegions_) {
+            if (region.variableLength) {
+                region.cells = std::min(region.cells, perRegion);
+            }
+        }
     }
 
     maxdepth = depth_count;
@@ -3110,7 +3217,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             std::cout << "MEMS: " << verifiedMems << std::endl;
             if (enableVolce) {
                 const auto eval = EpatRunner("").solveScript(fullPath);
-                const auto volceResult = runVolce(eval.smt, -8, 8);
+                const auto volceResult = runVolce(
+                    eval.smt, -8, 8, {}, inputMemoryRegions_);
                 if (volceResult) {
                     std::cout << "[VolCE]" << std::endl;
                     std::cout << volceResult->output << std::endl;
@@ -3444,7 +3552,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         if (enableVolce) {
             cout << "[VolCE range]: [" << volceLower << ", " << volceUpper << "]" << endl;
             const auto volceResult = runVolce(
-            smt2, volceLower, volceUpper, eval.loopStateSummaries);
+                smt2, volceLower, volceUpper, eval.loopStateSummaries,
+                inputMemoryRegions_);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 volceMemoryTerms = volceResult->boundedMemoryTerms;
@@ -3453,6 +3562,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << volceResult->output << endl;
                 cout << "[VOLCE BOUNDED MEMORY TERMS]: "
                      << volceResult->boundedMemoryTerms << endl;
+                cout << "[VOLCE CANONICAL MEMORY REGIONS]: "
+                     << volceResult->canonicalMemoryRegions << endl;
+                resultFile << "[volce_canonical_memory_regions]:"
+                           << volceResult->canonicalMemoryRegions << "\n";
                 resultFile << "[volce_bounded_memory_terms]:"
                            << volceResult->boundedMemoryTerms << "\n";
                 cout << "[VOLCE LOOP SUMMARIES APPLIED]: "

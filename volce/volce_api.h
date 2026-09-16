@@ -21,6 +21,12 @@ struct AffineStateSummary {
     std::int64_t final_value;
 };
 
+struct MemoryRegionProjection {
+    std::string source_name;
+    std::size_t cells;
+    bool variable_length{false};
+};
+
 struct CountResult {
     std::uint64_t count;
     std::vector<std::string> bounded_vars;
@@ -40,14 +46,16 @@ std::optional<CountResult> countModelsFromSmt2(
     const std::string& smt2,
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range = std::nullopt,
-    bool include_memory_terms = false);
+    bool include_memory_terms = false,
+    const std::vector<MemoryRegionProjection>& memory_regions = {});
 
 std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::string& smt2,
     const std::vector<AffineStateSummary>& summaries,
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range = std::nullopt,
-    bool include_memory_terms = false);
+    bool include_memory_terms = false,
+    const std::vector<MemoryRegionProjection>& memory_regions = {});
 
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
