@@ -32,6 +32,11 @@ jobs:
         env:
           CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
         run: bash tools/validate_volce_loop_failure_modes.sh
+      - name: Evaluate LoopSCC-compatible integration against baseline
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
+          TIMEOUT_SECONDS: 90
+        run: bash tools/evaluate_loopscc_integration.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -39,3 +44,4 @@ jobs:
           path: |
             volce-loop-summary-results/
             volce-loop-failure-results/
+            loopscc-effect-results/
