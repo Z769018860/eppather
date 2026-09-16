@@ -10,6 +10,7 @@ LOWER="${LOWER:--1}"
 UPPER="${UPPER:-1}"
 MAXPATHS="${MAXPATHS:-100}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-60}"
+MAXLOOP_OVERRIDE="${MAXLOOP_OVERRIDE:-}"
 mkdir -p "$OUT_DIR/logs"
 
 metric() {
@@ -22,6 +23,7 @@ printf '%s\n' \
   > "$OUT_DIR/summary.csv"
 
 while IFS=',' read -r id source category features maxloop; do
+  if [[ -n "$MAXLOOP_OVERRIDE" ]]; then maxloop="$MAXLOOP_OVERRIDE"; fi
   compile_status=PASS
   if ! gcc -std=c11 -fsyntax-only "$ROOT/$source" \
       >"$OUT_DIR/logs/$id.gcc.log" 2>&1; then
