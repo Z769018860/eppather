@@ -40,8 +40,7 @@ int main() {
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(assert (= x x))\n"
-        "(assert (= (select mem (_ bv0 32)) "
-        "(select mem (_ bv0 32))))\n";
+        "(assert (= (select mem x) (select mem x)))\n";
     const auto memoryResult = volce::countModelsFromSmt2(
         memorySmt, {}, volce::Range{-1, 1}, true);
     const bool memoryOk = memoryResult && memoryResult->count == 9 &&

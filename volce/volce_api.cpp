@@ -97,7 +97,18 @@ void collectSelectsFromAst(Z3_context ctx,
     if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) return;
     Z3_app app = Z3_to_app(ctx, ast);
     Z3_func_decl decl = Z3_get_app_decl(ctx, app);
-    if (Z3_get_decl_kind(ctx, decl) == Z3_OP_SELECT &&
+    // epat++ models locals and memory in one array. Selects at numeral
+    // addresses are compiler-internal local/SSA slots; bounding them to the
+    // user input domain can make a valid loop infeasible once its counter is
+    // greater than the configured upper bound. Project only symbolic-address
+    // reads, which represent pointer dereferences or symbolic subscripts.
+    const bool symbolicIndex = Z3_get_app_num_args(ctx, app) >= 2 &&
+        Z3_get_ast_kind(ctx, Z3_get_app_arg(ctx, app, 1)) == Z3_APP_AST &&
+        Z3_get_decl_kind(
+            ctx, Z3_get_app_decl(
+                ctx, Z3_to_app(ctx, Z3_get_app_arg(ctx, app, 1)))) !=
+            Z3_OP_BNUM;
+    if (Z3_get_decl_kind(ctx, decl) == Z3_OP_SELECT && symbolicIndex &&
         isBitVector(ctx, Z3_get_sort(ctx, ast))) {
         const unsigned id = Z3_get_ast_id(ctx, ast);
         if (seen.insert(id).second) selects.push_back(ast);
