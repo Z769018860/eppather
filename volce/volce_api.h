@@ -24,6 +24,10 @@ struct AffineStateSummary {
 struct CountResult {
     std::uint64_t count;
     std::vector<std::string> bounded_vars;
+    // Finite projections of array-backed memory reads that occur in the path
+    // formula. Without these terms, pointer/array contents are existentially
+    // ignored and path probabilities are computed over scalar variables only.
+    std::vector<std::string> bounded_memory_terms;
     std::vector<std::string> applied_state_summaries;
     // The affine identity is valid, but the source variable was constant-folded
     // out of the SMT formula.  These summaries document the transition; they do
@@ -35,17 +39,20 @@ struct CountResult {
 std::optional<CountResult> countModelsFromSmt2(
     const std::string& smt2,
     const std::unordered_map<std::string, Range>& ranges,
-    const std::optional<Range>& default_range = std::nullopt);
+    const std::optional<Range>& default_range = std::nullopt,
+    bool include_memory_terms = false);
 
 std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::string& smt2,
     const std::vector<AffineStateSummary>& summaries,
     const std::unordered_map<std::string, Range>& ranges,
-    const std::optional<Range>& default_range = std::nullopt);
+    const std::optional<Range>& default_range = std::nullopt,
+    bool include_memory_terms = false);
 
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
     const std::unordered_map<std::string, Range>& ranges,
-    const std::optional<Range>& default_range = std::nullopt);
+    const std::optional<Range>& default_range = std::nullopt,
+    bool include_memory_terms = false);
 
 }  // namespace volce
