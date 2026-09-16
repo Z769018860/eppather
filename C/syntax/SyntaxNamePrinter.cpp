@@ -190,7 +190,7 @@ std::optional<psy::C::SourceMemoryRegion> parseSourceMemoryRegion(
     std::smatch match;
     static const std::regex arrayPattern(
         "\\b([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\\["
-        "[[:space:]]*([^]]*)[[:space:]]*\\]");
+        "[[:space:]]*([^\\]]*)[[:space:]]*\\]");
     if (std::regex_search(declaration, match, arrayPattern)) {
         const std::string extent = normalizeIdentifier(match[2].str());
         const bool fixed = !extent.empty() &&
@@ -1385,6 +1385,26 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
         for (auto& br : lf.breaks) br->setNextNode(lf.join);
         loopStack.pop_back();
         lastNode = lf.join;
+    }
+
+    // Keep exact fixed-array extents. For multiple pointer/VLA parameters,
+    // share a finite unknown-memory budget to avoid exponential 3^N model
+    // enumeration (two default five-cell pointers would already add 59,049
+    // memory/address combinations over [-1,1]).
+    const std::size_t variableRegionCount = static_cast<std::size_t>(
+        std::count_if(inputMemoryRegions_.begin(), inputMemoryRegions_.end(),
+            [](const SourceMemoryRegion& region) {
+                return region.variableLength;
+            }));
+    if (variableRegionCount > 1) {
+        constexpr std::size_t kSharedVariableCellBudget = 6;
+        const std::size_t perRegion = std::max<std::size_t>(
+            1, kSharedVariableCellBudget / variableRegionCount);
+        for (auto& region : inputMemoryRegions_) {
+            if (region.variableLength) {
+                region.cells = std::min(region.cells, perRegion);
+            }
+        }
     }
 
     maxdepth = depth_count;
