@@ -52,6 +52,7 @@
 #include <iostream>
 #include <limits>
 #include <optional>
+#include <regex>
 #include <stdlib.h>
 #include <string>
 #include <unordered_map>
@@ -77,7 +78,32 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
     // The affine predictor currently has initializer/update metadata only for
     // for-loops. A while-loop must therefore honor the configured safety cap;
     // the old hard-coded fallback of 3 silently ignored --maxloop values > 3.
-    if (!node->isFor) return std::max(0, safetyCap);
+    if (!node->isFor) {
+        const int requested = std::max(0, safetyCap);
+        if (!node->isWhile) return requested;
+
+        // While CFG nodes do not yet retain a normalized initializer/update.
+        // Recover a conservative budget only for a canonical variable-vs-
+        // integer condition. Data-dependent conditions continue to honor the
+        // requested maxloop without guessing.
+        static const std::regex direct(
+            "\\b[A-Za-z_][A-Za-z0-9_]*\\b[[:space:]]*"
+            "(?:<=|<|>=|>)[[:space:]]*(-?[0-9]+)");
+        static const std::regex reversed(
+            "(-?[0-9]+)[[:space:]]*(?:<=|<|>=|>)[[:space:]]*"
+            "\\b[A-Za-z_][A-Za-z0-9_]*\\b");
+        std::smatch match;
+        long long limit = 0;
+        if (std::regex_search(node->cond_str, match, direct) ||
+            std::regex_search(node->cond_str, match, reversed)) {
+            limit = std::strtoll(match[1].str().c_str(), nullptr, 10);
+            const long long guessed = std::min<long long>(
+                exactLoopAutoliftCap(requested),
+                std::max<long long>(requested, 2 * std::llabs(limit) + 2));
+            return static_cast<int>(guessed);
+        }
+        return requested;
+    }
     // A small user-supplied maxloop used to make a provably finite loop end in
     // an infeasible synthetic exit (for example, i < 4 with --maxloop 2).
     // Lift only canonical affine loops, and only to a modest configurable hard
