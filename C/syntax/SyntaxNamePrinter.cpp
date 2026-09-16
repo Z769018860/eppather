@@ -119,6 +119,7 @@ namespace {
 struct VolceResult {
     std::string output;
     std::optional<std::string> count;
+    std::size_t boundedMemoryTerms{0};
     std::vector<std::string> appliedStateSummaries;
     std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
@@ -234,10 +235,16 @@ std::optional<VolceResult> runVolce(
     const bool summariesDisabled =
         disableSummaries && *disableSummaries &&
         std::string(disableSummaries) != "0";
+    const char* projectMemory =
+        std::getenv("EPPATHER_VOLCE_PROJECT_MEMORY");
+    const bool includeMemoryTerms =
+        projectMemory && *projectMemory &&
+        std::string(projectMemory) != "0";
     const auto countResult = summaries.empty() || summariesDisabled
-        ? volce::countModelsFromSmt2(smt2, {}, range)
+        ? volce::countModelsFromSmt2(
+              smt2, {}, range, includeMemoryTerms)
         : volce::countModelsFromSmt2WithSummaries(
-              smt2, summaries, {}, range);
+              smt2, summaries, {}, range, includeMemoryTerms);
     if (!countResult) {
         return std::nullopt;
     }
@@ -246,6 +253,7 @@ std::optional<VolceResult> runVolce(
     const std::string countString = std::to_string(countResult->count);
     result.output = "the total count (LattE): " + countString;
     result.count = countString;
+    result.boundedMemoryTerms = countResult->bounded_memory_terms.size();
     result.appliedStateSummaries = countResult->applied_state_summaries;
     result.validatedGroundStateSummaries =
         countResult->validated_ground_state_summaries;
@@ -1543,8 +1551,10 @@ void SyntaxNamePrinter::recordFeasiblePath(int pathIndex,
                                            int mem,
                                            const std::string& path,
                                            const std::vector<std::string>& callees,
-                                           const std::optional<std::uint64_t>& volceCount) {
-    feasiblePaths_.push_back(FeasiblePathSummary{pathIndex, mem, path, callees, volceCount});
+                                           const std::optional<std::uint64_t>& volceCount,
+                                           const std::optional<std::size_t>& volceMemoryTerms) {
+    feasiblePaths_.push_back(FeasiblePathSummary{
+        pathIndex, mem, path, callees, volceCount, volceMemoryTerms});
     if (volceCount) {
         totalVolceCount_ += *volceCount;
     }
@@ -1572,10 +1582,19 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
     std::uint64_t countedSolutionSpace = 0;
     long double weightedMemsSum = 0.0L;
     bool countOverflow = false;
+    std::optional<std::size_t> memoryProjectionArity;
+    bool inconsistentMemoryProjection = false;
 
     for (const auto& info : feasiblePaths_) {
         if (!info.volceCount) {
             continue;
+        }
+        if (info.volceMemoryTerms) {
+            if (!memoryProjectionArity) {
+                memoryProjectionArity = info.volceMemoryTerms;
+            } else if (*memoryProjectionArity != *info.volceMemoryTerms) {
+                inconsistentMemoryProjection = true;
+            }
         }
         if (countedSolutionSpace >
             std::numeric_limits<std::uint64_t>::max() - *info.volceCount) {
@@ -1592,12 +1611,17 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
         std::optional<double> prob;
         if (enableVolce) {
             if (info.volceCount) {
-                const double probValue = countedSolutionSpace > 0 && !countOverflow
-                                             ? static_cast<double>(*info.volceCount)
-                                                   / static_cast<double>(countedSolutionSpace)
-                                             : 0.0;
-                prob = probValue;
-                std::cout << " volce=" << *info.volceCount << " prob=" << probValue;
+                std::cout << " volce=" << *info.volceCount;
+                if (!inconsistentMemoryProjection && countedSolutionSpace > 0 &&
+                    !countOverflow) {
+                    const double probValue =
+                        static_cast<double>(*info.volceCount) /
+                        static_cast<double>(countedSolutionSpace);
+                    prob = probValue;
+                    std::cout << " prob=" << probValue;
+                } else {
+                    std::cout << " prob=N/A";
+                }
             } else {
                 std::cout << " volce=N/A prob=N/A";
             }
@@ -1625,7 +1649,27 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
     }
 
     if (enableVolce) {
-        if (countOverflow) {
+        if (memoryProjectionArity) {
+            std::cout << "[VOLCE MEMORY PROJECTION ARITY]: "
+                      << *memoryProjectionArity << std::endl;
+        }
+        if (inconsistentMemoryProjection) {
+            std::cout << "[VOLCE MEMORY PROJECTION STATUS]: "
+                      << "INCONSISTENT_ACROSS_PATHS" << std::endl;
+            std::cout << "[VOLCE MEMORY PROJECTION WARNING]: path counts "
+                         "use different accessed-memory dimensions; do not "
+                         "interpret their normalized weights as probabilities"
+                      << std::endl;
+        } else if (memoryProjectionArity) {
+            std::cout << "[VOLCE MEMORY PROJECTION STATUS]: CONSISTENT_ARITY"
+                      << std::endl;
+        }
+        if (inconsistentMemoryProjection) {
+            std::cout << "[VOLCE SOLUTION SPACE COUNT]: "
+                      << "N/A_INCONSISTENT_MEMORY_PROJECTION" << std::endl;
+            std::cout << "[VOLCE TOTAL COUNT (LattE)]: "
+                      << "N/A_INCONSISTENT_MEMORY_PROJECTION" << std::endl;
+        } else if (countOverflow) {
             std::cout << "[VOLCE SOLUTION SPACE COUNT]: OVERFLOW" << std::endl;
             std::cout << "[VOLCE TOTAL COUNT (LattE)]: OVERFLOW" << std::endl;
         } else {
@@ -1635,7 +1679,8 @@ void SyntaxNamePrinter::printFeasiblePathSummary(bool enableVolce, int volceLowe
         }
     }
 
-    if (enableVolce && countedSolutionSpace > 0 && !countOverflow) {
+    if (enableVolce && countedSolutionSpace > 0 && !countOverflow &&
+        !inconsistentMemoryProjection) {
         const long double weightedAverage =
             weightedMemsSum / static_cast<long double>(countedSolutionSpace);
         std::cout << "[VOLCE WEIGHTED MEMS SUM]: " << weightedMemsSum << std::endl;
@@ -3361,6 +3406,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
         cout<<"feasible!!!"<<endl;
         const std::string& model= eval.model;
         std::optional<std::uint64_t> volceCount;
+        std::optional<std::size_t> volceMemoryTerms;
 
         smtFile << smt2 << "\n";
         resultFile << "[testcase]:" << "\n" << model << "\n"
@@ -3375,9 +3421,14 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             smt2, volceLower, volceUpper, eval.loopStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
+                volceMemoryTerms = volceResult->boundedMemoryTerms;
                 resultFile << "[volce]:" << volceResult->output << "\n";
                 cout << "[VolCE]" << endl;
                 cout << volceResult->output << endl;
+                cout << "[VOLCE BOUNDED MEMORY TERMS]: "
+                     << volceResult->boundedMemoryTerms << endl;
+                resultFile << "[volce_bounded_memory_terms]:"
+                           << volceResult->boundedMemoryTerms << "\n";
                 cout << "[VOLCE LOOP SUMMARIES APPLIED]: "
                      << volceResult->appliedStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES GROUND-VALIDATED]: "
@@ -3413,7 +3464,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VolCE] N/A" << endl;
             }
         }
-        recordFeasiblePath(pathCount, mem, path, callees, volceCount);
+        recordFeasiblePath(
+            pathCount, mem, path, callees, volceCount, volceMemoryTerms);
 
         // 写入覆盖矩阵
         for (bool covered : pathCoverage) {

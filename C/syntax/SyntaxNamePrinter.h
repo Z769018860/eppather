@@ -279,6 +279,7 @@ public:
         std::string path;
         std::vector<std::string> callees;
         std::optional<std::uint64_t> volceCount;
+        std::optional<std::size_t> volceMemoryTerms;
     };
 
     struct SummaryCase {
@@ -330,7 +331,8 @@ private:
                             int mem,
                             const std::string& path,
                             const std::vector<std::string>& callees,
-                            const std::optional<std::uint64_t>& volceCount);
+                            const std::optional<std::uint64_t>& volceCount,
+                            const std::optional<std::size_t>& volceMemoryTerms);
     void printFeasiblePathSummary(bool enableVolce, int volceLower, int volceUpper) const;
     std::vector<std::vector<int>> ReadCoverageMatrix(const std::string& filename);
     void SolveLinearProgram(const std::vector<std::vector<int>>& coverageMatrix);

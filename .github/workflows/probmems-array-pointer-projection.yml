@@ -1,0 +1,32 @@
+name: ProbMEMS array and pointer projection
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'volce/volce_api.*'
+      - 'C/syntax/SyntaxNamePrinter.*'
+      - 'tests/VolceStateSummaryTests.cpp'
+      - 'testcase/probmems_array_pointer/**'
+      - 'tools/run_array_pointer_projection_experiment.sh'
+      - '.github/workflows/probmems-array-pointer-projection.yml'
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_ci_array_pointer -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_ci_array_pointer --target cnip volce-summary-tests -j2
+      - run: ./build_ci_array_pointer/volce-summary-tests
+      - name: Run 16 array and pointer subjects
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip
+          TIMEOUT_SECONDS: 60
+        run: bash tools/run_array_pointer_projection_experiment.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: array-pointer-projection-results
+          path: array-pointer-projection-results/

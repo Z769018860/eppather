@@ -35,5 +35,20 @@ int main() {
         valid, 1, 0, 0);
     failures += !check("constant-folded", "(assert true)\n", valid, 0, 1, 0);
     failures += !check("invalid-closed-form", "(assert true)\n", invalid, 0, 0, 1);
+
+    const std::string memorySmt =
+        "(declare-const x (_ BitVec 32))\n"
+        "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= x x))\n"
+        "(assert (= (select mem (_ bv0 32)) "
+        "(select mem (_ bv0 32))))\n";
+    const auto memoryResult = volce::countModelsFromSmt2(
+        memorySmt, {}, volce::Range{-1, 1}, true);
+    const bool memoryOk = memoryResult && memoryResult->count == 9 &&
+        memoryResult->bounded_vars.size() == 1 &&
+        memoryResult->bounded_memory_terms.size() == 1;
+    std::cout << "array-memory-projection: "
+              << (memoryOk ? "PASS" : "FAIL") << '\n';
+    failures += !memoryOk;
     return failures == 0 ? 0 : 1;
 }
