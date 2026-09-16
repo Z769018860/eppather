@@ -175,7 +175,7 @@ std::string normalizeIdentifier(std::string ident) {
 }
 
 std::size_t configuredVlaCellCap() {
-    constexpr std::size_t kDefault = 8;
+    constexpr std::size_t kDefault = 5;
     constexpr std::size_t kHardMaximum = 64;
     const char* raw = std::getenv("EPPATHER_VLA_MAX_ELEMENTS");
     if (!raw || !*raw) return kDefault;
@@ -214,6 +214,25 @@ std::optional<psy::C::SourceMemoryRegion> parseSourceMemoryRegion(
             match[1].str(), configuredVlaCellCap(), true};
     }
     return std::nullopt;
+}
+
+std::vector<psy::C::SourceMemoryRegion> parseSignatureMemoryRegions(
+    const std::string& signature) {
+    std::vector<psy::C::SourceMemoryRegion> regions;
+    const size_t open = signature.find('(');
+    const size_t close = signature.rfind(')');
+    if (open == std::string::npos || close == std::string::npos ||
+        close <= open) {
+        return regions;
+    }
+    std::stringstream parameters(signature.substr(open + 1, close - open - 1));
+    std::string parameter;
+    while (std::getline(parameters, parameter, ',')) {
+        if (auto region = parseSourceMemoryRegion(parameter)) {
+            regions.push_back(*region);
+        }
+    }
+    return regions;
 }
 
 std::optional<std::string> extractFunctionIdentifierFromDeclarator(const DeclaratorSyntax* declarator) {
@@ -997,6 +1016,14 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
             }
             f->setCode(formatSnippet(signature, false));
             funcDefStack_.push_back(f);
+            for (const auto& region : parseSignatureMemoryRegions(signature)) {
+                const bool duplicate = std::any_of(
+                    inputMemoryRegions_.begin(), inputMemoryRegions_.end(),
+                    [&](const SourceMemoryRegion& existing) {
+                        return existing.name == region.name;
+                    });
+                if (!duplicate) inputMemoryRegions_.push_back(region);
+            }
 
             // 形参收集
             FunctionParameterExtractor extractor(syn->syntaxTree());

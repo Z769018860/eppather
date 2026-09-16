@@ -38,7 +38,7 @@ bool containsAny(const std::string& s, std::initializer_list<const char*> needle
 }
 
 std::size_t boundedVlaCap() {
-    constexpr std::size_t kDefault = 8;
+    constexpr std::size_t kDefault = 5;
     constexpr std::size_t kMaximum = 64;
     const char* raw = std::getenv("EPPATHER_VLA_MAX_ELEMENTS");
     if (!raw || !*raw) return kDefault;
