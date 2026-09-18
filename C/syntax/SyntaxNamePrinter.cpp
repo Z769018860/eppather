@@ -1292,9 +1292,22 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                         "(?:\\b[A-Za-z_][A-Za-z0-9_]*[[:space:]]+)*\\b" +
                         variable +
                         "\\b[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;");
+                    std::size_t initializerEnd = std::string::npos;
                     for (std::sregex_iterator it(prefix.begin(), prefix.end(), initializer),
                              end; it != end; ++it) {
                         n->initstmt_str = variable + " = " + (*it)[1].str() + ";";
+                        initializerEnd = static_cast<std::size_t>(
+                            it->position() + it->length());
+                    }
+                    if (initializerEnd != std::string::npos) {
+                        const std::string between = prefix.substr(initializerEnd);
+                        const std::regex laterWrite(
+                            "\\b" + variable +
+                            "\\b[[:space:]]*(?:=(?!=)|\\+\\+|--|\\+=|-=)");
+                        if (std::regex_search(between, laterWrite) ||
+                            between.find('}') != std::string::npos) {
+                            n->initstmt_str.clear();
+                        }
                     }
 
                     const std::size_t bodyStart = snippet.find('{');
