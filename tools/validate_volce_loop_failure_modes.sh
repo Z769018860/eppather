@@ -44,7 +44,7 @@ run_case while_metadata testcase/loop_hybrid/13_while_input.c 8 \
 # and update, then transports the entailed transition to VolCE.
 run_case while_affine testcase/loop_hybrid/14_while_constant.c 8 \
   '\[VOLCE LOOP SUMMARIES (APPLIED|GROUND-VALIDATED)\]: [1-9]'
-run_case early_break testcase/loop_hybrid/18_for_break.c 16 \
+# A later write invalidates a recovered initializer; retain the bounded path.\nrun_case while_stale testcase/loop_hybrid/21_while_stale_initializer.c 8 \\\n  'VOLCE LOOP SUMMARY DIAGNOSTIC.*while-loop lacks initializer/update metadata'\nrun_case early_break testcase/loop_hybrid/18_for_break.c 16 \
   'VOLCE LOOP SUMMARY DIAGNOSTIC.*break/return or truncated path'
 
 cat "$OUT_DIR/summary.csv"
