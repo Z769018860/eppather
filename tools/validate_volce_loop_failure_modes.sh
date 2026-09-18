@@ -38,7 +38,7 @@ run_case exact_autolift testcase/loop_hybrid/01_for_lt.c 2 \
 
 # These loops intentionally remain unsummarized, but now explain why.
 run_case while_metadata testcase/loop_hybrid/13_while_input.c 8 \
-  'VOLCE LOOP SUMMARY DIAGNOSTIC.*condition is not an affine constant bound'
+  'VOLCE LOOP SUMMARY DIAGNOSTIC.*while-loop lacks initializer/update metadata'
 
 # A structurally simple constant-bound while loop now recovers its initializer
 # and update, then transports the entailed transition to VolCE.
