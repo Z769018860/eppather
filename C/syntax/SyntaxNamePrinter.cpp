@@ -1272,6 +1272,70 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                 n->cond_    = syn->asWhileStatement()->condition();
                 n->cond_str = cfgnode.ExpressionToString(n->cond_);
 
+                // Recover a conservative affine transition contract for a
+                // structurally simple while-loop.  The candidate is still
+                // implication-checked by VolCE before it can constrain model
+                // counting.  Loops containing nested control flow keep the
+                // existing bounded fallback.
+                std::smatch inductionMatch;
+                static const std::regex whileDirect(
+                    "\\b([A-Za-z_][A-Za-z0-9_]*)\\b[[:space:]]*"
+                    "(?:<=|<|>=|>)[[:space:]]*-?[0-9]+");
+                static const std::regex whileReversed(
+                    "-?[0-9]+[[:space:]]*(?:<=|<|>=|>)[[:space:]]*"
+                    "\\b([A-Za-z_][A-Za-z0-9_]*)\\b");
+                if (std::regex_search(n->cond_str, inductionMatch, whileDirect) ||
+                    std::regex_search(n->cond_str, inductionMatch, whileReversed)) {
+                    const std::string variable = inductionMatch[1].str();
+                    const std::string prefix = source.substr(0, firstPos);
+                    const std::regex initializer(
+                        "(?:\\b[A-Za-z_][A-Za-z0-9_]*[[:space:]]+)*\\b" +
+                        variable +
+                        "\\b[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;");
+                    std::size_t initializerEnd = std::string::npos;
+                    for (std::sregex_iterator it(prefix.begin(), prefix.end(), initializer),
+                             end; it != end; ++it) {
+                        n->initstmt_str = variable + " = " + (*it)[1].str() + ";";
+                        initializerEnd = static_cast<std::size_t>(
+                            it->position() + it->length());
+                    }
+                    if (initializerEnd != std::string::npos) {
+                        const std::string between = prefix.substr(initializerEnd);
+                        const std::regex laterWrite(
+                            "\\b" + variable +
+                            "\\b[[:space:]]*(?:=(?!=)|\\+\\+|--|\\+=|-=)");
+                        if (std::regex_search(between, laterWrite) ||
+                            between.find('}') != std::string::npos) {
+                            n->initstmt_str.clear();
+                        }
+                    }
+
+                    const std::size_t bodyStart = snippet.find('{');
+                    const std::string bodySnippet = bodyStart == std::string::npos
+                        ? snippet.substr(snippet.find(')') + 1)
+                        : snippet.substr(bodyStart + 1);
+                    const bool hasNestedControl = std::regex_search(
+                        bodySnippet,
+                        std::regex("\\b(if|for|while|switch|break|continue|return)\\b"));
+                    const std::regex update(
+                        "\\b" + variable +
+                        "\\b[[:space:]]*(?:\\+\\+|--|\\+=?[[:space:]]*[0-9]+|"
+                        "-=?[[:space:]]*[0-9]+|=[[:space:]]*" + variable +
+                        "[[:space:]]*[+-][[:space:]]*[0-9]+)[[:space:]]*;");
+                    std::vector<std::string> updates;
+                    for (std::sregex_iterator it(bodySnippet.begin(), bodySnippet.end(), update),
+                             end; it != end; ++it) {
+                        updates.push_back(it->str());
+                    }
+                    if (!hasNestedControl && !n->initstmt_str.empty() &&
+                        updates.size() == 1) {
+                        n->expr_str = updates.front();
+                    } else {
+                        n->initstmt_str.clear();
+                        n->expr_str.clear();
+                    }
+                }
+
                 const StatementSyntax* bodyFirst = firstExecutable(syn->asWhileStatement()->statement());
 
                 auto join    = createEndNode(); join->nodeLevel    = nodeLevel;

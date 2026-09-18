@@ -434,7 +434,8 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
         }
     }
     for (CFGNode* loop : order) {
-        if (!loop->isFor) {
+        if (!loop->isFor &&
+            (loop->initstmt_str.empty() || loop->expr_str.empty())) {
             result.loopStateSummaryDiagnostics.push_back(
                 "skipped: while-loop lacks initializer/update metadata");
             continue;
