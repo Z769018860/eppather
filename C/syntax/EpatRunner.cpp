@@ -431,6 +431,22 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             provenanceVariables.push_back(prediction.inductionVariable);
         }
     }
+    // Array-indexed paths with multiple loops can create a large chain of
+    // symbolic memory expressions.  Materializing every induction write on
+    // those paths exceeded the bounded integration budget.  Keep their
+    // existing compact encoding until memory-state provenance is available.
+    if (provenanceLoops.size() > 1) {
+        bool indexedMemory = false;
+        for (const auto& decision : decisions) {
+            if (!decision.node) continue;
+            if (decision.node->getCode().find('[') != std::string::npos ||
+                decision.node->cond_str.find('[') != std::string::npos) {
+                indexedMemory = true;
+                break;
+            }
+        }
+        if (indexedMemory) provenanceVariables.clear();
+    }
     epat::setSsaProvenanceVariables(provenanceVariables);
     EpatResult result = solveScript(render(decisions));
     epat::clearSsaProvenanceVariables();
