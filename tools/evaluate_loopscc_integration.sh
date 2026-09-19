@@ -120,12 +120,20 @@ awk -F, '
     if ($6 == "REJECTED") rejected++
     summary_ms += $15
     baseline_ms += $16
+    summary_warmup_us += $22
+    baseline_warmup_us += $23
+    summary_check_us += $24
+    summary_count_us += $25
+    baseline_count_us += $26
   }
   END {
-    print "total,passed,ssa_applied_cases,ground_validated_cases,fallback_cases,rejected_cases,summary_ms,baseline_ms,aggregate_speedup"
+    print "total,passed,ssa_applied_cases,ground_validated_cases,fallback_cases,rejected_cases,summary_ms,baseline_ms,aggregate_speedup,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us,count_ratio"
     speedup = summary_ms > 0 ? baseline_ms / summary_ms : 0
-    printf "%d,%d,%d,%d,%d,%d,%d,%d,%.4f\n", total, passed, ssa,
-      ground, fallback, rejected, summary_ms, baseline_ms, speedup
+    count_ratio = summary_count_us > 0 ? baseline_count_us / summary_count_us : 0
+    printf "%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%d,%d,%d,%d,%d,%.4f\n", total, passed, ssa,
+      ground, fallback, rejected, summary_ms, baseline_ms, speedup,
+      summary_warmup_us, baseline_warmup_us, summary_check_us,
+      summary_count_us, baseline_count_us, count_ratio
   }
 ' "$OUT_DIR/effect.csv" >"$OUT_DIR/aggregate.csv"
 cat "$OUT_DIR/aggregate.csv"
