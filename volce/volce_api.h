@@ -40,6 +40,13 @@ struct CountResult {
     // not constrain the model space and must not be reported as "applied".
     std::vector<std::string> validated_ground_state_summaries;
     std::vector<std::string> rejected_state_summaries;
+    // Profiling fields separate formula/projection size from the two expensive
+    // phases. They are observational and do not change counting semantics.
+    std::size_t formula_assertions{0};
+    std::size_t smt_declarations{0};
+    std::size_t projection_terms{0};
+    std::uint64_t summary_check_microseconds{0};
+    std::uint64_t model_count_microseconds{0};
 };
 
 std::optional<CountResult> countModelsFromSmt2(
