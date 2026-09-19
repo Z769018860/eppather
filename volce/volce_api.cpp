@@ -1,6 +1,7 @@
 #include "volce/volce_api.h"
 
 #include <cctype>
+#include <chrono>
 #include <fstream>
 #include <limits>
 #include <string_view>
@@ -462,6 +463,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                bool include_memory_terms,
                                                const std::vector<volce::MemoryRegionProjection>& memory_regions) {
     assertParsedFormulas(ctx, solver, vec);
+    const std::size_t formula_assertions =
+        static_cast<std::size_t>(Z3_ast_vector_size(ctx, vec));
 
     auto decls = collectZeroArityDecls(ctx, vec);
     addDeclaredBitVectors(ctx, parsed_decls, decls);
@@ -549,14 +552,24 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     std::vector<std::string> applied;
     std::vector<std::string> validated_ground;
     std::vector<std::string> rejected;
+    const auto summary_start = std::chrono::steady_clock::now();
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected);
+    const auto summary_end = std::chrono::steady_clock::now();
 
+    const auto count_start = std::chrono::steady_clock::now();
     std::uint64_t count = countModels(ctx, solver, projection_terms);
+    const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
-        std::move(applied),
-        std::move(validated_ground), std::move(rejected)};
+        std::move(applied), std::move(validated_ground), std::move(rejected),
+        formula_assertions, decls.size(), projection_terms.size(),
+        static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                summary_end - summary_start).count()),
+        static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                count_end - count_start).count())};
 }
 
 }  // namespace
