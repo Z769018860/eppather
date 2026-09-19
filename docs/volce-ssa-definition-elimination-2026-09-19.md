@@ -20,7 +20,9 @@ Run the `VolCE loop state summaries` GitHub Actions workflow for PR #94; it comp
 
 The counting-stage formula has 354 fewer assertions in this run (62.9%). The enumeration duration ratio is 1.0258× baseline/summary, and whole-case wall ratio is 1.0021×. These are single-run observations, not a statistically established speedup. Some single-solution paths simplify entirely to true, so they report zero counting assertions. Multi-branch and early-exit cases retain constraints (e.g. case 18: 181 versus 215); fallback and ground-only summaries do not have a corresponding SSA definition to eliminate.
 
-The six `volce-summary-tests` checks passed, including equal projected model counts for a synthetic SSA chain and fewer counting-stage assertions. The loop summary and diagnosed failure-mode scripts passed.
+The six `volce-summary-tests` checks passed, including equal projected model counts for a synthetic SSA chain and fewer counting-stage assertions. The loop summary and diagnosed failure-mode scripts passed. The weighted-average regression and project weighted-MEMS workflows passed.
+
+The array/pointer/VLA workflow also completed successfully, but its per-subject result is narrower: all 20 subjects compiled, scalar mode completed on 20/20, and memory-projection mode completed on 16/20. Memory mode timed out at 60 seconds on ap04, ap06, ap07 and ap15. In the separate maxloop 2/5/8 sensitivity manifest, memory mode timed out on ap04, ap06 and ap15 at every tested bound. These are unmeasured results rather than zero solution counts; a green workflow does not establish that all 20 memory counts finished. See https://github.com/Z769018860/eppather/actions/runs/35441863861.
 
 ## Next measurement
 
