@@ -116,6 +116,28 @@ namespace epat {
             }
             return name;
         }
+        // Materialize direct scalar writes as named SSA states instead of
+        // simplifying them away.  The stable source-name prefix is the
+        // provenance contract consumed by Eppather/VolCE (for example,
+        // i@0#ssa2 is the third state of source variable i in scope 0).
+        // Aggregate, array, and pointer writes deliberately stay in the memory
+        // model because a direct source-to-cell mapping is not alias-safe.
+        std::map<void*, int> scalar_state_version_;
+        rv materializeScalarState(const VarDecl& vard, rv value)
+        {
+            if (vard.getType().isArray() || vard.getType().isPointer())
+                return value;
+            auto key = (void*)&vard;
+            int version = scalar_state_version_[key]++;
+            auto name = this->getUniqueName(vard) + "#ssa" +
+                        std::to_string(version);
+            auto state = gc.constant(
+                name.c_str(), smt::type2sort(vard.getType()));
+            this->registerModelVar(name, vard.getType().getDeclCode(
+                vard.getName() + "#ssa" + std::to_string(version)));
+            this->smt_.pushCond(state == value);
+            return state;
+        }
         int getOffset(FieldDecl const& fd)
         {
             // XXX: 效率优化
@@ -200,6 +222,20 @@ namespace epat {
                 };
                 auto ret = do_cal();
                 ret = smt::bool2int(ret);
+
+                // Preserve provenance for direct scalar assignments.  More
+                // complex lvalues (array cells, dereferences, fields) remain
+                // governed by the memory model and are not guessed here.
+                auto& lhs = CastExpr::removeCast(bop.getLeftOperand());
+                if (Stmt::StmtKind::DeclRefExpr == lhs.getKind()) {
+                    auto& dref = static_cast<const DeclRefExpr&>(lhs);
+                    if (Decl::DeclKind::VarDecl ==
+                        dref.getDecl().getDeclKind()) {
+                        auto& vard =
+                            static_cast<const VarDecl&>(dref.getDecl());
+                        ret = materializeScalarState(vard, ret);
+                    }
+                }
                 this->mem_.set(l, ret);
                 rvs_.push(std::move(ret));
             }
@@ -416,8 +452,14 @@ namespace epat {
                     this->visit(vard.getInit());
                     // TODO: init是init_list_expr的情形, init不能覆盖的情形
                     auto init_list = rvs_.pop_from(pos);
-                    for (int i = 0, n = (int)init_list.size(); i < n; ++i)
-                        this->mem_.set((l + i).simplify(), init_list[i]);
+                    for (int i = 0, n = (int)init_list.size(); i < n; ++i) {
+                        auto value = init_list[i];
+                        if (i == 0 && !vard.getType().isArray() &&
+                            !vard.getType().isPointer()) {
+                            value = materializeScalarState(vard, value);
+                        }
+                        this->mem_.set((l + i).simplify(), value);
+                    }
                 }
                 else {
                     auto name = this->getUniqueName(vard);
