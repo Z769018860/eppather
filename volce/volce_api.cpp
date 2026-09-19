@@ -552,6 +552,14 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     std::vector<std::string> applied;
     std::vector<std::string> validated_ground;
     std::vector<std::string> rejected;
+
+    // Both summary and baseline modes receive the same initial solver check.
+    // Without this control, summary entailment checks warm Z3's internal state
+    // and make the following model-count phase look artificially faster.
+    const auto warmup_start = std::chrono::steady_clock::now();
+    (void)Z3_solver_check(ctx, solver);
+    const auto warmup_end = std::chrono::steady_clock::now();
+
     const auto summary_start = std::chrono::steady_clock::now();
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected);
@@ -564,6 +572,9 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
         formula_assertions, decls.size(), projection_terms.size(),
+        static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                warmup_end - warmup_start).count()),
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
                 summary_end - summary_start).count()),
