@@ -42,7 +42,7 @@ run_mode() {
 }
 
 printf '%s\n' \
-  'id,category,expected_mode,maxloop,status,effect,summary_count,baseline_count,summary_wmems,baseline_wmems,ssa_applied,ground_validated,rejected,diagnostics,summary_ms,baseline_ms,speedup,summary_assertions,baseline_assertions,summary_projection_terms,baseline_projection_terms,summary_check_us,summary_count_us,baseline_count_us' \
+  'id,category,expected_mode,maxloop,status,effect,summary_count,baseline_count,summary_wmems,baseline_wmems,ssa_applied,ground_validated,rejected,diagnostics,summary_ms,baseline_ms,speedup,summary_assertions,baseline_assertions,summary_projection_terms,baseline_projection_terms,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us' \
   >"$OUT_DIR/effect.csv"
 
 while IFS=, read -r id source category expected_mode expected_trip maxloop; do
@@ -72,6 +72,8 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   baseline_assertions="$(sum_metric '\[VOLCE FORMULA ASSERTIONS\]' "$baseline_log")"
   summary_projection="$(sum_metric '\[VOLCE PROJECTION TERMS\]' "$summary_log")"
   baseline_projection="$(sum_metric '\[VOLCE PROJECTION TERMS\]' "$baseline_log")"
+  summary_warmup_us="$(sum_metric '\[VOLCE SOLVER WARMUP US\]' "$summary_log")"
+  baseline_warmup_us="$(sum_metric '\[VOLCE SOLVER WARMUP US\]' "$baseline_log")"
   summary_check_us="$(sum_metric '\[VOLCE SUMMARY CHECK US\]' "$summary_log")"
   summary_count_us="$(sum_metric '\[VOLCE MODEL COUNT US\]' "$summary_log")"
   baseline_count_us="$(sum_metric '\[VOLCE MODEL COUNT US\]' "$baseline_log")"
@@ -92,14 +94,15 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   [[ -n "$summary_wmems" && "$summary_wmems" != N/A && \
      "$summary_wmems" == "$baseline_wmems" ]] || status=FAIL
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$id" "$category" "$expected_mode" "$maxloop" "$status" "$effect" \
     "${summary_count:-N/A}" "${baseline_count:-N/A}" \
     "${summary_wmems:-N/A}" "${baseline_wmems:-N/A}" \
     "$applied" "$ground" "$rejected" "$diagnostics" \
     "$summary_ms" "$baseline_ms" "$speedup" \
     "$summary_assertions" "$baseline_assertions" \
-    "$summary_projection" "$baseline_projection" "$summary_check_us" \
+    "$summary_projection" "$baseline_projection" \
+    "$summary_warmup_us" "$baseline_warmup_us" "$summary_check_us" \
     "$summary_count_us" "$baseline_count_us" >>"$OUT_DIR/effect.csv"
 done <"$ROOT/testcase/loop_hybrid/manifest.csv"
 
