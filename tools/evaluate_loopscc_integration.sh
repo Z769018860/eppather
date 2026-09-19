@@ -42,7 +42,7 @@ run_mode() {
 }
 
 printf '%s\n' \
-  'id,category,expected_mode,maxloop,status,effect,summary_count,baseline_count,summary_wmems,baseline_wmems,ssa_applied,ground_validated,rejected,diagnostics,summary_ms,baseline_ms,speedup,summary_assertions,baseline_assertions,summary_projection_terms,baseline_projection_terms,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us' \
+  'id,category,expected_mode,maxloop,status,effect,summary_count,baseline_count,summary_wmems,baseline_wmems,ssa_applied,ground_validated,rejected,diagnostics,summary_ms,baseline_ms,speedup,summary_assertions,baseline_assertions,summary_projection_terms,baseline_projection_terms,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us,summary_counting_assertions,baseline_counting_assertions' \
   >"$OUT_DIR/effect.csv"
 
 while IFS=, read -r id source category expected_mode expected_trip maxloop; do
@@ -72,6 +72,8 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   baseline_assertions="$(sum_metric '\[VOLCE FORMULA ASSERTIONS\]' "$baseline_log")"
   summary_projection="$(sum_metric '\[VOLCE PROJECTION TERMS\]' "$summary_log")"
   baseline_projection="$(sum_metric '\[VOLCE PROJECTION TERMS\]' "$baseline_log")"
+  summary_counting_assertions="$(sum_metric '\[VOLCE COUNTING ASSERTIONS\]' "$summary_log")"
+  baseline_counting_assertions="$(sum_metric '\[VOLCE COUNTING ASSERTIONS\]' "$baseline_log")"
   summary_warmup_us="$(sum_metric '\[VOLCE SOLVER WARMUP US\]' "$summary_log")"
   baseline_warmup_us="$(sum_metric '\[VOLCE SOLVER WARMUP US\]' "$baseline_log")"
   summary_check_us="$(sum_metric '\[VOLCE SUMMARY CHECK US\]' "$summary_log")"
@@ -94,7 +96,7 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
   [[ -n "$summary_wmems" && "$summary_wmems" != N/A && \
      "$summary_wmems" == "$baseline_wmems" ]] || status=FAIL
 
-  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+  printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
     "$id" "$category" "$expected_mode" "$maxloop" "$status" "$effect" \
     "${summary_count:-N/A}" "${baseline_count:-N/A}" \
     "${summary_wmems:-N/A}" "${baseline_wmems:-N/A}" \
@@ -103,7 +105,8 @@ while IFS=, read -r id source category expected_mode expected_trip maxloop; do
     "$summary_assertions" "$baseline_assertions" \
     "$summary_projection" "$baseline_projection" \
     "$summary_warmup_us" "$baseline_warmup_us" "$summary_check_us" \
-    "$summary_count_us" "$baseline_count_us" >>"$OUT_DIR/effect.csv"
+    "$summary_count_us" "$baseline_count_us" \
+    "$summary_counting_assertions" "$baseline_counting_assertions" >>"$OUT_DIR/effect.csv"
 done <"$ROOT/testcase/loop_hybrid/manifest.csv"
 
 cat "$OUT_DIR/effect.csv"
@@ -125,15 +128,18 @@ awk -F, '
     summary_check_us += $24
     summary_count_us += $25
     baseline_count_us += $26
+    summary_counting_assertions += $27
+    baseline_counting_assertions += $28
   }
   END {
-    print "total,passed,ssa_applied_cases,ground_validated_cases,fallback_cases,rejected_cases,summary_ms,baseline_ms,aggregate_speedup,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us,count_ratio"
+    print "total,passed,ssa_applied_cases,ground_validated_cases,fallback_cases,rejected_cases,summary_ms,baseline_ms,aggregate_speedup,summary_warmup_us,baseline_warmup_us,summary_check_us,summary_count_us,baseline_count_us,count_ratio,summary_counting_assertions,baseline_counting_assertions"
     speedup = summary_ms > 0 ? baseline_ms / summary_ms : 0
     count_ratio = summary_count_us > 0 ? baseline_count_us / summary_count_us : 0
-    printf "%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%d,%d,%d,%d,%d,%.4f\n", total, passed, ssa,
+    printf "%d,%d,%d,%d,%d,%d,%d,%d,%.4f,%d,%d,%d,%d,%d,%.4f,%d,%d\n", total, passed, ssa,
       ground, fallback, rejected, summary_ms, baseline_ms, speedup,
       summary_warmup_us, baseline_warmup_us, summary_check_us,
-      summary_count_us, baseline_count_us, count_ratio
+      summary_count_us, baseline_count_us, count_ratio,
+      summary_counting_assertions, baseline_counting_assertions
   }
 ' "$OUT_DIR/effect.csv" >"$OUT_DIR/aggregate.csv"
 cat "$OUT_DIR/aggregate.csv"
