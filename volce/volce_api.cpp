@@ -599,8 +599,7 @@ std::optional<CountResult> countModelsFromSmt2(
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range,
     bool include_memory_terms,
-    const std::vector<MemoryRegionProjection>& memory_regions,
-    bool apply_entailed_summaries) {
+    const std::vector<MemoryRegionProjection>& memory_regions) {
     if (smt2.empty()) {
         return std::nullopt;
     }
