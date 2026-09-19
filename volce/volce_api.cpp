@@ -465,6 +465,110 @@ void applyEntailedStateSummaries(
     }
 }
 
+// A definition (x = expression) of an unprojected SSA state can be
+// existentially eliminated by substituting expression for x everywhere.
+// Restrict this to the declaration scope of an entailed loop summary.
+bool isNamedState(Z3_context ctx, Z3_ast ast, const std::string& prefix) {
+    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) return false;
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    if (Z3_get_app_num_args(ctx, app) != 0 ||
+        Z3_get_decl_kind(ctx, decl) != Z3_OP_UNINTERPRETED) return false;
+    const char* raw = Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+    return raw && std::string(raw).compare(0, prefix.size(), prefix) == 0;
+}
+
+bool containsAst(Z3_context ctx, Z3_ast tree, Z3_ast target) {
+    if (Z3_is_eq_ast(ctx, tree, target)) return true;
+    if (Z3_get_ast_kind(ctx, tree) != Z3_APP_AST) return false;
+    Z3_app app = Z3_to_app(ctx, tree);
+    for (unsigned i = 0; i < Z3_get_app_num_args(ctx, app); ++i)
+        if (containsAst(ctx, Z3_get_app_arg(ctx, app, i), target)) return true;
+    return false;
+}
+
+std::size_t eliminateEntailedSsaDefinitions(
+    Z3_context ctx, Z3_solver solver,
+    std::vector<Z3_ast>& projection_terms,
+    const std::vector<std::string>& applied,
+    bool enabled,
+    Z3_ast_vector retained) {
+    std::unordered_set<std::string> prefixes;
+    if (enabled) {
+        for (const auto& item : applied) {
+            const auto arrow = item.find("->");
+            const auto equal = item.find('=', arrow == std::string::npos ? 0 : arrow + 2);
+            if (arrow == std::string::npos || equal == std::string::npos) continue;
+            const std::string name = item.substr(arrow + 2, equal - arrow - 2);
+            const auto suffix = name.rfind("#ssa");
+            if (suffix != std::string::npos)
+                prefixes.insert(name.substr(0, suffix + 4));
+        }
+    }
+
+    Z3_ast_vector original = Z3_solver_get_assertions(ctx, solver);
+    Z3_ast_vector_inc_ref(ctx, original);
+    std::vector<Z3_ast> assertions;
+    const unsigned count = Z3_ast_vector_size(ctx, original);
+    assertions.reserve(count);
+    for (unsigned i = 0; i < count; ++i)
+        assertions.push_back(Z3_ast_vector_get(ctx, original, i));
+
+    std::unordered_set<unsigned> eliminated;
+    std::size_t removed = 0;
+    // This bounded pass avoids expression blow-up on long symbolic loops.
+    for (std::size_t i = 0; enabled && i < assertions.size() && removed < 64; ++i) {
+        Z3_ast formula = assertions[i];
+        if (Z3_get_ast_kind(ctx, formula) != Z3_APP_AST) continue;
+        Z3_app eq = Z3_to_app(ctx, formula);
+        if (Z3_get_decl_kind(ctx, Z3_get_app_decl(ctx, eq)) != Z3_OP_EQ ||
+            Z3_get_app_num_args(ctx, eq) != 2) continue;
+        Z3_ast left = Z3_get_app_arg(ctx, eq, 0);
+        Z3_ast right = Z3_get_app_arg(ctx, eq, 1);
+        Z3_ast state = nullptr;
+        Z3_ast value = nullptr;
+        for (const auto& prefix : prefixes) {
+            if (isNamedState(ctx, left, prefix) &&
+                !containsAst(ctx, right, left)) {
+                state = left; value = right; break;
+            }
+            if (isNamedState(ctx, right, prefix) &&
+                !containsAst(ctx, left, right)) {
+                state = right; value = left; break;
+            }
+        }
+        if (!state) continue;
+        const unsigned id = Z3_get_ast_id(ctx, state);
+        if (!eliminated.insert(id).second) continue;
+        for (std::size_t j = 0; j < assertions.size(); ++j) {
+            if (j == i) continue;
+            if (!assertions[j]) continue;
+            assertions[j] = Z3_substitute(ctx, assertions[j], 1, &state, &value);
+            Z3_ast_vector_push(ctx, retained, assertions[j]);
+        }
+        for (auto& term : projection_terms) {
+            term = Z3_substitute(ctx, term, 1, &state, &value);
+            Z3_ast_vector_push(ctx, retained, term);
+        }
+        assertions[i] = nullptr;
+        ++removed;
+    }
+
+    // Recreate both solvers, including validation-only baseline, to keep
+    // solver initialization comparable in the model-count phase.
+    Z3_solver_reset(ctx, solver);
+    std::size_t remaining = 0;
+    for (Z3_ast assertion : assertions) {
+        if (!assertion) continue;
+        assertion = Z3_simplify(ctx, assertion);
+        if (Z3_get_bool_value(ctx, assertion) == Z3_L_TRUE) continue;
+        Z3_solver_assert(ctx, solver, assertion);
+        ++remaining;
+    }
+    Z3_ast_vector_dec_ref(ctx, original);
+    return remaining;
+}
+
 std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                Z3_solver solver,
                                                Z3_ast_vector vec,
@@ -583,18 +687,32 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
         apply_entailed_summaries);
+    Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
+    Z3_ast_vector_inc_ref(ctx, retained);
+    const std::size_t counting_assertions =
+        eliminateEntailedSsaDefinitions(
+            ctx, solver, projection_terms, applied, apply_entailed_summaries,
+            retained);
     const auto summary_end = std::chrono::steady_clock::now();
+
+    // Both modes start enumeration from a freshly constructed solver.
+    const auto count_warmup_start = std::chrono::steady_clock::now();
+    (void)Z3_solver_check(ctx, solver);
+    const auto count_warmup_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
     std::uint64_t count = countModels(ctx, solver, projection_terms);
+    Z3_ast_vector_dec_ref(ctx, retained);
     const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
         formula_assertions, decls.size(), projection_terms.size(),
+        counting_assertions,
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
-                warmup_end - warmup_start).count()),
+                warmup_end - warmup_start +
+                count_warmup_end - count_warmup_start).count()),
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
                 summary_end - summary_start).count()),

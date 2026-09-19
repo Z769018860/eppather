@@ -45,6 +45,7 @@ struct CountResult {
     std::size_t formula_assertions{0};
     std::size_t smt_declarations{0};
     std::size_t projection_terms{0};
+    std::size_t counting_assertions{0};
     std::uint64_t solver_warmup_microseconds{0};
     std::uint64_t summary_check_microseconds{0};
     std::uint64_t model_count_microseconds{0};

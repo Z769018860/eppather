@@ -153,6 +153,7 @@ struct VolceResult {
     std::size_t formulaAssertions{0};
     std::size_t smtDeclarations{0};
     std::size_t projectionTerms{0};
+    std::size_t countingAssertions{0};
     std::uint64_t solverWarmupMicroseconds{0};
     std::uint64_t summaryCheckMicroseconds{0};
     std::uint64_t modelCountMicroseconds{0};
@@ -364,6 +365,7 @@ std::optional<VolceResult> runVolce(
     result.formulaAssertions = countResult->formula_assertions;
     result.smtDeclarations = countResult->smt_declarations;
     result.projectionTerms = countResult->projection_terms;
+    result.countingAssertions = countResult->counting_assertions;
     result.solverWarmupMicroseconds =
         countResult->solver_warmup_microseconds;
     result.summaryCheckMicroseconds =
@@ -3665,6 +3667,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << volceResult->smtDeclarations << endl;
                 cout << "[VOLCE PROJECTION TERMS]: "
                      << volceResult->projectionTerms << endl;
+                cout << "[VOLCE COUNTING ASSERTIONS]: "
+                     << volceResult->countingAssertions << endl;
                 cout << "[VOLCE SOLVER WARMUP US]: "
                      << volceResult->solverWarmupMicroseconds << endl;
                 cout << "[VOLCE SUMMARY CHECK US]: "
