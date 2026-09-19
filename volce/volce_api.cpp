@@ -556,7 +556,7 @@ std::size_t eliminateEntailedSsaDefinitions(
     for (Z3_ast assertion : assertions) {
         if (!assertion) continue;
         assertion = Z3_simplify(ctx, assertion);
-        if (Z3_is_true(ctx, assertion)) continue;
+        if (Z3_get_bool_value(ctx, assertion) == Z3_L_TRUE) continue;
         Z3_solver_assert(ctx, solver, assertion);
         ++remaining;
     }
