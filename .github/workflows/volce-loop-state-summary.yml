@@ -27,9 +27,8 @@ jobs:
       - name: Diagnose VolCE unit-test crash
         if: failure()
         run: |
-          if command -v gdb >/dev/null; then
-            gdb -batch -ex run -ex 'thread apply all bt' --args ./build_ci_volce_summary/volce-summary-tests
-          fi
+          sudo apt-get update -qq && sudo apt-get install -y -qq gdb
+          gdb -batch -ex run -ex 'thread apply all bt' --args ./build_ci_volce_summary/volce-summary-tests
       - name: Validate entailed summaries through VolCE
         env:
           CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
