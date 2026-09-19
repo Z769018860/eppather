@@ -412,7 +412,28 @@ EpatResult EpatRunner::solveScript(const std::string& script) const {
 }
 
 EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
+    // Select only induction variables for SSA materialization.  This filter is
+    // installed before epat++ evaluates the path, then cleared immediately;
+    // ordinary scalar assignments retain the compact legacy representation.
+    std::vector<std::string> provenanceVariables;
+    std::unordered_set<CFGNode*> provenanceLoops;
+    for (const auto& decision : decisions) {
+        CFGNode* loop = decision.node;
+        if (!loop || !loop->isLoop ||
+            !provenanceLoops.insert(loop).second) {
+            continue;
+        }
+        const auto prediction = LoopBoundPredictor::predict(
+            loop->initstmt_str, loop->cond_str, loop->expr_str,
+            std::numeric_limits<int>::max());
+        if (prediction.exact() &&
+            !prediction.inductionVariable.empty()) {
+            provenanceVariables.push_back(prediction.inductionVariable);
+        }
+    }
+    epat::setSsaProvenanceVariables(provenanceVariables);
     EpatResult result = solveScript(render(decisions));
+    epat::clearSsaProvenanceVariables();
 
     // Build exact source-level state transitions only after the concrete path
     // has been rendered. Early exits and truncated paths are rejected because
