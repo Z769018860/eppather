@@ -3650,6 +3650,11 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                            << volceResult->boundedMemoryTerms << "\n";
                 cout << "[VOLCE LOOP SUMMARIES APPLIED]: "
                      << volceResult->appliedStateSummaries.size() << endl;
+                // Applied summaries are, by construction, summaries
+                // entailed by a concrete SMT declaration.  Keep an explicit
+                // SSA metric separate from ground validation for experiments.
+                cout << "[VOLCE SSA SUMMARIES APPLIED]: "
+                     << volceResult->appliedStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES GROUND-VALIDATED]: "
                      << volceResult->validatedGroundStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
@@ -3667,6 +3672,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VOLCE MODEL COUNT US]: "
                      << volceResult->modelCountMicroseconds << endl;
                 resultFile << "[volce_loop_summaries_applied]:"
+                           << volceResult->appliedStateSummaries.size() << "\n";
+                resultFile << "[volce_ssa_summaries_applied]:"
                            << volceResult->appliedStateSummaries.size() << "\n";
                 for (const auto& applied : volceResult->appliedStateSummaries) {
                     resultFile << "[volce_loop_summary]:" << applied << "\n";

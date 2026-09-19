@@ -6,8 +6,16 @@
 #include "stmt.h"
 #include <iostream>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace epat {
+    // Per-analysis provenance filter used by Eppather.  Only variables named
+    // here are materialized as scalar SSA states; this avoids turning every
+    // ordinary assignment into an additional solver burden.
+    void setSsaProvenanceVariables(const std::vector<std::string>& names);
+    void clearSsaProvenanceVariables();
+    bool isSsaProvenanceVariable(const std::string& name);
     /**
      * @brief 分析结果的枚举
      * 枚举类result，用于表示工具的分析结果

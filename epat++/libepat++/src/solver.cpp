@@ -1,10 +1,33 @@
 #include "solver.h"
+#include <unordered_set>
 #include "c1_solver.h"
 #include "mem_visitor.h"
 #include "solver_base.h"
 
 using namespace std;
 using namespace epat;
+
+namespace {
+thread_local std::unordered_set<std::string> ssa_provenance_variables;
+}
+
+void epat::setSsaProvenanceVariables(
+    const std::vector<std::string>& names)
+{
+    ssa_provenance_variables.clear();
+    ssa_provenance_variables.insert(names.begin(), names.end());
+}
+
+void epat::clearSsaProvenanceVariables()
+{
+    ssa_provenance_variables.clear();
+}
+
+bool epat::isSsaProvenanceVariable(const std::string& name)
+{
+    return ssa_provenance_variables.find(name) !=
+           ssa_provenance_variables.end();
+}
 
 namespace {
     class SolverImpl : public epat::Solver {

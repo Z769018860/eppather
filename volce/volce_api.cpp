@@ -375,6 +375,13 @@ std::optional<volce::Range> lookupRange(const std::string& name,
     return kVolceWordRange;
 }
 
+bool isDerivedSsaStateName(const std::string& name) {
+    // epat++ materializes source writes with this suffix.  These declarations
+    // are deterministic functions of source inputs, so projecting them would
+    // multiply the apparent solution space instead of adding information.
+    return name.find("#ssa") != std::string::npos;
+}
+
 bool isSummaryCandidateName(const std::string& declared,
                             const std::string& source) {
     if (declared == source) return true;
@@ -489,6 +496,12 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         }
         const char* name = Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
         std::string nameStr = name ? name : "";
+        if (isDerivedSsaStateName(nameStr)) {
+            // Keep the declaration and its defining equality in the solver so
+            // summaries can bind to it, but do not count a derived SSA state
+            // as an independent input dimension.
+            continue;
+        }
         auto rangeOpt = lookupRange(nameStr, ranges, default_range);
         if (!rangeOpt) {
             return std::nullopt;

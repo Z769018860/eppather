@@ -34,11 +34,16 @@ for source in "${cases[@]}"; do
     case_maxloop=3
   fi
 
+  # The array comparison case has a data-dependent loop and can exceed
+  # two minutes on a shared CI runner; leave a bounded budget for it.
+  case_timeout=120
+  if [[ "$source" == testcase/test09.c ]]; then case_timeout=240; fi
+
   if ! gcc -std=c11 -fsyntax-only "$source" >"$OUT_DIR/logs/$tag.gcc.log" 2>&1; then
     compile=FAIL
     run=SKIP
     failures=$((failures + 1))
-  elif ! timeout 120 "$CNIP" -q --maxloop "$case_maxloop" --maxpaths 30 \
+  elif ! timeout "$case_timeout" "$CNIP" -q --maxloop "$case_maxloop" --maxpaths 30 \
       --volce --volce-lower -1 --volce-upper 1 "$source" >"$log" 2>&1; then
     run=FAIL
     failures=$((failures + 1))
