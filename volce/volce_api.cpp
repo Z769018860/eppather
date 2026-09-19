@@ -629,7 +629,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range,
     bool include_memory_terms,
-    const std::vector<MemoryRegionProjection>& memory_regions) {
+    const std::vector<MemoryRegionProjection>& memory_regions,
+    bool apply_entailed_summaries) {
     if (smt2.empty()) return std::nullopt;
 
     const auto parsed_decls = parseBitVectorDecls(smt2);
