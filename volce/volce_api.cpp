@@ -392,7 +392,8 @@ void applyEntailedStateSummaries(
     const std::vector<volce::AffineStateSummary>& summaries,
     std::vector<std::string>& applied,
     std::vector<std::string>& validated_ground,
-    std::vector<std::string>& rejected) {
+    std::vector<std::string>& rejected,
+    bool apply_entailed_summaries) {
     for (const auto& summary : summaries) {
         bool accepted = false;
         for (auto decl : decls) {
@@ -411,7 +412,9 @@ void applyEntailedStateSummaries(
             const Z3_lbool check = Z3_solver_check(ctx, solver);
             Z3_solver_pop(ctx, solver, 1);
             if (check == Z3_L_FALSE) {
-                Z3_solver_assert(ctx, solver, equality);
+                if (apply_entailed_summaries) {
+                    Z3_solver_assert(ctx, solver, equality);
+                }
                 applied.push_back(summary.variable + "->" + name + "=" +
                                   std::to_string(summary.final_value));
                 accepted = true;
@@ -438,7 +441,9 @@ void applyEntailedStateSummaries(
             const Z3_lbool groundCheck = Z3_solver_check(ctx, solver);
             Z3_solver_pop(ctx, solver, 1);
             if (groundCheck == Z3_L_FALSE) {
-                Z3_solver_assert(ctx, solver, equality);
+                if (apply_entailed_summaries) {
+                    Z3_solver_assert(ctx, solver, equality);
+                }
                 validated_ground.push_back(summary.variable +
                     "->constant-folded=" +
                     std::to_string(summary.final_value));
@@ -461,7 +466,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range,
                                                bool include_memory_terms,
-                                               const std::vector<volce::MemoryRegionProjection>& memory_regions) {
+                                               const std::vector<volce::MemoryRegionProjection>& memory_regions,
+                                               bool apply_entailed_summaries) {
     assertParsedFormulas(ctx, solver, vec);
     const std::size_t formula_assertions =
         static_cast<std::size_t>(Z3_ast_vector_size(ctx, vec));
@@ -562,7 +568,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
 
     const auto summary_start = std::chrono::steady_clock::now();
     applyEntailedStateSummaries(
-        ctx, solver, decls, summaries, applied, validated_ground, rejected);
+        ctx, solver, decls, summaries, applied, validated_ground, rejected,
+        apply_entailed_summaries);
     const auto summary_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
@@ -592,7 +599,8 @@ std::optional<CountResult> countModelsFromSmt2(
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range,
     bool include_memory_terms,
-    const std::vector<MemoryRegionProjection>& memory_regions) {
+    const std::vector<MemoryRegionProjection>& memory_regions,
+    bool apply_entailed_summaries) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -607,7 +615,7 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
                                 default_range, include_memory_terms,
-                                memory_regions);
+                                memory_regions, false);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
@@ -634,7 +642,7 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(
         ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
-        include_memory_terms, memory_regions);
+        include_memory_terms, memory_regions, apply_entailed_summaries);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -664,7 +672,8 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
-                                default_range, include_memory_terms, {});
+                                default_range, include_memory_terms, {},
+                                false);
 
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
