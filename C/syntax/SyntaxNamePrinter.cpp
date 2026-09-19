@@ -150,6 +150,11 @@ struct VolceResult {
     std::vector<std::string> appliedStateSummaries;
     std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
+    std::size_t formulaAssertions{0};
+    std::size_t smtDeclarations{0};
+    std::size_t projectionTerms{0};
+    std::uint64_t summaryCheckMicroseconds{0};
+    std::uint64_t modelCountMicroseconds{0};
 };
 
 std::vector<std::string> extractDirectCalleesFromCallExprSnippet(const std::string& snippet);
@@ -354,6 +359,13 @@ std::optional<VolceResult> runVolce(
     result.validatedGroundStateSummaries =
         countResult->validated_ground_state_summaries;
     result.rejectedStateSummaries = countResult->rejected_state_summaries;
+    result.formulaAssertions = countResult->formula_assertions;
+    result.smtDeclarations = countResult->smt_declarations;
+    result.projectionTerms = countResult->projection_terms;
+    result.summaryCheckMicroseconds =
+        countResult->summary_check_microseconds;
+    result.modelCountMicroseconds =
+        countResult->model_count_microseconds;
     return result;
 }
 
@@ -3638,6 +3650,16 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << volceResult->validatedGroundStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
                      << volceResult->rejectedStateSummaries.size() << endl;
+                cout << "[VOLCE FORMULA ASSERTIONS]: "
+                     << volceResult->formulaAssertions << endl;
+                cout << "[VOLCE SMT DECLARATIONS]: "
+                     << volceResult->smtDeclarations << endl;
+                cout << "[VOLCE PROJECTION TERMS]: "
+                     << volceResult->projectionTerms << endl;
+                cout << "[VOLCE SUMMARY CHECK US]: "
+                     << volceResult->summaryCheckMicroseconds << endl;
+                cout << "[VOLCE MODEL COUNT US]: "
+                     << volceResult->modelCountMicroseconds << endl;
                 resultFile << "[volce_loop_summaries_applied]:"
                            << volceResult->appliedStateSummaries.size() << "\n";
                 for (const auto& applied : volceResult->appliedStateSummaries) {
