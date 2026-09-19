@@ -125,7 +125,8 @@ namespace epat {
         std::map<void*, int> scalar_state_version_;
         rv materializeScalarState(const VarDecl& vard, rv value)
         {
-            if (vard.getType().isArray() || vard.getType().isPointer())
+            if (vard.getType().isArray() || vard.getType().isPointer() ||
+                !epat::isSsaProvenanceVariable(vard.getName()))
                 return value;
             auto key = (void*)&vard;
             int version = scalar_state_version_[key]++;
