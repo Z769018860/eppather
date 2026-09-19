@@ -3,7 +3,6 @@
 #include <cctype>
 #include <chrono>
 #include <fstream>
-#include <iostream>
 #include <limits>
 #include <string_view>
 #include <unordered_set>
@@ -543,10 +542,7 @@ std::size_t eliminateEntailedSsaDefinitions(
         if (!eliminated.insert(id).second) continue;
         for (std::size_t j = 0; j < assertions.size(); ++j) {
             if (j == i) continue;
-            std::cerr << "substitution i=" << i << " j=" << j
-                      << " state=" << Z3_ast_to_string(ctx, state)
-                      << " value=" << Z3_ast_to_string(ctx, value)
-                      << " formula=" << Z3_ast_to_string(ctx, assertions[j]) << std::endl;
+            if (!assertions[j]) continue;
             assertions[j] = Z3_substitute(ctx, assertions[j], 1, &state, &value);
             Z3_ast_vector_push(ctx, retained, assertions[j]);
         }
