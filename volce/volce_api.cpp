@@ -491,7 +491,8 @@ std::size_t eliminateEntailedSsaDefinitions(
     Z3_context ctx, Z3_solver solver,
     std::vector<Z3_ast>& projection_terms,
     const std::vector<std::string>& applied,
-    bool enabled) {
+    bool enabled,
+    Z3_ast_vector retained) {
     std::unordered_set<std::string> prefixes;
     if (enabled) {
         for (const auto& item : applied) {
@@ -542,9 +543,12 @@ std::size_t eliminateEntailedSsaDefinitions(
         for (std::size_t j = 0; j < assertions.size(); ++j) {
             if (j == i) continue;
             assertions[j] = Z3_substitute(ctx, assertions[j], 1, &state, &value);
+            Z3_ast_vector_push(ctx, retained, assertions[j]);
         }
-        for (auto& term : projection_terms)
+        for (auto& term : projection_terms) {
             term = Z3_substitute(ctx, term, 1, &state, &value);
+            Z3_ast_vector_push(ctx, retained, term);
+        }
         assertions[i] = nullptr;
         ++removed;
     }
@@ -682,9 +686,12 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
         apply_entailed_summaries);
+    Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
+    Z3_ast_vector_inc_ref(ctx, retained);
     const std::size_t counting_assertions =
         eliminateEntailedSsaDefinitions(
-            ctx, solver, projection_terms, applied, apply_entailed_summaries);
+            ctx, solver, projection_terms, applied, apply_entailed_summaries,
+            retained);
     const auto summary_end = std::chrono::steady_clock::now();
 
     // Both modes start enumeration from a freshly constructed solver.
@@ -694,6 +701,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
 
     const auto count_start = std::chrono::steady_clock::now();
     std::uint64_t count = countModels(ctx, solver, projection_terms);
+    Z3_ast_vector_dec_ref(ctx, retained);
     const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
