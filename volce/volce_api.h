@@ -63,7 +63,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::unordered_map<std::string, Range>& ranges,
     const std::optional<Range>& default_range = std::nullopt,
     bool include_memory_terms = false,
-    const std::vector<MemoryRegionProjection>& memory_regions = {});
+    const std::vector<MemoryRegionProjection>& memory_regions = {},
+    bool apply_entailed_summaries = true);
 
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
