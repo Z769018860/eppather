@@ -341,11 +341,12 @@ std::optional<VolceResult> runVolce(
         memoryRegions.push_back(volce::MemoryRegionProjection{
             region.name, region.cells, region.variableLength});
     }
-    const auto countResult = summaries.empty() || summariesDisabled
+    const auto countResult = summaries.empty()
         ? volce::countModelsFromSmt2(
               smt2, {}, range, includeMemoryTerms, memoryRegions)
         : volce::countModelsFromSmt2WithSummaries(
-              smt2, summaries, {}, range, includeMemoryTerms, memoryRegions);
+              smt2, summaries, {}, range, includeMemoryTerms, memoryRegions,
+              !summariesDisabled);
     if (!countResult) {
         return std::nullopt;
     }
