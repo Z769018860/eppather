@@ -40,13 +40,13 @@ int main() {
     // models, including a later assertion that reads the exit state.
     const std::string chainSmt =
         "(declare-const x (_ BitVec 32))\n"
-        "(declare-const i@0#ssa0 (_ BitVec 32))\n"
-        "(declare-const i@0#ssa1 (_ BitVec 32))\n"
-        "(declare-const i@0#ssa2 (_ BitVec 32))\n"
-        "(assert (= i@0#ssa0 (_ bv0 32)))\n"
-        "(assert (= i@0#ssa1 (bvadd i@0#ssa0 (_ bv1 32))))\n"
-        "(assert (= i@0#ssa2 (bvadd i@0#ssa1 (_ bv1 32))))\n"
-        "(assert (= x i@0#ssa2))\n";
+        "(declare-const |i@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |i@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |i@0#ssa2| (_ BitVec 32))\n"
+        "(assert (= |i@0#ssa0| (_ bv0 32)))\n"
+        "(assert (= |i@0#ssa1| (bvadd |i@0#ssa0| (_ bv1 32))))\n"
+        "(assert (= |i@0#ssa2| (bvadd |i@0#ssa1| (_ bv1 32))))\n"
+        "(assert (= x |i@0#ssa2|))\n";
     const volce::AffineStateSummary chainSummary{"i", 0, 1, 2, 2};
     const auto optimized = volce::countModelsFromSmt2WithSummaries(
         chainSmt, {chainSummary}, {}, volce::Range{-8, 8});
