@@ -39,14 +39,14 @@ int main() {
     // Eliminating a derived SSA chain must preserve the projected input
     // models, including a later assertion that reads the exit state.
     const std::string chainSmt =
-        "(declare-const x (_ BitVec 32))\\n"
-        "(declare-const i@0#ssa0 (_ BitVec 32))\\n"
-        "(declare-const i@0#ssa1 (_ BitVec 32))\\n"
-        "(declare-const i@0#ssa2 (_ BitVec 32))\\n"
-        "(assert (= i@0#ssa0 (_ bv0 32)))\\n"
-        "(assert (= i@0#ssa1 (bvadd i@0#ssa0 (_ bv1 32))))\\n"
-        "(assert (= i@0#ssa2 (bvadd i@0#ssa1 (_ bv1 32))))\\n"
-        "(assert (= x i@0#ssa2))\\n";
+        "(declare-const x (_ BitVec 32))\n"
+        "(declare-const i@0#ssa0 (_ BitVec 32))\n"
+        "(declare-const i@0#ssa1 (_ BitVec 32))\n"
+        "(declare-const i@0#ssa2 (_ BitVec 32))\n"
+        "(assert (= i@0#ssa0 (_ bv0 32)))\n"
+        "(assert (= i@0#ssa1 (bvadd i@0#ssa0 (_ bv1 32))))\n"
+        "(assert (= i@0#ssa2 (bvadd i@0#ssa1 (_ bv1 32))))\n"
+        "(assert (= x i@0#ssa2))\n";
     const volce::AffineStateSummary chainSummary{"i", 0, 1, 2, 2};
     const auto optimized = volce::countModelsFromSmt2WithSummaries(
         chainSmt, {chainSummary}, {}, volce::Range{-8, 8});
@@ -58,7 +58,7 @@ int main() {
         optimized->counting_assertions < reference->counting_assertions &&
         optimized->applied_state_summaries.size() == 1;
     std::cout << "ssa-definition-elimination: "
-              << (eliminationOk ? "PASS" : "FAIL") << '\\n';
+              << (eliminationOk ? "PASS" : "FAIL") << '\n';
     failures += !eliminationOk;
 
     const std::string memorySmt =
