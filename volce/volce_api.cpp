@@ -573,7 +573,7 @@ std::optional<std::uint64_t> countFreeInitialMemory(
         Z3_solver_assert(ctx, proof, Z3_mk_xor(ctx, path, renamed));
         const Z3_lbool status = Z3_solver_check(ctx, proof);
         Z3_solver_dec_ref(ctx, proof);
-        if (status != Z3_L_FALSE) { std::fprintf(stderr, "factor proof status=%d\\n", static_cast<int>(status)); return std::nullopt; }
+        if (status != Z3_L_FALSE) { std::fprintf(stderr, "factor proof status=%d path=%s renamed=%s\\n", static_cast<int>(status), Z3_ast_to_string(ctx, path), Z3_ast_to_string(ctx, renamed)); return std::nullopt; }
     }
 
     Z3_solver_push(ctx, solver);
