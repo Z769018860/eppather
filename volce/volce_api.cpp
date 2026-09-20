@@ -746,8 +746,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     // of recursive solver checks (e.g. cJSON's separate input/output arrays).
     std::uint64_t count = memory_regions.size() == 1 &&
                           memory_regions[0].cells <= 6 &&
-                          bounded_memory_terms.size() >= 5 &&
-                          bounded_vars.size() <= 2
+                          bounded_memory_terms.size() >= 5
         ? countModelsByProjection(ctx, solver, projection_terms, 0)
         : countModels(ctx, solver, projection_terms);
     Z3_ast_vector_dec_ref(ctx, retained);
