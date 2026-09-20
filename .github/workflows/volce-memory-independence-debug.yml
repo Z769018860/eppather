@@ -1,0 +1,21 @@
+name: Diagnose VolCE memory projection crash
+on:
+  push:
+    branches:
+      - feature/volce-proven-independent-memory-count
+  workflow_dispatch:
+jobs:
+  backtrace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_ci_debug -DCMAKE_BUILD_TYPE=Debug -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_ci_debug --target cnip -j2
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq gdb
+      - name: Trace pointer loop crash
+        env:
+          EPPATHER_VOLCE_PROJECT_MEMORY: '1'
+        run: |
+          gdb -batch -ex run -ex 'thread apply all bt 18' --args ./build_ci_debug/cnip -q --maxloop 5 --maxpaths 100 --volce --volce-lower -1 --volce-upper 1 testcase/probmems_ground_truth/gt35_pointer_loop_branch.c > trace.txt 2>&1 || true
+          tail -n 100 trace.txt
