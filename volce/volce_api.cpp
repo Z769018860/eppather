@@ -2,6 +2,7 @@
 
 #include <cctype>
 #include <chrono>
+#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <string_view>
@@ -572,7 +573,7 @@ std::optional<std::uint64_t> countFreeInitialMemory(
         Z3_solver_assert(ctx, proof, Z3_mk_xor(ctx, path, renamed));
         const Z3_lbool status = Z3_solver_check(ctx, proof);
         Z3_solver_dec_ref(ctx, proof);
-        if (status != Z3_L_FALSE) return std::nullopt;
+        if (status != Z3_L_FALSE) { std::fprintf(stderr, "factor proof status=%d\\n", static_cast<int>(status)); return std::nullopt; }
     }
 
     Z3_solver_push(ctx, solver);
@@ -632,6 +633,7 @@ std::optional<std::uint64_t> countFreeInitialMemory(
         Z3_dec_ref(ctx, block);
     }
     Z3_solver_pop(ctx, solver, 1);
+    if (memory_terms.size() == 6) std::fprintf(stderr, "factor exact=%d scalar=%zu count=%llu\\n", exact ? 1 : 0, scalar_models, static_cast<unsigned long long>(count));
     return exact ? std::optional<std::uint64_t>(count) : std::nullopt;
 }
 
