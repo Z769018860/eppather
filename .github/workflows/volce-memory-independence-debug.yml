@@ -4,6 +4,9 @@ on:
     branches:
       - feature/volce-proven-independent-memory-count
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/volce-memory-independence-debug.yml'
 jobs:
   backtrace:
     runs-on: ubuntu-latest
