@@ -915,10 +915,12 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
                                 default_range, include_memory_terms,
                                 memory_regions, false);
 
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
 
@@ -943,9 +945,11 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(
         ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
         include_memory_terms, memory_regions, apply_entailed_summaries);
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -974,10 +978,12 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
                                 default_range, include_memory_terms, {},
                                 false);
 
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
 
