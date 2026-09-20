@@ -741,7 +741,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto count_warmup_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
-    std::uint64_t count = projection_terms.size() >= 5
+    std::uint64_t count = bounded_memory_terms.size() >= 5
         ? countModelsByProjection(ctx, solver, projection_terms, 0)
         : countModels(ctx, solver, projection_terms);
     Z3_ast_vector_dec_ref(ctx, retained);
