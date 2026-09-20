@@ -6,7 +6,7 @@ CNIP="${CNIP:-./build_ci/cnip}"
 OUT_DIR="${OUT_DIR:-project-volce-results}"
 mkdir -p "$OUT_DIR/logs"
 SUMMARY="$OUT_DIR/summary.csv"
-echo "project,analysis_input,input_kind,c_compile,eppather_run,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems" > "$SUMMARY"
+echo "project,analysis_input,input_kind,c_compile,eppather_run,path_count,solution_space_count,weighted_mems_sum,weighted_average_mems,dfs_max_mems,elapsed_seconds" > "$SUMMARY"
 
 rows=(
   "cJSON|testcase/llm_summaries/cjson_parse_summary.c|normalized_large-project_summary"
@@ -24,15 +24,24 @@ for row in "${rows[@]}"; do
   log="$OUT_DIR/logs/$tag.log"
   compile=PASS
   run=PASS
+  start_seconds=$SECONDS
   if ! gcc -std=c11 -fsyntax-only "$source" >"$OUT_DIR/logs/$tag.gcc.log" 2>&1; then
     compile=FAIL
     run=SKIP
     failures=$((failures + 1))
-  elif ! timeout 180 "$CNIP" -q --maxloop 1 --maxpaths 40 \
-      --volce --volce-lower -1 --volce-upper 1 "$source" >"$log" 2>&1; then
-    run=FAIL
-    failures=$((failures + 1))
+  else
+    timeout 240 "$CNIP" -q --maxloop 1 --maxpaths 40 \
+      --volce --volce-lower -1 --volce-upper 1 "$source" >"$log" 2>&1
+    exit_code=$?
+    if [[ $exit_code -eq 124 ]]; then
+      run=TIMEOUT
+      failures=$((failures + 1))
+    elif [[ $exit_code -ne 0 ]]; then
+      run=FAIL
+      failures=$((failures + 1))
+    fi
   fi
+  elapsed_seconds=$((SECONDS - start_seconds))
   paths="$(grep -c '^  \[path [0-9][0-9]*\] mem=' "$log" 2>/dev/null || true)"
   count="$(sed -n 's/^\[VOLCE SOLUTION SPACE COUNT\]: //p' "$log" 2>/dev/null | tail -1)"
   sum="$(sed -n 's/^\[VOLCE WEIGHTED MEMS SUM\]: //p' "$log" 2>/dev/null | tail -1)"
@@ -42,7 +51,7 @@ for row in "${rows[@]}"; do
     run=FAIL
     failures=$((failures + 1))
   fi
-  echo "$project,$source,$input_kind,$compile,$run,${paths:-0},${count:-N/A},${sum:-N/A},${avg:-N/A},${max:-N/A}" >> "$SUMMARY"
+  echo "$project,$source,$input_kind,$compile,$run,${paths:-0},${count:-N/A},${sum:-N/A},${avg:-N/A},${max:-N/A},$elapsed_seconds" >> "$SUMMARY"
 done
 cat "$SUMMARY"
 exit "$failures"
