@@ -25,6 +25,9 @@ jobs:
           CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip
           TIMEOUT_SECONDS: 60
         run: bash tools/run_array_pointer_projection_experiment.sh
+      - name: Require all 20 subjects to complete in both modes
+        run: |
+          awk -F, 'NR > 1 && ($6 != "PASS" || $7 != "PASS" || $9 == "N/A" || $10 == "N/A") { print "Incomplete subject: " $0; failed = 1 } END { exit failed }' array-pointer-projection-results/summary.csv
       - name: Run maxloop sensitivity on array and pointer loops
         env:
           CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip

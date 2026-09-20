@@ -527,6 +527,117 @@ bool containsAst(Z3_context ctx, Z3_ast tree, Z3_ast target) {
     return false;
 }
 
+// If the original path formula is independent of the initial memory array,
+// every distinct projected address can take any value in the finite domain.
+// Prove this for the whole formula; a syntactic read/write heuristic alone
+// would be unsound in the presence of aliases or uninitialized reads.
+std::optional<std::uint64_t> countFreeInitialMemory(
+    Z3_context ctx, Z3_solver solver, Z3_ast_vector path_formulas,
+    std::size_t original_formula_count,
+    const std::vector<Z3_ast>& scalar_terms,
+    const std::vector<Z3_ast>& memory_terms,
+    const volce::Range& range) {
+    if (memory_terms.size() < 5 || memory_terms.size() > 20 ||
+        scalar_terms.size() > 16) return std::nullopt;
+    const std::uint64_t width =
+        static_cast<std::uint64_t>(range.upper) -
+        static_cast<std::uint64_t>(range.lower) + 1;
+    if (range.lower > range.upper || width == 0 || width > 17)
+        return std::nullopt;
+
+    Z3_sort word = Z3_mk_bv_sort(ctx, 32);
+    Z3_sort array_sort = Z3_mk_array_sort(ctx, word, word);
+    Z3_ast initial = Z3_mk_const(
+        ctx, Z3_mk_string_symbol(ctx, "%a"), array_sort);
+    for (Z3_ast term : memory_terms) {
+        if (Z3_get_ast_kind(ctx, term) != Z3_APP_AST) return std::nullopt;
+        Z3_app select = Z3_to_app(ctx, term);
+        if (Z3_get_decl_kind(ctx, Z3_get_app_decl(ctx, select)) != Z3_OP_SELECT ||
+            !Z3_is_eq_ast(ctx, Z3_get_app_arg(ctx, select, 0), initial))
+            return std::nullopt;
+    }
+
+    const unsigned n = static_cast<unsigned>(std::min<std::size_t>(
+        original_formula_count, Z3_ast_vector_size(ctx, path_formulas)));
+    std::vector<Z3_ast> formulas;
+    formulas.reserve(n);
+    for (unsigned i = 0; i < n; ++i)
+        formulas.push_back(Z3_ast_vector_get(ctx, path_formulas, i));
+    Z3_ast path = n == 0 ? Z3_mk_true(ctx) :
+        Z3_simplify(ctx, Z3_mk_and(ctx, n, formulas.data()));
+    if (containsAst(ctx, path, initial)) {
+        Z3_ast alternative = Z3_mk_const(
+            ctx, Z3_mk_string_symbol(ctx, "%a#independence_check"),
+            array_sort);
+        Z3_ast renamed = Z3_substitute(ctx, path, 1, &initial, &alternative);
+        Z3_solver proof = Z3_mk_solver(ctx);
+        Z3_solver_inc_ref(ctx, proof);
+        Z3_solver_assert(ctx, proof, Z3_mk_xor(ctx, path, renamed));
+        const Z3_lbool status = Z3_solver_check(ctx, proof);
+        Z3_solver_dec_ref(ctx, proof);
+        if (status != Z3_L_FALSE) return std::nullopt;
+    }
+
+    Z3_solver_push(ctx, solver);
+    std::uint64_t count = 0;
+    std::size_t scalar_models = 0;
+    bool exact = true;
+    while (true) {
+        const Z3_lbool status = Z3_solver_check(ctx, solver);
+        if (status == Z3_L_FALSE) break;
+        if (status != Z3_L_TRUE || ++scalar_models > 100000) {
+            exact = false;
+            break;
+        }
+        Z3_model model = Z3_solver_get_model(ctx, solver);
+        if (!model) { exact = false; break; }
+        Z3_model_inc_ref(ctx, model);
+        std::unordered_set<std::string> addresses;
+        for (Z3_ast term : memory_terms) {
+            Z3_ast address = Z3_get_app_arg(ctx, Z3_to_app(ctx, term), 1);
+            Z3_ast value = nullptr;
+            if (!Z3_model_eval(ctx, model, address, true, &value) ||
+                !value || !Z3_is_numeral_ast(ctx, value)) {
+                exact = false; break;
+            }
+            addresses.insert(Z3_get_numeral_string(ctx, value));
+        }
+        std::vector<Z3_ast> equalities;
+        for (Z3_ast term : scalar_terms) {
+            Z3_ast value = nullptr;
+            if (!Z3_model_eval(ctx, model, term, true, &value) || !value) {
+                exact = false; break;
+            }
+            equalities.push_back(Z3_mk_eq(ctx, term, value));
+        }
+        if (!exact) { Z3_model_dec_ref(ctx, model); break; }
+        Z3_ast block = equalities.empty() ? nullptr :
+            Z3_mk_and(ctx, static_cast<unsigned>(equalities.size()),
+                      equalities.data());
+        if (block) Z3_inc_ref(ctx, block);
+        Z3_model_dec_ref(ctx, model);
+        std::uint64_t fiber = 1;
+        for (std::size_t i = 0; i < addresses.size(); ++i) {
+            if (fiber > std::numeric_limits<std::uint64_t>::max() / width) {
+                exact = false; break;
+            }
+            fiber *= width;
+        }
+        if (exact && count > std::numeric_limits<std::uint64_t>::max() - fiber)
+            exact = false;
+        if (!exact) {
+            if (block) Z3_dec_ref(ctx, block);
+            break;
+        }
+        count += fiber;
+        if (!block) break;
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, block));
+        Z3_dec_ref(ctx, block);
+    }
+    Z3_solver_pop(ctx, solver, 1);
+    return exact ? std::optional<std::uint64_t>(count) : std::nullopt;
+}
+
 std::size_t eliminateEntailedSsaDefinitions(
     Z3_context ctx, Z3_solver solver,
     std::vector<Z3_ast>& projection_terms,
@@ -744,18 +855,32 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     // Restrict recursive search to one small canonical region. Several
     // regions combined with scalar inputs can require an infeasible number
     // of recursive solver checks (e.g. cJSON's separate input/output arrays).
-    std::uint64_t count = memory_regions.size() == 1 &&
-                          memory_regions[0].cells <= 6 &&
-                          bounded_memory_terms.size() >= 5
-        ? countModelsByProjection(ctx, solver, projection_terms, 0)
-        : countModels(ctx, solver, projection_terms);
+    // The initial array is only counted analytically after proving that
+    // replacing it cannot change the path condition. The scalar solver still
+    // checks all path constraints and address aliases for every assignment.
+    const auto memory_range = lookupRange("%memory", ranges, default_range);
+    const auto independent_count = include_memory_terms && memory_range &&
+                                   !memory_regions.empty()
+        ? countFreeInitialMemory(ctx, solver, vec,
+                                 formula_assertions,
+                                 std::vector<Z3_ast>(
+                                     projection_terms.begin(),
+                                     projection_terms.begin() + bounded_vars.size()),
+                                 memory_terms, *memory_range)
+        : std::nullopt;
+    std::uint64_t count = independent_count ? *independent_count :
+        (memory_regions.size() == 1 &&
+         memory_regions[0].cells <= 6 &&
+         bounded_memory_terms.size() >= 5
+            ? countModelsByProjection(ctx, solver, projection_terms, 0)
+            : countModels(ctx, solver, projection_terms));
     Z3_ast_vector_dec_ref(ctx, retained);
     const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
         formula_assertions, decls.size(), projection_terms.size(),
-        counting_assertions,
+        counting_assertions, independent_count.has_value(),
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
                 warmup_end - warmup_start +
@@ -790,10 +915,12 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
                                 default_range, include_memory_terms,
                                 memory_regions, false);
 
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
 
@@ -818,9 +945,11 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(
         ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
         include_memory_terms, memory_regions, apply_entailed_summaries);
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -849,10 +978,12 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    Z3_ast_vector_inc_ref(ctx, vec);
     auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
                                 default_range, include_memory_terms, {},
                                 false);
 
+    Z3_ast_vector_dec_ref(ctx, vec);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
 
