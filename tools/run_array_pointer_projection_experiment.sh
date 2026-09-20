@@ -52,6 +52,10 @@ while IFS=',' read -r id source category features maxloop; do
       fi
     fi
 
+    if [[ "$run_status" == FAIL ]]; then
+      echo "VolCE subject $id ($mode) failed:" >&2
+      tail -n 35 "$log" >&2
+    fi
     paths="$(grep -c '^  \[path [0-9][0-9]*\] mem=' "$log" 2>/dev/null || true)"
     count="$(metric '\[VOLCE SOLUTION SPACE COUNT\]' "$log")"
     average="$(metric '\[VOLCE WEIGHTED AVERAGE MEMS\]' "$log")"
