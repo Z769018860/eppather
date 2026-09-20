@@ -741,7 +741,11 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto count_warmup_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
-    std::uint64_t count = bounded_memory_terms.size() >= 5
+    // Many independent scalar inputs (e.g. cJSON's ten arguments) favor
+    // complete-model blocking; reserve recursive search for memory-heavy
+    // projections with at most two scalar dimensions.
+    std::uint64_t count = bounded_memory_terms.size() >= 5 &&
+                          bounded_vars.size() <= 2
         ? countModelsByProjection(ctx, solver, projection_terms, 0)
         : countModels(ctx, solver, projection_terms);
     Z3_ast_vector_dec_ref(ctx, retained);
