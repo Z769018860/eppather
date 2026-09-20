@@ -90,7 +90,7 @@ while IFS=',' read -r id source category features maxloop; do
       zero_diagnostic=ZERO_MEMORY_COST
     fi
 
-    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
       "$id" "$category" "$features" "$maxloop" "$mode" \
       "$compile_status" "$run_status" "$paths" "$count" "$average" \
       "$max_mems" "$canonical_regions" "$arity" "$projection_status" "$max_terms" \
