@@ -89,5 +89,19 @@ int main() {
     std::cout << "canonical-memory-region: "
               << (canonicalOk ? "PASS" : "FAIL") << '\n';
     failures += !canonicalOk;
+    // Six bounded memory cells have 3^6 valuations. The array equality
+    // correlates the first pair, leaving exactly 3^5 projected models.
+    const std::string manyCellsSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\\n"
+        "(assert (= (select %a (_ bv0 32)) (select %a (_ bv1 32))))\\n";
+    const auto manyCells = volce::countModelsFromSmt2(
+        manyCellsSmt, {}, volce::Range{-1, 1}, true,
+        {{"region", 6, true}});
+    const bool boundedEnumerationOk = manyCells &&
+        manyCells->count == 243 &&
+        manyCells->bounded_memory_terms.size() == 6;
+    std::cout << "bounded-memory-enumeration: "
+              << (boundedEnumerationOk ? "PASS" : "FAIL") << '\\n';
+    failures += !boundedEnumerationOk;
     return failures == 0 ? 0 : 1;
 }
