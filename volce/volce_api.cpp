@@ -876,7 +876,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
         formula_assertions, decls.size(), projection_terms.size(),
-        counting_assertions,
+        counting_assertions, independent_count.has_value(),
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
                 warmup_end - warmup_start +
