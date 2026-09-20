@@ -19,7 +19,7 @@ metric() {
 }
 
 printf '%s\n' \
-  'id,category,features,maxloop,mode,compile_status,run_status,path_count,solution_space_count,weighted_average_mems,dfs_max_mems,canonical_memory_regions,memory_projection_arity,memory_projection_status,max_bounded_memory_terms,zero_diagnostic' \
+  'id,category,features,maxloop,mode,compile_status,run_status,path_count,solution_space_count,weighted_average_mems,dfs_max_mems,canonical_memory_regions,memory_projection_arity,memory_projection_status,max_bounded_memory_terms,proved_independent_memory_path,zero_diagnostic' \
   > "$OUT_DIR/summary.csv"
 
 while IFS=',' read -r id source category features maxloop; do
@@ -61,6 +61,8 @@ while IFS=',' read -r id source category features maxloop; do
     canonical_regions="$(sed -n 's/^\[VOLCE CANONICAL MEMORY REGIONS\]: //p' "$log" | sort -nr | head -1)"
     max_terms="$(sed -n 's/^\[VOLCE BOUNDED MEMORY TERMS\]: //p' "$log" | \
       sort -nr | head -1)"
+    proved_memory="$(sed -n 's/^\[VOLCE PROVEN INDEPENDENT MEMORY COUNT\]: //p' "$log" | \
+      sort -nr | head -1)"
     paths="${paths:-0}"
     count="${count:-N/A}"
     average="${average:-N/A}"
@@ -69,6 +71,7 @@ while IFS=',' read -r id source category features maxloop; do
     projection_status="${projection_status:-N/A}"
     canonical_regions="${canonical_regions:-0}"
     max_terms="${max_terms:-0}"
+    proved_memory="${proved_memory:-0}"
 
     zero_diagnostic=NONZERO
     if [[ "$run_status" != PASS ]]; then
@@ -91,7 +94,7 @@ while IFS=',' read -r id source category features maxloop; do
       "$id" "$category" "$features" "$maxloop" "$mode" \
       "$compile_status" "$run_status" "$paths" "$count" "$average" \
       "$max_mems" "$canonical_regions" "$arity" "$projection_status" "$max_terms" \
-      "$zero_diagnostic" >> "$OUT_DIR/summary.csv"
+      "$proved_memory" "$zero_diagnostic" >> "$OUT_DIR/summary.csv"
   done
 done < <(tail -n +2 "$MANIFEST")
 
