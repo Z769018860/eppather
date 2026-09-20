@@ -2,7 +2,6 @@
 
 #include <cctype>
 #include <chrono>
-#include <cstdio>
 #include <fstream>
 #include <limits>
 #include <string_view>
@@ -534,6 +533,7 @@ bool containsAst(Z3_context ctx, Z3_ast tree, Z3_ast target) {
 // would be unsound in the presence of aliases or uninitialized reads.
 std::optional<std::uint64_t> countFreeInitialMemory(
     Z3_context ctx, Z3_solver solver, Z3_ast_vector path_formulas,
+    std::size_t original_formula_count,
     const std::vector<Z3_ast>& scalar_terms,
     const std::vector<Z3_ast>& memory_terms,
     const volce::Range& range) {
@@ -557,12 +557,14 @@ std::optional<std::uint64_t> countFreeInitialMemory(
             return std::nullopt;
     }
 
-    const unsigned n = Z3_ast_vector_size(ctx, path_formulas);
+    const unsigned n = static_cast<unsigned>(std::min<std::size_t>(
+        original_formula_count, Z3_ast_vector_size(ctx, path_formulas)));
     std::vector<Z3_ast> formulas;
     formulas.reserve(n);
     for (unsigned i = 0; i < n; ++i)
         formulas.push_back(Z3_ast_vector_get(ctx, path_formulas, i));
-    Z3_ast path = Z3_simplify(ctx, Z3_mk_and(ctx, n, formulas.data()));
+    Z3_ast path = n == 0 ? Z3_mk_true(ctx) :
+        Z3_simplify(ctx, Z3_mk_and(ctx, n, formulas.data()));
     if (containsAst(ctx, path, initial)) {
         Z3_ast alternative = Z3_mk_const(
             ctx, Z3_mk_string_symbol(ctx, "%a#independence_check"),
@@ -573,7 +575,7 @@ std::optional<std::uint64_t> countFreeInitialMemory(
         Z3_solver_assert(ctx, proof, Z3_mk_xor(ctx, path, renamed));
         const Z3_lbool status = Z3_solver_check(ctx, proof);
         Z3_solver_dec_ref(ctx, proof);
-        if (status != Z3_L_FALSE) { std::fprintf(stderr, "factor proof status=%d path=%s renamed=%s\\n", static_cast<int>(status), Z3_ast_to_string(ctx, path), Z3_ast_to_string(ctx, renamed)); return std::nullopt; }
+        if (status != Z3_L_FALSE) return std::nullopt;
     }
 
     Z3_solver_push(ctx, solver);
@@ -633,7 +635,6 @@ std::optional<std::uint64_t> countFreeInitialMemory(
         Z3_dec_ref(ctx, block);
     }
     Z3_solver_pop(ctx, solver, 1);
-    if (memory_terms.size() == 6) std::fprintf(stderr, "factor exact=%d scalar=%zu count=%llu\\n", exact ? 1 : 0, scalar_models, static_cast<unsigned long long>(count));
     return exact ? std::optional<std::uint64_t>(count) : std::nullopt;
 }
 
@@ -861,6 +862,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto independent_count = include_memory_terms && memory_range &&
                                    !memory_regions.empty()
         ? countFreeInitialMemory(ctx, solver, vec,
+                                 formula_assertions,
                                  std::vector<Z3_ast>(
                                      projection_terms.begin(),
                                      projection_terms.begin() + bounded_vars.size()),
