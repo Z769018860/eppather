@@ -116,6 +116,7 @@ int main() {
         {{"x", 3, true}, {"y", 3, true}});
     const bool aliasCountOk = aliasedRegions &&
         aliasedRegions->count == 891 &&
+        aliasedRegions->proven_independent_memory_count &&
         aliasedRegions->bounded_memory_terms.size() == 6;
     std::cout << "independent-memory-aliases: "
               << (aliasCountOk ? "PASS" : "FAIL") << '\n';
@@ -130,7 +131,8 @@ int main() {
         dependentMemorySmt, {}, volce::Range{-1, 1}, true,
         {{"region", 5, true}});
     const bool dependencyFallbackOk = dependentMemory &&
-        dependentMemory->count == 81;
+        dependentMemory->count == 81 &&
+        !dependentMemory->proven_independent_memory_count;
     std::cout << "dependent-memory-fallback: "
               << (dependencyFallbackOk ? "PASS" : "FAIL") << '\n';
     failures += !dependencyFallbackOk;
