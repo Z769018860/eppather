@@ -103,5 +103,36 @@ int main() {
     std::cout << "bounded-memory-enumeration: "
               << (boundedEnumerationOk ? "PASS" : "FAIL") << '\n';
     failures += !boundedEnumerationOk;
+
+    // Two three-cell regions can overlap at runtime. Count each distinct
+    // address once for every scalar assignment: 3*3^3 + 4*3^4 + 2*3^5.
+    const std::string aliasedRegionsSmt =
+        "(declare-const x (_ BitVec 32))\n"
+        "(declare-const y (_ BitVec 32))\n"
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= (select (store %a (_ bv0 32) x) (_ bv0 32)) x))\n";
+    const auto aliasedRegions = volce::countModelsFromSmt2(
+        aliasedRegionsSmt, {}, volce::Range{-1, 1}, true,
+        {{"x", 3, true}, {"y", 3, true}});
+    const bool aliasCountOk = aliasedRegions &&
+        aliasedRegions->count == 891 &&
+        aliasedRegions->bounded_memory_terms.size() == 6;
+    std::cout << "independent-memory-aliases: "
+              << (aliasCountOk ? "PASS" : "FAIL") << '\n';
+    failures += !aliasCountOk;
+
+    // Reading the initial array in a path constraint invalidates the
+    // independence proof. Its constrained cell contributes only one value.
+    const std::string dependentMemorySmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= (select %a (_ bv0 32)) (_ bv0 32)))\n";
+    const auto dependentMemory = volce::countModelsFromSmt2(
+        dependentMemorySmt, {}, volce::Range{-1, 1}, true,
+        {{"region", 5, true}});
+    const bool dependencyFallbackOk = dependentMemory &&
+        dependentMemory->count == 81;
+    std::cout << "dependent-memory-fallback: "
+              << (dependencyFallbackOk ? "PASS" : "FAIL") << '\n';
+    failures += !dependencyFallbackOk;
     return failures == 0 ? 0 : 1;
 }
