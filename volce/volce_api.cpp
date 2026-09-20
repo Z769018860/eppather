@@ -362,6 +362,44 @@ std::uint64_t countModels(Z3_context ctx,
     return count;
 }
 
+// Enumerate bounded projections with one small exclusion set per term. The
+// flat blocking scheme above retains one assertion for every complete model;
+// array regions can produce thousands of models and a growing solver state.
+std::uint64_t countModelsByProjection(Z3_context ctx, Z3_solver solver,
+                                      const std::vector<Z3_ast>& terms,
+                                      std::size_t depth) {
+    if (depth == terms.size())
+        return Z3_solver_check(ctx, solver) == Z3_L_TRUE ? 1 : 0;
+
+    Z3_solver_push(ctx, solver);
+    std::uint64_t count = 0;
+    while (Z3_solver_check(ctx, solver) == Z3_L_TRUE) {
+        Z3_model model = Z3_solver_get_model(ctx, solver);
+        if (!model) break;
+        Z3_model_inc_ref(ctx, model);
+        Z3_ast value = nullptr;
+        const Z3_lbool evaluated =
+            Z3_model_eval(ctx, model, terms[depth], true, &value);
+        if (evaluated != Z3_L_TRUE || !value) {
+            Z3_model_dec_ref(ctx, model);
+            break;
+        }
+        // Keep the evaluated value alive across model release and recursive
+        // solver calls. A solver frame also bounds the sibling exclusions.
+        Z3_inc_ref(ctx, value);
+        Z3_model_dec_ref(ctx, model);
+        Z3_ast equals = Z3_mk_eq(ctx, terms[depth], value);
+        Z3_solver_push(ctx, solver);
+        Z3_solver_assert(ctx, solver, equals);
+        count += countModelsByProjection(ctx, solver, terms, depth + 1);
+        Z3_solver_pop(ctx, solver, 1);
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equals));
+        Z3_dec_ref(ctx, value);
+    }
+    Z3_solver_pop(ctx, solver, 1);
+    return count;
+}
+
 std::optional<volce::Range> lookupRange(const std::string& name,
                                        const std::unordered_map<std::string, volce::Range>& ranges,
                                        const std::optional<volce::Range>& default_range) {
@@ -701,7 +739,9 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto count_warmup_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
-    std::uint64_t count = countModels(ctx, solver, projection_terms);
+    std::uint64_t count = projection_terms.size() >= 5
+        ? countModelsByProjection(ctx, solver, projection_terms, 0)
+        : countModels(ctx, solver, projection_terms);
     Z3_ast_vector_dec_ref(ctx, retained);
     const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
