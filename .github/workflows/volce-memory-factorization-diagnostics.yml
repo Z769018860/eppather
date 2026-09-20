@@ -1,0 +1,44 @@
+name: VolCE memory factorization diagnostics
+on:
+  push:
+    branches:
+      - feature/volce-memory-factorization-diagnostics
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_ci_factorization -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_ci_factorization --target cnip -j2
+      - name: Capture path formulas before counting
+        run: |
+          mkdir -p memory-factorization-diagnostics
+          while IFS=, read -r id source bound; do
+            mkdir -p "memory-factorization-diagnostics/$id"
+            rm -f smt*.txt
+            timeout 45 ./build_ci_factorization/cnip -q --maxloop "$bound" --maxpaths 10 "$source" > "memory-factorization-diagnostics/$id/run.log" 2>&1 || true
+            for formula in smt*.txt; do
+              if [ -f "$formula" ]; then cp "$formula" "memory-factorization-diagnostics/$id/$formula"; fi
+            done
+            python3 - "$id" <<'PY'
+          import glob, os, sys
+          case = sys.argv[1]
+          paths = sorted(glob.glob(f"memory-factorization-diagnostics/{case}/smt*.txt"))
+          print("CASE", case, "FORMULAS", len(paths), flush=True)
+          for path in paths[:2]:
+              data = open(path, encoding="utf-8", errors="replace").read()
+              print("FORMULA", os.path.basename(path), "LENGTH", len(data), flush=True)
+              print(data[:12000], flush=True)
+          PY
+          done <<'CASES'
+          ap06,testcase/probmems_ground_truth/gt27_two_array_dot.c,4
+          ap07,testcase/probmems_ground_truth/gt28_array_reverse_pairs.c,3
+          ap15,testcase/probmems_ground_truth/gt38_array_pointer_copy.c,4
+          CASES
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: memory-factorization-diagnostics
+          path: memory-factorization-diagnostics/
