@@ -119,7 +119,11 @@ int main() {
         aliasedRegions->proven_independent_memory_count &&
         aliasedRegions->bounded_memory_terms.size() == 6;
     std::cout << "independent-memory-aliases: "
-              << (aliasCountOk ? "PASS" : "FAIL") << '\n';
+              << (aliasCountOk ? "PASS" : "FAIL")
+              << " count=" << (aliasedRegions ? aliasedRegions->count : 0)
+              << " proof=" << (aliasedRegions && aliasedRegions->proven_independent_memory_count)
+              << " terms=" << (aliasedRegions ? aliasedRegions->bounded_memory_terms.size() : 0)
+              << '\n';
     failures += !aliasCountOk;
 
     // Reading the initial array in a path constraint invalidates the
