@@ -389,11 +389,13 @@ std::uint64_t countModelsByProjection(Z3_context ctx, Z3_solver solver,
         Z3_inc_ref(ctx, value);
         Z3_model_dec_ref(ctx, model);
         Z3_ast equals = Z3_mk_eq(ctx, terms[depth], value);
+        Z3_inc_ref(ctx, equals);
         Z3_solver_push(ctx, solver);
         Z3_solver_assert(ctx, solver, equals);
         count += countModelsByProjection(ctx, solver, terms, depth + 1);
         Z3_solver_pop(ctx, solver, 1);
         Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equals));
+        Z3_dec_ref(ctx, equals);
         Z3_dec_ref(ctx, value);
     }
     Z3_solver_pop(ctx, solver, 1);
