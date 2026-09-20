@@ -378,9 +378,9 @@ std::uint64_t countModelsByProjection(Z3_context ctx, Z3_solver solver,
         if (!model) break;
         Z3_model_inc_ref(ctx, model);
         Z3_ast value = nullptr;
-        const Z3_lbool evaluated =
+        const bool evaluated =
             Z3_model_eval(ctx, model, terms[depth], true, &value);
-        if (evaluated != Z3_L_TRUE || !value) {
+        if (!evaluated || !value) {
             Z3_model_dec_ref(ctx, model);
             break;
         }
