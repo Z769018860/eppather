@@ -275,7 +275,33 @@ if ! grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/nested_scalar_accel.log
 fi
 compare_modes nested_scalar nested_scalar_accel
 
-# 7. Array-writing nested loops remain conservative because their memory
+# 7. Array/pointer loops expose exact MEMS observations but remain outside
+# scalar-only acceleration until an alias-aware memory transition is proved.
+run_case array_memory_probe testcase/loop_hybrid/16_array_scan.c 1 100
+array_memory_spaths="$(metric_max 'LOOPSCC MEMORY SPATHS' "$OUT_DIR/array_memory_probe.log")"
+array_memory_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/array_memory_probe.log")"
+array_accel="$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/array_memory_probe.log")"
+if [[ -z "$array_memory_spaths" || "$array_memory_spaths" -lt 1 ||
+      -z "$array_memory_mems" || "$array_memory_mems" -lt 1 ||
+      "$array_accel" != 0 ]]; then
+  echo "array_memory_probe: expected MEMS certificate with acceleration fallback" >&2
+  cat "$OUT_DIR/array_memory_probe.log" >&2
+  exit 1
+fi
+
+run_case pointer_memory_probe testcase/loop_hybrid/17_pointer_walk.c 1 100
+pointer_memory_spaths="$(metric_max 'LOOPSCC MEMORY SPATHS' "$OUT_DIR/pointer_memory_probe.log")"
+pointer_memory_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/pointer_memory_probe.log")"
+pointer_accel="$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/pointer_memory_probe.log")"
+if [[ -z "$pointer_memory_spaths" || "$pointer_memory_spaths" -lt 1 ||
+      -z "$pointer_memory_mems" || "$pointer_memory_mems" -lt 2 ||
+      "$pointer_accel" != 0 ]]; then
+  echo "pointer_memory_probe: expected pointer MEMS certificate with acceleration fallback" >&2
+  cat "$OUT_DIR/pointer_memory_probe.log" >&2
+  exit 1
+fi
+
+# 8. Array-writing nested loops remain conservative because their memory
 # transition is not yet alias-safe for inside-out acceleration.
 run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
 nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
