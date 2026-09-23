@@ -2835,6 +2835,84 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
+        // Fixed-cell memory shortcut. This is separately opt-in and stricter
+        // than scalar acceleration: every memory relation must be a fixed cell
+        // of a one-dimensional local fixed array, with structurally complete
+        // effects and exact MEMS compensation.
+        const char* memoryAccelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
+        const bool memoryAccelEnabled =
+            memoryAccelRaw && *memoryAccelRaw &&
+            std::string(memoryAccelRaw) != "0";
+        if (memoryAccelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedMemoryShortcut = false;
+            for (std::size_t candidateIndex = 0;
+                 candidateIndex < graph.memorySummaryCandidates.size();
+                 ++candidateIndex) {
+                auto prefix = decisions;
+                if (!node->initstmt_str.empty() &&
+                    node->initstmt_str != ";") {
+                    prefix.push_back(PathDecision{
+                        node.get(), PathDecisionKind::LoopInit});
+                }
+                auto memoryPlan =
+                    buildLoopSccMemoryAccelerationDecisions(
+                        prefix, node.get(), graph, candidateIndex,
+                        vartemp);
+                if (!memoryPlan) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : memoryPlan->coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(memoryPlan->decisions);
+                if (shortcutEval.status == result::feasible) {
+                    const auto& candidate =
+                        graph.memorySummaryCandidates[candidateIndex];
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT USED]: kind=for period="
+                        << candidate.period
+                        << " iterations=" << candidate.totalIterations
+                        << " entry_phase=" << candidate.entryPhase
+                        << " unfolded_mems=" << memoryPlan->unfoldedMems
+                        << " summary_mems="
+                        << memoryPlan->compressedSummaryMems
+                        << " compensation="
+                        << memoryPlan->compensationMems
+                        << " decisions=" << memoryPlan->decisions.size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         memoryPlan->decisions, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedMemoryShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedMemoryShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // The same certified LoopSCC shortcut used for while-loops also applies
         // to canonical for-loops once the adapter has proved the total SPath
         // transform and exact trip count. The for initializer is part of the
@@ -2992,6 +3070,77 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // 为 T/F 分支保存快照
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
+
+        // Fixed-cell local-array shortcut with exact MEMS compensation.
+        // Pointer, symbolic-index, cross-cell, VLA/unknown-region and opaque
+        // effects cannot construct this plan and therefore fall back.
+        const char* memoryAccelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
+        const bool memoryAccelEnabled =
+            memoryAccelRaw && *memoryAccelRaw &&
+            std::string(memoryAccelRaw) != "0";
+        if (memoryAccelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedMemoryShortcut = false;
+            for (std::size_t candidateIndex = 0;
+                 candidateIndex < graph.memorySummaryCandidates.size();
+                 ++candidateIndex) {
+                auto memoryPlan =
+                    buildLoopSccMemoryAccelerationDecisions(
+                        decisions, node.get(), graph, candidateIndex,
+                        vartemp);
+                if (!memoryPlan) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : memoryPlan->coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(memoryPlan->decisions);
+                if (shortcutEval.status == result::feasible) {
+                    const auto& candidate =
+                        graph.memorySummaryCandidates[candidateIndex];
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT USED]: kind=while period="
+                        << candidate.period
+                        << " iterations=" << candidate.totalIterations
+                        << " entry_phase=" << candidate.entryPhase
+                        << " unfolded_mems=" << memoryPlan->unfoldedMems
+                        << " summary_mems="
+                        << memoryPlan->compressedSummaryMems
+                        << " compensation="
+                        << memoryPlan->compensationMems
+                        << " decisions=" << memoryPlan->decisions.size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         memoryPlan->decisions, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedMemoryShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedMemoryShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
 
         // Experimental certified LoopSCC shortcut. It is deliberately
         // opt-in and restricted to plans that already proved:
