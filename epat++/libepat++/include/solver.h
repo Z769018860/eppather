@@ -16,6 +16,12 @@ namespace epat {
     void setSsaProvenanceVariables(const std::vector<std::string>& names);
     void clearSsaProvenanceVariables();
     bool isSsaProvenanceVariable(const std::string& name);
+
+    // Opt-in whole-memory provenance for LoopSCC memory-transition validation.
+    // When enabled, the final functional-store array is materialized as
+    // %a#ssa_final after the path AST has been visited.
+    void setMemorySsaProvenanceEnabled(bool enabled);
+    bool isMemorySsaProvenanceEnabled();
     /**
      * @brief 分析结果的枚举
      * 枚举类result，用于表示工具的分析结果
