@@ -198,6 +198,8 @@ struct VolceResult {
     std::vector<std::string> rejectedStateSummaries;
     std::vector<std::string> appliedAffineRelationSummaries;
     std::vector<std::string> rejectedAffineRelationSummaries;
+    std::vector<std::string> appliedMemoryRelationSummaries;
+    std::vector<std::string> rejectedMemoryRelationSummaries;
     std::size_t formulaAssertions{0};
     std::size_t smtDeclarations{0};
     std::size_t projectionTerms{0};
@@ -360,7 +362,9 @@ std::optional<VolceResult> runVolce(
     int upperBound,
     const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {},
     const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {},
-    const std::vector<psy::C::LoopSccAffineStateSummary>& loopSccSummaries = {}) {
+    const std::vector<psy::C::LoopSccAffineStateSummary>& loopSccSummaries = {},
+    const std::vector<psy::C::LoopSccMemoryCellStateSummary>&
+        loopSccMemorySummaries = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -381,6 +385,16 @@ std::optional<VolceResult> runVolce(
     for (const auto& summary : loopSccSummaries) {
         affineRelations.push_back(volce::AffineRelationSummary{
             summary.variable, summary.scale, summary.offset});
+    }
+    std::vector<volce::MemoryCellAffineRelationSummary> memoryRelations;
+    memoryRelations.reserve(loopSccMemorySummaries.size());
+    for (const auto& summary : loopSccMemorySummaries) {
+        memoryRelations.push_back(
+            volce::MemoryCellAffineRelationSummary{
+                summary.region,
+                summary.index,
+                summary.scale,
+                summary.offset});
     }
     const char* disableSummaries =
         std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");
@@ -422,6 +436,23 @@ std::optional<VolceResult> runVolce(
         countResult->applied_affine_relation_summaries;
     result.rejectedAffineRelationSummaries =
         countResult->rejected_affine_relation_summaries;
+    if (!memoryRelations.empty()) {
+        if (const auto memoryValidation =
+                volce::validateMemoryCellRelationsFromSmt2(
+                    smt2, memoryRelations)) {
+            result.appliedMemoryRelationSummaries =
+                memoryValidation->applied;
+            result.rejectedMemoryRelationSummaries =
+                memoryValidation->rejected;
+        } else {
+            for (const auto& relation : memoryRelations) {
+                result.rejectedMemoryRelationSummaries.push_back(
+                    relation.source_name + "[" +
+                    std::to_string(relation.cell_index) +
+                    "]: memory relation validation unavailable");
+            }
+        }
+    }
     result.formulaAssertions = countResult->formula_assertions;
     result.smtDeclarations = countResult->smt_declarations;
     result.projectionTerms = countResult->projection_terms;
@@ -3870,7 +3901,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[VolCE range]: [" << volceLower << ", " << volceUpper << "]" << endl;
             const auto volceResult = runVolce(
                 smt2, volceLower, volceUpper, eval.loopStateSummaries,
-                inputMemoryRegions_, eval.loopSccAffineStateSummaries);
+                inputMemoryRegions_, eval.loopSccAffineStateSummaries,
+                eval.loopSccMemoryCellStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 volceMemoryTerms = volceResult->boundedMemoryTerms;
@@ -3901,6 +3933,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << endl;
                 cout << "[VOLCE LOOPSCC AFFINE RELATIONS REJECTED]: "
                      << volceResult->rejectedAffineRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY RELATIONS APPLIED]: "
+                     << volceResult->appliedMemoryRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY RELATIONS REJECTED]: "
+                     << volceResult->rejectedMemoryRelationSummaries.size()
                      << endl;
                 cout << "[VOLCE FORMULA ASSERTIONS]: "
                      << volceResult->formulaAssertions << endl;
@@ -3949,6 +3987,20 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     resultFile << "[volce_loopscc_affine_relation_rejected]:"
                                << rejected << "\n";
                     cout << "[VOLCE LOOPSCC AFFINE RELATION REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedMemoryRelationSummaries) {
+                    resultFile << "[volce_loopscc_memory_relation]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY RELATION]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedMemoryRelationSummaries) {
+                    resultFile << "[volce_loopscc_memory_relation_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY RELATION REJECTED]: "
                          << rejected << endl;
                 }
                 for (const auto& diagnostic :
