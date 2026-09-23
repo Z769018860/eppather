@@ -270,10 +270,11 @@ int main() {
         "(declare-const |%a#ssa_final| "
         "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |a@0#base| (_ BitVec 32))\n"
+        "(declare-const |a@0@0| (_ BitVec 32))\n"
         "(assert (= |a@0#base| (_ bv3 32)))\n"
         "(assert (= |%a#ssa_final| "
         "(store %a |a@0#base| "
-        "(bvadd (select %a |a@0#base|) (_ bv4 32)))))\n";
+        "(bvadd |a@0@0| (_ bv4 32)))))\n";
     const auto memoryRelationAccepted =
         volce::validateMemoryCellRelationsFromSmt2(
             memoryRelationSmt,
