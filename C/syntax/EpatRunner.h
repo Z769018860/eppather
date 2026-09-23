@@ -23,14 +23,16 @@ enum class PathDecisionKind {
     FalseBranch,// assume condition is false
     LoopInit,   // for-loop initializer
     LoopUpdate, // for-loop post expression
-    SyntheticAssume, // LoopSCC validation-only summary guard
-    SyntheticCode    // LoopSCC validation-only affine assignment
+    SyntheticAssume, // LoopSCC summary guard
+    SyntheticCode,   // LoopSCC affine/memory assignment
+    SyntheticMems    // cost-only compensation; emits no SMT/source code
 };
 
 struct PathDecision {
     CFGNode* node{nullptr};
     PathDecisionKind kind{PathDecisionKind::Code};
     std::string syntheticText;
+    long long syntheticMems{0};
 };
 
 struct AffineLoopStateSummary {
@@ -146,6 +148,28 @@ buildLoopSccAccelerationDecisions(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
     std::size_t planIndex);
+
+struct LoopSccMemoryAccelerationDecisionPlan {
+    std::vector<PathDecision> decisions;
+    std::vector<int> coverageSlots;
+    std::size_t unfoldedMems{0};
+    std::size_t compressedSummaryMems{0};
+    std::size_t compensationMems{0};
+};
+
+// Build a directly executable fixed-cell memory shortcut. This is stricter
+// than the validation-only memory builder: every summarized region must be a
+// one-dimensional fixed local array visible in the original source prefix,
+// every cell index must be in bounds, and the structural memory candidate must
+// already be exact. The returned SyntheticMems step restores the skipped MEMS
+// cost without adding any SMT constraint.
+std::optional<LoopSccMemoryAccelerationDecisionPlan>
+buildLoopSccMemoryAccelerationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t candidateIndex,
+    const std::string& sourcePrefix);
 
 class EpatRunner {
 public:
