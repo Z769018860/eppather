@@ -679,6 +679,13 @@ std::string renderMemoryCellAssignment(
     return os.str();
 }
 
+std::size_t fixedMemoryTransformMems(
+    const LoopSccMemoryCellTransform& transform) {
+    // epat++ MEMS counts the lvalue array subscript once for the write, plus
+    // one source-cell read when the affine result depends on the old value.
+    return transform.scale == 0 ? 1u : 2u;
+}
+
 std::optional<std::vector<PathDecision>>
 buildMemorySummaryValidationDecisions(
     CFGNode* loop,
@@ -750,8 +757,7 @@ buildMemorySummaryValidationDecisions(
     for (const auto& transform :
          candidate.closedFormTransforms) {
         const auto code = renderMemoryCellAssignment(transform);
-        compressedSummaryMems += static_cast<std::size_t>(
-            estimateMemsFromLine(code));
+        compressedSummaryMems += fixedMemoryTransformMems(transform);
         out.push_back(PathDecision{
             loop, PathDecisionKind::SyntheticCode, code});
     }
@@ -898,10 +904,8 @@ buildLoopSccMemoryAccelerationDecisions(
          candidate.closedFormTransforms) {
         const std::string code =
             renderMemoryCellAssignment(transform);
-        const int mems = estimateMemsFromLine(code);
-        if (mems < 0) return std::nullopt;
         plan.compressedSummaryMems +=
-            static_cast<std::size_t>(mems);
+            fixedMemoryTransformMems(transform);
         plan.decisions.push_back(PathDecision{
             loop, PathDecisionKind::SyntheticCode, code, 0});
     }
