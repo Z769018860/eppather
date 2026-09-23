@@ -32,6 +32,20 @@ struct LoopSccSPathInfo {
     bool exitsLoop{false};
 };
 
+struct LoopSccAccelerationPlan {
+    std::size_t cycleIndex{0};
+    std::size_t entryPhase{0};
+    std::size_t period{0};
+    long long totalIterations{0};
+    long long completePeriods{0};
+    std::size_t residualPhases{0};
+    std::vector<std::size_t> residualSPaths;
+    // Exact scalar relation after all proved iterations for this entry phase.
+    std::vector<LoopSccAffineTransform> closedFormTransforms;
+    bool exact{false};
+    std::vector<std::string> diagnostics;
+};
+
 struct LoopSccCycleInfo {
     std::size_t sccId{0};
     // Canonical SPath order for one proved deterministic cycle.
@@ -73,6 +87,9 @@ struct LoopSccGraphInfo {
     long long provedTripCount{-1};
     std::string tripCountVariable;
     long long tripCountStep{0};
+    // Symbolic acceleration plans derived from proved trip count + cycle
+    // structure. One plan is emitted per possible cycle entry phase.
+    std::vector<LoopSccAccelerationPlan> accelerationPlans;
     std::vector<std::string> diagnostics;
 };
 
