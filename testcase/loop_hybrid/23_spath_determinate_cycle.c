@@ -1,11 +1,10 @@
-int main() {
-    int x = 0;
+int main(int x) {
     int i = 0;
     while (i < 4) {
-        if (x < 1) {
-            x = 2;
+        if (x >= 0) {
+            x = 0 - x - 1;
         } else {
-            x = 0;
+            x = 0 - x - 1;
         }
         i = i + 1;
     }
