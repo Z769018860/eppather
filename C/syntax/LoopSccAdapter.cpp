@@ -172,6 +172,7 @@ void composeUpdate(BuiltPath& path,
     if (current.scale == 0) {
         os << current.offset;
     } else {
+        if (current.scale == -1) os << "-";
         os << variable;
         if (current.offset > 0) os << "+" << current.offset;
         else if (current.offset < 0) os << current.offset;
