@@ -25,6 +25,14 @@ struct LoopSccMemoryAccessInfo {
     }
 };
 
+struct LoopSccMemoryCellTransform {
+    std::string region;
+    long long index{0};
+    // cell' = scale * cell + offset for a constant-index source cell.
+    long long scale{1};
+    long long offset{0};
+};
+
 struct LoopSccAffineTransform {
     std::string variable;
     // x' = scale * x + offset. The current structural adapter supports
@@ -46,6 +54,9 @@ struct LoopSccSPathInfo {
     // Memory-access observations are kept even when acceleration is rejected.
     // This is the certificate substrate for later alias-aware memory summaries.
     std::vector<LoopSccMemoryAccessInfo> memoryAccesses;
+    // Exact constant-index source-cell transitions discovered on this SPath.
+    // They are candidates only and never authorize acceleration by themselves.
+    std::vector<LoopSccMemoryCellTransform> memoryCellTransforms;
     std::size_t observedMems{0};
     bool memoryAccessModelComplete{true};
     bool writesMemory{false};
