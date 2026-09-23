@@ -61,6 +61,34 @@ int main() {
               << (eliminationOk ? "PASS" : "FAIL") << '\n';
     failures += !eliminationOk;
 
+    // LoopSCC periodic relations are accepted only when the complete SMT
+    // path formula entails the relation between the materialized entry state
+    // (#ssa0, created by local initialization) and the latest SSA state.
+    // Two sign flips x' = -x - 1 compose to the identity.
+    const std::string affineRelationSmt =
+        "(declare-const |state@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |state@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |state@0#ssa2| (_ BitVec 32))\n"
+        "(assert (= |state@0#ssa1| "
+        "(bvsub (bvneg |state@0#ssa0|) (_ bv1 32))))\n"
+        "(assert (= |state@0#ssa2| "
+        "(bvsub (bvneg |state@0#ssa1|) (_ bv1 32))))\n";
+    const auto affineAccepted = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"state", 1, 0}});
+    const auto affineRejected = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"state", 1, 1}});
+    const bool affineRelationOk = affineAccepted && affineRejected &&
+        affineAccepted->count == affineRejected->count &&
+        affineAccepted->applied_affine_relation_summaries.size() == 1 &&
+        affineAccepted->rejected_affine_relation_summaries.empty() &&
+        affineRejected->applied_affine_relation_summaries.empty() &&
+        affineRejected->rejected_affine_relation_summaries.size() == 1;
+    std::cout << "loopscc-affine-relation-entailment: "
+              << (affineRelationOk ? "PASS" : "FAIL") << '\n';
+    failures += !affineRelationOk;
+
     const std::string memorySmt =
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
