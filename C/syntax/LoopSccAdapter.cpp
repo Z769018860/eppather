@@ -501,6 +501,156 @@ void detectDeterminateCycles(const std::vector<BuiltPath>& built,
     }
 }
 
+
+bool checkedAffineCompose(const AffineTransform& after,
+                          const AffineTransform& before,
+                          AffineTransform& out) {
+    if (!after.exact || !before.exact) return false;
+    const __int128 scale =
+        static_cast<__int128>(after.scale) * before.scale;
+    const __int128 offset =
+        static_cast<__int128>(after.scale) * before.offset +
+        after.offset;
+    if (scale < std::numeric_limits<long long>::min() ||
+        scale > std::numeric_limits<long long>::max() ||
+        offset < std::numeric_limits<long long>::min() ||
+        offset > std::numeric_limits<long long>::max()) {
+        return false;
+    }
+    out.scale = static_cast<long long>(scale);
+    out.offset = static_cast<long long>(offset);
+    out.exact = true;
+    return true;
+}
+
+bool affinePower(AffineTransform base,
+                 long long exponent,
+                 AffineTransform& out) {
+    if (exponent < 0 || !base.exact) return false;
+    AffineTransform result;
+    while (exponent > 0) {
+        if ((exponent & 1LL) != 0) {
+            AffineTransform next;
+            if (!checkedAffineCompose(base, result, next)) return false;
+            result = next;
+        }
+        exponent >>= 1;
+        if (exponent == 0) break;
+        AffineTransform squared;
+        if (!checkedAffineCompose(base, base, squared)) return false;
+        base = squared;
+    }
+    out = result;
+    return true;
+}
+
+void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
+                             LoopSccGraphInfo& result) {
+    if (!result.complete || result.provedTripCount < 0) return;
+
+    for (std::size_t cycleIndex = 0;
+         cycleIndex < result.cycles.size(); ++cycleIndex) {
+        const auto& cycle = result.cycles[cycleIndex];
+        if (!cycle.determinate || !cycle.guardedClosedFormCandidate ||
+            cycle.period == 0 ||
+            cycle.spathOrder.size() != cycle.period) {
+            continue;
+        }
+
+        const long long fullPeriods =
+            result.provedTripCount /
+            static_cast<long long>(cycle.period);
+        const std::size_t residual =
+            static_cast<std::size_t>(
+                result.provedTripCount %
+                static_cast<long long>(cycle.period));
+
+        std::set<std::string> variables;
+        for (std::size_t pathId : cycle.spathOrder) {
+            if (pathId >= built.size()) {
+                variables.clear();
+                break;
+            }
+            for (const auto& entry : built[pathId].transforms)
+                variables.insert(entry.first);
+        }
+        if (variables.empty()) continue;
+
+        for (std::size_t entryPhase = 0;
+             entryPhase < cycle.period; ++entryPhase) {
+            LoopSccAccelerationPlan plan;
+            plan.cycleIndex = cycleIndex;
+            plan.entryPhase = entryPhase;
+            plan.period = cycle.period;
+            plan.totalIterations = result.provedTripCount;
+            plan.completePeriods = fullPeriods;
+            plan.residualPhases = residual;
+            bool exact = true;
+
+            for (std::size_t r = 0; r < residual; ++r) {
+                plan.residualSPaths.push_back(
+                    cycle.spathOrder[(entryPhase + r) % cycle.period]);
+            }
+
+            for (const auto& variable : variables) {
+                AffineTransform onePeriod;
+                for (std::size_t step = 0; step < cycle.period; ++step) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + step) % cycle.period];
+                    auto it = built[pathId].transforms.find(variable);
+                    if (it == built[pathId].transforms.end()) continue;
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, onePeriod, next)) {
+                        exact = false;
+                        break;
+                    }
+                    onePeriod = next;
+                }
+                if (!exact) break;
+
+                AffineTransform accumulated;
+                if (!affinePower(
+                        onePeriod, fullPeriods, accumulated)) {
+                    exact = false;
+                    break;
+                }
+
+                for (std::size_t r = 0; r < residual; ++r) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + r) % cycle.period];
+                    auto it = built[pathId].transforms.find(variable);
+                    if (it == built[pathId].transforms.end()) continue;
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, accumulated, next)) {
+                        exact = false;
+                        break;
+                    }
+                    accumulated = next;
+                }
+                if (!exact) break;
+
+                plan.closedFormTransforms.push_back(
+                    LoopSccAffineTransform{
+                        variable,
+                        accumulated.scale,
+                        accumulated.offset});
+            }
+
+            plan.exact = exact &&
+                !plan.closedFormTransforms.empty();
+            if (!plan.exact) {
+                plan.diagnostics.push_back(
+                    "affine acceleration composition overflow/unsupported");
+            }
+            result.accelerationPlans.push_back(std::move(plan));
+        }
+    }
+}
+
 void deriveUniformTripCount(CFGNode* loop,
                             const std::vector<BuiltPath>& built,
                             LoopSccGraphInfo& result) {
@@ -750,6 +900,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     detectDeterminateCycles(
         built, graph, tarjan.components, componentOf, result);
     deriveUniformTripCount(loop, built, result);
+    deriveAccelerationPlans(built, result);
     return result;
 }
 
