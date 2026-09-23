@@ -28,6 +28,10 @@ struct LoopSccSPathInfo {
     std::vector<std::string> affineUpdates;
     // Machine-readable form of the exact scalar transforms above.
     std::vector<LoopSccAffineTransform> affineTransforms;
+    // True only when every executable statement on this SPath is represented
+    // by the restricted scalar-affine model and no array/dereference access or
+    // opaque call/effect was observed.
+    bool accelerationEffectSafe{true};
     bool returnsToHeader{false};
     bool exitsLoop{false};
 };
@@ -42,6 +46,11 @@ struct LoopSccAccelerationPlan {
     std::vector<std::size_t> residualSPaths;
     // Exact scalar relation after all proved iterations for this entry phase.
     std::vector<LoopSccAffineTransform> closedFormTransforms;
+    // Current epat++ MEMS counts array subscripts and pointer dereferences.
+    // The first shortcut gate admits only paths proved free of those accesses,
+    // so skipping the repeated periods preserves MEMS without compensation.
+    bool memsPreserving{false};
+    long long skippableIterations{0};
     bool exact{false};
     std::vector<std::string> diagnostics;
 };
