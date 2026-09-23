@@ -323,12 +323,26 @@ int main() {
                 cell.scale == 1 &&
                 cell.offset == 3;
         }
+        bool summaryOk = false;
+        if (graph.memorySummaryCandidates.size() == 1 &&
+            graph.memorySummaryCandidates[0].closedFormTransforms.size() == 1) {
+            const auto& summary = graph.memorySummaryCandidates[0];
+            const auto& cell = summary.closedFormTransforms[0];
+            summaryOk = summary.exact &&
+                summary.totalIterations == 4 &&
+                summary.observedMems == 16 &&
+                cell.region == "a" &&
+                cell.index == 0 &&
+                cell.scale == 1 &&
+                cell.offset == 12;
+        }
         const bool ok = graph.complete &&
             graph.spaths.size() == 1 &&
             graph.spaths[0].observedMems == 4 &&
             graph.spaths[0].writesMemory &&
             graph.spaths[0].memoryAccessModelComplete &&
-            cellOk &&
+            graph.spaths[0].memoryTransitionModelComplete &&
+            cellOk && summaryOk &&
             graph.accelerationPlans.empty();
         failures += !report(
             "loopscc-fixed-cell-memory-transition-candidate", ok);
