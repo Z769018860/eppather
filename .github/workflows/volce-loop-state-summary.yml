@@ -15,6 +15,10 @@ on:
       - 'tools/validate_volce_loop_summaries.sh'
       - 'tools/validate_volce_loop_failure_modes.sh'
       - 'tools/validate_loopscc_spath_adapter.sh'
+      - 'tools/validate_loopscc_nested_acceleration.sh'
+      - 'testcase/loop_hybrid/24_spath_symbolic_entry_cycle.c'
+      - 'testcase/loop_hybrid/25_spath_residual_cycle.c'
+      - 'testcase/loop_hybrid/26_nested_scalar_inside_out.c'
       - 'testcase/loop_hybrid/22_spath_oscillation.c'
       - '.github/workflows/volce-loop-state-summary.yml'
 
@@ -34,6 +38,10 @@ jobs:
         env:
           CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
         run: bash tools/validate_loopscc_spath_adapter.sh
+      - name: Validate inside-out nested LoopSCC acceleration
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
+        run: bash tools/validate_loopscc_nested_acceleration.sh
       - name: Validate entailed summaries through VolCE
         env:
           CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
@@ -56,3 +64,4 @@ jobs:
             volce-loop-failure-results/
             loopscc-effect-results/
             loopscc-spath-results/
+            loopscc-nested-results/
