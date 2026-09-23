@@ -1,104 +1,135 @@
-# LoopSCC SPath / CSG and guarded affine relations (2026-09-23)
+# LoopSCC SPath / CSG, acceleration, and memory certificates (2026-09-24)
 
-## Purpose
+## Current status
 
-This stage extends Eppather beyond scalar trip-count prediction into the
-control-flow/state-transition part of LoopSCC. It remains conservative: every
-new closed-form relation must be justified by the SPath/CSG structure and then
-proved entailed by the complete path SMT formula before it can affect VolCE.
+PR #98 now goes beyond structural SPath/CSG observation. The implementation
+contains an opt-in certified DFS shortcut for a restricted class of determinate
+scalar loops, while retaining bounded unfolding as the fallback.
 
-It is still **not a full LoopSCC implementation**. In particular, the branch
-does not yet skip arbitrary loop unfolding or summarize memory-writing SCCs.
+The last completed green baseline before the newest nested/memory commits was
+`VolCE loop state summaries #189` on head `8b355c7...`. It validated:
 
-## Implemented pipeline
+- period-2 symbolic acceleration with `--maxloop 1` and proved trip count 4;
+- residual phase composition;
+- symbolic entry phases;
+- compressed-path feasibility and MEMS equivalence;
+- VolCE solution-count and weighted-MEMS agreement;
+- affine relation entailment and SSA-chain compression.
+
+The newest head additionally contains inside-out scalar nesting, certified
+`for` shortcuts, and array/pointer memory-access certificates. Those newest
+changes remain subject to the current CI queue and should not be described as
+green until the new runs finish.
+
+## Certified scalar acceleration pipeline
 
 With `EPPATHER_LOOP_SCC_ANALYZE=1`:
 
-1. enumerate acyclic one-iteration SPaths from the loop body edge to the loop
-   header/exit;
-2. record loop and branch guards, scalar writes, memory-write markers, and
-   simple affine state transforms;
-3. build a conservative SPath transition graph using recognized guard
-   intervals and exact affine transforms;
-4. compute Tarjan SCCs and the contracted CSG;
-5. recognize a determinate closed cycle only when every SPath in the SCC has
-   one unique internal successor and predecessor and no escape edge;
-6. compose exact machine-readable transforms `x' = a*x+b` across each SPath
-   and complete period;
-7. map the concrete Eppather path back to its SPath phase sequence, recording
-   entry phase, observed iterations, complete periods and residual phases;
-8. compose a path-specific affine relation across the observed phase sequence;
-9. preserve SSA provenance for variables in a proved guarded periodic
-   candidate;
-10. ask VolCE to prove `path_formula => (x_exit = a*x_entry+b)` by checking
-    `path_formula AND NOT(relation)` for UNSAT;
-11. only an entailed relation is marked applied. Rejected/ambiguous relations
-    leave the existing bounded formula unchanged;
-12. an applied relation may participate in the existing deterministic SSA
-    definition-elimination pass. The validation-only baseline performs the same
-    relation checks but does not assert the relation or eliminate the chain.
+1. enumerate acyclic one-iteration SPaths;
+2. record guards, writes, coverage slots, and scalar affine transforms;
+3. build the SPath graph, Tarjan SCCs, and contracted CSG;
+4. recognize determinate closed cycles conservatively;
+5. prove phase transitions by interval inclusion;
+6. prove an exact trip count when every returning SPath applies the same affine
+   step to the loop-control variable;
+7. derive one symbolic acceleration plan per possible entry phase;
+8. compute `T^k` for complete periods and compose the proved residual phase;
+9. compare the symbolic plan against the ordinary unfolded path in validation
+   mode;
+10. preserve selected scalar SSA provenance;
+11. require VolCE to prove
+    `path_formula => (x_exit = a*x_entry+b)`;
+12. allow an entailed relation to participate in deterministic SSA-definition
+    elimination;
+13. build a compressed path containing the entry guard, entry-phase guard,
+    closed-form assignments, and exit guard;
+14. compare compressed vs unfolded feasibility, MEMS, solution-space count,
+    weighted-MEMS contribution, and coverage;
+15. only with `EPPATHER_LOOP_SCC_ACCELERATE=1` may a certified plan replace
+    ordinary DFS unfolding.
 
-The current affine parser supports scale `-1`, `0`, and `1`, including
-increment/decrement, constant `+=/-=`, `x=x+K`, `x=x-K`, constant
-assignment, and sign flips such as `x=-x-1` / `x=0-x-1`.
+Residual phases are supported; the shortcut is not restricted to a whole
+number of periods.
 
-## Safety boundaries and fallbacks
+## Safety certificates
 
-The graph or relation is not used when:
+A shortcut currently requires all of the following:
 
-- SPath/node budgets are exceeded;
-- a nested loop requires inside-out summarization;
-- an unexpected internal CFG cycle is encountered;
-- guards or writes make the transition ambiguous;
-- a memory/dereference/array write participates in the candidate;
-- a scalar write is not represented by the supported affine model;
-- the concrete phase sequence does not match a proved determinate cycle;
-- SSA entry/exit provenance is missing or ambiguous;
-- the proposed affine relation is SAT/UNKNOWN under its negation rather than
-  proven entailed.
+- complete SPath enumeration;
+- a determinate cycle;
+- proved phase guards;
+- exact trip count;
+- exact affine composition without overflow;
+- all skipped SPaths represented by the supported scalar-effect model;
+- no unresolved memory state or opaque call/effect;
+- complete coverage union for skipped phases;
+- a feasible compressed summary before DFS suppresses the unfolded fallback.
 
-These cases retain bounded unfolding and the existing VolCE semantics.
+Ambiguous guards, unsupported scalar updates, opaque calls, unresolved memory
+effects, incomplete SPath graphs, or failed SMT checks keep the original
+unfolded execution.
 
-## Validation gates
+## Inside-out nested loops
 
-Direct adapter tests cover:
+The newest branch code recursively analyzes a nested loop before the outer
+SPath. A nested loop can be replaced inside the outer SPath only when every
+possible nested acceleration plan has the same exact externally visible
+transform and the same coverage certificate.
 
-1. one SPath/self-cycle;
-2. an ambiguous oscillating SCC that must not be classified determinate;
-3. a proved period-2 cycle;
-4. contracted CSG edges;
-5. nested-loop fallback.
+Implemented details include:
 
-VolCE unit regressions cover:
+- scalar nested `while` summaries;
+- canonical nested `for` summaries;
+- constant `for` initializer folding;
+- removal of C99 `for (int j=...)` local induction state from the outer
+  summary;
+- preservation of a pre-declared induction variable in `for (j=...)`;
+- hiding raw inner-loop decisions when matching an outer phase trace;
+- opt-in certified DFS shortcut for both `while` and `for` loops.
 
-- an entailed periodic identity relation;
-- a deliberately wrong relation that must be rejected;
-- negative-scale relation `x'=-x-1`;
-- equal model counts between optimized and validation-only modes;
-- fewer counting assertions after an entailed periodic SSA chain is compressed.
+End-to-end A/B fixtures exist for both nested scalar while and nested scalar
+for. The existing array-writing nested benchmark remains a required fallback.
 
-The end-to-end periodic fixture uses a local initialized SSA state and a
-four-iteration sign-flip loop. Its required chain is:
+## Array/pointer memory certificate substrate
 
-`CFG -> SPaths -> determinate period-2 cycle -> concrete phase trace -> SSA
-provenance -> VolCE entailment -> optional SSA compression`.
+The newest stage deliberately does **not** accelerate memory-dependent loops
+yet. Instead each SPath records:
 
-The current PR head is still subject to the repository CI gates; do not report
-the branch as merged or the new end-to-end gate as passing until those workflow
-runs complete successfully.
+- source fragments containing memory accesses;
+- array-subscript count;
+- pointer-dereference count;
+- whether memory is written;
+- whether the restricted memory-access recognizer is complete;
+- observed MEMS, using the same metric as epat++:
+  one per ArraySubscript AST node and one per pointer dereference.
+
+CI probes use the existing `16_array_scan.c` and `17_pointer_walk.c`
+subjects. They must expose non-zero memory/MEMS certificates while producing
+zero exact acceleration plans.
+
+This separates two questions that were previously conflated:
+
+1. can the skipped memory cost be accounted for exactly?
+2. can the memory **state transition** be summarized without violating alias
+   semantics?
+
+Only (1) is now instrumented. Memory-dependent shortcuts remain disabled until
+(2) has an alias-aware proof.
 
 ## What remains
 
-The next substantive LoopSCC step is no longer SPath/CSG construction or
-relation validation. It is **safe loop acceleration**:
+The next LoopSCC work is:
 
-1. derive a symbolic number of complete periods rather than relying on the
-   already-unfolded concrete phase sequence;
-2. preserve the cycle-entry guard and residual-phase semantics;
-3. replace repeated period bodies with the proved closed form only when the
-   period count and exit condition are also proved;
-4. handle nested SCCs inside-out;
-5. extend multi-variable transforms beyond independent scalar relations;
-6. keep array/pointer state behind alias-aware memory-transition proofs;
-7. rerun exact solution-count, weighted-MEMS and maxloop-sensitivity A/B gates
-   before claiming that LoopSCC removes the fixed-unroll limitation.
+1. finish CI validation of inside-out nested scalar shortcuts;
+2. define canonical memory-region transitions for fixed cells/ranges;
+3. connect those transitions to the existing VolCE canonical memory
+   projections and alias checks;
+4. prove read/write MEMS compensation against epat++ MemVisitor;
+5. admit only alias-safe memory summaries into the DFS shortcut;
+6. extend from independent scalar transforms to coupled multi-variable affine
+   transforms;
+7. evaluate the final implementation across the 20 loop cases plus the
+   array/pointer/VLA suite at several `maxloop` settings.
+
+Until memory-transition proofs are implemented, array/pointer loops remain
+fallback cases even when their MEMS observations are precise.
