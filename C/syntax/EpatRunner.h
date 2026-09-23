@@ -165,6 +165,9 @@ public:
     }
 
 private:
+    // Original source declarations, retained before bounded-VLA normalization.
+    // LoopSCC uses this only for conservative fixed local-array extent checks.
+    std::string sourcePrefix_;
     std::string prefix_;
 };
 
