@@ -275,6 +275,79 @@ int main() {
             plansOk && residualBuilderOk);
     }
 
+    // Memory observations must match epat++ MEMS semantics while remaining
+    // ineligible for scalar-only acceleration until a memory-state summary is
+    // proved.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto write = node("a[i] = i;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(write);
+        loop->setNextFalseNode(exit);
+        write->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 1 &&
+            graph.spaths[0].memoryAccessModelComplete &&
+            graph.spaths[0].writesMemory &&
+            !graph.spaths[0].accelerationEffectSafe &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-array-write-mems-certificate", ok);
+    }
+
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto read = node("s = s + a[i];");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return s;");
+        loop->setNextNode(read);
+        loop->setNextFalseNode(exit);
+        read->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 1 &&
+            graph.spaths[0].memoryAccessModelComplete &&
+            !graph.spaths[0].writesMemory &&
+            !graph.spaths[0].accelerationEffectSafe &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-array-read-mems-certificate", ok);
+    }
+
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto write = node("*p = i;");
+        auto read = node("s = s + *p;");
+        auto advance = node("p = p + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return s;");
+        loop->setNextNode(write);
+        loop->setNextFalseNode(exit);
+        write->setNextNode(read);
+        read->setNextNode(advance);
+        advance->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 2 &&
+            graph.spaths[0].memoryAccessModelComplete &&
+            graph.spaths[0].writesMemory &&
+            !graph.spaths[0].accelerationEffectSafe &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-pointer-mems-certificate", ok);
+    }
+
     // Unsupported guards may still be useful structurally, but they are not
     // enough to certify a shortcut. "!=" is intentionally outside the single
     // interval model and therefore must leave acceleration disabled.
