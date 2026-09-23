@@ -8,7 +8,7 @@ mkdir -p "$OUT_DIR"
 
 run_case() {
   local name="$1" source="$2" maxloop="$3"
-  local maxpaths="${4:-12}" with_volce="${5:-0}" debug="${6:-0}"
+  local maxpaths="${4:-12}" with_volce="${5:-0}" debug="${6:-0}" accelerate="${7:-0}"
   local log="$OUT_DIR/$name.log"
   local args=(-q --maxloop "$maxloop" --maxpaths "$maxpaths")
 
@@ -20,12 +20,14 @@ run_case() {
     args+=(-c)
     EPPATHER_LOOP_SCC_ANALYZE=1 \
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
+    EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
     EPPATHER_LOOP_SCC_BOUND_TRACE=1 \
     EPPATHER_DEBUG_EPAT_SCRIPT=1 \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
   else
     EPPATHER_LOOP_SCC_ANALYZE=1 \
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
+    EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
   fi
 
@@ -130,6 +132,83 @@ fi
 if [[ -n "$periodic_rejected" && "$periodic_rejected" -gt 0 ]]; then
   echo "periodic: guarded periodic relation was unexpectedly rejected" >&2
   cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+
+# Execute the same subject with the certified DFS shortcut enabled and compare
+# the externally visible semantics against the unfolded baseline.
+run_case periodic_accel testcase/loop_hybrid/23_spath_determinate_cycle.c 1 100 1 0 1
+if ! grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/periodic_accel.log"; then
+  echo "periodic_accel: certified DFS shortcut was not used" >&2
+  cat "$OUT_DIR/periodic_accel.log" >&2
+  exit 1
+fi
+
+baseline_space="$(metric_max 'VOLCE SOLUTION SPACE COUNT' "$OUT_DIR/periodic.log")"
+shortcut_space="$(metric_max 'VOLCE SOLUTION SPACE COUNT' "$OUT_DIR/periodic_accel.log")"
+baseline_maxmem="$(metric_max 'DFS MAX MEMS' "$OUT_DIR/periodic.log")"
+shortcut_maxmem="$(metric_max 'DFS MAX MEMS' "$OUT_DIR/periodic_accel.log")"
+baseline_feasible="$(grep -c '^feasible!!!
+run_case nested testcase/loop_hybrid/12_nested_for.c 4
+nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
+if [[ "$nested_complete" != 0 ]]; then
+  echo "nested: expected conservative incomplete outer graph" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
+  echo "nested: missing inside-out fallback diagnostic" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0,N/A,0"
+ "$OUT_DIR/periodic.log" || true)"
+shortcut_feasible="$(grep -c '^feasible!!!
+run_case nested testcase/loop_hybrid/12_nested_for.c 4
+nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
+if [[ "$nested_complete" != 0 ]]; then
+  echo "nested: expected conservative incomplete outer graph" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
+  echo "nested: missing inside-out fallback diagnostic" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0,N/A,0"
+ "$OUT_DIR/periodic_accel.log" || true)"
+baseline_coverage="$(grep '^\[COVERAGE SIGNATURE\]: ' "$OUT_DIR/periodic.log" | sort -u | tr '\n' ';')"
+shortcut_coverage="$(grep '^\[COVERAGE SIGNATURE\]: ' "$OUT_DIR/periodic_accel.log" | sort -u | tr '\n' ';')"
+
+if [[ -z "$baseline_space" || "$baseline_space" != "$shortcut_space" ]]; then
+  echo "periodic_accel: VolCE solution space differs from unfolded baseline" >&2
+  cat "$OUT_DIR/periodic_accel.log" >&2
+  exit 1
+fi
+if [[ -z "$baseline_maxmem" || "$baseline_maxmem" != "$shortcut_maxmem" ]]; then
+  echo "periodic_accel: maximum MEMS differs from unfolded baseline" >&2
+  cat "$OUT_DIR/periodic_accel.log" >&2
+  exit 1
+fi
+if [[ "$baseline_feasible" != "$shortcut_feasible" ]]; then
+  echo "periodic_accel: feasible path count differs from unfolded baseline" >&2
+  cat "$OUT_DIR/periodic_accel.log" >&2
+  exit 1
+fi
+if [[ -z "$baseline_coverage" || "$baseline_coverage" != "$shortcut_coverage" ]]; then
+  echo "periodic_accel: coverage signature differs from unfolded baseline" >&2
+  echo "baseline=$baseline_coverage" >&2
+  echo "shortcut=$shortcut_coverage" >&2
+  cat "$OUT_DIR/periodic_accel.log" >&2
   exit 1
 fi
 
