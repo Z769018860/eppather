@@ -8,13 +8,21 @@ mkdir -p "$OUT_DIR"
 
 run_case() {
   local name="$1" source="$2" maxloop="$3"
-  local maxpaths="${4:-12}" with_volce="${5:-0}"
+  local maxpaths="${4:-12}" with_volce="${5:-0}" debug="${6:-0}"
   local log="$OUT_DIR/$name.log"
   local args=(-q --maxloop "$maxloop" --maxpaths "$maxpaths")
   if [[ "$with_volce" == "1" ]]; then
     args+=(--volce --volce-lower -8 --volce-upper 8)
   fi
-  EPPATHER_LOOP_SCC_ANALYZE=1 "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
+  if [[ "$debug" == "1" ]]; then
+    EPPATHER_LOOP_SCC_ANALYZE=1 \
+    EPPATHER_LOOP_SCC_BOUND_TRACE=1 \
+    EPPATHER_DEBUG_EPAT_SCRIPT=1 \
+      "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
+  else
+    EPPATHER_LOOP_SCC_ANALYZE=1 \
+      "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
+  fi
   if ! grep -q '^\[LOOPSCC SPATHS\]: ' "$log"; then
     echo "$name: missing LoopSCC structural metrics" >&2
     cat "$log" >&2
@@ -42,7 +50,7 @@ fi
 # Full chain: SPath/CSG -> determinate cycle -> concrete phase trace ->
 # SSA provenance -> VolCE entailment. The summary remains redundant with the
 # unfolded path at this stage; the gate proves semantic validity first.
-run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 1 100 1
+run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 1 100 1 1
 periodic_cycles="$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/periodic.log")"
 periodic_osc="$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/periodic.log")"
 periodic_candidates="$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/periodic.log")"
