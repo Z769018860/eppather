@@ -1,12 +1,13 @@
 int main(int x) {
+    int state = x;
     int i = 0;
     while (i < 4) {
-        if (x >= 0) {
-            x = 0 - x - 1;
+        if (state >= 0) {
+            state = 0 - state - 1;
         } else {
-            x = 0 - x - 1;
+            state = 0 - state - 1;
         }
         i = i + 1;
     }
-    return x;
+    return state;
 }
