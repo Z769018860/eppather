@@ -82,7 +82,21 @@ if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: state_after_period=0$' "$OUT_DIR/pe
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-if ! grep -Eq '^\[LOOPSCC PHASE TRACE\]: complete=1 matched=1 period=2 entry_phase=[01] iterations=4 full_periods=2 residual=0
+if ! grep -Eq '^\[LOOPSCC PHASE TRACE\]: complete=1 matched=1 period=2 entry_phase=[01] iterations=4 full_periods=2 residual=0$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: concrete path was not mapped to two complete periods" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC CYCLE\]: .*phase_guards_proved=1 .*closed_form_candidate=1$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: deterministic phase guards were not proved" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC ACCELERATION PLAN\]: .*mems_preserving=1 skippable_iterations=4 exact=1$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: missing MEMS-preserving four-iteration shortcut certificate" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
 if [[ "$periodic_trip_count" != 4 ]]; then
   echo "periodic: expected LoopSCC to prove four iterations despite --maxloop 1" >&2
   cat "$OUT_DIR/periodic.log" >&2
@@ -98,7 +112,16 @@ if ! grep -q '^\[LOOPSCC ACCELERATION TRACE\]: matched=1 ' "$OUT_DIR/periodic.lo
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-if ! grep -Eq '^\[LOOPSCC COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 mem_match=1 original_decisions=[0-9]+ compressed_decisions=[0-9]+ baseline_mem=[0-9]+ compressed_mem=[0-9]+
+if ! grep -Eq '^\[LOOPSCC COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 mem_match=1 original_decisions=[0-9]+ compressed_decisions=[0-9]+ baseline_mem=[0-9]+ compressed_mem=[0-9]+$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: compressed acceleration path did not preserve feasibility/MEMS" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC COMPRESSED VOLCE\]: baseline_count=[0-9]+ compressed_count=[0-9]+ count_match=1 weighted_match=1$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: compressed acceleration path changed solution count/wMEMS contribution" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
 if [[ -z "$periodic_relations" || "$periodic_relations" -lt 1 ]]; then
   echo "periodic: expected at least one SMT-entailed LoopSCC affine relation" >&2
   cat "$OUT_DIR/periodic.log" >&2
