@@ -29,6 +29,25 @@ if [[ -z "$osc_spaths" || "$osc_spaths" -lt 2 ||
   exit 1
 fi
 
+run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 4
+periodic_cycles="$(sed -n 's/^\[LOOPSCC DETERMINATE CYCLES\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1)"
+periodic_osc="$(sed -n 's/^\[LOOPSCC OSCILLATING CYCLES\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1)"
+periodic_candidates="$(sed -n 's/^\[LOOPSCC CLOSED FORM CANDIDATES\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1)"
+periodic_max="$(sed -n 's/^\[LOOPSCC MAX PERIOD\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1)"
+if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
+      -z "$periodic_osc" || "$periodic_osc" -lt 1 ||
+      -z "$periodic_candidates" || "$periodic_candidates" -lt 1 ||
+      "$periodic_max" != 2 ]]; then
+  echo "periodic: expected one proved period-2 guarded closed-form candidate" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: x_after_period=-1' "$OUT_DIR/periodic.log"; then
+  echo "periodic: missing exact period transform for x" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+
 run_case nested testcase/loop_hybrid/12_nested_for.c 4
 nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
 if [[ "$nested_complete" != 0 ]]; then
@@ -42,6 +61,7 @@ if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC s
   exit 1
 fi
 
-echo "case,spaths,multi_node_sccs,complete"
-echo "oscillation,$osc_spaths,$osc_multi,$osc_complete"
-echo "nested,$(sed -n 's/^\[LOOPSCC SPATHS\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC MULTI-NODE SCCS\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$nested_complete"
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete"
+echo "oscillation,$osc_spaths,$osc_multi,$(sed -n 's/^\[LOOPSCC DETERMINATE CYCLES\]: //p' "$OUT_DIR/oscillation.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC OSCILLATING CYCLES\]: //p' "$OUT_DIR/oscillation.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC CLOSED FORM CANDIDATES\]: //p' "$OUT_DIR/oscillation.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC MAX PERIOD\]: //p' "$OUT_DIR/oscillation.log" | sort -nr | head -1),$osc_complete"
+echo "periodic,$(sed -n 's/^\[LOOPSCC SPATHS\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC MULTI-NODE SCCS\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/periodic.log" | sort -nr | head -1)"
+echo "nested,$(sed -n 's/^\[LOOPSCC SPATHS\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC MULTI-NODE SCCS\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC DETERMINATE CYCLES\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC OSCILLATING CYCLES\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC CLOSED FORM CANDIDATES\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$(sed -n 's/^\[LOOPSCC MAX PERIOD\]: //p' "$OUT_DIR/nested.log" | sort -nr | head -1),$nested_complete"
