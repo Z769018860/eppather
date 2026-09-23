@@ -825,6 +825,136 @@ buildLoopSccAccelerationDecisions(
     return out;
 }
 
+
+std::optional<LoopSccMemoryAccelerationDecisionPlan>
+buildLoopSccMemoryAccelerationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t candidateIndex,
+    const std::string& sourcePrefix) {
+    if (!loop ||
+        candidateIndex >= graph.memorySummaryCandidates.size()) {
+        return std::nullopt;
+    }
+    const auto& candidate =
+        graph.memorySummaryCandidates[candidateIndex];
+    if (!candidate.exact || candidate.totalIterations <= 0 ||
+        candidate.cycleIndex >= graph.cycles.size() ||
+        candidate.closedFormTransforms.empty()) {
+        return std::nullopt;
+    }
+    const auto& cycle = graph.cycles[candidate.cycleIndex];
+    if (!cycle.determinate || !cycle.phaseGuardsProved ||
+        cycle.period == 0 ||
+        candidate.entryPhase >= cycle.spathOrder.size()) {
+        return std::nullopt;
+    }
+
+    const auto extents =
+        parseFixedOneDimensionalArrayExtents(sourcePrefix);
+    for (const auto& transform : candidate.closedFormTransforms) {
+        const auto extent = extents.find(transform.region);
+        if (extent == extents.end() || transform.index < 0 ||
+            static_cast<unsigned long long>(transform.index) >=
+                static_cast<unsigned long long>(extent->second)) {
+            return std::nullopt;
+        }
+    }
+
+    LoopSccMemoryAccelerationDecisionPlan plan;
+    plan.unfoldedMems = candidate.observedMems;
+    plan.decisions = prefix;
+    plan.decisions.push_back(PathDecision{
+        loop, PathDecisionKind::TrueBranch, {}, 0});
+
+    const std::size_t entryPathId =
+        cycle.spathOrder[candidate.entryPhase];
+    if (entryPathId >= graph.spaths.size()) return std::nullopt;
+    const auto& entryPath = graph.spaths[entryPathId];
+    const std::string loopTrue = "T: " + loop->cond_str;
+    for (const auto& guard : entryPath.guards) {
+        if (guard == loopTrue) continue;
+        if (guard.rfind("T: ", 0) == 0) {
+            plan.decisions.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                guard.substr(3), 0});
+        } else if (guard.rfind("F: ", 0) == 0) {
+            plan.decisions.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                "!(" + guard.substr(3) + ")", 0});
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    for (const auto& transform :
+         candidate.scalarClosedFormTransforms) {
+        plan.decisions.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode,
+            renderAccelerationAssignment(transform), 0});
+    }
+    for (const auto& transform :
+         candidate.closedFormTransforms) {
+        const std::string code =
+            renderMemoryCellAssignment(transform);
+        const int mems = estimateMemsFromLine(code);
+        if (mems < 0) return std::nullopt;
+        plan.compressedSummaryMems +=
+            static_cast<std::size_t>(mems);
+        plan.decisions.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode, code, 0});
+    }
+    if (candidate.observedMems < plan.compressedSummaryMems) {
+        return std::nullopt;
+    }
+    plan.compensationMems =
+        candidate.observedMems - plan.compressedSummaryMems;
+    if (plan.compensationMems >
+        static_cast<std::size_t>(
+            std::numeric_limits<long long>::max())) {
+        return std::nullopt;
+    }
+    if (plan.compensationMems > 0) {
+        plan.decisions.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticMems, {},
+            static_cast<long long>(plan.compensationMems)});
+    }
+    plan.decisions.push_back(PathDecision{
+        loop, PathDecisionKind::FalseBranch, {}, 0});
+
+    std::set<int> coverage;
+    const long long fullPeriods =
+        candidate.totalIterations /
+        static_cast<long long>(cycle.period);
+    const std::size_t residual =
+        static_cast<std::size_t>(
+            candidate.totalIterations %
+            static_cast<long long>(cycle.period));
+    if (fullPeriods > 0) {
+        for (std::size_t pathId : cycle.spathOrder) {
+            if (pathId >= graph.spaths.size()) return std::nullopt;
+            coverage.insert(
+                graph.spaths[pathId].coverageSlots.begin(),
+                graph.spaths[pathId].coverageSlots.end());
+        }
+    }
+    for (std::size_t r = 0; r < residual; ++r) {
+        const std::size_t pathId =
+            cycle.spathOrder[
+                (candidate.entryPhase + r) % cycle.period];
+        if (pathId >= graph.spaths.size()) return std::nullopt;
+        coverage.insert(
+            graph.spaths[pathId].coverageSlots.begin(),
+            graph.spaths[pathId].coverageSlots.end());
+    }
+    if (loop->depth >= 0) {
+        coverage.insert(2 * loop->depth + 1);
+    }
+    plan.coverageSlots.assign(coverage.begin(), coverage.end());
+    return plan;
+}
+
 EpatRunner::EpatRunner(std::string prefix)
     : sourcePrefix_(prefix),
       prefix_(sanitizePrefixForEpat(normalizeBoundedVlaPrefix(prefix))) {
@@ -847,6 +977,12 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
                 if (!step.syntheticText.empty()) {
                     appendSafeLine(script, step.syntheticText, true);
                 }
+                break;
+            }
+            case PathDecisionKind::SyntheticMems: {
+                // Cost-only compensation for a structurally certified
+                // fixed-memory shortcut. It deliberately adds no SMT/source
+                // semantics; solve() restores the exact skipped MEMS cost.
                 break;
             }
             case PathDecisionKind::LoopInit: {
@@ -1006,6 +1142,35 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     EpatResult result = solveScript(render(decisions));
     epat::setMemorySsaProvenanceEnabled(false);
     epat::clearSsaProvenanceVariables();
+
+    long long syntheticMems = 0;
+    bool syntheticMemsOverflow = false;
+    for (const auto& decision : decisions) {
+        if (decision.kind != PathDecisionKind::SyntheticMems) continue;
+        if (decision.syntheticMems < 0 ||
+            syntheticMems >
+                std::numeric_limits<long long>::max() -
+                    decision.syntheticMems) {
+            syntheticMemsOverflow = true;
+            break;
+        }
+        syntheticMems += decision.syntheticMems;
+    }
+    if (!syntheticMemsOverflow) {
+        const long long compensated =
+            static_cast<long long>(result.mem) + syntheticMems;
+        if (compensated >= std::numeric_limits<int>::min() &&
+            compensated <= std::numeric_limits<int>::max()) {
+            result.mem = static_cast<int>(compensated);
+        } else {
+            syntheticMemsOverflow = true;
+        }
+    }
+    if (syntheticMemsOverflow) {
+        result.status = epat::result::unknown;
+        result.loopStateSummaryDiagnostics.push_back(
+            "loopscc: synthetic MEMS compensation overflow");
+    }
 
     // Structural LoopSCC analysis remains opt-in. At this stage it also
     // exports a path-specific affine relation only for a concrete phase trace
