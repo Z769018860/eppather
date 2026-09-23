@@ -4078,6 +4078,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t impreciseMemorySPaths = 0;
             std::size_t observedMemoryMems = 0;
             std::size_t memoryCellTransitionCandidates = 0;
+            std::size_t memorySummaryCandidates = 0;
             std::size_t accelerationPlans = 0;
             std::size_t exactAccelerationPlans = 0;
             std::size_t maxPeriod = 0;
@@ -4109,6 +4110,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     memoryCellTransitionCandidates +=
                         spath.memoryCellTransforms.size();
                 }
+                memorySummaryCandidates +=
+                    graph.memorySummaryCandidates.size();
                 accelerationPlans += graph.accelerationPlans.size();
                 for (const auto& plan : graph.accelerationPlans) {
                     if (plan.exact) ++exactAccelerationPlans;
@@ -4184,6 +4187,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << observedMemoryMems << endl;
             cout << "[LOOPSCC MEMORY CELL TRANSITION CANDIDATES]: "
                  << memoryCellTransitionCandidates << endl;
+            cout << "[LOOPSCC MEMORY SUMMARY CANDIDATES]: "
+                 << memorySummaryCandidates << endl;
             cout << "[LOOPSCC ACCELERATION PLANS]: "
                  << accelerationPlans << endl;
             cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
@@ -4219,6 +4224,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << observedMemoryMems << "\n";
             resultFile << "[loopscc_memory_cell_transition_candidates]:"
                        << memoryCellTransitionCandidates << "\n";
+            resultFile << "[loopscc_memory_summary_candidates]:"
+                       << memorySummaryCandidates << "\n";
             resultFile << "[loopscc_acceleration_plans]:"
                        << accelerationPlans << "\n";
             resultFile << "[loopscc_exact_acceleration_plans]:"
