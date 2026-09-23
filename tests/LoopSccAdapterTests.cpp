@@ -491,6 +491,30 @@ int main() {
         failures += !report("loopscc-pointer-mems-certificate", ok);
     }
 
+    {
+        auto loop = loopNode("i < 1");
+        loop->initstmt_str = "i = 0;";
+        auto updatePtr = node("*p += 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(updatePtr);
+        loop->setNextFalseNode(exit);
+        updatePtr->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 2 &&
+            graph.spaths[0].writesMemory &&
+            graph.spaths[0].memoryAccessModelComplete &&
+            !graph.spaths[0].memoryTransitionModelComplete &&
+            graph.memorySummaryCandidates.empty() &&
+            graph.accelerationPlans.empty();
+        failures += !report(
+            "loopscc-pointer-compound-mems-certificate", ok);
+    }
+
     // Unsupported guards may still be useful structurally, but they are not
     // enough to certify a shortcut. "!=" is intentionally outside the single
     // interval model and therefore must leave acceleration disabled.
