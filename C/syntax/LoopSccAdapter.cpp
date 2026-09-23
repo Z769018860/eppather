@@ -138,8 +138,22 @@ GuardConstraint parseGuard(const std::string& raw, bool truth) {
     return out;
 }
 
-void addGuard(BuiltPath& path, const std::string& expr, bool truth) {
+void recordCoverageSlot(BuiltPath& path, int slot) {
+    if (slot < 0) return;
+    if (std::find(
+            path.info.coverageSlots.begin(),
+            path.info.coverageSlots.end(),
+            slot) == path.info.coverageSlots.end()) {
+        path.info.coverageSlots.push_back(slot);
+    }
+}
+
+void addGuard(BuiltPath& path, const std::string& expr, bool truth,
+              int depth = -1) {
     path.info.guards.push_back(std::string(truth ? "T: " : "F: ") + expr);
+    if (depth >= 0) {
+        recordCoverageSlot(path, 2 * depth + (truth ? 0 : 1));
+    }
     const auto parsed = parseGuard(expr, truth);
     if (!parsed.recognized) {
         path.info.guardModelComplete = false;
@@ -634,7 +648,8 @@ void provePhaseGuards(const std::vector<BuiltPath>& built,
     }
 }
 
-void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
+void deriveAccelerationPlans(CFGNode* loop,
+                             const std::vector<BuiltPath>& built,
                              LoopSccGraphInfo& result) {
     if (!result.complete || result.provedTripCount < 0) return;
 
@@ -691,6 +706,33 @@ void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
                 plan.residualSPaths.push_back(
                     cycle.spathOrder[(entryPhase + r) % cycle.period]);
             }
+
+            std::set<int> coverageSlots;
+            if (fullPeriods > 0) {
+                for (std::size_t pathId : cycle.spathOrder) {
+                    if (pathId >= built.size()) {
+                        exact = false;
+                        break;
+                    }
+                    coverageSlots.insert(
+                        built[pathId].info.coverageSlots.begin(),
+                        built[pathId].info.coverageSlots.end());
+                }
+            }
+            for (std::size_t pathId : plan.residualSPaths) {
+                if (pathId >= built.size()) {
+                    exact = false;
+                    break;
+                }
+                coverageSlots.insert(
+                    built[pathId].info.coverageSlots.begin(),
+                    built[pathId].info.coverageSlots.end());
+            }
+            if (loop && loop->depth >= 0) {
+                coverageSlots.insert(2 * loop->depth + 1);
+            }
+            plan.coverageSlots.assign(
+                coverageSlots.begin(), coverageSlots.end());
 
             for (const auto& variable : variables) {
                 AffineTransform onePeriod;
@@ -889,16 +931,20 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         if (current->isIf ||
             (current->isCondition && current->getNextFalseNode())) {
             auto truePath = path;
-            addGuard(truePath, current->cond_str, true);
+            addGuard(truePath, current->cond_str, true, current->depth);
             visit(current->getNextNode(), std::move(truePath), seen, depth + 1);
 
             auto falsePath = std::move(path);
-            addGuard(falsePath, current->cond_str, false);
+            addGuard(falsePath, current->cond_str, false, current->depth);
             visit(current->getNextFalseNode(), std::move(falsePath),
                   std::move(seen), depth + 1);
             return;
         }
 
+        if (current->depth >= 0 && !current->isCondition) {
+            recordCoverageSlot(path, 2 * current->depth);
+            recordCoverageSlot(path, 2 * current->depth + 1);
+        }
         const std::string code = current->getCode();
         if (!code.empty() && code != "Code has not been set yet" &&
             !parseUpdate(path, code)) {
@@ -915,7 +961,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     };
 
     BuiltPath initial;
-    addGuard(initial, loop->cond_str, true);
+    addGuard(initial, loop->cond_str, true, loop->depth);
     visit(start, std::move(initial), {}, 0);
 
     for (std::size_t i = 0; i < built.size(); ++i) {
@@ -1004,7 +1050,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         built, graph, tarjan.components, componentOf, result);
     deriveUniformTripCount(loop, built, result);
     provePhaseGuards(built, result);
-    deriveAccelerationPlans(built, result);
+    deriveAccelerationPlans(loop, built, result);
     return result;
 }
 
