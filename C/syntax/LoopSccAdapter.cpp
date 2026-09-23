@@ -13,6 +13,7 @@
 #include <utility>
 
 #include "SyntaxNamePrinter.h"
+#include "LoopBoundPredictor.h"
 
 namespace psy {
 namespace C {
@@ -498,6 +499,66 @@ void detectDeterminateCycles(const std::vector<BuiltPath>& built,
     }
 }
 
+void deriveUniformTripCount(CFGNode* loop,
+                            const std::vector<BuiltPath>& built,
+                            LoopSccGraphInfo& result) {
+    if (!loop || !loop->isWhile || !result.complete ||
+        loop->initstmt_str.empty() || built.empty()) {
+        return;
+    }
+
+    std::smatch initMatch;
+    static const std::regex initRe(
+        R"((?:^|[;[:space:]])(?:[A-Za-z_][A-Za-z0-9_]*[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;?$)");
+    if (!std::regex_search(loop->initstmt_str, initMatch, initRe)) {
+        return;
+    }
+    const std::string variable = initMatch[1].str();
+
+    bool haveStep = false;
+    long long uniformStep = 0;
+    for (const auto& path : built) {
+        if (!path.info.returnsToHeader || path.info.exitsLoop ||
+            path.unknownWrites.count(variable) != 0) {
+            return;
+        }
+        auto transform = path.transforms.find(variable);
+        if (transform == path.transforms.end() ||
+            !transform->second.exact ||
+            transform->second.scale != 1 ||
+            transform->second.offset == 0) {
+            return;
+        }
+        if (!haveStep) {
+            uniformStep = transform->second.offset;
+            haveStep = true;
+        } else if (uniformStep != transform->second.offset) {
+            return;
+        }
+    }
+    if (!haveStep) return;
+
+    const std::string update =
+        variable + " = " + variable +
+        (uniformStep > 0 ? " + " : " - ") +
+        std::to_string(std::llabs(uniformStep)) + ";";
+    const auto prediction = LoopBoundPredictor::predict(
+        loop->initstmt_str, loop->cond_str, update,
+        std::numeric_limits<int>::max(), 0);
+    if (!prediction.exact() ||
+        prediction.inductionVariable != variable) {
+        return;
+    }
+
+    result.provedTripCount = prediction.iterations;
+    result.tripCountVariable = variable;
+    result.tripCountStep = uniformStep;
+    result.diagnostics.push_back(
+        "proved uniform SPath trip count: " + variable + "=" +
+        std::to_string(prediction.iterations) +
+        " step=" + std::to_string(uniformStep));
+}
+
 }  // namespace
 
 LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
@@ -686,6 +747,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
 
     detectDeterminateCycles(
         built, graph, tarjan.components, componentOf, result);
+    deriveUniformTripCount(loop, built, result);
     return result;
 }
 
