@@ -1143,23 +1143,26 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
         apply_entailed_summaries);
 
-    // Prove projection independence before SSA substitution and solver
-    // reconstruction. This retains every dependency from the original path
-    // formula; later elimination may remove constraints, but cannot justify
-    // separating terms that were coupled here.
-    std::optional<ProjectionFactorization> proven_factorization;
-    if (bounded_memory_terms.size() >= 5 &&
-        (memory_regions.empty() || memory_regions.size() == 1)) {
-        proven_factorization =
-            buildProjectionFactorization(ctx, solver, projection_terms);
-    }
-
     Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
     Z3_ast_vector_inc_ref(ctx, retained);
     const std::size_t counting_assertions =
         eliminateEntailedSsaDefinitions(
             ctx, solver, projection_terms, applied, apply_entailed_summaries,
             retained);
+
+    // Factor only after semantics-preserving SSA elimination and solver
+    // reconstruction. The reduced solver is equivalent over the remaining
+    // projected terms, while transient store/SSA structure that no longer
+    // constrains those terms has been removed. Building the dependency graph
+    // on the pre-elimination formula was overly conservative and prevented
+    // real read-only array cases from using factorization even when the
+    // counting formula had become a conjunction of independent bounds.
+    std::optional<ProjectionFactorization> proven_factorization;
+    if (bounded_memory_terms.size() >= 5 &&
+        (memory_regions.empty() || memory_regions.size() == 1)) {
+        proven_factorization =
+            buildProjectionFactorization(ctx, solver, projection_terms);
+    }
     const auto summary_end = std::chrono::steady_clock::now();
 
     // Both modes start enumeration from a freshly constructed solver.
