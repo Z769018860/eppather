@@ -1426,6 +1426,134 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     return result;
 }
 
+std::optional<MemoryRelationValidationResult>
+validateMemoryCellRelationsFromSmt2(
+    const std::string& smt2,
+    const std::vector<MemoryCellAffineRelationSummary>& summaries) {
+    if (smt2.empty()) return std::nullopt;
+
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(
+        ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    assertParsedFormulas(ctx, solver, vec);
+
+    MemoryRelationValidationResult result;
+    Z3_ast initialMemory = findNamedArrayConstant(ctx, vec, "%a");
+    Z3_ast finalMemory =
+        findNamedArrayConstant(ctx, vec, "%a#ssa_final");
+    const auto decls = collectZeroArityDecls(ctx, vec);
+
+    for (const auto& summary : summaries) {
+        if (summary.cell_index < 0) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: negative cell index");
+            continue;
+        }
+        if (!initialMemory || !finalMemory) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: initial/final memory provenance is missing");
+            continue;
+        }
+
+        Z3_func_decl baseDecl = nullptr;
+        std::string baseName;
+        bool ambiguousBase = false;
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            if (name.find("#base") == std::string::npos ||
+                !isSummaryCandidateName(
+                    name, summary.source_name)) {
+                continue;
+            }
+            if (baseDecl) {
+                ambiguousBase = true;
+                break;
+            }
+            baseDecl = decl;
+            baseName = name;
+        }
+        if (!baseDecl || ambiguousBase) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: expected exactly one source memory base");
+            continue;
+        }
+
+        Z3_ast base = Z3_mk_app(ctx, baseDecl, 0, nullptr);
+        Z3_sort addressSort = Z3_get_sort(ctx, base);
+        if (!isBitVector(ctx, addressSort)) {
+            result.rejected.push_back(
+                summary.source_name + ": memory base is not a bit-vector");
+            continue;
+        }
+        Z3_ast address = base;
+        if (summary.cell_index != 0) {
+            Z3_ast offset =
+                Z3_mk_int64(ctx, summary.cell_index, addressSort);
+            address = Z3_mk_bvadd(ctx, base, offset);
+        }
+
+        Z3_ast entry = Z3_mk_select(ctx, initialMemory, address);
+        Z3_ast exit = Z3_mk_select(ctx, finalMemory, address);
+        Z3_sort valueSort = Z3_get_sort(ctx, entry);
+        if (!isBitVector(ctx, valueSort) ||
+            !Z3_is_eq_sort(ctx, valueSort, Z3_get_sort(ctx, exit))) {
+            result.rejected.push_back(
+                summary.source_name + ": memory cell sort mismatch");
+            continue;
+        }
+
+        Z3_ast scaled = entry;
+        if (summary.scale == 0) {
+            scaled = Z3_mk_int64(ctx, 0, valueSort);
+        } else if (summary.scale != 1) {
+            Z3_ast scale =
+                Z3_mk_int64(ctx, summary.scale, valueSort);
+            scaled = Z3_mk_bvmul(ctx, entry, scale);
+        }
+        Z3_ast rhs = scaled;
+        if (summary.offset != 0) {
+            Z3_ast offset =
+                Z3_mk_int64(ctx, summary.offset, valueSort);
+            rhs = Z3_mk_bvadd(ctx, scaled, offset);
+        }
+        Z3_ast equality = Z3_mk_eq(ctx, exit, rhs);
+
+        Z3_solver_push(ctx, solver);
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+        const Z3_lbool check = Z3_solver_check(ctx, solver);
+        Z3_solver_pop(ctx, solver, 1);
+
+        const std::string label =
+            summary.source_name + "[" +
+            std::to_string(summary.cell_index) + "]@" + baseName +
+            " scale=" + std::to_string(summary.scale) +
+            " offset=" + std::to_string(summary.offset);
+        if (check == Z3_L_FALSE) {
+            result.applied.push_back(label);
+        } else {
+            result.rejected.push_back(
+                label +
+                ": path formula does not entail memory relation");
+        }
+    }
+
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
+    return result;
+}
+
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
     const std::unordered_map<std::string, Range>& ranges,
