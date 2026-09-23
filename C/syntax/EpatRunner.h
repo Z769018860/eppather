@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "solver.h"
+#include "LoopSccAdapter.h"
 
 namespace psy {
 namespace C {
@@ -44,6 +45,9 @@ struct EpatResult {
     std::string model;
     std::vector<AffineLoopStateSummary> loopStateSummaries;
     std::vector<std::string> loopStateSummaryDiagnostics;
+    // Optional structural LoopSCC stage. Populated only when
+    // EPPATHER_LOOP_SCC_ANALYZE=1; it never changes feasibility/counting.
+    std::vector<LoopSccGraphInfo> loopSccGraphs;
 };
 
 class EpatRunner {
