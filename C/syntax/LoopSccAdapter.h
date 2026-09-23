@@ -10,6 +10,21 @@ namespace C {
 
 class CFGNode;
 
+struct LoopSccMemoryAccessInfo {
+    std::string sourceText;
+    std::size_t arraySubscripts{0};
+    std::size_t pointerDereferences{0};
+    bool writesMemory{false};
+    // True only when the restricted lexical recognizer can account for every
+    // memory-access token in this source fragment according to epat++ MEMS
+    // semantics (array subscript + pointer dereference).
+    bool precise{true};
+
+    std::size_t mems() const {
+        return arraySubscripts + pointerDereferences;
+    }
+};
+
 struct LoopSccAffineTransform {
     std::string variable;
     // x' = scale * x + offset. The current structural adapter supports
@@ -28,6 +43,12 @@ struct LoopSccSPathInfo {
     std::vector<std::string> affineUpdates;
     // Machine-readable form of the exact scalar transforms above.
     std::vector<LoopSccAffineTransform> affineTransforms;
+    // Memory-access observations are kept even when acceleration is rejected.
+    // This is the certificate substrate for later alias-aware memory summaries.
+    std::vector<LoopSccMemoryAccessInfo> memoryAccesses;
+    std::size_t observedMems{0};
+    bool memoryAccessModelComplete{true};
+    bool writesMemory{false};
     // True only when every executable statement on this SPath is represented
     // by the restricted scalar-affine model and no array/dereference access or
     // opaque call/effect was observed.
