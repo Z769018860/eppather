@@ -865,6 +865,8 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                     validation.baselineMem = result.mem;
                     validation.compressedMem =
                         compressedResult.mem;
+                    validation.compressedSmt =
+                        compressedResult.smt;
                     validation.statusMatched =
                         compressedResult.status == result.status;
                     validation.memMatched =
