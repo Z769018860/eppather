@@ -40,6 +40,9 @@ struct LoopSccMemorySummaryCandidate {
     long long totalIterations{0};
     std::size_t observedMems{0};
     std::vector<LoopSccMemoryCellTransform> closedFormTransforms;
+    // Scalar state needed to make a validation-only compressed path reach the
+    // same loop exit condition as the unfolded execution.
+    std::vector<LoopSccAffineTransform> scalarClosedFormTransforms;
     bool exact{false};
     std::vector<std::string> diagnostics;
 };
@@ -71,6 +74,10 @@ struct LoopSccSPathInfo {
     std::size_t observedMems{0};
     bool memoryAccessModelComplete{true};
     bool memoryTransitionModelComplete{true};
+    // True when every non-memory effect is represented by the scalar-affine
+    // model and every memory write is one of the recognized fixed-cell forms.
+    // This is weaker than accelerationEffectSafe, which rejects all memory.
+    bool memorySummaryEffectSafe{true};
     bool writesMemory{false};
     // True only when every executable statement on this SPath is represented
     // by the restricted scalar-affine model and no array/dereference access or
