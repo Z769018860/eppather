@@ -13,6 +13,7 @@ using psy::C::CFGNode;
 using psy::C::LoopSccAdapter;
 using psy::C::PathDecisionKind;
 using psy::C::buildLoopSccAccelerationDecisions;
+using psy::C::buildLoopSccMemoryAccelerationDecisions;
 
 namespace {
 
@@ -337,13 +338,35 @@ int main() {
                 cell.scale == 1 &&
                 cell.offset == 12;
         }
+        bool shortcutPlanOk = false;
+        if (graph.memorySummaryCandidates.size() == 1) {
+            const auto shortcut =
+                buildLoopSccMemoryAccelerationDecisions(
+                    {}, loop.get(), graph, 0,
+                    "int a[1];\nint i = 0;\n");
+            if (shortcut) {
+                bool sawSyntheticMems = false;
+                for (const auto& decision : shortcut->decisions) {
+                    if (decision.kind ==
+                        PathDecisionKind::SyntheticMems) {
+                        sawSyntheticMems =
+                            decision.syntheticMems == 14;
+                    }
+                }
+                shortcutPlanOk =
+                    shortcut->unfoldedMems == 16 &&
+                    shortcut->compressedSummaryMems == 2 &&
+                    shortcut->compensationMems == 14 &&
+                    sawSyntheticMems;
+            }
+        }
         const bool ok = graph.complete &&
             graph.spaths.size() == 1 &&
             graph.spaths[0].observedMems == 4 &&
             graph.spaths[0].writesMemory &&
             graph.spaths[0].memoryAccessModelComplete &&
             graph.spaths[0].memoryTransitionModelComplete &&
-            cellOk && summaryOk &&
+            cellOk && summaryOk && shortcutPlanOk &&
             graph.accelerationPlans.empty();
         failures += !report(
             "loopscc-fixed-cell-memory-transition-candidate", ok);
