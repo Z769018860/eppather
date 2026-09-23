@@ -1030,6 +1030,79 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                     }
                     result.loopStateSummaryDiagnostics.push_back(
                         "loopscc: fixed-cell memory summary matched unfolded path");
+
+                    if (envEnabled(
+                            "EPPATHER_LOOP_SCC_ACCEL_VALIDATE")) {
+                        LoopSccMemoryAccelerationValidation validation;
+                        validation.loopCondition = loop->cond_str;
+                        validation.attempted = true;
+                        validation.originalDecisionCount =
+                            decisions.size();
+                        validation.unfoldedLoopMems =
+                            candidate.observedMems;
+
+                        std::size_t compressedSummaryMems = 0;
+                        auto compressed =
+                            buildMemorySummaryValidationDecisions(
+                                loop, graph, candidate, decisions,
+                                compressedSummaryMems);
+                        if (compressed) {
+                            validation.compressedDecisionCount =
+                                compressed->size();
+                            validation.compressedSummaryMems =
+                                compressedSummaryMems;
+
+                            epat::setSsaProvenanceVariables(
+                                provenanceVariables);
+                            epat::setMemorySsaProvenanceEnabled(true);
+                            EpatResult compressedResult =
+                                solveScript(render(*compressed));
+                            epat::setMemorySsaProvenanceEnabled(false);
+                            epat::clearSsaProvenanceVariables();
+
+                            validation.baselineMem = result.mem;
+                            validation.compressedMem =
+                                compressedResult.mem;
+                            validation.compressedSmt =
+                                compressedResult.smt;
+                            validation.statusMatched =
+                                compressedResult.status == result.status;
+
+                            if (candidate.observedMems >=
+                                compressedSummaryMems) {
+                                const long long compensated =
+                                    static_cast<long long>(
+                                        compressedResult.mem) +
+                                    static_cast<long long>(
+                                        candidate.observedMems -
+                                        compressedSummaryMems);
+                                if (compensated >=
+                                        std::numeric_limits<int>::min() &&
+                                    compensated <=
+                                        std::numeric_limits<int>::max()) {
+                                    validation.compensatedMem =
+                                        static_cast<int>(compensated);
+                                    validation.compensatedMemMatched =
+                                        validation.compensatedMem ==
+                                        result.mem;
+                                }
+                            }
+                            validation.matched =
+                                validation.statusMatched &&
+                                validation.compensatedMemMatched &&
+                                validation.compressedDecisionCount <
+                                    validation.originalDecisionCount;
+                            result.loopStateSummaryDiagnostics.push_back(
+                                validation.matched
+                                    ? "loopscc: compressed fixed-memory validation matched"
+                                    : "loopscc: compressed fixed-memory validation mismatch");
+                        } else {
+                            result.loopStateSummaryDiagnostics.push_back(
+                                "loopscc: failed to construct compressed fixed-memory path");
+                        }
+                        result.loopSccMemoryAccelerationValidations.push_back(
+                            std::move(validation));
+                    }
                 }
             }
 
