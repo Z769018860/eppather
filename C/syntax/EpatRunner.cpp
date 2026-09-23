@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <regex>
+#include <map>
 
 #include <cctype>
 #include <cstdlib>
