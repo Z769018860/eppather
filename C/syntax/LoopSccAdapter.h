@@ -67,6 +67,12 @@ struct LoopSccGraphInfo {
     std::size_t determinateCycleCount{0};
     std::size_t oscillatingCycleCount{0};
     std::size_t guardedClosedFormCandidateCount{0};
+    // Exact trip count recovered from the SPath set when every returning
+    // iteration path has the same affine step for the loop-control variable.
+    // -1 means no such proof is available.
+    long long provedTripCount{-1};
+    std::string tripCountVariable;
+    long long tripCountStep{0};
     std::vector<std::string> diagnostics;
 };
 
