@@ -348,6 +348,51 @@ int main() {
             "loopscc-fixed-cell-memory-transition-candidate", ok);
     }
 
+    // Cross-cell and symbolic-index writes are observable memory effects but
+    // are outside the fixed-cell transition model. They must not produce a
+    // full-loop memory summary.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto write = node("a[0] = a[1] + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(write);
+        loop->setNextFalseNode(exit);
+        write->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            !graph.spaths[0].memoryTransitionModelComplete &&
+            graph.memorySummaryCandidates.empty() &&
+            graph.accelerationPlans.empty();
+        failures += !report(
+            "loopscc-cross-cell-memory-summary-fallback", ok);
+    }
+
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto write = node("a[i] = a[i] + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(write);
+        loop->setNextFalseNode(exit);
+        write->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            !graph.spaths[0].memoryTransitionModelComplete &&
+            graph.memorySummaryCandidates.empty() &&
+            graph.accelerationPlans.empty();
+        failures += !report(
+            "loopscc-symbolic-cell-memory-summary-fallback", ok);
+    }
+
     {
         auto loop = loopNode("i < 4");
         loop->initstmt_str = "i = 0;";
