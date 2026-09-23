@@ -301,7 +301,21 @@ if [[ -z "$pointer_memory_spaths" || "$pointer_memory_spaths" -lt 1 ||
   exit 1
 fi
 
-# 8. Array-writing nested loops remain conservative because their memory
+# 8. Fixed-cell writes may produce a machine-readable memory-transition
+# candidate, but still must not authorize acceleration before VolCE/alias proof.
+run_case fixed_cell_memory testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100
+fixed_cell_candidates="$(metric_max 'LOOPSCC MEMORY CELL TRANSITION CANDIDATES' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_accel="$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/fixed_cell_memory.log")"
+if [[ -z "$fixed_cell_candidates" || "$fixed_cell_candidates" -lt 1 ||
+      -z "$fixed_cell_mems" || "$fixed_cell_mems" -lt 2 ||
+      "$fixed_cell_accel" != 0 ]]; then
+  echo "fixed_cell_memory: expected transition candidate with acceleration fallback" >&2
+  cat "$OUT_DIR/fixed_cell_memory.log" >&2
+  exit 1
+fi
+
+# 9. Array-writing nested loops remain conservative because their memory
 # transition is not yet alias-safe for inside-out acceleration.
 run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
 nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
