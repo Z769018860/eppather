@@ -172,6 +172,50 @@ int main() {
         failures += !report("loopscc-determinate-period-two", ok);
     }
 
+    // The same cycle with five exact iterations exercises residual-phase
+    // composition: two complete periods plus one SPath must yield
+    // x'=-x-1 and i'=i+5 for either possible entry phase.
+    {
+        auto loop = loopNode("i < 5");
+        loop->initstmt_str = "i = 0;";
+        auto branch = ifNode("x >= 0");
+        auto nonNegative = node("x = 0 - x - 1;");
+        auto negative = node("x = 0 - x - 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(branch);
+        loop->setNextFalseNode(exit);
+        branch->setNextNode(nonNegative);
+        branch->setNextFalseNode(negative);
+        nonNegative->setNextNode(increment);
+        negative->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        bool plansOk = graph.provedTripCount == 5 &&
+                       graph.accelerationPlans.size() == 2;
+        for (const auto& plan : graph.accelerationPlans) {
+            bool sawX = false;
+            bool sawI = false;
+            for (const auto& transform : plan.closedFormTransforms) {
+                if (transform.variable == "x") {
+                    sawX = transform.scale == -1 &&
+                           transform.offset == -1;
+                } else if (transform.variable == "i") {
+                    sawI = transform.scale == 1 &&
+                           transform.offset == 5;
+                }
+            }
+            plansOk = plansOk && plan.exact &&
+                plan.completePeriods == 2 &&
+                plan.residualPhases == 1 &&
+                plan.residualSPaths.size() == 1 &&
+                sawX && sawI;
+        }
+        failures += !report(
+            "loopscc-acceleration-residual-phase", plansOk);
+    }
+
     // x<0 can move to either side after +1, while x>=0 can only remain on the
     // non-negative side. The SPath graph therefore has two SCCs and one CSG
     // edge from the negative component to the non-negative component.
