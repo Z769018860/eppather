@@ -77,7 +77,7 @@ void observeMemoryAccess(BuiltPath& path,
     // Count only conservative unary-dereference forms. Multiplication such as
     // i * 4 is intentionally excluded.
     static const std::regex derefRe(
-        R"((^|[=(:,!~?;+-/&|])[[:space:]]**[[:space:]]*(?:[A-Za-z_]|())");
+        R"((^|[ \t=(:,!~?;+&|/-])[ \t]*\*[ \t]*([A-Za-z_]|\())");
     for (std::sregex_iterator it(text.begin(), text.end(), derefRe), end;
          it != end; ++it) {
         ++access.pointerDereferences;
