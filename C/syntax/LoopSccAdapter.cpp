@@ -58,6 +58,8 @@ struct BuiltPath {
     LoopSccSPathInfo info;
     std::map<std::string, Interval> guardIntervals;
     std::map<std::string, AffineTransform> transforms;
+    std::map<std::pair<std::string, long long>, AffineTransform>
+        memoryTransforms;
     std::set<std::string> unknownWrites;
 };
 
@@ -255,6 +257,29 @@ void composeUpdate(BuiltPath& path,
     path.info.affineUpdates.push_back(os.str());
 }
 
+void composeMemoryCellUpdate(
+    BuiltPath& path,
+    const std::string& region,
+    long long index,
+    long long scale,
+    long long offset) {
+    auto& current = path.memoryTransforms[{region, index}];
+    if (!current.exact) return;
+    const __int128 nextScale =
+        static_cast<__int128>(scale) * current.scale;
+    const __int128 nextOffset =
+        static_cast<__int128>(scale) * current.offset + offset;
+    if (nextScale < std::numeric_limits<long long>::min() ||
+        nextScale > std::numeric_limits<long long>::max() ||
+        nextOffset < std::numeric_limits<long long>::min() ||
+        nextOffset > std::numeric_limits<long long>::max()) {
+        current.exact = false;
+        return;
+    }
+    current.scale = static_cast<long long>(nextScale);
+    current.offset = static_cast<long long>(nextOffset);
+}
+
 void markUnknownWrite(BuiltPath& path,
                       const std::string& variable,
                       const std::string& sourceText) {
@@ -327,9 +352,55 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         return true;
     }
 
-    // Array/dereference writes are kept as an explicit memory marker. The
-    // structural graph may still be useful, but a later state summary must not
-    // bypass memory unfolding without alias-aware proof.
+    // Recognize a restricted constant-index memory transition. This only
+    // records a candidate; the path remains acceleration-unsafe until an
+    // alias-aware memory proof validates the source cell against canonical
+    // VolCE memory regions.
+    static const std::regex cellSelfAdd(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*(-?[0-9]+)[[:space:]]*\][[:space:]]*=[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*(-?[0-9]+)[[:space:]]*\][[:space:]]*([+-])[[:space:]]*([0-9]+)$)");
+    static const std::regex cellCompound(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*(-?[0-9]+)[[:space:]]*\][[:space:]]*(\+=|-=)[[:space:]]*(-?[0-9]+)$)");
+    static const std::regex cellConstant(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*(-?[0-9]+)[[:space:]]*\][[:space:]]*=[[:space:]]*(-?[0-9]+)$)");
+
+    if (std::regex_match(text, m, cellSelfAdd)) {
+        const std::string lhsRegion = m[1].str();
+        const long long lhsIndex = std::stoll(m[2].str());
+        const std::string rhsRegion = m[3].str();
+        const long long rhsIndex = std::stoll(m[4].str());
+        if (lhsRegion == rhsRegion && lhsIndex == rhsIndex) {
+            long long value = std::stoll(m[6].str());
+            if (m[5].str() == "-") value = -value;
+            composeMemoryCellUpdate(
+                path, lhsRegion, lhsIndex, 1, value);
+        }
+        recordWrite(path, "*memory*");
+        path.unknownWrites.insert("*memory*");
+        path.info.accelerationEffectSafe = false;
+        return false;
+    }
+    if (std::regex_match(text, m, cellCompound)) {
+        long long value = std::stoll(m[4].str());
+        if (m[3].str() == "-=") value = -value;
+        composeMemoryCellUpdate(
+            path, m[1].str(), std::stoll(m[2].str()), 1, value);
+        recordWrite(path, "*memory*");
+        path.unknownWrites.insert("*memory*");
+        path.info.accelerationEffectSafe = false;
+        return false;
+    }
+    if (std::regex_match(text, m, cellConstant)) {
+        composeMemoryCellUpdate(
+            path, m[1].str(), std::stoll(m[2].str()),
+            0, std::stoll(m[3].str()));
+        recordWrite(path, "*memory*");
+        path.unknownWrites.insert("*memory*");
+        path.info.accelerationEffectSafe = false;
+        return false;
+    }
+
+    // Other array/dereference writes are kept as an explicit unresolved
+    // memory marker.
     if (text.find('=') != std::string::npos &&
         (text.find('[') != std::string::npos ||
          (!text.empty() && text.front() == '*'))) {
@@ -1174,6 +1245,16 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
             built[i].info.affineTransforms.push_back(
                 LoopSccAffineTransform{
                     entry.first, entry.second.scale, entry.second.offset});
+        }
+        built[i].info.memoryCellTransforms.clear();
+        for (const auto& entry : built[i].memoryTransforms) {
+            if (!entry.second.exact) continue;
+            built[i].info.memoryCellTransforms.push_back(
+                LoopSccMemoryCellTransform{
+                    entry.first.first,
+                    entry.first.second,
+                    entry.second.scale,
+                    entry.second.offset});
         }
         result.spaths.push_back(built[i].info);
     }
