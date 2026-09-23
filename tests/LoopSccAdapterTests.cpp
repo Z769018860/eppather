@@ -400,7 +400,7 @@ int main() {
         const auto graph = LoopSccAdapter::analyze(outer.get());
         bool sawX6 = false;
         bool sawI3 = false;
-        bool leakedInnerJ = false;
+        bool sawJ2 = false;
         if (graph.accelerationPlans.size() == 1) {
             for (const auto& transform :
                  graph.accelerationPlans[0].closedFormTransforms) {
@@ -411,7 +411,8 @@ int main() {
                     sawI3 = transform.scale == 1 &&
                             transform.offset == 3;
                 } else if (transform.variable == "j") {
-                    leakedInnerJ = true;
+                    sawJ2 = transform.scale == 0 &&
+                            transform.offset == 2;
                 }
             }
         }
@@ -445,7 +446,7 @@ int main() {
         const auto graph = LoopSccAdapter::analyze(outer.get());
         bool sawX6 = false;
         bool sawI3 = false;
-        bool sawJ2 = false;
+        bool leakedInnerJ = false;
         if (graph.accelerationPlans.size() == 1) {
             for (const auto& transform :
                  graph.accelerationPlans[0].closedFormTransforms) {
@@ -456,8 +457,7 @@ int main() {
                     sawI3 = transform.scale == 1 &&
                             transform.offset == 3;
                 } else if (transform.variable == "j") {
-                    sawJ2 = transform.scale == 0 &&
-                            transform.offset == 2;
+                    leakedInnerJ = true;
                 }
             }
         }
