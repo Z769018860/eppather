@@ -552,10 +552,28 @@ void rememberSelectDependency(
     }
 }
 
+std::optional<std::size_t> lookupProjectionNode(
+    Z3_context ctx,
+    Z3_ast ast,
+    const std::unordered_map<unsigned, std::size_t>& projection_by_ast,
+    const std::unordered_map<std::string, std::size_t>& projection_by_text) {
+    auto by_id = projection_by_ast.find(Z3_get_ast_id(ctx, ast));
+    if (by_id != projection_by_ast.end()) return by_id->second;
+    const char* raw = Z3_ast_to_string(ctx, ast);
+    if (!raw) return std::nullopt;
+    auto by_text = projection_by_text.find(raw);
+    if (by_text == projection_by_text.end() ||
+        by_text->second == std::numeric_limits<std::size_t>::max()) {
+        return std::nullopt;
+    }
+    return by_text->second;
+}
+
 void collectProjectionDependencies(
     Z3_context ctx,
     Z3_ast ast,
     const std::unordered_map<unsigned, std::size_t>& projection_by_ast,
+    const std::unordered_map<std::string, std::size_t>& projection_by_text,
     ProjectionDisjointSet& dsu,
     std::unordered_map<std::uint64_t, std::size_t>& aux_nodes,
     std::unordered_map<unsigned, std::size_t>& seen_selects,
@@ -563,11 +581,11 @@ void collectProjectionDependencies(
     std::vector<std::size_t>& nodes,
     bool& unsafe) {
     const unsigned ast_id = Z3_get_ast_id(ctx, ast);
-    auto projected = projection_by_ast.find(ast_id);
-    if (projected != projection_by_ast.end()) {
-        nodes.push_back(projected->second);
+    if (auto projected = lookupProjectionNode(
+            ctx, ast, projection_by_ast, projection_by_text)) {
+        nodes.push_back(*projected);
         rememberSelectDependency(
-            ctx, ast, projected->second, seen_selects, selects, unsafe);
+            ctx, ast, *projected, seen_selects, selects, unsafe);
         return;
     }
 
@@ -616,8 +634,9 @@ void collectProjectionDependencies(
 
     for (unsigned i = 0; i < argc; ++i) {
         collectProjectionDependencies(
-            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast, dsu,
-            aux_nodes, seen_selects, selects, nodes, unsafe);
+            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast,
+            projection_by_text, dsu, aux_nodes, seen_selects, selects, nodes,
+            unsafe);
     }
 }
 
@@ -625,14 +644,15 @@ void collectAddressDependencies(
     Z3_context ctx,
     Z3_ast ast,
     const std::unordered_map<unsigned, std::size_t>& projection_by_ast,
+    const std::unordered_map<std::string, std::size_t>& projection_by_text,
     ProjectionDisjointSet& dsu,
     std::unordered_map<std::uint64_t, std::size_t>& aux_nodes,
     std::vector<std::size_t>& nodes,
     bool& unsafe) {
     const unsigned ast_id = Z3_get_ast_id(ctx, ast);
-    auto projected = projection_by_ast.find(ast_id);
-    if (projected != projection_by_ast.end()) {
-        nodes.push_back(projected->second);
+    if (auto projected = lookupProjectionNode(
+            ctx, ast, projection_by_ast, projection_by_text)) {
+        nodes.push_back(*projected);
         return;
     }
     const Z3_ast_kind ast_kind = Z3_get_ast_kind(ctx, ast);
@@ -661,8 +681,8 @@ void collectAddressDependencies(
     }
     for (unsigned i = 0; i < argc; ++i) {
         collectAddressDependencies(
-            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast, dsu,
-            aux_nodes, nodes, unsafe);
+            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast,
+            projection_by_text, dsu, aux_nodes, nodes, unsafe);
     }
 }
 
@@ -689,10 +709,22 @@ std::optional<ProjectionFactorization> buildProjectionFactorization(
 
     ProjectionDisjointSet dsu(projection_terms.size());
     std::unordered_map<unsigned, std::size_t> projection_by_ast;
+    std::unordered_map<std::string, std::size_t> projection_by_text;
     projection_by_ast.reserve(projection_terms.size());
-    for (std::size_t i = 0; i < projection_terms.size(); ++i)
+    projection_by_text.reserve(projection_terms.size());
+    for (std::size_t i = 0; i < projection_terms.size(); ++i) {
         projection_by_ast.emplace(
             Z3_get_ast_id(ctx, projection_terms[i]), i);
+        const char* raw = Z3_ast_to_string(ctx, projection_terms[i]);
+        if (!raw) continue;
+        auto inserted = projection_by_text.emplace(raw, i);
+        if (!inserted.second && inserted.first->second != i) {
+            // Printed-expression matching is only a fallback across Z3
+            // simplification. If two distinct projections print identically,
+            // refuse to use the textual key instead of guessing.
+            inserted.first->second = std::numeric_limits<std::size_t>::max();
+        }
+    }
 
     std::unordered_map<std::uint64_t, std::size_t> aux_nodes;
     std::unordered_map<unsigned, std::size_t> seen_selects;
@@ -706,7 +738,8 @@ std::optional<ProjectionFactorization> buildProjectionFactorization(
         std::vector<std::size_t> nodes;
         collectProjectionDependencies(
             ctx, Z3_ast_vector_get(ctx, assertions, i), projection_by_ast,
-            dsu, aux_nodes, seen_selects, selects, nodes, unsafe);
+            projection_by_text, dsu, aux_nodes, seen_selects, selects, nodes,
+            unsafe);
         if (!nodes.empty()) {
             const auto first = nodes.front();
             for (std::size_t j = 1; j < nodes.size(); ++j)
@@ -727,11 +760,11 @@ std::optional<ProjectionFactorization> buildProjectionFactorization(
             dsu.unite(selects[i].node, selects[j].node);
             std::vector<std::size_t> address_nodes;
             collectAddressDependencies(
-                ctx, selects[i].address, projection_by_ast, dsu, aux_nodes,
-                address_nodes, unsafe);
+                ctx, selects[i].address, projection_by_ast,
+                projection_by_text, dsu, aux_nodes, address_nodes, unsafe);
             collectAddressDependencies(
-                ctx, selects[j].address, projection_by_ast, dsu, aux_nodes,
-                address_nodes, unsafe);
+                ctx, selects[j].address, projection_by_ast,
+                projection_by_text, dsu, aux_nodes, address_nodes, unsafe);
             for (auto node : address_nodes) {
                 dsu.unite(selects[i].node, node);
                 dsu.unite(selects[j].node, node);
