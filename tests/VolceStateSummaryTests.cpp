@@ -271,9 +271,14 @@ int main() {
         "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |a@0#base| (_ BitVec 32))\n"
         "(declare-const |a@0@0| (_ BitVec 32))\n"
+        "(declare-const |a@0@1| (_ BitVec 32))\n"
         "(assert (= |a@0#base| (_ bv3 32)))\n"
         "(assert (= |%a#ssa_final| "
-        "(store %a |a@0#base| "
+        "(store "
+        "(store "
+        "(store %a |a@0#base| |a@0@0|) "
+        "(bvadd |a@0#base| (_ bv1 32)) |a@0@1|) "
+        "|a@0#base| "
         "(bvadd |a@0@0| (_ bv4 32)))))\n";
     const auto memoryRelationAccepted =
         volce::validateMemoryCellRelationsFromSmt2(
@@ -287,11 +292,39 @@ int main() {
         memoryRelationAccepted && memoryRelationRejected &&
         memoryRelationAccepted->applied.size() == 1 &&
         memoryRelationAccepted->rejected.empty() &&
+        memoryRelationAccepted->frame_applied.size() == 1 &&
+        memoryRelationAccepted->frame_rejected.empty() &&
         memoryRelationRejected->applied.empty() &&
         memoryRelationRejected->rejected.size() == 1;
     std::cout << "loopscc-fixed-cell-memory-relation-entailment: "
               << (memoryRelationOk ? "PASS" : "FAIL") << '\n';
     failures += !memoryRelationOk;
+
+    const std::string brokenFrameSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_final| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |a@0#base| (_ BitVec 32))\n"
+        "(declare-const |a@0@0| (_ BitVec 32))\n"
+        "(declare-const |a@0@1| (_ BitVec 32))\n"
+        "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_final| "
+        "(store "
+        "(store %a (bvadd |a@0#base| (_ bv1 32)) (_ bv0 32)) "
+        "|a@0#base| "
+        "(bvadd |a@0@0| (_ bv4 32)))))\n";
+    const auto brokenFrame =
+        volce::validateMemoryCellRelationsFromSmt2(
+            brokenFrameSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4}});
+    const bool brokenFrameOk =
+        brokenFrame &&
+        brokenFrame->applied.size() == 1 &&
+        brokenFrame->frame_applied.empty() &&
+        brokenFrame->frame_rejected.size() == 1;
+    std::cout << "loopscc-fixed-region-frame-rejection: "
+              << (brokenFrameOk ? "PASS" : "FAIL") << '\n';
+    failures += !brokenFrameOk;
 
     return failures == 0 ? 0 : 1;
 }
