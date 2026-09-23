@@ -57,7 +57,9 @@ int main() {
             graph.spaths.size() == 1 &&
             graph.spaths[0].returnsToHeader &&
             graph.transitionCount == 1 &&
+            graph.transitions.size() == 1 &&
             graph.sccCount == 1 &&
+            graph.sccs.size() == 1 &&
             graph.cyclicSccCount == 1 &&
             graph.maxSccSize == 1;
         failures += !report("loopscc-single-spath", ok);
@@ -83,6 +85,8 @@ int main() {
             graph.spaths.size() == 2 &&
             graph.transitionCount == 4 &&
             graph.sccCount == 1 &&
+            graph.sccs.size() == 1 &&
+            graph.sccs[0].size() == 2 &&
             graph.multiNodeSccCount == 1 &&
             graph.cyclicSccCount == 1 &&
             graph.maxSccSize == 2 &&
@@ -114,7 +118,8 @@ int main() {
             graph.multiNodeSccCount == 0 &&
             graph.cyclicSccCount == 2 &&
             graph.maxSccSize == 1 &&
-            graph.contractedEdgeCount == 1;
+            graph.contractedEdgeCount == 1 &&
+            graph.contractedEdges.size() == 1;
         failures += !report("loopscc-contracted-csg", ok);
     }
 
