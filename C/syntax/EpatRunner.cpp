@@ -554,17 +554,6 @@ buildAccelerationValidationDecisions(
         trace.accelerationPlanIndex >= graph.accelerationPlans.size()) {
         return std::nullopt;
     }
-    const auto& plan =
-        graph.accelerationPlans[trace.accelerationPlanIndex];
-    if (!plan.exact || !plan.memsPreserving ||
-        plan.cycleIndex >= graph.cycles.size()) {
-        return std::nullopt;
-    }
-    const auto& cycle = graph.cycles[plan.cycleIndex];
-    if (!cycle.phaseGuardsProved ||
-        plan.entryPhase >= cycle.spathOrder.size()) {
-        return std::nullopt;
-    }
 
     std::size_t firstTrue = decisions.size();
     std::size_t finalFalse = decisions.size();
@@ -584,32 +573,63 @@ buildAccelerationValidationDecisions(
         return std::nullopt;
     }
 
-    std::vector<PathDecision> compressed;
-    compressed.reserve(
-        decisions.size() -
-        (finalFalse - firstTrue) +
-        plan.closedFormTransforms.size() + 4);
-    compressed.insert(
-        compressed.end(), decisions.begin(),
+    std::vector<PathDecision> prefix(
+        decisions.begin(),
         decisions.begin() + static_cast<std::ptrdiff_t>(firstTrue));
+    auto compressed = buildLoopSccAccelerationDecisions(
+        prefix, loop, graph, trace.accelerationPlanIndex);
+    if (!compressed) return std::nullopt;
 
-    // Keep the initial loop condition. Exact trip-count proof guarantees how
-    // many iterations follow; the final false guard is re-applied after T^k.
-    compressed.push_back(decisions[firstTrue]);
+    compressed->insert(
+        compressed->end(),
+        decisions.begin() + static_cast<std::ptrdiff_t>(finalFalse + 1),
+        decisions.end());
+    return compressed;
+}
+
+}  // namespace
+
+std::optional<std::vector<PathDecision>>
+buildLoopSccAccelerationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t planIndex) {
+    if (!loop || planIndex >= graph.accelerationPlans.size()) {
+        return std::nullopt;
+    }
+    const auto& plan = graph.accelerationPlans[planIndex];
+    if (!plan.exact || !plan.memsPreserving ||
+        plan.residualPhases != 0 ||
+        plan.skippableIterations != plan.totalIterations ||
+        plan.cycleIndex >= graph.cycles.size()) {
+        return std::nullopt;
+    }
+    const auto& cycle = graph.cycles[plan.cycleIndex];
+    if (!cycle.phaseGuardsProved ||
+        plan.entryPhase >= cycle.spathOrder.size()) {
+        return std::nullopt;
+    }
+
+    std::vector<PathDecision> out = prefix;
+    out.push_back(PathDecision{
+        loop, PathDecisionKind::TrueBranch, {}});
 
     const std::size_t entryPathId =
         cycle.spathOrder[plan.entryPhase];
-    if (entryPathId >= graph.spaths.size()) return std::nullopt;
+    if (entryPathId >= graph.spaths.size()) {
+        return std::nullopt;
+    }
     const auto& entryPath = graph.spaths[entryPathId];
+    const std::string loopTrue = "T: " + loop->cond_str;
     for (const auto& guard : entryPath.guards) {
-        const std::string loopTrue = "T: " + loop->cond_str;
         if (guard == loopTrue) continue;
         if (guard.rfind("T: ", 0) == 0) {
-            compressed.push_back(PathDecision{
+            out.push_back(PathDecision{
                 loop, PathDecisionKind::SyntheticAssume,
                 guard.substr(3)});
         } else if (guard.rfind("F: ", 0) == 0) {
-            compressed.push_back(PathDecision{
+            out.push_back(PathDecision{
                 loop, PathDecisionKind::SyntheticAssume,
                 "!(" + guard.substr(3) + ")"});
         } else {
@@ -618,20 +638,15 @@ buildAccelerationValidationDecisions(
     }
 
     for (const auto& transform : plan.closedFormTransforms) {
-        compressed.push_back(PathDecision{
+        out.push_back(PathDecision{
             loop, PathDecisionKind::SyntheticCode,
             renderAccelerationAssignment(transform)});
     }
 
-    compressed.push_back(decisions[finalFalse]);
-    compressed.insert(
-        compressed.end(),
-        decisions.begin() + static_cast<std::ptrdiff_t>(finalFalse + 1),
-        decisions.end());
-    return compressed;
+    out.push_back(PathDecision{
+        loop, PathDecisionKind::FalseBranch, {}});
+    return out;
 }
-
-}  // namespace
 
 EpatRunner::EpatRunner(std::string prefix)
     : prefix_(sanitizePrefixForEpat(normalizeBoundedVlaPrefix(prefix))) {
