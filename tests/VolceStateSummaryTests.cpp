@@ -99,9 +99,51 @@ int main() {
         {{"region", 6, true}});
     const bool boundedEnumerationOk = manyCells &&
         manyCells->count == 243 &&
-        manyCells->bounded_memory_terms.size() == 6;
+        manyCells->bounded_memory_terms.size() == 6 &&
+        manyCells->factored_projection_components == 5;
     std::cout << "bounded-memory-enumeration: "
               << (boundedEnumerationOk ? "PASS" : "FAIL") << '\n';
     failures += !boundedEnumerationOk;
+
+    // Two symbolic source regions are not independent unless the formula
+    // proves their bases cannot alias. p==q is feasible here, so the exact
+    // count must preserve the shared-cell case and factorization must be
+    // rejected. 3 equal-base pairs contribute 3 values each; six distinct-
+    // base pairs contribute 3^2 values each: 3*3 + 6*9 = 63.
+    const std::string aliasingSmt =
+        "(declare-const p (_ BitVec 32))\n"
+        "(declare-const q (_ BitVec 32))\n"
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n";
+    const auto aliasing = volce::countModelsFromSmt2(
+        aliasingSmt, {}, volce::Range{-1, 1}, true,
+        {{"p", 1, true}, {"q", 1, true}});
+    const bool aliasingOk = aliasing &&
+        aliasing->count == 63 &&
+        aliasing->factored_projection_components == 0;
+    std::cout << "projection-factorization-alias-guard: "
+              << (aliasingOk ? "PASS" : "FAIL") << '\n';
+    failures += !aliasingOk;
+
+    // Once bases are fixed apart, six canonical cells are provably disjoint
+    // and can be counted as independent components without changing the exact
+    // finite projection count.
+    const std::string disjointSmt =
+        "(declare-const p (_ BitVec 32))\n"
+        "(declare-const q (_ BitVec 32))\n"
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= p (_ bv0 32)))\n"
+        "(assert (= q (_ bv4 32)))\n";
+    const std::unordered_map<std::string, volce::Range> disjointRanges{
+        {"p", {-8, 8}}, {"q", {-8, 8}}, {"%memory", {-1, 1}}};
+    const auto disjoint = volce::countModelsFromSmt2(
+        disjointSmt, disjointRanges, std::nullopt, true,
+        {{"p", 3, true}, {"q", 3, true}});
+    const bool disjointOk = disjoint &&
+        disjoint->count == 729 &&
+        disjoint->bounded_memory_terms.size() == 6 &&
+        disjoint->factored_projection_components >= 6;
+    std::cout << "projection-factorization-disjoint-regions: "
+              << (disjointOk ? "PASS" : "FAIL") << '\n';
+    failures += !disjointOk;
     return failures == 0 ? 0 : 1;
 }
