@@ -79,14 +79,30 @@ int main() {
     const auto affineRejected = volce::countModelsFromSmt2WithSummaries(
         affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
         {{"state", 1, 1}});
-    const bool affineRelationOk = affineAccepted && affineRejected &&
+    const auto affineBaseline = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, false,
+        {{"state", 1, 0}});
+    const bool affineRelationOk =
+        affineAccepted && affineRejected && affineBaseline &&
         affineAccepted->count == affineRejected->count &&
+        affineAccepted->count == affineBaseline->count &&
         affineAccepted->applied_affine_relation_summaries.size() == 1 &&
         affineAccepted->rejected_affine_relation_summaries.empty() &&
+        affineAccepted->counting_assertions <
+            affineBaseline->counting_assertions &&
         affineRejected->applied_affine_relation_summaries.empty() &&
         affineRejected->rejected_affine_relation_summaries.size() == 1;
     std::cout << "loopscc-affine-relation-entailment: "
-              << (affineRelationOk ? "PASS" : "FAIL") << '\n';
+              << (affineRelationOk ? "PASS" : "FAIL")
+              << " optimized_assertions="
+              << (affineAccepted
+                      ? std::to_string(affineAccepted->counting_assertions)
+                      : "N/A")
+              << " baseline_assertions="
+              << (affineBaseline
+                      ? std::to_string(affineBaseline->counting_assertions)
+                      : "N/A")
+              << '\n';
     failures += !affineRelationOk;
 
     const std::string negativeScaleSmt =
