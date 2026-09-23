@@ -1435,6 +1435,12 @@ validateMemoryCellRelationsFromSmt2(
     const std::vector<MemoryCellAffineRelationSummary>& summaries) {
     if (smt2.empty()) return std::nullopt;
 
+    // Keep declaration metadata as well as symbols reachable from assertions.
+    // An untouched source cell can disappear from the parsed assertion AST
+    // precisely when the final memory overwrites it with an unrelated value;
+    // frame validation must still know that such a source-region cell exists.
+    const auto parsedDecls = parseBitVectorDecls(smt2);
+
     Z3_config config = Z3_mk_config();
     Z3_context ctx = Z3_mk_context(config);
     Z3_del_config(config);
@@ -1623,25 +1629,53 @@ validateMemoryCellRelationsFromSmt2(
             baseName.substr(0, baseMarker);
         const std::string cellPrefix = scopePrefix + "@";
 
-        std::map<std::int64_t, Z3_func_decl> sourceCells;
-        for (auto decl : decls) {
-            const char* raw =
-                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
-            const std::string name = raw ? raw : "";
-            if (name.rfind(cellPrefix, 0) != 0) continue;
-            const std::string suffix =
-                name.substr(cellPrefix.size());
+        struct FrameSourceCell {
+            Z3_func_decl decl{nullptr};
+            unsigned bits{0};
+            std::string name;
+        };
+        std::map<std::int64_t, FrameSourceCell> sourceCells;
+        auto parseCellIndex = [&](const std::string& name)
+            -> std::optional<std::int64_t> {
+            if (name.rfind(cellPrefix, 0) != 0) return std::nullopt;
+            const std::string suffix = name.substr(cellPrefix.size());
             if (suffix.empty() ||
                 !std::all_of(
                     suffix.begin(), suffix.end(),
                     [](unsigned char ch) {
                         return std::isdigit(ch) != 0;
                     })) {
-                continue;
+                return std::nullopt;
             }
-            const std::int64_t index =
-                std::strtoll(suffix.c_str(), nullptr, 10);
-            sourceCells.emplace(index, decl);
+            return std::strtoll(suffix.c_str(), nullptr, 10);
+        };
+
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            const auto index = parseCellIndex(name);
+            if (!index) continue;
+            Z3_sort sort = Z3_get_range(ctx, decl);
+            if (!isBitVector(ctx, sort)) continue;
+            sourceCells.emplace(
+                *index,
+                FrameSourceCell{
+                    decl, Z3_get_bv_sort_size(ctx, sort), name});
+        }
+
+        // collectZeroArityDecls() only sees declarations referenced by an
+        // assertion. Add declared-but-unreferenced cells as conservative frame
+        // obligations. A fresh same-named proxy is sufficient here: because
+        // the cell has no formula occurrence, preservation cannot be entailed
+        // unless the final memory is likewise unconstrained in a compatible
+        // way, so the shortcut remains safely rejected.
+        for (const auto& parsed : parsedDecls) {
+            const auto index = parseCellIndex(parsed.name);
+            if (!index) continue;
+            sourceCells.emplace(
+                *index,
+                FrameSourceCell{nullptr, parsed.bits, parsed.name});
         }
         if (sourceCells.empty()) {
             result.frame_rejected.push_back(
@@ -1671,8 +1705,24 @@ validateMemoryCellRelationsFromSmt2(
                     Z3_mk_int64(ctx, cell.first, addressSort);
                 address = Z3_mk_bvadd(ctx, base, offset);
             }
-            Z3_ast entry =
-                Z3_mk_app(ctx, cell.second, 0, nullptr);
+            Z3_ast entry = nullptr;
+            if (cell.second.decl) {
+                entry = Z3_mk_app(
+                    ctx, cell.second.decl, 0, nullptr);
+            } else if (cell.second.bits > 0) {
+                Z3_symbol symbol = Z3_mk_string_symbol(
+                    ctx, cell.second.name.c_str());
+                entry = Z3_mk_const(
+                    ctx, symbol,
+                    Z3_mk_bv_sort(ctx, cell.second.bits));
+            }
+            if (!entry) {
+                result.frame_rejected.push_back(
+                    source + "[" + std::to_string(cell.first) +
+                    "]: source cell declaration cannot be materialized");
+                valid = false;
+                break;
+            }
             Z3_ast exit =
                 Z3_mk_select(ctx, finalMemory, address);
             Z3_ast equality = Z3_mk_eq(ctx, exit, entry);
