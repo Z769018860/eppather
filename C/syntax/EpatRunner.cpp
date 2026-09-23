@@ -313,6 +313,23 @@ int estimateMemsFromScript(const std::string& script) {
     return mem;
 }
 
+
+std::map<std::string, std::pair<long long, long long>>
+affineTransformMap(const std::vector<LoopSccAffineTransform>& transforms) {
+    std::map<std::string, std::pair<long long, long long>> out;
+    for (const auto& transform : transforms) {
+        out[transform.variable] =
+            std::make_pair(transform.scale, transform.offset);
+    }
+    return out;
+}
+
+bool sameAffineTransforms(
+    const std::vector<LoopSccAffineTransform>& lhs,
+    const std::vector<LoopSccAffineTransform>& rhs) {
+    return affineTransformMap(lhs) == affineTransformMap(rhs);
+}
+
 LoopSccPhaseTrace buildLoopSccPhaseTrace(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
@@ -460,6 +477,40 @@ LoopSccPhaseTrace buildLoopSccPhaseTrace(
             trace.pathAffineTransforms.push_back(
                 LoopSccAffineTransform{
                     entry.first, entry.second.first, entry.second.second});
+        }
+
+        // The acceleration plan is derived independently from the proved trip
+        // count and T^k composition. Accept it only if the concrete unfolded
+        // path reaches the same entry phase, consumes the same exact number of
+        // iterations, and yields the same scalar relation. This is the A/B
+        // gate before any future DFS shortcut is allowed to use the plan.
+        for (std::size_t planIndex = 0;
+             planIndex < graph.accelerationPlans.size(); ++planIndex) {
+            const auto& plan = graph.accelerationPlans[planIndex];
+            if (!plan.exact ||
+                plan.cycleIndex != cycleIndex ||
+                plan.entryPhase != entry ||
+                plan.totalIterations !=
+                    static_cast<long long>(trace.observedIterations)) {
+                continue;
+            }
+            if (!sameAffineTransforms(
+                    plan.closedFormTransforms,
+                    trace.pathAffineTransforms)) {
+                trace.diagnostics.push_back(
+                    "symbolic acceleration plan disagrees with unfolded path");
+                continue;
+            }
+            trace.matchedAccelerationPlan = true;
+            trace.accelerationPlanIndex = planIndex;
+            trace.accelerationTransforms =
+                plan.closedFormTransforms;
+            break;
+        }
+        if (!graph.accelerationPlans.empty() &&
+            !trace.matchedAccelerationPlan) {
+            trace.diagnostics.push_back(
+                "no symbolic acceleration plan matched the unfolded path");
         }
         return trace;
     }
@@ -650,7 +701,11 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             if (trace.complete && trace.matchedDeterminateCycle &&
                 trace.cycleIndex < graph.cycles.size() &&
                 graph.cycles[trace.cycleIndex].guardedClosedFormCandidate) {
-                for (const auto& relation : trace.pathAffineTransforms) {
+                const auto& relations =
+                    trace.matchedAccelerationPlan
+                        ? trace.accelerationTransforms
+                        : trace.pathAffineTransforms;
+                for (const auto& relation : relations) {
                     result.loopSccAffineStateSummaries.push_back(
                         LoopSccAffineStateSummary{
                             relation.variable,
@@ -658,6 +713,10 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                             relation.offset,
                             trace.period,
                             trace.observedIterations});
+                }
+                if (trace.matchedAccelerationPlan) {
+                    result.loopStateSummaryDiagnostics.push_back(
+                        "loopscc: symbolic acceleration plan matched unfolded path");
                 }
             }
             result.loopSccPhaseTraces.push_back(std::move(trace));
