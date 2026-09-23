@@ -34,6 +34,10 @@ struct LoopSccSPathInfo {
     bool accelerationEffectSafe{true};
     // False when any branch guard on the SPath is outside the interval model.
     bool guardModelComplete{true};
+    // Coverage-matrix slots touched by this concrete one-iteration SPath.
+    // DFS2 uses slot 2*depth for true/ordinary coverage and 2*depth+1 for
+    // false/ordinary coverage.
+    std::vector<int> coverageSlots;
     bool returnsToHeader{false};
     bool exitsLoop{false};
 };
@@ -53,6 +57,8 @@ struct LoopSccAccelerationPlan {
     // so skipping the repeated periods preserves MEMS without compensation.
     bool memsPreserving{false};
     long long skippableIterations{0};
+    // Exact boolean coverage union of the skipped iterations plus loop exit.
+    std::vector<int> coverageSlots;
     bool exact{false};
     std::vector<std::string> diagnostics;
 };
