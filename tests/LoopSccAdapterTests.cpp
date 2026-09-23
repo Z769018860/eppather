@@ -151,6 +151,8 @@ int main() {
                 plan.completePeriods == 2 &&
                 plan.residualPhases == 0 &&
                 plan.residualSPaths.empty() &&
+                plan.memsPreserving &&
+                plan.skippableIterations == 4 &&
                 sawX && sawI;
         }
 
@@ -212,10 +214,46 @@ int main() {
                 plan.completePeriods == 2 &&
                 plan.residualPhases == 1 &&
                 plan.residualSPaths.size() == 1 &&
+                plan.memsPreserving &&
+                plan.skippableIterations == 4 &&
                 sawX && sawI;
         }
         failures += !report(
             "loopscc-acceleration-residual-phase", plansOk);
+    }
+
+    // Opaque calls are not part of the restricted scalar-affine semantics.
+    // Even if the surrounding scalar state looks periodic, acceleration must
+    // fall back so hidden memory accesses or side effects cannot be skipped.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto branch = ifNode("x >= 0");
+        auto positive = node("x = 0 - x - 1;");
+        auto negative = node("x = 0 - x - 1;");
+        auto opaque = node("touch(x);");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(branch);
+        loop->setNextFalseNode(exit);
+        branch->setNextNode(positive);
+        branch->setNextFalseNode(negative);
+        positive->setNextNode(opaque);
+        negative->setNextNode(opaque);
+        opaque->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        bool allUnsafe = true;
+        for (const auto& spath : graph.spaths) {
+            allUnsafe = allUnsafe && !spath.accelerationEffectSafe;
+        }
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 2 &&
+            allUnsafe &&
+            graph.guardedClosedFormCandidateCount == 0 &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-opaque-effect-fallback", ok);
     }
 
     // x<0 can move to either side after +1, while x>=0 can only remain on the
