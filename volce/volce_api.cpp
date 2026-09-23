@@ -1504,7 +1504,34 @@ validateMemoryCellRelationsFromSmt2(
             address = Z3_mk_bvadd(ctx, base, offset);
         }
 
-        Z3_ast entry = Z3_mk_select(ctx, initialMemory, address);
+        // Prefer the source cell declaration materialized for a local
+        // uninitialized array. It represents the cell value at source-array
+        // initialization and, when there is no pre-loop write, is the exact
+        // loop-entry value. Falling back to select(%a,address) is conservative:
+        // any intervening source initialization/write makes a wrong relation
+        // fail the entailment check rather than being assumed away.
+        Z3_ast entry = nullptr;
+        const auto baseMarker = baseName.rfind("#base");
+        if (baseMarker != std::string::npos) {
+            const std::string scopePrefix =
+                baseName.substr(0, baseMarker);
+            const std::string expectedCell =
+                scopePrefix + "@" +
+                std::to_string(summary.cell_index);
+            for (auto decl : decls) {
+                const char* raw =
+                    Z3_get_symbol_string(
+                        ctx, Z3_get_decl_name(ctx, decl));
+                const std::string name = raw ? raw : "";
+                if (name == expectedCell) {
+                    entry = Z3_mk_app(ctx, decl, 0, nullptr);
+                    break;
+                }
+            }
+        }
+        if (!entry) {
+            entry = Z3_mk_select(ctx, initialMemory, address);
+        }
         Z3_ast exit = Z3_mk_select(ctx, finalMemory, address);
         Z3_sort valueSort = Z3_get_sort(ctx, entry);
         if (!isBitVector(ctx, valueSort) ||
