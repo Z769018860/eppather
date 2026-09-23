@@ -98,24 +98,23 @@ int main() {
     }
 
 
-    // A proved two-phase oscillation. Negative x is mapped to +1 and the
-    // non-negative phase is mapped to -1. Interval reasoning removes both
-    // self-transitions, leaving one unique successor and predecessor per
-    // SPath. The cycle therefore has period two and an exact affine transform
-    // over one full cycle.
+    // A proved sign-flipping oscillation. For x >= 0 and x < 0 alike,
+    // x' = -x - 1 crosses the phase boundary exactly. Interval reasoning
+    // therefore leaves one unique successor and predecessor per SPath.
+    // Applying the transform twice yields x_after_period=x.
     {
         auto loop = loopNode("i < 10");
-        auto branch = ifNode("x < 0");
-        auto negative = node("x = 1;");
-        auto nonNegative = node("x = -1;");
+        auto branch = ifNode("x >= 0");
+        auto nonNegative = node("x = 0 - x - 1;");
+        auto negative = node("x = 0 - x - 1;");
         auto increment = node("i = i + 1;");
         auto exit = node("return x;");
         loop->setNextNode(branch);
         loop->setNextFalseNode(exit);
-        branch->setNextNode(negative);
-        branch->setNextFalseNode(nonNegative);
-        negative->setNextNode(increment);
+        branch->setNextNode(nonNegative);
+        branch->setNextFalseNode(negative);
         nonNegative->setNextNode(increment);
+        negative->setNextNode(increment);
         increment->setNextNode(loop);
 
         const auto graph = LoopSccAdapter::analyze(loop.get());
@@ -123,7 +122,7 @@ int main() {
             !graph.cycles.empty() &&
             std::find(graph.cycles[0].periodAffineUpdates.begin(),
                       graph.cycles[0].periodAffineUpdates.end(),
-                      "x_after_period=-1") !=
+                      "x_after_period=x") !=
                 graph.cycles[0].periodAffineUpdates.end() &&
             std::find(graph.cycles[0].periodAffineUpdates.begin(),
                       graph.cycles[0].periodAffineUpdates.end(),
