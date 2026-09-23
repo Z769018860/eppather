@@ -89,6 +89,21 @@ int main() {
               << (affineRelationOk ? "PASS" : "FAIL") << '\n';
     failures += !affineRelationOk;
 
+    const std::string negativeScaleSmt =
+        "(declare-const |flip@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |flip@0#ssa1| (_ BitVec 32))\n"
+        "(assert (= |flip@0#ssa1| "
+        "(bvsub (bvneg |flip@0#ssa0|) (_ bv1 32))))\n";
+    const auto negativeScale = volce::countModelsFromSmt2WithSummaries(
+        negativeScaleSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"flip", -1, -1}});
+    const bool negativeScaleOk = negativeScale &&
+        negativeScale->applied_affine_relation_summaries.size() == 1 &&
+        negativeScale->rejected_affine_relation_summaries.empty();
+    std::cout << "loopscc-negative-scale-relation: "
+              << (negativeScaleOk ? "PASS" : "FAIL") << '\n';
+    failures += !negativeScaleOk;
+
     const std::string memorySmt =
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
@@ -205,31 +220,31 @@ int main() {
     // A LoopSCC path relation is accepted only when the complete SMT path
     // formula entails the relation between the first and last materialized
     // SSA states. A wrong affine offset must be rejected.
-    const std::string affineRelationSmt =
+    const std::string linearRelationSmt =
         "(declare-const |x@0#ssa0| (_ BitVec 32))\n"
         "(declare-const |x@0#ssa1| (_ BitVec 32))\n"
         "(declare-const |x@0#ssa2| (_ BitVec 32))\n"
         "(assert (= |x@0#ssa1| (bvadd |x@0#ssa0| (_ bv1 32))))\n"
         "(assert (= |x@0#ssa2| (bvadd |x@0#ssa1| (_ bv1 32))))\n";
-    const auto affineAccepted = volce::countModelsFromSmt2WithSummaries(
-        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+    const auto linearAccepted = volce::countModelsFromSmt2WithSummaries(
+        linearRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
         {volce::AffineRelationSummary{"x", 1, 2}});
-    const bool affineAcceptedOk = affineAccepted &&
-        affineAccepted->applied_affine_relation_summaries.size() == 1 &&
-        affineAccepted->rejected_affine_relation_summaries.empty();
-    std::cout << "loopscc-affine-relation-entailed: "
-              << (affineAcceptedOk ? "PASS" : "FAIL") << '\n';
-    failures += !affineAcceptedOk;
+    const bool linearAcceptedOk = linearAccepted &&
+        linearAccepted->applied_affine_relation_summaries.size() == 1 &&
+        linearAccepted->rejected_affine_relation_summaries.empty();
+    std::cout << "loopscc-linear-relation-entailed: "
+              << (linearAcceptedOk ? "PASS" : "FAIL") << '\n';
+    failures += !linearAcceptedOk;
 
-    const auto affineRejected = volce::countModelsFromSmt2WithSummaries(
-        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+    const auto linearRejected = volce::countModelsFromSmt2WithSummaries(
+        linearRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
         {volce::AffineRelationSummary{"x", 1, 3}});
-    const bool affineRejectedOk = affineRejected &&
-        affineRejected->applied_affine_relation_summaries.empty() &&
-        affineRejected->rejected_affine_relation_summaries.size() == 1;
-    std::cout << "loopscc-affine-relation-rejected: "
-              << (affineRejectedOk ? "PASS" : "FAIL") << '\n';
-    failures += !affineRejectedOk;
+    const bool linearRejectedOk = linearRejected &&
+        linearRejected->applied_affine_relation_summaries.empty() &&
+        linearRejected->rejected_affine_relation_summaries.size() == 1;
+    std::cout << "loopscc-linear-relation-rejected: "
+              << (linearRejectedOk ? "PASS" : "FAIL") << '\n';
+    failures += !linearRejectedOk;
 
     return failures == 0 ? 0 : 1;
 }
