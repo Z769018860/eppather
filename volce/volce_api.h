@@ -21,6 +21,13 @@ struct AffineStateSummary {
     std::int64_t final_value;
 };
 
+struct AffineRelationSummary {
+    std::string variable;
+    // exit = scale * entry + offset
+    std::int64_t scale{1};
+    std::int64_t offset{0};
+};
+
 struct MemoryRegionProjection {
     std::string source_name;
     std::size_t cells;
@@ -40,6 +47,8 @@ struct CountResult {
     // not constrain the model space and must not be reported as "applied".
     std::vector<std::string> validated_ground_state_summaries;
     std::vector<std::string> rejected_state_summaries;
+    std::vector<std::string> applied_affine_relation_summaries;
+    std::vector<std::string> rejected_affine_relation_summaries;
     // Profiling fields separate formula/projection size from the two expensive
     // phases. They are observational and do not change counting semantics.
     std::size_t formula_assertions{0};
@@ -68,7 +77,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::optional<Range>& default_range = std::nullopt,
     bool include_memory_terms = false,
     const std::vector<MemoryRegionProjection>& memory_regions = {},
-    bool apply_entailed_summaries = true);
+    bool apply_entailed_summaries = true,
+    const std::vector<AffineRelationSummary>& affine_relations = {});
 
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
