@@ -798,7 +798,7 @@ void deriveAccelerationPlans(CFGNode* loop,
 }
 
 std::optional<LoopSccAccelerationPlan>
-uniformInsideOutPlan(const LoopSccGraphInfo& nested) {
+uniformInsideOutPlan(const LoopSccGraphInfo& nested, CFGNode* nestedLoop) {
     if (!nested.complete || nested.provedTripCount < 0 ||
         nested.accelerationPlans.empty()) {
         return std::nullopt;
@@ -836,7 +836,45 @@ uniformInsideOutPlan(const LoopSccGraphInfo& nested) {
         }
     }
     if (!representative || reference.empty()) return std::nullopt;
-    return *representative;
+
+    LoopSccAccelerationPlan folded = *representative;
+
+    // A for-loop initializer is executed each time the nested loop is entered.
+    // The per-iteration SPath transform intentionally starts at the loop body,
+    // so fold a constant induction initializer into the closed form before the
+    // nested summary is composed into the outer SPath. Without this, a nested
+    // "for (int j = 0; ...)" would incorrectly export j_out=j_entry+N.
+    if (nestedLoop && nestedLoop->isFor &&
+        !nestedLoop->initstmt_str.empty()) {
+        std::smatch initMatch;
+        static const std::regex initRe(
+            R"((?:^|[;[:space:]])(?:[A-Za-z_][A-Za-z0-9_]*[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;?$)");
+        if (!std::regex_search(
+                nestedLoop->initstmt_str, initMatch, initRe)) {
+            return std::nullopt;
+        }
+        const std::string initVar = initMatch[1].str();
+        const long long initValue =
+            std::strtoll(initMatch[2].str().c_str(), nullptr, 10);
+        bool sawInitVar = false;
+        for (auto& transform : folded.closedFormTransforms) {
+            if (transform.variable != initVar) continue;
+            const __int128 value =
+                static_cast<__int128>(transform.scale) * initValue +
+                transform.offset;
+            if (value < std::numeric_limits<long long>::min() ||
+                value > std::numeric_limits<long long>::max()) {
+                return std::nullopt;
+            }
+            transform.scale = 0;
+            transform.offset = static_cast<long long>(value);
+            sawInitVar = true;
+            break;
+        }
+        if (!sawInitVar) return std::nullopt;
+    }
+
+    return folded;
 }
 
 void deriveUniformTripCount(CFGNode* loop,
@@ -970,7 +1008,8 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         if (current->isLoop) {
             const auto nested = LoopSccAdapter::analyze(
                 current.get(), maxPaths, maxNodesPerPath);
-            const auto nestedPlan = uniformInsideOutPlan(nested);
+            const auto nestedPlan =
+                uniformInsideOutPlan(nested, current.get());
             if (!nestedPlan) {
                 unsupported = true;
                 result.diagnostics.push_back(
