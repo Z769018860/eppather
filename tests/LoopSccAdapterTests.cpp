@@ -30,6 +30,19 @@ std::shared_ptr<CFGNode> loopNode(const std::string& condition) {
     return n;
 }
 
+std::shared_ptr<CFGNode> forLoopNode(const std::string& init,
+                                     const std::string& condition,
+                                     const std::string& update) {
+    auto n = node();
+    n->isLoop = true;
+    n->isFor = true;
+    n->isCondition = true;
+    n->initstmt_str = init;
+    n->cond_str = condition;
+    n->expr_str = update;
+    return n;
+}
+
 std::shared_ptr<CFGNode> ifNode(const std::string& condition) {
     auto n = node();
     n->isIf = true;
@@ -412,6 +425,52 @@ int main() {
             graph.accelerationPlans[0].skippableIterations == 3 &&
             sawX6 && sawI3 && sawJ2;
         failures += !report("loopscc-inside-out-scalar-nested", ok);
+    }
+
+    // Canonical nested for-loops also participate in inside-out summaries.
+    // The inner initializer must be folded into the nested closed form:
+    // j starts from 0 on every outer iteration, so the outer summary observes
+    // j=2 rather than j_out=j_entry+2.
+    {
+        auto outer = forLoopNode("int i = 0;", "i < 3", "i = i + 1");
+        auto inner = forLoopNode("int j = 0;", "j < 2", "j = j + 1");
+        auto incX = node("x = x + 1;");
+        auto exit = node("return x;");
+
+        outer->setNextNode(inner);
+        outer->setNextFalseNode(exit);
+        inner->setNextNode(incX);
+        inner->setNextFalseNode(outer);
+        incX->setNextNode(inner);
+
+        const auto graph = LoopSccAdapter::analyze(outer.get());
+        bool sawX6 = false;
+        bool sawI3 = false;
+        bool sawJ2 = false;
+        if (graph.accelerationPlans.size() == 1) {
+            for (const auto& transform :
+                 graph.accelerationPlans[0].closedFormTransforms) {
+                if (transform.variable == "x") {
+                    sawX6 = transform.scale == 1 &&
+                            transform.offset == 6;
+                } else if (transform.variable == "i") {
+                    sawI3 = transform.scale == 1 &&
+                            transform.offset == 3;
+                } else if (transform.variable == "j") {
+                    sawJ2 = transform.scale == 0 &&
+                            transform.offset == 2;
+                }
+            }
+        }
+        const bool ok = graph.complete &&
+            graph.insideOutNestedSummaryCount == 1 &&
+            graph.provedTripCount == 3 &&
+            graph.tripCountVariable == "i" &&
+            graph.accelerationPlans.size() == 1 &&
+            graph.accelerationPlans[0].exact &&
+            graph.accelerationPlans[0].memsPreserving &&
+            sawX6 && sawI3 && sawJ2;
+        failures += !report("loopscc-inside-out-nested-for", ok);
     }
 
     // Nested loops require inside-out summaries. The first adapter stage must
