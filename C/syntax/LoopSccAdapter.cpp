@@ -378,6 +378,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
             }
         } else {
             path.info.memoryTransitionModelComplete = false;
+            path.info.memorySummaryEffectSafe = false;
         }
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
@@ -414,6 +415,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         (text.find('[') != std::string::npos ||
          (!text.empty() && text.front() == '*'))) {
         path.info.memoryTransitionModelComplete = false;
+        path.info.memorySummaryEffectSafe = false;
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
@@ -423,6 +425,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
     if (std::regex_match(text, m, simpleAssign)) {
         markUnknownWrite(path, m[1].str(), raw);
         path.info.accelerationEffectSafe = false;
+        path.info.memorySummaryEffectSafe = false;
         return false;
     }
 
@@ -431,6 +434,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
     // pointer read, multiplication, or other side effect). Keep structural
     // SPath information, but never use such a path for acceleration.
     path.info.accelerationEffectSafe = false;
+    path.info.memorySummaryEffectSafe = false;
     return false;
 }
 
@@ -800,13 +804,15 @@ void deriveMemorySummaryCandidates(
 
         bool memoryModelComplete = true;
         std::set<std::pair<std::string, long long>> cells;
+        std::set<std::string> scalarVariables;
         for (std::size_t pathId : cycle.spathOrder) {
             if (pathId >= built.size()) {
                 memoryModelComplete = false;
                 break;
             }
             const auto& path = built[pathId];
-            if (!path.info.memoryTransitionModelComplete) {
+            if (!path.info.memoryTransitionModelComplete ||
+                !path.info.memorySummaryEffectSafe) {
                 memoryModelComplete = false;
                 break;
             }
@@ -820,6 +826,11 @@ void deriveMemorySummaryCandidates(
                     break;
                 }
                 cells.insert(entry.first);
+            }
+            for (const auto& entry : path.transforms) {
+                if (entry.second.exact) {
+                    scalarVariables.insert(entry.first);
+                }
             }
             if (!memoryModelComplete) break;
         }
@@ -914,6 +925,53 @@ void deriveMemorySummaryCandidates(
                     LoopSccMemoryCellTransform{
                         cell.first, cell.second,
                         accumulated.scale, accumulated.offset});
+            }
+
+            for (const auto& variable : scalarVariables) {
+                AffineTransform onePeriod;
+                for (std::size_t step = 0;
+                     step < cycle.period; ++step) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + step) % cycle.period];
+                    auto it = built[pathId].transforms.find(variable);
+                    if (it == built[pathId].transforms.end()) continue;
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, onePeriod, next)) {
+                        exact = false;
+                        break;
+                    }
+                    onePeriod = next;
+                }
+                if (!exact) break;
+
+                AffineTransform accumulated;
+                if (!affinePower(
+                        onePeriod, fullPeriods, accumulated)) {
+                    exact = false;
+                    break;
+                }
+                for (std::size_t r = 0; r < residual; ++r) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + r) % cycle.period];
+                    auto it = built[pathId].transforms.find(variable);
+                    if (it == built[pathId].transforms.end()) continue;
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, accumulated, next)) {
+                        exact = false;
+                        break;
+                    }
+                    accumulated = next;
+                }
+                if (!exact) break;
+                candidate.scalarClosedFormTransforms.push_back(
+                    LoopSccAffineTransform{
+                        variable,
+                        accumulated.scale,
+                        accumulated.offset});
             }
 
             candidate.exact =
