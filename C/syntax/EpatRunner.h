@@ -48,9 +48,14 @@ struct LoopSccPhaseTrace {
     std::size_t observedIterations{0};
     std::size_t completePeriods{0};
     std::size_t residualPhases{0};
+    bool matchedAccelerationPlan{false};
+    std::size_t accelerationPlanIndex{0};
     std::vector<std::size_t> spathSequence;
     // Exact transform across the observed, cycle-matched loop execution.
     std::vector<LoopSccAffineTransform> pathAffineTransforms;
+    // Independently derived from proved trip count + T^k, then compared
+    // against the concrete unfolded path before VolCE sees it.
+    std::vector<LoopSccAffineTransform> accelerationTransforms;
     std::vector<std::string> diagnostics;
 };
 
