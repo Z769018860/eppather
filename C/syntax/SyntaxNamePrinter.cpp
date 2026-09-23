@@ -3802,6 +3802,52 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     cout << "[VOLCE LOOP SUMMARY DIAGNOSTIC]: "
                          << diagnostic << endl;
                 }
+
+                // Validation-only compressed LoopSCC paths are counted over
+                // the exact same finite input domain. Equal model count plus
+                // equal MEMS proves equal per-path weighted-MEMS contribution.
+                for (const auto& validation :
+                     eval.loopSccAccelerationValidations) {
+                    if (!validation.matched ||
+                        validation.compressedSmt.empty()) {
+                        continue;
+                    }
+                    const auto compressedVolce = runVolce(
+                        validation.compressedSmt,
+                        volceLower, volceUpper, {},
+                        inputMemoryRegions_, {});
+                    const auto compressedCount =
+                        parseVolceCount(compressedVolce);
+                    const bool countMatch =
+                        volceCount && compressedCount &&
+                        *volceCount == *compressedCount;
+                    const bool weightedMatch =
+                        countMatch && validation.memMatched;
+
+                    cout << "[LOOPSCC COMPRESSED VOLCE]: baseline_count="
+                         << (volceCount
+                                 ? std::to_string(*volceCount)
+                                 : "N/A")
+                         << " compressed_count="
+                         << (compressedCount
+                                 ? std::to_string(*compressedCount)
+                                 : "N/A")
+                         << " count_match=" << (countMatch ? 1 : 0)
+                         << " weighted_match="
+                         << (weightedMatch ? 1 : 0)
+                         << endl;
+                    resultFile
+                        << "[loopscc_compressed_volce_count_match]:"
+                        << (countMatch ? 1 : 0) << "\n";
+                    resultFile
+                        << "[loopscc_compressed_weighted_match]:"
+                        << (weightedMatch ? 1 : 0) << "\n";
+                    if (compressedCount) {
+                        resultFile
+                            << "[loopscc_compressed_volce_count]:"
+                            << *compressedCount << "\n";
+                    }
+                }
             } else {
                 resultFile << "[volce]: N/A\n";
                 cout << "[VolCE] N/A" << endl;
