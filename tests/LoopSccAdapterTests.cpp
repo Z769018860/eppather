@@ -631,6 +631,29 @@ int main() {
         failures += !report("loopscc-nested-fallback", ok);
     }
 
+    // Final-memory SSA provenance is opt-in. It must expose the final
+    // functional-store array only when explicitly enabled, leaving the legacy
+    // memory formula unchanged by default.
+    {
+        const std::string script =
+            "int a[1];\n"
+            "a[0] = 1;\n"
+            "return a[0];\n";
+        psy::C::EpatRunner runner("");
+        epat::setMemorySsaProvenanceEnabled(false);
+        const auto baseline = runner.solveScript(script);
+        epat::setMemorySsaProvenanceEnabled(true);
+        const auto withMemorySsa = runner.solveScript(script);
+        epat::setMemorySsaProvenanceEnabled(false);
+
+        const bool ok =
+            baseline.status == epat::result::feasible &&
+            withMemorySsa.status == epat::result::feasible &&
+            baseline.smt.find("%a#ssa_final") == std::string::npos &&
+            withMemorySsa.smt.find("%a#ssa_final") != std::string::npos;
+        failures += !report("loopscc-final-memory-ssa-provenance", ok);
+    }
+
     // Isolate epat++/SSA from CFG wiring: this is the exact expected
     // determinate four-iteration path for the end-to-end periodic fixture.
     {
