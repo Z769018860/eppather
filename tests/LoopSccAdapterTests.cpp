@@ -4,6 +4,7 @@
 #include "syntax/SyntaxNamePrinter.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -346,6 +347,55 @@ int main() {
             graph.accelerationPlans.empty();
         failures += !report(
             "loopscc-fixed-cell-memory-transition-candidate", ok);
+    }
+
+    // A structurally recognized fixed cell still has to fit the declared
+    // one-dimensional local array region before EpatRunner exports it.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto write = node("a[1] = a[1] + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(write);
+        loop->setNextFalseNode(exit);
+        write->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        std::vector<psy::C::PathDecision> decisions;
+        for (int iteration = 0; iteration < 4; ++iteration) {
+            decisions.push_back({
+                loop.get(), PathDecisionKind::TrueBranch, {}});
+            decisions.push_back({
+                write.get(), PathDecisionKind::Code, {}});
+            decisions.push_back({
+                increment.get(), PathDecisionKind::Code, {}});
+        }
+        decisions.push_back({
+            loop.get(), PathDecisionKind::FalseBranch, {}});
+        decisions.push_back({
+            exit.get(), PathDecisionKind::Code, {}});
+
+        setenv("EPPATHER_LOOP_SCC_ANALYZE", "1", 1);
+        psy::C::EpatRunner runner("int a[1];\nint i = 0;\n");
+        const auto eval = runner.solve(decisions);
+        unsetenv("EPPATHER_LOOP_SCC_ANALYZE");
+
+        bool diagnosed = false;
+        for (const auto& diagnostic :
+             eval.loopStateSummaryDiagnostics) {
+            if (diagnostic.find(
+                    "outside declared local array region a[1]") !=
+                std::string::npos) {
+                diagnosed = true;
+                break;
+            }
+        }
+        const bool ok =
+            eval.loopSccMemoryCellStateSummaries.empty() &&
+            diagnosed;
+        failures += !report(
+            "loopscc-fixed-cell-local-region-bounds", ok);
     }
 
     // Cross-cell and symbolic-index writes are observable memory effects but
