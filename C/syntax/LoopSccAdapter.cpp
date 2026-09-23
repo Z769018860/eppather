@@ -257,14 +257,14 @@ void composeUpdate(BuiltPath& path,
     path.info.affineUpdates.push_back(os.str());
 }
 
-void composeMemoryCellUpdate(
+bool composeMemoryCellUpdate(
     BuiltPath& path,
     const std::string& region,
     long long index,
     long long scale,
     long long offset) {
     auto& current = path.memoryTransforms[{region, index}];
-    if (!current.exact) return;
+    if (!current.exact) return false;
     const __int128 nextScale =
         static_cast<__int128>(scale) * current.scale;
     const __int128 nextOffset =
@@ -274,10 +274,11 @@ void composeMemoryCellUpdate(
         nextOffset < std::numeric_limits<long long>::min() ||
         nextOffset > std::numeric_limits<long long>::max()) {
         current.exact = false;
-        return;
+        return false;
     }
     current.scale = static_cast<long long>(nextScale);
     current.offset = static_cast<long long>(nextOffset);
+    return true;
 }
 
 void markUnknownWrite(BuiltPath& path,
@@ -371,8 +372,12 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         if (lhsRegion == rhsRegion && lhsIndex == rhsIndex) {
             long long value = std::stoll(m[6].str());
             if (m[5].str() == "-") value = -value;
-            composeMemoryCellUpdate(
-                path, lhsRegion, lhsIndex, 1, value);
+            if (!composeMemoryCellUpdate(
+                    path, lhsRegion, lhsIndex, 1, value)) {
+                path.info.memoryTransitionModelComplete = false;
+            }
+        } else {
+            path.info.memoryTransitionModelComplete = false;
         }
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
@@ -382,17 +387,21 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
     if (std::regex_match(text, m, cellCompound)) {
         long long value = std::stoll(m[4].str());
         if (m[3].str() == "-=") value = -value;
-        composeMemoryCellUpdate(
-            path, m[1].str(), std::stoll(m[2].str()), 1, value);
+        if (!composeMemoryCellUpdate(
+                path, m[1].str(), std::stoll(m[2].str()), 1, value)) {
+            path.info.memoryTransitionModelComplete = false;
+        }
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
         return false;
     }
     if (std::regex_match(text, m, cellConstant)) {
-        composeMemoryCellUpdate(
-            path, m[1].str(), std::stoll(m[2].str()),
-            0, std::stoll(m[3].str()));
+        if (!composeMemoryCellUpdate(
+                path, m[1].str(), std::stoll(m[2].str()),
+                0, std::stoll(m[3].str()))) {
+            path.info.memoryTransitionModelComplete = false;
+        }
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
@@ -404,6 +413,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
     if (text.find('=') != std::string::npos &&
         (text.find('[') != std::string::npos ||
          (!text.empty() && text.front() == '*'))) {
+        path.info.memoryTransitionModelComplete = false;
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
