@@ -90,8 +90,58 @@ int main() {
             graph.multiNodeSccCount == 1 &&
             graph.cyclicSccCount == 1 &&
             graph.maxSccSize == 2 &&
-            graph.contractedEdgeCount == 0;
+            graph.contractedEdgeCount == 0 &&
+            graph.determinateCycleCount == 0 &&
+            graph.oscillatingCycleCount == 0;
         failures += !report("loopscc-oscillating-scc", ok);
+    }
+
+
+    // A proved two-phase oscillation. Negative x is mapped to +1 and the
+    // non-negative phase is mapped to -1. Interval reasoning removes both
+    // self-transitions, leaving one unique successor and predecessor per
+    // SPath. The cycle therefore has period two and an exact affine transform
+    // over one full cycle.
+    {
+        auto loop = loopNode("i < 10");
+        auto branch = ifNode("x < 0");
+        auto negative = node("x = 1;");
+        auto nonNegative = node("x = -1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(branch);
+        loop->setNextFalseNode(exit);
+        branch->setNextNode(negative);
+        branch->setNextFalseNode(nonNegative);
+        negative->setNextNode(increment);
+        nonNegative->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool relation =
+            !graph.cycles.empty() &&
+            std::find(graph.cycles[0].periodAffineUpdates.begin(),
+                      graph.cycles[0].periodAffineUpdates.end(),
+                      "x_after_period=-1") !=
+                graph.cycles[0].periodAffineUpdates.end() &&
+            std::find(graph.cycles[0].periodAffineUpdates.begin(),
+                      graph.cycles[0].periodAffineUpdates.end(),
+                      "i_after_period=i+2") !=
+                graph.cycles[0].periodAffineUpdates.end();
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 2 &&
+            graph.transitionCount == 2 &&
+            graph.sccCount == 1 &&
+            graph.multiNodeSccCount == 1 &&
+            graph.determinateCycleCount == 1 &&
+            graph.oscillatingCycleCount == 1 &&
+            graph.guardedClosedFormCandidateCount == 1 &&
+            graph.cycles.size() == 1 &&
+            graph.cycles[0].period == 2 &&
+            graph.cycles[0].determinate &&
+            graph.cycles[0].guardedClosedFormCandidate &&
+            relation;
+        failures += !report("loopscc-determinate-period-two", ok);
     }
 
     // x<0 can move to either side after +1, while x>=0 can only remain on the
