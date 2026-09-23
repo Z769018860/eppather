@@ -4025,6 +4025,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t memoryWritingSPaths = 0;
             std::size_t impreciseMemorySPaths = 0;
             std::size_t observedMemoryMems = 0;
+            std::size_t memoryCellTransitionCandidates = 0;
             std::size_t accelerationPlans = 0;
             std::size_t exactAccelerationPlans = 0;
             std::size_t maxPeriod = 0;
@@ -4053,6 +4054,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     if (!spath.memoryAccessModelComplete) {
                         ++impreciseMemorySPaths;
                     }
+                    memoryCellTransitionCandidates +=
+                        spath.memoryCellTransforms.size();
                 }
                 accelerationPlans += graph.accelerationPlans.size();
                 for (const auto& plan : graph.accelerationPlans) {
@@ -4127,6 +4130,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << impreciseMemorySPaths << endl;
             cout << "[LOOPSCC OBSERVED MEMORY MEMS]: "
                  << observedMemoryMems << endl;
+            cout << "[LOOPSCC MEMORY CELL TRANSITION CANDIDATES]: "
+                 << memoryCellTransitionCandidates << endl;
             cout << "[LOOPSCC ACCELERATION PLANS]: "
                  << accelerationPlans << endl;
             cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
@@ -4160,6 +4165,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << impreciseMemorySPaths << "\n";
             resultFile << "[loopscc_observed_memory_mems]:"
                        << observedMemoryMems << "\n";
+            resultFile << "[loopscc_memory_cell_transition_candidates]:"
+                       << memoryCellTransitionCandidates << "\n";
             resultFile << "[loopscc_acceleration_plans]:"
                        << accelerationPlans << "\n";
             resultFile << "[loopscc_exact_acceleration_plans]:"
