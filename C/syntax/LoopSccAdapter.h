@@ -12,8 +12,8 @@ class CFGNode;
 
 struct LoopSccAffineTransform {
     std::string variable;
-    // x' = scale * x + offset. The current structural adapter emits only
-    // scale 0 (constant assignment) or 1 (affine increment/decrement).
+    // x' = scale * x + offset. The current structural adapter supports
+    // scale -1 (sign flip), 0 (constant), and 1 (increment/decrement).
     long long scale{1};
     long long offset{0};
 };
