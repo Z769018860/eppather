@@ -133,24 +133,19 @@ int main() {
               << '\n';
     failures += !aliasingOk;
 
-    // Once bases are fixed apart, six canonical cells are provably disjoint
-    // and can be counted as independent components without changing the exact
-    // finite projection count.
+    // Six cells in one canonical region have distinct constant addresses.
+    // With no cross-cell constraint, exact factorization should expose all six
+    // independent projected dimensions and preserve 3^6 models.
     const std::string disjointSmt =
-        "(declare-const p (_ BitVec 32))\n"
-        "(declare-const q (_ BitVec 32))\n"
         "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
-        "(assert (= p (_ bv0 32)))\n"
-        "(assert (= q (_ bv4 32)))\n";
-    const std::unordered_map<std::string, volce::Range> disjointRanges{
-        {"p", {-8, 8}}, {"q", {-8, 8}}, {"%memory", {-1, 1}}};
+        "(assert (= (select %a (_ bv0 32)) (select %a (_ bv0 32))))\n";
     const auto disjoint = volce::countModelsFromSmt2(
-        disjointSmt, disjointRanges, std::nullopt, true,
-        {{"p", 3, true}, {"q", 3, true}});
+        disjointSmt, {}, volce::Range{-1, 1}, true,
+        {{"region", 6, true}});
     const bool disjointOk = disjoint &&
         disjoint->count == 729 &&
         disjoint->bounded_memory_terms.size() == 6 &&
-        disjoint->factored_projection_components >= 6;
+        disjoint->factored_projection_components == 6;
     std::cout << "projection-factorization-disjoint-regions: "
               << (disjointOk ? "PASS" : "FAIL")
               << " count=" << (disjoint ? std::to_string(disjoint->count) : "N/A")
