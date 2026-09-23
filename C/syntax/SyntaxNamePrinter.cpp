@@ -4021,6 +4021,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t oscillatingCycles = 0;
             std::size_t closedFormCandidates = 0;
             std::size_t insideOutNestedSummaries = 0;
+            std::size_t memorySPaths = 0;
+            std::size_t memoryWritingSPaths = 0;
+            std::size_t impreciseMemorySPaths = 0;
+            std::size_t observedMemoryMems = 0;
             std::size_t accelerationPlans = 0;
             std::size_t exactAccelerationPlans = 0;
             std::size_t maxPeriod = 0;
@@ -4040,6 +4044,16 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 closedFormCandidates += graph.guardedClosedFormCandidateCount;
                 insideOutNestedSummaries +=
                     graph.insideOutNestedSummaryCount;
+                for (const auto& spath : graph.spaths) {
+                    if (!spath.memoryAccesses.empty()) {
+                        ++memorySPaths;
+                        observedMemoryMems += spath.observedMems;
+                    }
+                    if (spath.writesMemory) ++memoryWritingSPaths;
+                    if (!spath.memoryAccessModelComplete) {
+                        ++impreciseMemorySPaths;
+                    }
+                }
                 accelerationPlans += graph.accelerationPlans.size();
                 for (const auto& plan : graph.accelerationPlans) {
                     if (plan.exact) ++exactAccelerationPlans;
@@ -4105,6 +4119,14 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << closedFormCandidates << endl;
             cout << "[LOOPSCC INSIDE OUT NESTED SUMMARIES]: "
                  << insideOutNestedSummaries << endl;
+            cout << "[LOOPSCC MEMORY SPATHS]: "
+                 << memorySPaths << endl;
+            cout << "[LOOPSCC MEMORY WRITING SPATHS]: "
+                 << memoryWritingSPaths << endl;
+            cout << "[LOOPSCC IMPRECISE MEMORY SPATHS]: "
+                 << impreciseMemorySPaths << endl;
+            cout << "[LOOPSCC OBSERVED MEMORY MEMS]: "
+                 << observedMemoryMems << endl;
             cout << "[LOOPSCC ACCELERATION PLANS]: "
                  << accelerationPlans << endl;
             cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
@@ -4130,6 +4152,14 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << closedFormCandidates << "\n";
             resultFile << "[loopscc_inside_out_nested_summaries]:"
                        << insideOutNestedSummaries << "\n";
+            resultFile << "[loopscc_memory_spaths]:"
+                       << memorySPaths << "\n";
+            resultFile << "[loopscc_memory_writing_spaths]:"
+                       << memoryWritingSPaths << "\n";
+            resultFile << "[loopscc_imprecise_memory_spaths]:"
+                       << impreciseMemorySPaths << "\n";
+            resultFile << "[loopscc_observed_memory_mems]:"
+                       << observedMemoryMems << "\n";
             resultFile << "[loopscc_acceleration_plans]:"
                        << accelerationPlans << "\n";
             resultFile << "[loopscc_exact_acceleration_plans]:"
