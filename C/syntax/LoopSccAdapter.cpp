@@ -842,7 +842,7 @@ uniformInsideOutPlan(const LoopSccGraphInfo& nested) {
 void deriveUniformTripCount(CFGNode* loop,
                             const std::vector<BuiltPath>& built,
                             LoopSccGraphInfo& result) {
-    if (!loop || !loop->isWhile || !result.complete ||
+    if (!loop || !loop->isLoop || !result.complete ||
         loop->initstmt_str.empty() || built.empty()) {
         return;
     }
@@ -882,11 +882,17 @@ void deriveUniformTripCount(CFGNode* loop,
         variable + " = " + variable +
         (uniformStep > 0 ? " + " : " - ") +
         std::to_string(std::llabs(uniformStep)) + ";";
+
+    // Use the total SPath transform rather than trusting the syntactic for-post
+    // expression alone. This rejects bodies that also mutate the induction
+    // variable, while allowing canonical for-loops and recovered while-loops
+    // to share the same exact trip-count certificate.
     const auto prediction = LoopBoundPredictor::predict(
         loop->initstmt_str, loop->cond_str, update,
         std::numeric_limits<int>::max(), 0);
     if (!prediction.exact() ||
-        prediction.inductionVariable != variable) {
+        prediction.inductionVariable != variable ||
+        prediction.step != uniformStep) {
         return;
     }
 
