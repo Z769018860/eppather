@@ -74,6 +74,45 @@ std::string normalizeBoundedVlaPrefix(const std::string& prefix) {
     return output;
 }
 
+std::unordered_map<std::string, std::size_t>
+parseFixedOneDimensionalArrayExtents(const std::string& prefix) {
+    std::unordered_map<std::string, std::size_t> out;
+    std::stringstream input(prefix);
+    std::string line;
+    // Deliberately accept only simple one-dimensional fixed arrays from the
+    // original source prefix. VLA, pointer, multi-dimensional and macro-sized
+    // declarations remain unknown and are left to the later frame/alias proof.
+    static const std::regex fixedArray(
+        "^[ \\t]*(?:const[ \\t]+)?"
+        "(?:(?:unsigned|signed)[ \\t]+)?"
+        "(?:int|long|short|char)[ \\t]+"
+        "([A-Za-z_][A-Za-z0-9_]*)[ \\t]*"
+        "\\[[ \\t]*([0-9]+)[ \\t]*\\]"
+        "[ \\t]*(?:;|=)");
+    while (std::getline(input, line)) {
+        std::smatch match;
+        if (!std::regex_search(line, match, fixedArray)) continue;
+        if (line.find('[', static_cast<std::size_t>(match.position(2) +
+                                                    match.length(2))) !=
+            std::string::npos) {
+            continue;
+        }
+        try {
+            const unsigned long long parsed =
+                std::stoull(match[2].str());
+            if (parsed == 0 ||
+                parsed > std::numeric_limits<std::size_t>::max()) {
+                continue;
+            }
+            out.emplace(
+                match[1].str(), static_cast<std::size_t>(parsed));
+        } catch (...) {
+            continue;
+        }
+    }
+    return out;
+}
+
 bool probablyUnsafeForEpat(const std::string& line) {
     if (line.empty()) {
         return false;
@@ -787,7 +826,8 @@ buildLoopSccAccelerationDecisions(
 }
 
 EpatRunner::EpatRunner(std::string prefix)
-    : prefix_(sanitizePrefixForEpat(normalizeBoundedVlaPrefix(prefix))) {
+    : sourcePrefix_(prefix),
+      prefix_(sanitizePrefixForEpat(normalizeBoundedVlaPrefix(prefix))) {
     if (!prefix_.empty() && prefix_.back() != '\n') prefix_.push_back('\n');
 }
 
@@ -1006,6 +1046,8 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             }
 
             if (trace.complete && trace.matchedDeterminateCycle) {
+                const auto fixedArrayExtents =
+                    parseFixedOneDimensionalArrayExtents(sourcePrefix_);
                 for (const auto& candidate :
                      graph.memorySummaryCandidates) {
                     if (!candidate.exact ||
@@ -1016,6 +1058,28 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                                 trace.observedIterations)) {
                         continue;
                     }
+
+                    bool fixedRegionBoundsOk = true;
+                    for (const auto& relation :
+                         candidate.closedFormTransforms) {
+                        auto extent = fixedArrayExtents.find(
+                            relation.region);
+                        if (extent == fixedArrayExtents.end()) continue;
+                        if (relation.index < 0 ||
+                            static_cast<unsigned long long>(
+                                relation.index) >=
+                                static_cast<unsigned long long>(
+                                    extent->second)) {
+                            fixedRegionBoundsOk = false;
+                            result.loopStateSummaryDiagnostics.push_back(
+                                "loopscc: rejected fixed-cell summary outside declared local array region " +
+                                relation.region + "[" +
+                                std::to_string(relation.index) + "]");
+                            break;
+                        }
+                    }
+                    if (!fixedRegionBoundsOk) continue;
+
                     for (const auto& relation :
                          candidate.closedFormTransforms) {
                         result.loopSccMemoryCellStateSummaries.push_back(
