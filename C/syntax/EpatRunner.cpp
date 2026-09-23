@@ -6,6 +6,7 @@
 #include <sstream>
 #include <regex>
 #include <map>
+#include <optional>
 
 #include <cctype>
 #include <cstdlib>
@@ -520,6 +521,116 @@ LoopSccPhaseTrace buildLoopSccPhaseTrace(
     return trace;
 }
 
+std::string renderAccelerationAssignment(
+    const LoopSccAffineTransform& transform) {
+    std::ostringstream os;
+    os << transform.variable << " = ";
+    if (transform.scale == 0) {
+        os << transform.offset;
+    } else if (transform.scale == 1) {
+        os << transform.variable;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    } else if (transform.scale == -1) {
+        os << "0 - " << transform.variable;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    } else {
+        os << transform.scale << " * " << transform.variable;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    }
+    os << ";";
+    return os.str();
+}
+
+std::optional<std::vector<PathDecision>>
+buildAccelerationValidationDecisions(
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    const LoopSccPhaseTrace& trace,
+    const std::vector<PathDecision>& decisions) {
+    if (!loop || !trace.matchedAccelerationPlan ||
+        trace.accelerationPlanIndex >= graph.accelerationPlans.size()) {
+        return std::nullopt;
+    }
+    const auto& plan =
+        graph.accelerationPlans[trace.accelerationPlanIndex];
+    if (!plan.exact || !plan.memsPreserving ||
+        plan.cycleIndex >= graph.cycles.size()) {
+        return std::nullopt;
+    }
+    const auto& cycle = graph.cycles[plan.cycleIndex];
+    if (!cycle.phaseGuardsProved ||
+        plan.entryPhase >= cycle.spathOrder.size()) {
+        return std::nullopt;
+    }
+
+    std::size_t firstTrue = decisions.size();
+    std::size_t finalFalse = decisions.size();
+    for (std::size_t i = 0; i < decisions.size(); ++i) {
+        if (decisions[i].node != loop) continue;
+        if (decisions[i].kind == PathDecisionKind::TrueBranch &&
+            firstTrue == decisions.size()) {
+            firstTrue = i;
+        } else if (firstTrue != decisions.size() &&
+                   decisions[i].kind == PathDecisionKind::FalseBranch) {
+            finalFalse = i;
+        }
+    }
+    if (firstTrue == decisions.size() ||
+        finalFalse == decisions.size() ||
+        finalFalse <= firstTrue) {
+        return std::nullopt;
+    }
+
+    std::vector<PathDecision> compressed;
+    compressed.reserve(
+        decisions.size() -
+        (finalFalse - firstTrue) +
+        plan.closedFormTransforms.size() + 4);
+    compressed.insert(
+        compressed.end(), decisions.begin(),
+        decisions.begin() + static_cast<std::ptrdiff_t>(firstTrue));
+
+    // Keep the initial loop condition. Exact trip-count proof guarantees how
+    // many iterations follow; the final false guard is re-applied after T^k.
+    compressed.push_back(decisions[firstTrue]);
+
+    const std::size_t entryPathId =
+        cycle.spathOrder[plan.entryPhase];
+    if (entryPathId >= graph.spaths.size()) return std::nullopt;
+    const auto& entryPath = graph.spaths[entryPathId];
+    for (const auto& guard : entryPath.guards) {
+        const std::string loopTrue = "T: " + loop->cond_str;
+        if (guard == loopTrue) continue;
+        if (guard.rfind("T: ", 0) == 0) {
+            compressed.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                guard.substr(3)});
+        } else if (guard.rfind("F: ", 0) == 0) {
+            compressed.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                "!(" + guard.substr(3) + ")"});
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    for (const auto& transform : plan.closedFormTransforms) {
+        compressed.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode,
+            renderAccelerationAssignment(transform)});
+    }
+
+    compressed.push_back(decisions[finalFalse]);
+    compressed.insert(
+        compressed.end(),
+        decisions.begin() + static_cast<std::ptrdiff_t>(finalFalse + 1),
+        decisions.end());
+    return compressed;
+}
+
 }  // namespace
 
 EpatRunner::EpatRunner(std::string prefix)
@@ -533,6 +644,18 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
     for (const auto& step : decisions) {
         if (!step.node) continue;
         switch (step.kind) {
+            case PathDecisionKind::SyntheticAssume: {
+                if (!step.syntheticText.empty()) {
+                    script += "@(" + step.syntheticText + ");\n";
+                }
+                break;
+            }
+            case PathDecisionKind::SyntheticCode: {
+                if (!step.syntheticText.empty()) {
+                    appendSafeLine(script, step.syntheticText, true);
+                }
+                break;
+            }
             case PathDecisionKind::LoopInit: {
                 const auto& init = step.node->initstmt_str;
                 if (!init.empty() && init != ";") {
