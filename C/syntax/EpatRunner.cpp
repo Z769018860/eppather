@@ -809,6 +809,7 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     // materialized as SSA states. The relation is still only a candidate here;
     // VolCE performs the semantic entailment proof after solving the full path.
     std::unordered_map<CFGNode*, LoopSccGraphInfo> loopSccAnalysis;
+    bool memoryProvenanceNeeded = false;
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
         for (CFGNode* loop : provenanceLoops) {
             auto graph = LoopSccAdapter::analyze(loop);
@@ -821,6 +822,12 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                             relation.variable) == provenanceVariables.end()) {
                         provenanceVariables.push_back(relation.variable);
                     }
+                }
+            }
+            for (const auto& spath : graph.spaths) {
+                if (!spath.memoryCellTransforms.empty()) {
+                    memoryProvenanceNeeded = true;
+                    break;
                 }
             }
             loopSccAnalysis.emplace(loop, std::move(graph));
@@ -844,7 +851,9 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
         if (indexedMemory) provenanceVariables.clear();
     }
     epat::setSsaProvenanceVariables(provenanceVariables);
+    epat::setMemorySsaProvenanceEnabled(memoryProvenanceNeeded);
     EpatResult result = solveScript(render(decisions));
+    epat::setMemorySsaProvenanceEnabled(false);
     epat::clearSsaProvenanceVariables();
 
     // Structural LoopSCC analysis remains opt-in. At this stage it also
