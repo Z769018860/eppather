@@ -1,0 +1,489 @@
+#include "LoopSccAdapter.h"
+
+#include <algorithm>
+#include <cctype>
+#include <climits>
+#include <functional>
+#include <map>
+#include <regex>
+#include <set>
+#include <sstream>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+
+#include "SyntaxNamePrinter.h"
+
+namespace psy {
+namespace C {
+namespace {
+
+constexpr long long kNegInf = LLONG_MIN / 4;
+constexpr long long kPosInf = LLONG_MAX / 4;
+
+std::string trim(std::string text) {
+    auto notSpace = [](unsigned char c) { return std::isspace(c) == 0; };
+    auto first = std::find_if(text.begin(), text.end(), notSpace);
+    auto last = std::find_if(text.rbegin(), text.rend(), notSpace).base();
+    if (first >= last) return {};
+    return std::string(first, last);
+}
+
+struct Interval {
+    long long lower{kNegInf};
+    long long upper{kPosInf};
+
+    bool empty() const { return lower > upper; }
+};
+
+struct AffineTransform {
+    // x' = scale * x + offset. scale is restricted to 0 or 1.
+    long long scale{1};
+    long long offset{0};
+    bool exact{true};
+};
+
+struct GuardConstraint {
+    std::string variable;
+    Interval interval;
+    bool recognized{false};
+};
+
+struct BuiltPath {
+    LoopSccSPathInfo info;
+    std::map<std::string, Interval> guardIntervals;
+    std::map<std::string, AffineTransform> transforms;
+    std::set<std::string> unknownWrites;
+};
+
+long long clampAdd(long long value, long long delta) {
+    if (value <= kNegInf / 2 || value >= kPosInf / 2) return value;
+    if (delta > 0 && value > kPosInf - delta) return kPosInf;
+    if (delta < 0 && value < kNegInf - delta) return kNegInf;
+    return value + delta;
+}
+
+std::string invertComparator(const std::string& op) {
+    if (op == "<") return ">=";
+    if (op == "<=") return ">";
+    if (op == ">") return "<=";
+    if (op == ">=") return "<";
+    if (op == "==") return "!=";
+    if (op == "!=") return "==";
+    return {};
+}
+
+std::string reverseComparator(const std::string& op) {
+    if (op == "<") return ">";
+    if (op == "<=") return ">=";
+    if (op == ">") return "<";
+    if (op == ">=") return "<=";
+    return op;
+}
+
+GuardConstraint parseGuard(const std::string& raw, bool truth) {
+    std::string text = trim(raw);
+    while (text.size() >= 2 && text.front() == '(' && text.back() == ')') {
+        text = trim(text.substr(1, text.size() - 2));
+    }
+
+    static const std::regex direct(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(<=|>=|==|!=|<|>)[[:space:]]*(-?[0-9]+)$)");
+    static const std::regex reversed(
+        R"(^(-?[0-9]+)[[:space:]]*(<=|>=|==|!=|<|>)[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)$)");
+
+    std::smatch match;
+    std::string variable;
+    std::string op;
+    long long constant = 0;
+    if (std::regex_match(text, match, direct)) {
+        variable = match[1].str();
+        op = match[2].str();
+        constant = std::stoll(match[3].str());
+    } else if (std::regex_match(text, match, reversed)) {
+        constant = std::stoll(match[1].str());
+        op = reverseComparator(match[2].str());
+        variable = match[3].str();
+    } else {
+        return {};
+    }
+
+    if (!truth) op = invertComparator(op);
+    GuardConstraint out;
+    out.variable = variable;
+    out.recognized = true;
+    if (op == "<") {
+        out.interval.upper = constant == LLONG_MIN ? kNegInf
+                                                   : constant - 1;
+    } else if (op == "<=") {
+        out.interval.upper = constant;
+    } else if (op == ">") {
+        out.interval.lower = constant == LLONG_MAX ? kPosInf
+                                                   : constant + 1;
+    } else if (op == ">=") {
+        out.interval.lower = constant;
+    } else if (op == "==") {
+        out.interval.lower = constant;
+        out.interval.upper = constant;
+    } else {
+        // != cannot be represented by one interval. Keep the guard text, but
+        // do not use it to remove SPath transitions.
+        out.recognized = false;
+    }
+    return out;
+}
+
+void addGuard(BuiltPath& path, const std::string& expr, bool truth) {
+    path.info.guards.push_back(std::string(truth ? "T: " : "F: ") + expr);
+    const auto parsed = parseGuard(expr, truth);
+    if (!parsed.recognized) return;
+    auto it = path.guardIntervals.find(parsed.variable);
+    if (it == path.guardIntervals.end()) {
+        path.guardIntervals.emplace(parsed.variable, parsed.interval);
+        return;
+    }
+    it->second.lower = std::max(it->second.lower, parsed.interval.lower);
+    it->second.upper = std::min(it->second.upper, parsed.interval.upper);
+}
+
+void recordWrite(BuiltPath& path, const std::string& variable) {
+    if (variable.empty()) return;
+    if (std::find(path.info.writes.begin(), path.info.writes.end(), variable) ==
+        path.info.writes.end()) {
+        path.info.writes.push_back(variable);
+    }
+}
+
+void composeUpdate(BuiltPath& path,
+                   const std::string& variable,
+                   long long scale,
+                   long long offset,
+                   const std::string& sourceText) {
+    recordWrite(path, variable);
+    auto& current = path.transforms[variable];
+    if (!current.exact) return;
+    // new = scale * old_current + offset
+    current.offset = scale * current.offset + offset;
+    current.scale = scale * current.scale;
+    std::ostringstream os;
+    os << variable << "'=";
+    if (current.scale == 0) {
+        os << current.offset;
+    } else {
+        os << variable;
+        if (current.offset > 0) os << "+" << current.offset;
+        else if (current.offset < 0) os << current.offset;
+    }
+    if (!sourceText.empty()) os << " [" << trim(sourceText) << "]";
+    path.info.affineUpdates.push_back(os.str());
+}
+
+void markUnknownWrite(BuiltPath& path,
+                      const std::string& variable,
+                      const std::string& sourceText) {
+    recordWrite(path, variable);
+    path.unknownWrites.insert(variable);
+    path.transforms.erase(variable);
+    if (!sourceText.empty()) {
+        path.info.affineUpdates.push_back(
+            variable + "'=? [" + trim(sourceText) + "]");
+    }
+}
+
+void parseUpdate(BuiltPath& path, const std::string& raw) {
+    std::string text = trim(raw);
+    if (text.empty()) return;
+    if (!text.empty() && text.back() == ';') text.pop_back();
+    text = trim(text);
+
+    std::smatch m;
+    static const std::regex postfix(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\+\+|--)$)");
+    static const std::regex prefix(
+        R"(^(\+\+|--)[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)$)");
+    static const std::regex compound(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\+=|-=)[[:space:]]*(-?[0-9]+)$)");
+    static const std::regex selfAdd(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*\1[[:space:]]*([+-])[[:space:]]*([0-9]+)$)");
+    static const std::regex constantAssign(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)$)");
+    static const std::regex simpleAssign(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=.*$)");
+
+    if (std::regex_match(text, m, postfix)) {
+        composeUpdate(path, m[1].str(), 1, m[2].str() == "++" ? 1 : -1, raw);
+        return;
+    }
+    if (std::regex_match(text, m, prefix)) {
+        composeUpdate(path, m[2].str(), 1, m[1].str() == "++" ? 1 : -1, raw);
+        return;
+    }
+    if (std::regex_match(text, m, compound)) {
+        long long value = std::stoll(m[3].str());
+        if (m[2].str() == "-=") value = -value;
+        composeUpdate(path, m[1].str(), 1, value, raw);
+        return;
+    }
+    if (std::regex_match(text, m, selfAdd)) {
+        long long value = std::stoll(m[3].str());
+        if (m[2].str() == "-") value = -value;
+        composeUpdate(path, m[1].str(), 1, value, raw);
+        return;
+    }
+    if (std::regex_match(text, m, constantAssign)) {
+        composeUpdate(path, m[1].str(), 0, std::stoll(m[2].str()), raw);
+        return;
+    }
+
+    // Array/dereference writes are kept as an explicit memory marker. The
+    // structural graph may still be useful, but a later state summary must not
+    // bypass memory unfolding without alias-aware proof.
+    if (text.find('=') != std::string::npos &&
+        (text.find('[') != std::string::npos ||
+         (!text.empty() && text.front() == '*'))) {
+        recordWrite(path, "*memory*");
+        path.unknownWrites.insert("*memory*");
+        return;
+    }
+
+    if (std::regex_match(text, m, simpleAssign)) {
+        markUnknownWrite(path, m[1].str(), raw);
+    }
+}
+
+Interval applyTransform(const Interval& input, const AffineTransform& transform) {
+    if (!transform.exact) return Interval{};
+    if (transform.scale == 0) {
+        return Interval{transform.offset, transform.offset};
+    }
+    return Interval{
+        clampAdd(input.lower, transform.offset),
+        clampAdd(input.upper, transform.offset)};
+}
+
+bool disjoint(const Interval& lhs, const Interval& rhs) {
+    return lhs.empty() || rhs.empty() ||
+           lhs.upper < rhs.lower || rhs.upper < lhs.lower;
+}
+
+bool transitionPossible(const BuiltPath& source, const BuiltPath& target) {
+    if (!source.info.returnsToHeader) return false;
+    for (const auto& targetGuard : target.guardIntervals) {
+        const std::string& variable = targetGuard.first;
+        auto sourceGuard = source.guardIntervals.find(variable);
+        if (sourceGuard == source.guardIntervals.end()) continue;
+        if (source.unknownWrites.count(variable) != 0) continue;
+
+        Interval after = sourceGuard->second;
+        auto transform = source.transforms.find(variable);
+        if (transform != source.transforms.end()) {
+            after = applyTransform(after, transform->second);
+        }
+        if (disjoint(after, targetGuard.second)) return false;
+    }
+    return true;
+}
+
+struct TarjanState {
+    std::vector<int> index;
+    std::vector<int> low;
+    std::vector<int> stack;
+    std::vector<bool> onStack;
+    int nextIndex{0};
+    std::vector<std::vector<int>> components;
+};
+
+void strongConnect(int v,
+                   const std::vector<std::vector<int>>& graph,
+                   TarjanState& state) {
+    state.index[v] = state.low[v] = state.nextIndex++;
+    state.stack.push_back(v);
+    state.onStack[v] = true;
+
+    for (int w : graph[v]) {
+        if (state.index[w] == -1) {
+            strongConnect(w, graph, state);
+            state.low[v] = std::min(state.low[v], state.low[w]);
+        } else if (state.onStack[w]) {
+            state.low[v] = std::min(state.low[v], state.index[w]);
+        }
+    }
+
+    if (state.low[v] != state.index[v]) return;
+    std::vector<int> component;
+    while (!state.stack.empty()) {
+        int w = state.stack.back();
+        state.stack.pop_back();
+        state.onStack[w] = false;
+        component.push_back(w);
+        if (w == v) break;
+    }
+    state.components.push_back(std::move(component));
+}
+
+}  // namespace
+
+LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
+                                         std::size_t maxPaths,
+                                         std::size_t maxNodesPerPath) {
+    LoopSccGraphInfo result;
+    if (!loop || !loop->isLoop) {
+        result.diagnostics.push_back("not a loop CFG node");
+        return result;
+    }
+
+    result.loopCondition = loop->cond_str;
+    auto start = loop->getNextNode();
+    auto exit = loop->getNextFalseNode();
+    if (!start) {
+        result.diagnostics.push_back("loop has no true/body edge");
+        return result;
+    }
+
+    std::vector<BuiltPath> built;
+    bool truncated = false;
+    bool unsupported = false;
+
+    std::function<void(std::shared_ptr<CFGNode>, BuiltPath,
+                       std::unordered_set<CFGNode*>, std::size_t)> visit;
+    visit = [&](std::shared_ptr<CFGNode> current,
+                BuiltPath path,
+                std::unordered_set<CFGNode*> seen,
+                std::size_t depth) {
+        if (built.size() >= maxPaths) {
+            truncated = true;
+            return;
+        }
+        if (depth > maxNodesPerPath) {
+            truncated = true;
+            return;
+        }
+        if (!current) {
+            path.info.exitsLoop = true;
+            built.push_back(std::move(path));
+            return;
+        }
+        if (current.get() == loop) {
+            if (loop->isFor && !loop->expr_str.empty()) {
+                parseUpdate(path, loop->expr_str);
+            }
+            path.info.returnsToHeader = true;
+            built.push_back(std::move(path));
+            return;
+        }
+        if (exit && current.get() == exit.get()) {
+            path.info.exitsLoop = true;
+            built.push_back(std::move(path));
+            return;
+        }
+        if (current->isReturn) {
+            path.info.exitsLoop = true;
+            built.push_back(std::move(path));
+            return;
+        }
+        if (current->isLoop) {
+            unsupported = true;
+            result.diagnostics.push_back(
+                "nested loop requires inside-out LoopSCC summary");
+            return;
+        }
+        if (!seen.insert(current.get()).second) {
+            unsupported = true;
+            result.diagnostics.push_back(
+                "internal cycle encountered before loop backedge");
+            return;
+        }
+
+        if (current->isIf ||
+            (current->isCondition && current->getNextFalseNode())) {
+            auto truePath = path;
+            addGuard(truePath, current->cond_str, true);
+            visit(current->getNextNode(), std::move(truePath), seen, depth + 1);
+
+            auto falsePath = std::move(path);
+            addGuard(falsePath, current->cond_str, false);
+            visit(current->getNextFalseNode(), std::move(falsePath),
+                  std::move(seen), depth + 1);
+            return;
+        }
+
+        const std::string code = current->getCode();
+        if (!code.empty() && code != "Code has not been set yet") {
+            parseUpdate(path, code);
+        }
+        if (current->getNextFalseNode()) {
+            unsupported = true;
+            result.diagnostics.push_back(
+                "non-condition CFG node has a false edge");
+            return;
+        }
+        visit(current->getNextNode(), std::move(path), std::move(seen),
+              depth + 1);
+    };
+
+    BuiltPath initial;
+    addGuard(initial, loop->cond_str, true);
+    visit(start, std::move(initial), {}, 0);
+
+    for (std::size_t i = 0; i < built.size(); ++i) {
+        built[i].info.id = i;
+        result.spaths.push_back(built[i].info);
+    }
+    if (truncated) {
+        result.diagnostics.push_back("SPath enumeration hit configured budget");
+    }
+    result.complete = !truncated && !unsupported && !built.empty();
+    if (built.empty()) return result;
+
+    std::vector<std::vector<int>> graph(built.size());
+    for (std::size_t i = 0; i < built.size(); ++i) {
+        for (std::size_t j = 0; j < built.size(); ++j) {
+            if (!transitionPossible(built[i], built[j])) continue;
+            graph[i].push_back(static_cast<int>(j));
+            ++result.transitionCount;
+        }
+    }
+
+    TarjanState tarjan;
+    tarjan.index.assign(built.size(), -1);
+    tarjan.low.assign(built.size(), -1);
+    tarjan.onStack.assign(built.size(), false);
+    for (std::size_t i = 0; i < built.size(); ++i) {
+        if (tarjan.index[i] == -1) {
+            strongConnect(static_cast<int>(i), graph, tarjan);
+        }
+    }
+
+    result.sccCount = tarjan.components.size();
+    std::vector<int> componentOf(built.size(), -1);
+    for (std::size_t cid = 0; cid < tarjan.components.size(); ++cid) {
+        const auto& component = tarjan.components[cid];
+        result.maxSccSize = std::max(result.maxSccSize, component.size());
+        if (component.size() > 1) ++result.multiNodeSccCount;
+
+        bool cyclic = component.size() > 1;
+        for (int node : component) {
+            componentOf[node] = static_cast<int>(cid);
+            if (!cyclic &&
+                std::find(graph[node].begin(), graph[node].end(), node) !=
+                    graph[node].end()) {
+                cyclic = true;
+            }
+        }
+        if (cyclic) ++result.cyclicSccCount;
+    }
+
+    std::set<std::pair<int, int>> contractedEdges;
+    for (std::size_t from = 0; from < graph.size(); ++from) {
+        for (int to : graph[from]) {
+            const int lhs = componentOf[from];
+            const int rhs = componentOf[to];
+            if (lhs != rhs) contractedEdges.emplace(lhs, rhs);
+        }
+    }
+    result.contractedEdgeCount = contractedEdges.size();
+    return result;
+}
+
+}  // namespace C
+}  // namespace psy
