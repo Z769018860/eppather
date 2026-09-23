@@ -38,6 +38,20 @@ struct AffineLoopStateSummary {
     std::string sourceRelation;
 };
 
+struct LoopSccPhaseTrace {
+    std::string loopCondition;
+    bool complete{false};
+    bool matchedDeterminateCycle{false};
+    std::size_t cycleIndex{0};
+    std::size_t period{0};
+    std::size_t entryPhase{0};
+    std::size_t observedIterations{0};
+    std::size_t completePeriods{0};
+    std::size_t residualPhases{0};
+    std::vector<std::size_t> spathSequence;
+    std::vector<std::string> diagnostics;
+};
+
 struct EpatResult {
     epat::result status{epat::result::unknown};
     int mem{0};
@@ -48,6 +62,7 @@ struct EpatResult {
     // Optional structural LoopSCC stage. Populated only when
     // EPPATHER_LOOP_SCC_ANALYZE=1; it never changes feasibility/counting.
     std::vector<LoopSccGraphInfo> loopSccGraphs;
+    std::vector<LoopSccPhaseTrace> loopSccPhaseTraces;
 };
 
 class EpatRunner {
