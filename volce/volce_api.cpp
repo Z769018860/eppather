@@ -1576,6 +1576,125 @@ validateMemoryCellRelationsFromSmt2(
         }
     }
 
+    // Frame proof for local source arrays. The #base symbol is emitted only
+    // for concrete array objects, not pointer parameters. Source cells
+    // (<scope>@N) define the region's entry state; every discovered cell not
+    // written by the summary must be unchanged in the final memory.
+    std::unordered_map<std::string, std::set<std::int64_t>> writtenCells;
+    for (const auto& summary : summaries) {
+        writtenCells[summary.source_name].insert(summary.cell_index);
+    }
+    for (const auto& group : writtenCells) {
+        const std::string& source = group.first;
+        Z3_func_decl baseDecl = nullptr;
+        std::string baseName;
+        bool ambiguousBase = false;
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            if (name.find("#base") == std::string::npos ||
+                !isSummaryCandidateName(name, source)) {
+                continue;
+            }
+            if (baseDecl) {
+                ambiguousBase = true;
+                break;
+            }
+            baseDecl = decl;
+            baseName = name;
+        }
+        if (!baseDecl || ambiguousBase) {
+            result.frame_rejected.push_back(
+                source + ": expected exactly one local array base");
+            continue;
+        }
+
+        const auto baseMarker = baseName.rfind("#base");
+        if (baseMarker == std::string::npos) {
+            result.frame_rejected.push_back(
+                source + ": malformed memory base provenance");
+            continue;
+        }
+        const std::string scopePrefix =
+            baseName.substr(0, baseMarker);
+        const std::string cellPrefix = scopePrefix + "@";
+
+        std::map<std::int64_t, Z3_func_decl> sourceCells;
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            if (name.rfind(cellPrefix, 0) != 0) continue;
+            const std::string suffix =
+                name.substr(cellPrefix.size());
+            if (suffix.empty() ||
+                !std::all_of(
+                    suffix.begin(), suffix.end(),
+                    [](unsigned char ch) {
+                        return std::isdigit(ch) != 0;
+                    })) {
+                continue;
+            }
+            const std::int64_t index =
+                std::strtoll(suffix.c_str(), nullptr, 10);
+            sourceCells.emplace(index, decl);
+        }
+        if (sourceCells.empty()) {
+            result.frame_rejected.push_back(
+                source + ": no source cells found for frame proof");
+            continue;
+        }
+
+        bool valid = true;
+        for (std::int64_t written : group.second) {
+            if (sourceCells.find(written) == sourceCells.end()) {
+                result.frame_rejected.push_back(
+                    source + "[" + std::to_string(written) +
+                    "]: summary cell is outside discovered source region");
+                valid = false;
+            }
+        }
+        if (!valid) continue;
+
+        Z3_ast base = Z3_mk_app(ctx, baseDecl, 0, nullptr);
+        Z3_sort addressSort = Z3_get_sort(ctx, base);
+        std::size_t checked = 0;
+        for (const auto& cell : sourceCells) {
+            if (group.second.count(cell.first) != 0) continue;
+            Z3_ast address = base;
+            if (cell.first != 0) {
+                Z3_ast offset =
+                    Z3_mk_int64(ctx, cell.first, addressSort);
+                address = Z3_mk_bvadd(ctx, base, offset);
+            }
+            Z3_ast entry =
+                Z3_mk_app(ctx, cell.second, 0, nullptr);
+            Z3_ast exit =
+                Z3_mk_select(ctx, finalMemory, address);
+            Z3_ast equality = Z3_mk_eq(ctx, exit, entry);
+
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool check = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+            if (check != Z3_L_FALSE) {
+                result.frame_rejected.push_back(
+                    source + "[" + std::to_string(cell.first) +
+                    "]: final memory does not preserve untouched cell");
+                valid = false;
+                break;
+            }
+            ++checked;
+        }
+        if (valid) {
+            result.frame_applied.push_back(
+                source + "@" + baseName +
+                " cells=" + std::to_string(sourceCells.size()) +
+                " untouched_checked=" + std::to_string(checked));
+        }
+    }
+
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
