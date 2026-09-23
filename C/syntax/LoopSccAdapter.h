@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace psy {
@@ -25,6 +26,11 @@ struct LoopSccGraphInfo {
     std::string loopCondition;
     bool complete{false};
     std::vector<LoopSccSPathInfo> spaths;
+    // Concrete SPath graph and its SCC contraction, retained for the next
+    // periodic/oscillation analysis stage.
+    std::vector<std::pair<std::size_t, std::size_t>> transitions;
+    std::vector<std::vector<std::size_t>> sccs;
+    std::vector<std::pair<std::size_t, std::size_t>> contractedEdges;
     std::size_t transitionCount{0};
     std::size_t sccCount{0};
     std::size_t cyclicSccCount{0};
