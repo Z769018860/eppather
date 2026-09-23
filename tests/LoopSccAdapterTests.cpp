@@ -303,6 +303,40 @@ int main() {
     {
         auto loop = loopNode("i < 4");
         loop->initstmt_str = "i = 0;";
+        auto write1 = node("a[0] = a[0] + 1;");
+        auto write2 = node("a[0] += 2;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(write1);
+        loop->setNextFalseNode(exit);
+        write1->setNextNode(write2);
+        write2->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        bool cellOk = false;
+        if (graph.spaths.size() == 1 &&
+            graph.spaths[0].memoryCellTransforms.size() == 1) {
+            const auto& cell = graph.spaths[0].memoryCellTransforms[0];
+            cellOk = cell.region == "a" &&
+                cell.index == 0 &&
+                cell.scale == 1 &&
+                cell.offset == 3;
+        }
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 4 &&
+            graph.spaths[0].writesMemory &&
+            graph.spaths[0].memoryAccessModelComplete &&
+            cellOk &&
+            graph.accelerationPlans.empty();
+        failures += !report(
+            "loopscc-fixed-cell-memory-transition-candidate", ok);
+    }
+
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
         auto read = node("s = s + a[i];");
         auto increment = node("i = i + 1;");
         auto exit = node("return s;");
