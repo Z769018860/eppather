@@ -353,11 +353,17 @@ int main() {
                             decision.syntheticMems == 14;
                     }
                 }
+                psy::C::EpatRunner shortcutRunner(
+                    "int a[1];\nint i = 0;\n");
+                const auto shortcutEval =
+                    shortcutRunner.solve(shortcut->decisions);
                 shortcutPlanOk =
                     shortcut->unfoldedMems == 16 &&
                     shortcut->compressedSummaryMems == 2 &&
                     shortcut->compensationMems == 14 &&
-                    sawSyntheticMems;
+                    sawSyntheticMems &&
+                    shortcutEval.status == epat::result::feasible &&
+                    shortcutEval.mem == 16;
             }
         }
         const bool ok = graph.complete &&
