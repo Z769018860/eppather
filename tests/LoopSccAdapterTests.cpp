@@ -129,6 +129,29 @@ int main() {
                       graph.cycles[0].periodAffineUpdates.end(),
                       "i_after_period=i+2") !=
                 graph.cycles[0].periodAffineUpdates.end();
+        bool accelerationOk = graph.accelerationPlans.size() == 2;
+        for (const auto& plan : graph.accelerationPlans) {
+            bool sawX = false;
+            bool sawI = false;
+            for (const auto& transform : plan.closedFormTransforms) {
+                if (transform.variable == "x") {
+                    sawX = transform.scale == 1 &&
+                           transform.offset == 0;
+                } else if (transform.variable == "i") {
+                    sawI = transform.scale == 1 &&
+                           transform.offset == 4;
+                }
+            }
+            accelerationOk = accelerationOk &&
+                plan.exact &&
+                plan.totalIterations == 4 &&
+                plan.period == 2 &&
+                plan.completePeriods == 2 &&
+                plan.residualPhases == 0 &&
+                plan.residualSPaths.empty() &&
+                sawX && sawI;
+        }
+
         const bool ok = graph.complete &&
             graph.spaths.size() == 2 &&
             graph.transitionCount == 2 &&
@@ -144,6 +167,7 @@ int main() {
             graph.provedTripCount == 4 &&
             graph.tripCountVariable == "i" &&
             graph.tripCountStep == 1 &&
+            accelerationOk &&
             relation;
         failures += !report("loopscc-determinate-period-two", ok);
     }
