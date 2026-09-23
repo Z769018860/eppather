@@ -4056,6 +4056,49 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                             << *compressedCount << "\n";
                     }
                 }
+                for (const auto& validation :
+                     eval.loopSccMemoryAccelerationValidations) {
+                    if (!validation.matched ||
+                        validation.compressedSmt.empty()) {
+                        continue;
+                    }
+                    const auto compressedVolce = runVolce(
+                        validation.compressedSmt,
+                        volceLower, volceUpper, {},
+                        inputMemoryRegions_, {}, {});
+                    const auto compressedCount =
+                        parseVolceCount(compressedVolce);
+                    const bool countMatch =
+                        volceCount && compressedCount &&
+                        *volceCount == *compressedCount;
+                    const bool weightedMatch =
+                        countMatch &&
+                        validation.compensatedMemMatched;
+
+                    cout << "[LOOPSCC MEMORY COMPRESSED VOLCE]: baseline_count="
+                         << (volceCount
+                                 ? std::to_string(*volceCount)
+                                 : "N/A")
+                         << " compressed_count="
+                         << (compressedCount
+                                 ? std::to_string(*compressedCount)
+                                 : "N/A")
+                         << " count_match=" << (countMatch ? 1 : 0)
+                         << " weighted_match="
+                         << (weightedMatch ? 1 : 0)
+                         << endl;
+                    resultFile
+                        << "[loopscc_memory_compressed_volce_count_match]:"
+                        << (countMatch ? 1 : 0) << "\n";
+                    resultFile
+                        << "[loopscc_memory_compressed_weighted_match]:"
+                        << (weightedMatch ? 1 : 0) << "\n";
+                    if (compressedCount) {
+                        resultFile
+                            << "[loopscc_memory_compressed_volce_count]:"
+                            << *compressedCount << "\n";
+                    }
+                }
             } else {
                 resultFile << "[volce]: N/A\n";
                 cout << "[VolCE] N/A" << endl;
@@ -4305,6 +4348,45 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << validation.compressedDecisionCount << "\n";
             resultFile << "[loopscc_compressed_mem_match]:"
                        << (validation.memMatched ? 1 : 0) << "\n";
+        }
+        for (const auto& validation :
+             eval.loopSccMemoryAccelerationValidations) {
+            cout << "[LOOPSCC MEMORY COMPRESSED VALIDATION]: attempted="
+                 << (validation.attempted ? 1 : 0)
+                 << " matched=" << (validation.matched ? 1 : 0)
+                 << " status_match="
+                 << (validation.statusMatched ? 1 : 0)
+                 << " compensated_mem_match="
+                 << (validation.compensatedMemMatched ? 1 : 0)
+                 << " original_decisions="
+                 << validation.originalDecisionCount
+                 << " compressed_decisions="
+                 << validation.compressedDecisionCount
+                 << " unfolded_loop_mems="
+                 << validation.unfoldedLoopMems
+                 << " compressed_summary_mems="
+                 << validation.compressedSummaryMems
+                 << " baseline_mem=" << validation.baselineMem
+                 << " compressed_mem=" << validation.compressedMem
+                 << " compensated_mem="
+                 << validation.compensatedMem
+                 << endl;
+            resultFile
+                << "[loopscc_memory_compressed_validation_matched]:"
+                << (validation.matched ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_status_match]:"
+                << (validation.statusMatched ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_mem_match]:"
+                << (validation.compensatedMemMatched ? 1 : 0)
+                << "\n";
+            resultFile
+                << "[loopscc_memory_unfolded_loop_mems]:"
+                << validation.unfoldedLoopMems << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_summary_mems]:"
+                << validation.compressedSummaryMems << "\n";
         }
 
         std::string coverageSignature;
