@@ -400,7 +400,7 @@ int main() {
         const auto graph = LoopSccAdapter::analyze(outer.get());
         bool sawX6 = false;
         bool sawI3 = false;
-        bool sawJ2 = false;
+        bool leakedInnerJ = false;
         if (graph.accelerationPlans.size() == 1) {
             for (const auto& transform :
                  graph.accelerationPlans[0].closedFormTransforms) {
@@ -411,8 +411,7 @@ int main() {
                     sawI3 = transform.scale == 1 &&
                             transform.offset == 3;
                 } else if (transform.variable == "j") {
-                    sawJ2 = transform.scale == 0 &&
-                            transform.offset == 2;
+                    leakedInnerJ = true;
                 }
             }
         }
@@ -469,7 +468,7 @@ int main() {
             graph.accelerationPlans.size() == 1 &&
             graph.accelerationPlans[0].exact &&
             graph.accelerationPlans[0].memsPreserving &&
-            sawX6 && sawI3 && sawJ2;
+            sawX6 && sawI3 && !leakedInnerJ;
         failures += !report("loopscc-inside-out-nested-for", ok);
     }
 
