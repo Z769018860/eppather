@@ -309,12 +309,16 @@ fixed_cell_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/fixed_cel
 fixed_cell_accel="$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/fixed_cell_memory.log")"
 fixed_cell_relations="$(metric_max 'VOLCE LOOPSCC MEMORY RELATIONS APPLIED' "$OUT_DIR/fixed_cell_memory.log")"
 fixed_cell_rejected="$(metric_max 'VOLCE LOOPSCC MEMORY RELATIONS REJECTED' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_frames="$(metric_max 'VOLCE LOOPSCC MEMORY FRAMES APPLIED' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_frame_rejected="$(metric_max 'VOLCE LOOPSCC MEMORY FRAMES REJECTED' "$OUT_DIR/fixed_cell_memory.log")"
 if [[ -z "$fixed_cell_candidates" || "$fixed_cell_candidates" -lt 1 ||
       -z "$fixed_cell_mems" || "$fixed_cell_mems" -lt 2 ||
       -z "$fixed_cell_relations" || "$fixed_cell_relations" -lt 1 ||
+      -z "$fixed_cell_frames" || "$fixed_cell_frames" -lt 1 ||
       ( -n "$fixed_cell_rejected" && "$fixed_cell_rejected" -gt 0 ) ||
+      ( -n "$fixed_cell_frame_rejected" && "$fixed_cell_frame_rejected" -gt 0 ) ||
       "$fixed_cell_accel" != 0 ]]; then
-  echo "fixed_cell_memory: expected entailed memory relation with acceleration fallback" >&2
+  echo "fixed_cell_memory: expected entailed memory relation + frame proof with acceleration fallback" >&2
   cat "$OUT_DIR/fixed_cell_memory.log" >&2
   exit 1
 fi
