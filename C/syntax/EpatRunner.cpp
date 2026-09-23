@@ -451,6 +451,21 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     EpatResult result = solveScript(render(decisions));
     epat::clearSsaProvenanceVariables();
 
+    // The first structural LoopSCC stage is deliberately opt-in and
+    // observational. It extracts one-iteration SPaths, builds a conservative
+    // SPath graph and contracts its SCCs, but does not replace unfolding or
+    // add constraints to the solver.
+    if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
+        for (CFGNode* loop : provenanceLoops) {
+            auto graph = LoopSccAdapter::analyze(loop);
+            for (const auto& diagnostic : graph.diagnostics) {
+                result.loopStateSummaryDiagnostics.push_back(
+                    "loopscc: " + diagnostic);
+            }
+            result.loopSccGraphs.push_back(std::move(graph));
+        }
+    }
+
     // Build exact source-level state transitions only after the concrete path
     // has been rendered. Early exits and truncated paths are rejected because
     // their observed iteration count differs from the closed-form trip count.
