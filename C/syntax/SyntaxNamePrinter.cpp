@@ -4122,6 +4122,16 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << (validation.memMatched ? 1 : 0) << "\n";
         }
 
+        std::string coverageSignature;
+        coverageSignature.reserve(pathCoverage.size());
+        for (bool covered : pathCoverage) {
+            coverageSignature.push_back(covered ? '1' : '0');
+        }
+        cout << "[COVERAGE SIGNATURE]: "
+             << coverageSignature << endl;
+        resultFile << "[coverage_signature]:"
+                   << coverageSignature << "\n";
+
         recordFeasiblePath(
             pathCount, mem, path, callees, volceCount, volceMemoryTerms);
 
