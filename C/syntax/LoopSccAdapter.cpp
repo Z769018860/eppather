@@ -61,6 +61,59 @@ struct BuiltPath {
     std::set<std::string> unknownWrites;
 };
 
+void observeMemoryAccess(BuiltPath& path,
+                         const std::string& raw,
+                         bool conditionContext = false) {
+    const std::string text = trim(raw);
+    if (text.empty()) return;
+
+    LoopSccMemoryAccessInfo access;
+    access.sourceText = text;
+    access.arraySubscripts = static_cast<std::size_t>(
+        std::count(text.begin(), text.end(), '['));
+
+    // Count only conservative unary-dereference forms. Multiplication such as
+    // i * 4 is intentionally excluded.
+    static const std::regex derefRe(
+        R"((^|[=(:,!~?;+-/&|])[[:space:]]**[[:space:]]*(?:[A-Za-z_]|())");
+    for (std::sregex_iterator it(text.begin(), text.end(), derefRe), end;
+         it != end; ++it) {
+        ++access.pointerDereferences;
+    }
+
+    // A star outside the recognized unary forms is either multiplication or a
+    // pointer expression outside this restricted observer. Pure arithmetic is
+    // safe to ignore; otherwise retain the observation as imprecise.
+    if (text.find('*') != std::string::npos &&
+        access.pointerDereferences == 0) {
+        static const std::regex multiplicationOnly(
+            R"(^[A-Za-z0-9_[:space:]()+-*/%<>=!&|]+$)");
+        if (!std::regex_match(text, multiplicationOnly)) {
+            access.precise = false;
+        }
+    }
+
+    if (!conditionContext) {
+        const auto eq = text.find('=');
+        if (eq != std::string::npos) {
+            const std::string lhs = trim(text.substr(0, eq));
+            access.writesMemory =
+                lhs.find('[') != std::string::npos ||
+                (!lhs.empty() && lhs.front() == '*');
+        }
+    }
+
+    if (access.mems() == 0 && !access.writesMemory && access.precise) {
+        return;
+    }
+    path.info.observedMems += access.mems();
+    path.info.memoryAccessModelComplete =
+        path.info.memoryAccessModelComplete && access.precise;
+    path.info.writesMemory =
+        path.info.writesMemory || access.writesMemory;
+    path.info.memoryAccesses.push_back(std::move(access));
+}
+
 long long clampAdd(long long value, long long delta) {
     if (value <= kNegInf / 2 || value >= kPosInf / 2) return value;
     if (delta > 0 && value > kPosInf - delta) return kPosInf;
@@ -150,6 +203,7 @@ void recordCoverageSlot(BuiltPath& path, int slot) {
 
 void addGuard(BuiltPath& path, const std::string& expr, bool truth,
               int depth = -1) {
+    observeMemoryAccess(path, expr, true);
     path.info.guards.push_back(std::string(truth ? "T: " : "F: ") + expr);
     if (depth >= 0) {
         recordCoverageSlot(path, 2 * depth + (truth ? 0 : 1));
@@ -214,6 +268,7 @@ void markUnknownWrite(BuiltPath& path,
 }
 
 bool parseUpdate(BuiltPath& path, const std::string& raw) {
+    observeMemoryAccess(path, raw, false);
     std::string text = trim(raw);
     if (text.empty()) return true;
     if (!text.empty() && text.back() == ';') text.pop_back();
