@@ -49,7 +49,17 @@ struct LoopSccPhaseTrace {
     std::size_t completePeriods{0};
     std::size_t residualPhases{0};
     std::vector<std::size_t> spathSequence;
+    // Exact transform across the observed, cycle-matched loop execution.
+    std::vector<LoopSccAffineTransform> pathAffineTransforms;
     std::vector<std::string> diagnostics;
+};
+
+struct LoopSccAffineStateSummary {
+    std::string variable;
+    long long scale{1};
+    long long offset{0};
+    std::size_t period{0};
+    std::size_t observedIterations{0};
 };
 
 struct EpatResult {
@@ -63,6 +73,9 @@ struct EpatResult {
     // EPPATHER_LOOP_SCC_ANALYZE=1; it never changes feasibility/counting.
     std::vector<LoopSccGraphInfo> loopSccGraphs;
     std::vector<LoopSccPhaseTrace> loopSccPhaseTraces;
+    // Path-specific affine relations from a proved determinate SPath cycle.
+    // They are candidates only; VolCE must still prove them entailed by SMT.
+    std::vector<LoopSccAffineStateSummary> loopSccAffineStateSummaries;
 };
 
 class EpatRunner {
