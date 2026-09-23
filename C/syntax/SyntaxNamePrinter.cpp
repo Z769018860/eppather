@@ -102,8 +102,20 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
             if (it->second >= 0) {
                 const long long hardBudget = std::max<long long>(
                     requested, exactLoopAutoliftCap(requested));
-                return static_cast<int>(std::min<long long>(
+                const int bound = static_cast<int>(std::min<long long>(
                     it->second, hardBudget));
+                const char* trace =
+                    std::getenv("EPPATHER_LOOP_SCC_BOUND_TRACE");
+                if (trace && *trace && std::string(trace) != "0") {
+                    std::cerr << "[LOOPSCC BOUND]: cond="
+                              << node->cond_str
+                              << " source=spath"
+                              << " requested=" << requested
+                              << " proved=" << it->second
+                              << " bound=" << bound
+                              << std::endl;
+                }
+                return bound;
             }
         }
 
@@ -124,6 +136,16 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
             const long long guessed = std::min<long long>(
                 exactLoopAutoliftCap(requested),
                 std::max<long long>(requested, 2 * std::llabs(limit) + 2));
+            const char* trace =
+                std::getenv("EPPATHER_LOOP_SCC_BOUND_TRACE");
+            if (trace && *trace && std::string(trace) != "0") {
+                std::cerr << "[LOOPSCC BOUND]: cond="
+                          << node->cond_str
+                          << " source=heuristic"
+                          << " requested=" << requested
+                          << " bound=" << guessed
+                          << std::endl;
+            }
             return static_cast<int>(guessed);
         }
         return requested;
