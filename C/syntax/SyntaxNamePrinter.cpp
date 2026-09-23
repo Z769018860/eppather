@@ -2879,6 +2879,80 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
+        // Experimental certified LoopSCC shortcut. It is deliberately
+        // opt-in and restricted to plans that already proved:
+        // - exact trip count and determinate phase cycle;
+        // - phase-guard inclusion;
+        // - scalar affine T^k relation;
+        // - MEMS preservation (no array/dereference/opaque effect);
+        // - zero residual phase.
+        const char* accelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_ACCELERATE");
+        const bool accelEnabled =
+            accelRaw && *accelRaw && std::string(accelRaw) != "0";
+        if (accelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedShortcut = false;
+            for (std::size_t planIndex = 0;
+                 planIndex < graph.accelerationPlans.size();
+                 ++planIndex) {
+                const auto& plan =
+                    graph.accelerationPlans[planIndex];
+                if (!plan.exact || !plan.memsPreserving ||
+                    plan.totalIterations <= 0 ||
+                    plan.residualPhases != 0 ||
+                    plan.skippableIterations !=
+                        plan.totalIterations) {
+                    continue;
+                }
+
+                auto accelerated =
+                    buildLoopSccAccelerationDecisions(
+                        decisions, node.get(), graph, planIndex);
+                if (!accelerated) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : plan.coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                std::cout
+                    << "[LOOPSCC DFS SHORTCUT USED]: period="
+                    << plan.period
+                    << " iterations=" << plan.totalIterations
+                    << " entry_phase=" << plan.entryPhase
+                    << " decisions=" << accelerated->size()
+                    << std::endl;
+
+                if (is_decision_feasible(*accelerated)) {
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         *accelerated, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                }
+                loopCount = saved;
+                usedShortcut = true;
+            }
+            if (usedShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
