@@ -33,6 +33,17 @@ struct LoopSccMemoryCellTransform {
     long long offset{0};
 };
 
+struct LoopSccMemorySummaryCandidate {
+    std::size_t cycleIndex{0};
+    std::size_t entryPhase{0};
+    std::size_t period{0};
+    long long totalIterations{0};
+    std::size_t observedMems{0};
+    std::vector<LoopSccMemoryCellTransform> closedFormTransforms;
+    bool exact{false};
+    std::vector<std::string> diagnostics;
+};
+
 struct LoopSccAffineTransform {
     std::string variable;
     // x' = scale * x + offset. The current structural adapter supports
@@ -59,6 +70,7 @@ struct LoopSccSPathInfo {
     std::vector<LoopSccMemoryCellTransform> memoryCellTransforms;
     std::size_t observedMems{0};
     bool memoryAccessModelComplete{true};
+    bool memoryTransitionModelComplete{true};
     bool writesMemory{false};
     // True only when every executable statement on this SPath is represented
     // by the restricted scalar-affine model and no array/dereference access or
@@ -144,6 +156,9 @@ struct LoopSccGraphInfo {
     // Symbolic acceleration plans derived from proved trip count + cycle
     // structure. One plan is emitted per possible cycle entry phase.
     std::vector<LoopSccAccelerationPlan> accelerationPlans;
+    // Validation-only memory summaries. These never authorize DFS skipping
+    // until VolCE entailment and alias/frame proofs are added.
+    std::vector<LoopSccMemorySummaryCandidate> memorySummaryCandidates;
     std::vector<std::string> diagnostics;
 };
 
