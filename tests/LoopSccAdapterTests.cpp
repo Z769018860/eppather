@@ -167,6 +167,7 @@ int main() {
             graph.cycles.size() == 1 &&
             graph.cycles[0].period == 2 &&
             graph.cycles[0].determinate &&
+            graph.cycles[0].phaseGuardsProved &&
             graph.cycles[0].guardedClosedFormCandidate &&
             graph.provedTripCount == 4 &&
             graph.tripCountVariable == "i" &&
@@ -220,6 +221,43 @@ int main() {
         }
         failures += !report(
             "loopscc-acceleration-residual-phase", plansOk);
+    }
+
+    // Unsupported guards may still be useful structurally, but they are not
+    // enough to certify a shortcut. "!=" is intentionally outside the single
+    // interval model and therefore must leave acceleration disabled.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto branch = ifNode("x != 0");
+        auto nonZero = node("x = 0 - x - 1;");
+        auto zero = node("x = 0 - x - 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(branch);
+        loop->setNextFalseNode(exit);
+        branch->setNextNode(nonZero);
+        branch->setNextFalseNode(zero);
+        nonZero->setNextNode(increment);
+        zero->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        bool incompleteGuard = false;
+        for (const auto& spath : graph.spaths) {
+            incompleteGuard = incompleteGuard ||
+                !spath.guardModelComplete;
+        }
+        bool noProvedPhase = true;
+        for (const auto& cycle : graph.cycles) {
+            noProvedPhase = noProvedPhase &&
+                !cycle.phaseGuardsProved;
+        }
+        const bool ok = graph.complete &&
+            incompleteGuard &&
+            noProvedPhase &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-unsupported-guard-fallback", ok);
     }
 
     // Opaque calls are not part of the restricted scalar-affine semantics.
