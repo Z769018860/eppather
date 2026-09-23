@@ -8,7 +8,7 @@ mkdir -p "$OUT_DIR"
 
 run_case() {
   local name="$1" source="$2" maxloop="$3"
-  local maxpaths="${4:-12}" with_volce="${5:-0}" debug="${6:-0}" accelerate="${7:-0}"
+  local maxpaths="${4:-12}" with_volce="${5:-0}" debug="${6:-0}" accelerate="${7:-0}" memory_accelerate="${8:-0}"
   local log="$OUT_DIR/$name.log"
   local args=(-q --maxloop "$maxloop" --maxpaths "$maxpaths")
 
@@ -21,6 +21,7 @@ run_case() {
     EPPATHER_LOOP_SCC_ANALYZE=1 \
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
     EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
+    EPPATHER_LOOP_SCC_MEMORY_ACCELERATE="$memory_accelerate" \
     EPPATHER_LOOP_SCC_BOUND_TRACE=1 \
     EPPATHER_DEBUG_EPAT_SCRIPT=1 \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
@@ -28,6 +29,7 @@ run_case() {
     EPPATHER_LOOP_SCC_ANALYZE=1 \
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
     EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
+    EPPATHER_LOOP_SCC_MEMORY_ACCELERATE="$memory_accelerate" \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
   fi
 
@@ -301,8 +303,9 @@ if [[ -z "$pointer_memory_spaths" || "$pointer_memory_spaths" -lt 1 ||
   exit 1
 fi
 
-# 8. Fixed-cell writes may produce a machine-readable memory-transition
-# candidate, but still must not authorize acceleration before VolCE/alias proof.
+# 8. Fixed-cell local-array writes first pass the unfolded semantic proof:
+# relation + frame + compensated MEMS + VolCE count/wMEMS. Then exercise the
+# independently opt-in structural memory shortcut and compare it A/B.
 run_case fixed_cell_memory testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1
 fixed_cell_candidates="$(metric_max 'LOOPSCC MEMORY CELL TRANSITION CANDIDATES' "$OUT_DIR/fixed_cell_memory.log")"
 fixed_cell_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/fixed_cell_memory.log")"
@@ -332,6 +335,19 @@ if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_ma
   cat "$OUT_DIR/fixed_cell_memory.log" >&2
   exit 1
 fi
+
+run_case fixed_cell_memory_accel testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1 0 0 1
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_memory_accel.log"; then
+  echo "fixed_cell_memory_accel: certified fixed-memory shortcut was not used" >&2
+  cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]: .*unfolded_mems=[1-9][0-9]* .*compensation=[0-9]+' "$OUT_DIR/fixed_cell_memory_accel.log"; then
+  echo "fixed_cell_memory_accel: missing explicit MEMS compensation certificate" >&2
+  cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
+  exit 1
+fi
+compare_modes fixed_cell_memory fixed_cell_memory_accel
 
 # 9. Array-writing nested loops remain conservative because their memory
 # transition is not yet alias-safe for inside-out acceleration.
