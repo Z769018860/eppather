@@ -2798,6 +2798,83 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
+        // The same certified LoopSCC shortcut used for while-loops also applies
+        // to canonical for-loops once the adapter has proved the total SPath
+        // transform and exact trip count. The for initializer is part of the
+        // entry semantics and must execute exactly once before the closed form;
+        // the repeated post expression is already included in T^k.
+        const char* accelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_ACCELERATE");
+        const bool accelEnabled =
+            accelRaw && *accelRaw && std::string(accelRaw) != "0";
+        if (accelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedShortcut = false;
+            for (std::size_t planIndex = 0;
+                 planIndex < graph.accelerationPlans.size();
+                 ++planIndex) {
+                const auto& plan = graph.accelerationPlans[planIndex];
+                if (!plan.exact || !plan.memsPreserving ||
+                    plan.totalIterations <= 0 ||
+                    plan.skippableIterations != plan.totalIterations) {
+                    continue;
+                }
+
+                auto prefix = decisions;
+                if (!node->initstmt_str.empty() &&
+                    node->initstmt_str != ";") {
+                    prefix.push_back(PathDecision{
+                        node.get(), PathDecisionKind::LoopInit});
+                }
+                auto accelerated =
+                    buildLoopSccAccelerationDecisions(
+                        prefix, node.get(), graph, planIndex);
+                if (!accelerated) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : plan.coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(*accelerated);
+                if (shortcutEval.status == result::feasible) {
+                    std::cout
+                        << "[LOOPSCC DFS SHORTCUT USED]: kind=for period="
+                        << plan.period
+                        << " iterations=" << plan.totalIterations
+                        << " entry_phase=" << plan.entryPhase
+                        << " decisions=" << accelerated->size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         *accelerated, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
