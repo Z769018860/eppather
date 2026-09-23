@@ -159,7 +159,7 @@ int main() {
     // existing memory-projection abstraction. Factorization may exploit that
     // canonical representation, but it must not change its exact count.
     const std::string canonicalMultiSmt =
-        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\\n";
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n";
     const auto canonicalMulti = volce::countModelsFromSmt2(
         canonicalMultiSmt, {}, volce::Range{-1, 1}, true,
         {{"left", 3, true}, {"right", 3, true}});
@@ -172,7 +172,7 @@ int main() {
               << " count=" << (canonicalMulti ? std::to_string(canonicalMulti->count) : "N/A")
               << " memory_terms=" << (canonicalMulti ? std::to_string(canonicalMulti->bounded_memory_terms.size()) : "N/A")
               << " components=" << (canonicalMulti ? std::to_string(canonicalMulti->factored_projection_components) : "N/A")
-              << '\\n';
+              << '\n';
     failures += !canonicalMultiOk;
     return failures == 0 ? 0 : 1;
 }
