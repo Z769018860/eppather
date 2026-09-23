@@ -312,6 +312,136 @@ int estimateMemsFromScript(const std::string& script) {
     return mem;
 }
 
+LoopSccPhaseTrace buildLoopSccPhaseTrace(
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    const std::vector<PathDecision>& decisions) {
+    LoopSccPhaseTrace trace;
+    if (!loop) {
+        trace.diagnostics.push_back("missing loop for phase trace");
+        return trace;
+    }
+    trace.loopCondition = loop->cond_str;
+    if (!graph.complete) {
+        trace.diagnostics.push_back(
+            "SPath graph incomplete; phase trace is not trusted");
+        return trace;
+    }
+
+    std::vector<std::vector<std::string>> iterationGuards;
+    std::vector<std::string> currentGuards;
+    bool active = false;
+    bool closedAtLoopHead = true;
+
+    auto finishIteration = [&]() {
+        if (!active) return;
+        iterationGuards.push_back(currentGuards);
+        currentGuards.clear();
+        active = false;
+    };
+
+    for (const auto& decision : decisions) {
+        if (!decision.node) continue;
+        if (decision.node == loop) {
+            if (decision.kind == PathDecisionKind::TrueBranch) {
+                if (active) finishIteration();
+                active = true;
+                closedAtLoopHead = true;
+                currentGuards.push_back("T: " + loop->cond_str);
+            } else if (decision.kind == PathDecisionKind::FalseBranch) {
+                if (active) finishIteration();
+                closedAtLoopHead = true;
+            }
+            continue;
+        }
+
+        if (!active) continue;
+        if ((decision.kind == PathDecisionKind::TrueBranch ||
+             decision.kind == PathDecisionKind::FalseBranch) &&
+            decision.node->isCondition) {
+            currentGuards.push_back(
+                std::string(
+                    decision.kind == PathDecisionKind::TrueBranch
+                        ? "T: " : "F: ") +
+                decision.node->cond_str);
+        }
+        closedAtLoopHead = false;
+    }
+
+    // A path ending inside the loop (return/break/truncation) has no following
+    // loop-head decision proving completion of the last iteration.
+    if (active) {
+        finishIteration();
+        closedAtLoopHead = false;
+    }
+
+    for (const auto& guards : iterationGuards) {
+        std::size_t matched = graph.spaths.size();
+        std::size_t matches = 0;
+        for (std::size_t i = 0; i < graph.spaths.size(); ++i) {
+            if (graph.spaths[i].guards == guards) {
+                matched = i;
+                ++matches;
+            }
+        }
+        if (matches != 1) {
+            trace.diagnostics.push_back(
+                matches == 0
+                    ? "observed iteration did not match any SPath"
+                    : "observed iteration matched multiple SPaths");
+            return trace;
+        }
+        trace.spathSequence.push_back(matched);
+    }
+
+    trace.observedIterations = trace.spathSequence.size();
+    trace.complete = closedAtLoopHead;
+    if (!trace.complete || trace.spathSequence.empty()) {
+        if (trace.spathSequence.empty())
+            trace.diagnostics.push_back("no completed loop iteration observed");
+        return trace;
+    }
+
+    for (std::size_t cycleIndex = 0;
+         cycleIndex < graph.cycles.size(); ++cycleIndex) {
+        const auto& cycle = graph.cycles[cycleIndex];
+        if (!cycle.determinate || cycle.spathOrder.empty()) continue;
+
+        auto first = std::find(
+            cycle.spathOrder.begin(), cycle.spathOrder.end(),
+            trace.spathSequence.front());
+        if (first == cycle.spathOrder.end()) continue;
+        const std::size_t entry = static_cast<std::size_t>(
+            std::distance(cycle.spathOrder.begin(), first));
+
+        bool matchesCycle = true;
+        for (std::size_t i = 0; i < trace.spathSequence.size(); ++i) {
+            const std::size_t expected =
+                cycle.spathOrder[(entry + i) % cycle.spathOrder.size()];
+            if (trace.spathSequence[i] != expected) {
+                matchesCycle = false;
+                break;
+            }
+        }
+        if (!matchesCycle) continue;
+
+        trace.matchedDeterminateCycle = true;
+        trace.cycleIndex = cycleIndex;
+        trace.period = cycle.period;
+        trace.entryPhase = entry;
+        trace.completePeriods =
+            trace.period == 0 ? 0 : trace.observedIterations / trace.period;
+        trace.residualPhases =
+            trace.period == 0 ? trace.observedIterations
+                              : trace.observedIterations % trace.period;
+        return trace;
+    }
+
+    trace.diagnostics.push_back(
+        "observed SPath sequence does not follow a determinate cycle");
+    return trace;
+}
+
 }  // namespace
 
 EpatRunner::EpatRunner(std::string prefix)
@@ -462,6 +592,8 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                 result.loopStateSummaryDiagnostics.push_back(
                     "loopscc: " + diagnostic);
             }
+            result.loopSccPhaseTraces.push_back(
+                buildLoopSccPhaseTrace(loop, graph, decisions));
             result.loopSccGraphs.push_back(std::move(graph));
         }
     }
