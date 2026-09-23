@@ -22,6 +22,19 @@ struct LoopSccSPathInfo {
     bool exitsLoop{false};
 };
 
+struct LoopSccCycleInfo {
+    std::size_t sccId{0};
+    // Canonical SPath order for one proved deterministic cycle.
+    std::vector<std::size_t> spathOrder;
+    std::size_t period{0};
+    bool determinate{false};
+    bool guardedClosedFormCandidate{false};
+    // Exact affine transform accumulated across one complete cycle, rendered
+    // as human-readable relations for validation and later VolCE transport.
+    std::vector<std::string> periodAffineUpdates;
+    std::vector<std::string> diagnostics;
+};
+
 struct LoopSccGraphInfo {
     std::string loopCondition;
     bool complete{false};
@@ -37,6 +50,10 @@ struct LoopSccGraphInfo {
     std::size_t multiNodeSccCount{0};
     std::size_t maxSccSize{0};
     std::size_t contractedEdgeCount{0};
+    std::vector<LoopSccCycleInfo> cycles;
+    std::size_t determinateCycleCount{0};
+    std::size_t oscillatingCycleCount{0};
+    std::size_t guardedClosedFormCandidateCount{0};
     std::vector<std::string> diagnostics;
 };
 
