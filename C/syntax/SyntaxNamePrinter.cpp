@@ -3943,6 +3943,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t determinateCycles = 0;
             std::size_t oscillatingCycles = 0;
             std::size_t closedFormCandidates = 0;
+            std::size_t insideOutNestedSummaries = 0;
             std::size_t accelerationPlans = 0;
             std::size_t exactAccelerationPlans = 0;
             std::size_t maxPeriod = 0;
@@ -3960,6 +3961,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 determinateCycles += graph.determinateCycleCount;
                 oscillatingCycles += graph.oscillatingCycleCount;
                 closedFormCandidates += graph.guardedClosedFormCandidateCount;
+                insideOutNestedSummaries +=
+                    graph.insideOutNestedSummaryCount;
                 accelerationPlans += graph.accelerationPlans.size();
                 for (const auto& plan : graph.accelerationPlans) {
                     if (plan.exact) ++exactAccelerationPlans;
@@ -4023,6 +4026,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[LOOPSCC OSCILLATING CYCLES]: " << oscillatingCycles << endl;
             cout << "[LOOPSCC CLOSED FORM CANDIDATES]: "
                  << closedFormCandidates << endl;
+            cout << "[LOOPSCC INSIDE OUT NESTED SUMMARIES]: "
+                 << insideOutNestedSummaries << endl;
             cout << "[LOOPSCC ACCELERATION PLANS]: "
                  << accelerationPlans << endl;
             cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
@@ -4046,6 +4051,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile << "[loopscc_oscillating_cycles]:" << oscillatingCycles << "\n";
             resultFile << "[loopscc_closed_form_candidates]:"
                        << closedFormCandidates << "\n";
+            resultFile << "[loopscc_inside_out_nested_summaries]:"
+                       << insideOutNestedSummaries << "\n";
             resultFile << "[loopscc_acceleration_plans]:"
                        << accelerationPlans << "\n";
             resultFile << "[loopscc_exact_acceleration_plans]:"
