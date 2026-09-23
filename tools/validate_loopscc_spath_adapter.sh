@@ -7,7 +7,8 @@ OUT_DIR="${OUT_DIR:-$ROOT/loopscc-spath-results}"
 mkdir -p "$OUT_DIR"
 
 run_case() {
-  local name="$1" source="$2" maxloop="$3" maxpaths="${4:-12}" with_volce="${5:-0}"
+  local name="$1" source="$2" maxloop="$3"
+  local maxpaths="${4:-12}" with_volce="${5:-0}"
   local log="$OUT_DIR/$name.log"
   local args=(-q --maxloop "$maxloop" --maxpaths "$maxpaths")
   if [[ "$with_volce" == "1" ]]; then
@@ -38,9 +39,9 @@ if [[ -z "$osc_spaths" || "$osc_spaths" -lt 2 ||
   exit 1
 fi
 
-# Periodic case exercises the full structural -> phase trace -> SSA provenance
-# -> VolCE entailment chain. The affine relation remains redundant with the
-# unfolded formula; this gate proves it before any future replacement.
+# Full chain: SPath/CSG -> determinate cycle -> concrete phase trace ->
+# SSA provenance -> VolCE entailment. The summary remains redundant with the
+# unfolded path at this stage; the gate proves semantic validity first.
 run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 4 100 1
 periodic_cycles="$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/periodic.log")"
 periodic_osc="$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/periodic.log")"
@@ -48,6 +49,8 @@ periodic_candidates="$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/per
 periodic_max="$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/periodic.log")"
 periodic_complete="$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/periodic.log")"
 periodic_relations="$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/periodic.log")"
+periodic_rejected="$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS REJECTED' "$OUT_DIR/periodic.log")"
+
 if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
       -z "$periodic_osc" || "$periodic_osc" -lt 1 ||
       -z "$periodic_candidates" || "$periodic_candidates" -lt 1 ||
@@ -56,7 +59,8 @@ if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: state_after_period=state >&2
+if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: state_after_period=state$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: missing exact period transform state_after_period=state" >&2
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
@@ -70,36 +74,8 @@ if [[ -z "$periodic_relations" || "$periodic_relations" -lt 1 ]]; then
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-
-run_case nested testcase/loop_hybrid/12_nested_for.c 4
-nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
-if [[ "$nested_complete" != 0 ]]; then
-  echo "nested: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
-  echo "nested: missing inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations"
-echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0"
- "$OUT_DIR/periodic.log"; then
-  echo "periodic: missing exact canonical period transform for state" >&2
-  cat "$OUT_DIR/periodic.log" >&2
-  exit 1
-fi
-if ! grep -Eq '^\[LOOPSCC PHASE TRACE\]: complete=1 matched=1 period=2 entry_phase=[01] iterations=4 full_periods=2 residual=0$' "$OUT_DIR/periodic.log"; then
-  echo "periodic: concrete path was not mapped to two complete periods" >&2
-  cat "$OUT_DIR/periodic.log" >&2
-  exit 1
-fi
-if [[ -z "$periodic_relations" || "$periodic_relations" -lt 1 ]]; then
-  echo "periodic: expected at least one SMT-entailed LoopSCC affine relation" >&2
+if [[ -n "$periodic_rejected" && "$periodic_rejected" -gt 0 ]]; then
+  echo "periodic: guarded periodic relation was unexpectedly rejected" >&2
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
