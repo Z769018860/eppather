@@ -2,6 +2,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -102,6 +103,17 @@ struct EpatResult {
     std::vector<LoopSccAccelerationValidation>
         loopSccAccelerationValidations;
 };
+
+// Build a summarized decision stream for one certified LoopSCC
+// acceleration plan. The input decisions are the prefix immediately before
+// the loop. The returned stream contains the initial loop guard, entry-phase
+// guard, closed-form scalar assignments, and final loop-exit guard.
+std::optional<std::vector<PathDecision>>
+buildLoopSccAccelerationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t planIndex);
 
 class EpatRunner {
 public:
