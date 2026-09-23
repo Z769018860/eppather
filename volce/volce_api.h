@@ -28,6 +28,19 @@ struct AffineRelationSummary {
     std::int64_t offset{0};
 };
 
+struct MemoryCellAffineRelationSummary {
+    std::string source_name;
+    std::int64_t cell_index{0};
+    // final_cell = scale * initial_cell + offset
+    std::int64_t scale{1};
+    std::int64_t offset{0};
+};
+
+struct MemoryRelationValidationResult {
+    std::vector<std::string> applied;
+    std::vector<std::string> rejected;
+};
+
 struct MemoryRegionProjection {
     std::string source_name;
     std::size_t cells;
@@ -79,6 +92,11 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::vector<MemoryRegionProjection>& memory_regions = {},
     bool apply_entailed_summaries = true,
     const std::vector<AffineRelationSummary>& affine_relations = {});
+
+std::optional<MemoryRelationValidationResult>
+validateMemoryCellRelationsFromSmt2(
+    const std::string& smt2,
+    const std::vector<MemoryCellAffineRelationSummary>& summaries);
 
 std::optional<CountResult> countModelsFromSmt2File(
     const std::string& smt2_path,
