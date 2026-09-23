@@ -1,0 +1,52 @@
+#pragma once
+
+#include <cstddef>
+#include <string>
+#include <vector>
+
+namespace psy {
+namespace C {
+
+class CFGNode;
+
+// One acyclic entry-to-backedge/exit path through a single loop iteration.
+// This is structural metadata only: the adapter does not replace bounded
+// unfolding or assert any summary into VolCE.
+struct LoopSccSPathInfo {
+    std::size_t id{0};
+    std::vector<std::string> guards;
+    std::vector<std::string> writes;
+    std::vector<std::string> affineUpdates;
+    bool returnsToHeader{false};
+    bool exitsLoop{false};
+};
+
+struct LoopSccGraphInfo {
+    std::string loopCondition;
+    bool complete{false};
+    std::vector<LoopSccSPathInfo> spaths;
+    std::size_t transitionCount{0};
+    std::size_t sccCount{0};
+    std::size_t cyclicSccCount{0};
+    std::size_t multiNodeSccCount{0};
+    std::size_t maxSccSize{0};
+    std::size_t contractedEdgeCount{0};
+    std::vector<std::string> diagnostics;
+};
+
+// Conservative structural adapter for the first LoopSCC stage:
+//   loop CFG -> one-iteration SPaths -> SPath graph -> SCC contraction.
+//
+// Transitions are over-approximated. A transition is removed only when simple
+// integer guard intervals and exact affine updates prove it impossible.
+// Nested loops, unsupported internal cycles, and path-budget truncation make
+// the graph incomplete; callers must keep the existing bounded-unrolling path.
+class LoopSccAdapter {
+public:
+    static LoopSccGraphInfo analyze(CFGNode* loop,
+                                    std::size_t maxPaths = 64,
+                                    std::size_t maxNodesPerPath = 128);
+};
+
+}  // namespace C
+}  // namespace psy
