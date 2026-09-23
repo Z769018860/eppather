@@ -913,6 +913,125 @@ void applyEntailedStateSummaries(
     }
 }
 
+struct SsaRelationState {
+    Z3_func_decl decl{nullptr};
+    std::string name;
+    std::string prefix;
+    unsigned version{0};
+};
+
+std::optional<SsaRelationState> parseSsaRelationState(
+    Z3_context ctx,
+    Z3_func_decl decl,
+    const std::string& source) {
+    const char* rawName =
+        Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+    const std::string name = rawName ? rawName : "";
+    if (!isSummaryCandidateName(name, source)) return std::nullopt;
+    const auto marker = name.rfind("#ssa");
+    if (marker == std::string::npos || marker + 4 >= name.size())
+        return std::nullopt;
+    unsigned version = 0;
+    for (std::size_t i = marker + 4; i < name.size(); ++i) {
+        const unsigned char ch = static_cast<unsigned char>(name[i]);
+        if (!std::isdigit(ch)) return std::nullopt;
+        const unsigned digit = static_cast<unsigned>(ch - '0');
+        if (version > (std::numeric_limits<unsigned>::max() - digit) / 10)
+            return std::nullopt;
+        version = version * 10 + digit;
+    }
+    return SsaRelationState{
+        decl, name, name.substr(0, marker), version};
+}
+
+void applyEntailedAffineRelations(
+    Z3_context ctx,
+    Z3_solver solver,
+    const std::vector<Z3_func_decl>& decls,
+    const std::vector<volce::AffineRelationSummary>& summaries,
+    std::vector<std::string>& applied,
+    std::vector<std::string>& rejected,
+    bool apply_entailed_summaries) {
+    for (const auto& summary : summaries) {
+        std::unordered_map<std::string, std::vector<SsaRelationState>> groups;
+        for (auto decl : decls) {
+            auto state = parseSsaRelationState(
+                ctx, decl, summary.variable);
+            if (!state) continue;
+            groups[state->prefix].push_back(std::move(*state));
+        }
+
+        if (groups.size() != 1) {
+            rejected.push_back(
+                summary.variable +
+                ": expected exactly one SSA scope for affine relation");
+            continue;
+        }
+        auto& states = groups.begin()->second;
+        std::sort(
+            states.begin(), states.end(),
+            [](const SsaRelationState& lhs,
+               const SsaRelationState& rhs) {
+                return lhs.version < rhs.version;
+            });
+        if (states.size() < 2 || states.front().version != 0 ||
+            states.front().version == states.back().version) {
+            rejected.push_back(
+                summary.variable +
+                ": affine relation requires SSA entry #ssa0 and a later exit");
+            continue;
+        }
+
+        Z3_ast entry = Z3_mk_app(ctx, states.front().decl, 0, nullptr);
+        Z3_ast exit = Z3_mk_app(ctx, states.back().decl, 0, nullptr);
+        Z3_sort entrySort = Z3_get_sort(ctx, entry);
+        Z3_sort exitSort = Z3_get_sort(ctx, exit);
+        if (!Z3_is_eq_sort(ctx, entrySort, exitSort) ||
+            !isBitVector(ctx, entrySort)) {
+            rejected.push_back(
+                summary.variable +
+                ": affine relation SSA endpoints have incompatible sorts");
+            continue;
+        }
+
+        Z3_ast scale =
+            Z3_mk_int64(ctx, summary.scale, entrySort);
+        Z3_ast offset =
+            Z3_mk_int64(ctx, summary.offset, entrySort);
+        Z3_ast scaled = summary.scale == 1
+            ? entry
+            : (summary.scale == 0
+                ? Z3_mk_int64(ctx, 0, entrySort)
+                : Z3_mk_bvmul(ctx, entry, scale));
+        Z3_ast rhs = summary.offset == 0
+            ? scaled
+            : Z3_mk_bvadd(ctx, scaled, offset);
+        Z3_ast equality = Z3_mk_eq(ctx, exit, rhs);
+
+        Z3_solver_push(ctx, solver);
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+        const Z3_lbool check = Z3_solver_check(ctx, solver);
+        Z3_solver_pop(ctx, solver, 1);
+
+        if (check == Z3_L_FALSE) {
+            if (apply_entailed_summaries) {
+                Z3_solver_assert(ctx, solver, equality);
+            }
+            applied.push_back(
+                summary.variable + ":" +
+                states.front().name + "->" + states.back().name +
+                " scale=" + std::to_string(summary.scale) +
+                " offset=" + std::to_string(summary.offset));
+        } else {
+            rejected.push_back(
+                summary.variable + ":" +
+                states.front().name + "->" + states.back().name +
+                ": path formula does not entail affine relation");
+        }
+    }
+}
+
+
 // A definition (x = expression) of an unprojected SSA state can be
 // existentially eliminated by substituting expression for x everywhere.
 // Restrict this to the declaration scope of an entailed loop summary.
@@ -1022,6 +1141,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                Z3_ast_vector vec,
                                                const std::vector<DeclInfo>& parsed_decls,
                                                const std::vector<volce::AffineStateSummary>& summaries,
+                                               const std::vector<volce::AffineRelationSummary>& affine_relations,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range,
                                                bool include_memory_terms,
@@ -1130,6 +1250,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     std::vector<std::string> applied;
     std::vector<std::string> validated_ground;
     std::vector<std::string> rejected;
+    std::vector<std::string> applied_affine_relations;
+    std::vector<std::string> rejected_affine_relations;
 
     // Both summary and baseline modes receive the same initial solver check.
     // Without this control, summary entailment checks warm Z3's internal state
@@ -1141,6 +1263,10 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto summary_start = std::chrono::steady_clock::now();
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
+        apply_entailed_summaries);
+    applyEntailedAffineRelations(
+        ctx, solver, decls, affine_relations,
+        applied_affine_relations, rejected_affine_relations,
         apply_entailed_summaries);
 
     Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
@@ -1212,6 +1338,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
+        std::move(applied_affine_relations),
+        std::move(rejected_affine_relations),
         formula_assertions, decls.size(), projection_terms.size(),
         counting_assertions, factored_projection_components,
         static_cast<std::uint64_t>(
@@ -1248,7 +1376,7 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, {}, ranges,
                                 default_range, include_memory_terms,
                                 memory_regions, false);
 
@@ -1265,7 +1393,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::optional<Range>& default_range,
     bool include_memory_terms,
     const std::vector<MemoryRegionProjection>& memory_regions,
-    bool apply_entailed_summaries) {
+    bool apply_entailed_summaries,
+    const std::vector<AffineRelationSummary>& affine_relations) {
     if (smt2.empty()) return std::nullopt;
 
     const auto parsed_decls = parseBitVectorDecls(smt2);
@@ -1277,8 +1406,9 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     Z3_ast_vector vec = Z3_parse_smtlib2_string(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(
-        ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
-        include_memory_terms, memory_regions, apply_entailed_summaries);
+        ctx, solver, vec, parsed_decls, summaries, affine_relations,
+        ranges, default_range, include_memory_terms, memory_regions,
+        apply_entailed_summaries);
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -1307,7 +1437,7 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, {}, ranges,
                                 default_range, include_memory_terms, {},
                                 false);
 
