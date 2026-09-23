@@ -650,7 +650,9 @@ int main() {
             baseline.status == epat::result::feasible &&
             withMemorySsa.status == epat::result::feasible &&
             baseline.smt.find("%a#ssa_final") == std::string::npos &&
-            withMemorySsa.smt.find("%a#ssa_final") != std::string::npos;
+            baseline.smt.find("a@0#base") == std::string::npos &&
+            withMemorySsa.smt.find("%a#ssa_final") != std::string::npos &&
+            withMemorySsa.smt.find("a@0#base") != std::string::npos;
         failures += !report("loopscc-final-memory-ssa-provenance", ok);
     }
 
