@@ -3845,6 +3845,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                          << " period=" << plan.period
                          << " full_periods=" << plan.completePeriods
                          << " residual=" << plan.residualPhases
+                         << " mems_preserving="
+                         << (plan.memsPreserving ? 1 : 0)
+                         << " skippable_iterations="
+                         << plan.skippableIterations
                          << " exact=" << (plan.exact ? 1 : 0)
                          << endl;
                     for (const auto& transform :
@@ -3866,6 +3870,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     if (cycle.determinate) {
                         cout << "[LOOPSCC CYCLE]: scc=" << cycle.sccId
                              << " period=" << cycle.period
+                             << " phase_guards_proved="
+                             << (cycle.phaseGuardsProved ? 1 : 0)
                              << " closed_form_candidate="
                              << (cycle.guardedClosedFormCandidate ? 1 : 0)
                              << endl;
