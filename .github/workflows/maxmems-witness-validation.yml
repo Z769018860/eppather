@@ -1,0 +1,33 @@
+name: MaxMEMS witness validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/maxmems_witness_experiment.py'
+      - 'tools/e2e_path_validation.py'
+      - 'docs/maxmems-witness-validation-2026-09-24.md'
+      - '.github/workflows/maxmems-witness-validation.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Eppather
+        run: cmake -S . -B build_maxmems_witness -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_maxmems_witness --target cnip -j2
+      - name: Run independent MaxMEMS witness experiment
+        run: |
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems_witness/cnip" \
+            --output-dir maxmems-witness-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-witness-results
+          path: maxmems-witness-results/
