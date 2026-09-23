@@ -2928,23 +2928,29 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                 }
                 loopCount[d] = 0;
 
-                std::cout
-                    << "[LOOPSCC DFS SHORTCUT USED]: period="
-                    << plan.period
-                    << " iterations=" << plan.totalIterations
-                    << " entry_phase=" << plan.entryPhase
-                    << " decisions=" << accelerated->size()
-                    << std::endl;
-
-                if (is_decision_feasible(*accelerated)) {
+                // Unlike ordinary prefix pruning, shortcut admission
+                // must prove that at least one summarized entry phase is
+                // feasible at the loop exit. Otherwise suppressing the
+                // unfolded fallback could lose all valid paths.
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(*accelerated);
+                if (shortcutEval.status == result::feasible) {
+                    std::cout
+                        << "[LOOPSCC DFS SHORTCUT USED]: period="
+                        << plan.period
+                        << " iterations=" << plan.totalIterations
+                        << " entry_phase=" << plan.entryPhase
+                        << " decisions=" << accelerated->size()
+                        << std::endl;
                     currentPathCallees_ = baseCallees;
                     DFS2(node->getNextFalseNode(), cov_a,
                          *accelerated, depth + 1, pathCount,
                          maxloop, maxpaths, enableVolce,
                          volceLower, volceUpper, functionTag);
+                    usedShortcut = true;
                 }
                 loopCount = saved;
-                usedShortcut = true;
             }
             if (usedShortcut) {
                 loopCount = snap_lc;
