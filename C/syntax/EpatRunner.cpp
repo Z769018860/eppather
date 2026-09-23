@@ -349,6 +349,7 @@ LoopSccPhaseTrace buildLoopSccPhaseTrace(
 
     std::vector<std::vector<std::string>> iterationGuards;
     std::vector<std::string> currentGuards;
+    std::vector<CFGNode*> nestedLoopStack;
     bool active = false;
     bool closedAtLoopHead = true;
 
@@ -375,6 +376,33 @@ LoopSccPhaseTrace buildLoopSccPhaseTrace(
         }
 
         if (!active) continue;
+
+        // The structural adapter may have summarized a nested loop inside-out.
+        // While matching the outer concrete path, hide every decision made
+        // inside that nested loop so the observed guard sequence corresponds
+        // to the summarized outer SPath rather than the raw nested expansion.
+        if (!nestedLoopStack.empty()) {
+            if (decision.node->isLoop &&
+                decision.node != loop &&
+                decision.kind == PathDecisionKind::TrueBranch &&
+                decision.node != nestedLoopStack.back()) {
+                nestedLoopStack.push_back(decision.node);
+                continue;
+            }
+            if (decision.node == nestedLoopStack.back() &&
+                decision.kind == PathDecisionKind::FalseBranch) {
+                nestedLoopStack.pop_back();
+                continue;
+            }
+            continue;
+        }
+        if (decision.node->isLoop && decision.node != loop) {
+            if (decision.kind == PathDecisionKind::TrueBranch) {
+                nestedLoopStack.push_back(decision.node);
+            }
+            continue;
+        }
+
         if ((decision.kind == PathDecisionKind::TrueBranch ||
              decision.kind == PathDecisionKind::FalseBranch) &&
             decision.node->isCondition) {
