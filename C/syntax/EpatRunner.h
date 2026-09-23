@@ -80,6 +80,9 @@ struct LoopSccAccelerationValidation {
     std::size_t compressedDecisionCount{0};
     int baselineMem{0};
     int compressedMem{0};
+    // SMT emitted by the validation-only compressed path. Model-count A/B is
+    // performed by SyntaxNamePrinter/VolCE using the same finite domain.
+    std::string compressedSmt;
 };
 
 struct EpatResult {
