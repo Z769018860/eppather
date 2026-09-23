@@ -15,13 +15,19 @@ Implemented stages:
 6. entailed SSA definitions are substituted away before model counting;
 7. array/pointer/VLA inputs use bounded canonical memory projections;
 8. the reduced counting formula is now decomposed into **proved-independent projection components** and exact component counts are multiplied;
-9. an opt-in structural LoopSCC adapter enumerates one-iteration acyclic SPaths, records guards/write sets/simple affine updates, builds a conservative SPath transition graph, runs Tarjan SCC decomposition, and retains the contracted CSG structure for the next summarization stage.
+9. an opt-in LoopSCC adapter enumerates one-iteration acyclic SPaths, records guards/write sets/simple affine updates, builds a conservative SPath transition graph, runs Tarjan SCC decomposition, and retains the contracted CSG;
+10. determinate closed SPath cycles are recognized conservatively and their machine-readable period transforms `x' = a*x+b` are composed;
+11. concrete paths are mapped to SPath phase sequences and path-specific affine relations;
+12. periodic state variables receive scalar SSA provenance before epat++ solving;
+13. VolCE accepts a periodic affine relation only after an SMT entailment check over the complete path formula;
+14. an entailed periodic relation can feed the existing SSA definition-elimination pass, while the validation-only baseline performs the same checks without assertion/elimination.
 
 Still not implemented from full LoopSCC:
 
-- periodic oscillation interval discovery over SPath SCCs;
-- determinate-cycle / multi-cycle closed forms;
-- general multi-variable and data-dependent loop summarization;
+- symbolic period-count derivation that can safely skip repeated loop bodies;
+- general multi-cycle / non-determinate oscillation closed forms;
+- inside-out nested SCC composition;
+- general coupled multi-variable and data-dependent loop summarization;
 - source-level alias summaries that can replace canonical memory abstraction.
 
 Therefore the current integration should be described as **LoopSCC-compatible affine/state-summary integration with conservative fallback**, not full LoopSCC.
@@ -91,37 +97,51 @@ For comparison, the previous `ap04` memory run used about 14.6 seconds in model 
 
 The maxloop sensitivity runs at 2, 5, and 8 also completed for the selected array/pointer subjects, with the same completed counts for the previously problematic `ap06` and `ap15`.
 
-## SPath / CSG structural stage
+## SPath / CSG and guarded relation stage
 
-PR #98 adds the first control-flow structure layer. With
+PR #98 extends the control-flow layer beyond structural observation. With
 `EPPATHER_LOOP_SCC_ANALYZE=1`, Eppather enumerates acyclic one-iteration
-SPaths, retains branch guards, scalar/memory write sets and simple affine
-updates, builds a conservative transition graph, computes Tarjan SCCs, and
-retains both SCC membership and contracted CSG edges. This stage is
-observational only: it does not replace unfolding or assert a new VolCE
-constraint. Nested loops are marked incomplete until inside-out composition is
-implemented.
+SPaths, builds SCC/CSG structure, recognizes restricted determinate cycles,
+composes exact scalar period transforms including sign-flip scale `-1`, and
+maps a concrete unfolded path to its phase sequence.
 
-See `docs/loopscc-spath-csg-adapter-2026-09-23.md` for the exact supported
-forms, metrics and fallbacks.
+For a complete matched cycle, Eppather transports a machine-readable
+`x_exit = a*x_entry+b` candidate to VolCE. epat++ materializes the relevant
+local scalar states as `#ssaN`. VolCE then checks the candidate by asserting
+its negation; only UNSAT relations are accepted. Applied relations are kept
+separate from the older constant-final-state summaries and may participate in
+deterministic SSA definition elimination. SAT/UNKNOWN, missing provenance,
+ambiguous SSA scopes, unsupported writes, memory writes, nested loops, and
+incomplete graphs all fall back conservatively.
+
+This changes the status of PR #98 from “structural-only” to **guarded affine
+relation integration**. It still does not bypass loop unfolding: the current
+phase relation is derived after observing the concrete bounded path.
+
+See `docs/loopscc-spath-csg-adapter-2026-09-23.md` for supported transforms,
+validation gates and fallbacks.
 
 ## Next LoopSCC gate
 
-The next step is now **restricted periodic/oscillation detection over the
-retained SPath SCCs**:
+The next step is **safe symbolic period acceleration**, not another structural
+adapter:
 
-1. identify SCC-local variables whose guards and updates are fully represented
-   by the current interval/affine model;
-2. detect a small proved periodic cycle (starting with reciprocal two-SPath
-   oscillation) and derive its oscillation interval;
-3. express the candidate as a guarded closed-form transition;
-4. send that transition through the existing SMT entailment gate before it can
-   influence VolCE or bypass unfolding;
-5. keep general multi-variable, memory-writing, ambiguous-guard and incomplete
-   SCCs on the existing bounded path;
-6. validate exact solution-count and weighted-MEMS equality against the
-   validation-only baseline before measuring performance.
+1. derive the number of complete cycle periods symbolically from loop guards
+   and cycle-entry state;
+2. prove the period-count/exit relation and residual phase, not just the state
+   transform for an already-unfolded path;
+3. replace repeated period bodies only after the closed form and exit semantics
+   are both SMT-validated;
+4. preserve bounded unfolding for ambiguous, non-determinate, nested,
+   multi-variable-unsupported, and memory-writing SCCs;
+5. implement inside-out SCC composition before accelerating nested loops;
+6. evaluate maxloop sensitivity directly: a successful acceleration should
+   preserve counts/wMEMS while reducing dependence on the configured unroll
+   bound.
 
 Array/pointer state remains behind alias-aware write-set checks; no SPath/CSG
 summary may bypass memory unfolding until the corresponding memory transition
 is proved.
+
+The new PR #98 relation/SSA-compression work is not yet part of `main` until
+its CI gates pass and the PR is merged.
