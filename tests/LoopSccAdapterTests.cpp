@@ -1,6 +1,7 @@
 #include "syntax/LoopSccAdapter.h"
 #include "syntax/SyntaxNamePrinter.h"
 
+#include <algorithm>
 #include <iostream>
 #include <memory>
 #include <string>
