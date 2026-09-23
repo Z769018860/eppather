@@ -697,8 +697,11 @@ void deriveAccelerationPlans(CFGNode* loop,
             plan.completePeriods = fullPeriods;
             plan.residualPhases = residual;
             plan.memsPreserving = memsPreserving;
+            // The closed form already composes complete periods plus the
+            // proved residual phase sequence. When every participating SPath
+            // is effect/MEMS-safe, the entire exact trip count is skippable.
             plan.skippableIterations = memsPreserving
-                ? fullPeriods * static_cast<long long>(cycle.period)
+                ? result.provedTripCount
                 : 0;
             bool exact = true;
 
