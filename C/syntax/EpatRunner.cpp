@@ -77,6 +77,7 @@ std::string normalizeBoundedVlaPrefix(const std::string& prefix) {
 std::unordered_map<std::string, std::size_t>
 parseFixedOneDimensionalArrayExtents(const std::string& prefix) {
     std::unordered_map<std::string, std::size_t> out;
+    std::unordered_set<std::string> ambiguous;
     std::stringstream input(prefix);
     std::string line;
     // Deliberately accept only simple one-dimensional fixed arrays from the
@@ -104,8 +105,19 @@ parseFixedOneDimensionalArrayExtents(const std::string& prefix) {
                 parsed > std::numeric_limits<std::size_t>::max()) {
                 continue;
             }
-            out.emplace(
-                match[1].str(), static_cast<std::size_t>(parsed));
+            const std::string name = match[1].str();
+            if (ambiguous.find(name) != ambiguous.end()) {
+                continue;
+            }
+            auto inserted = out.emplace(
+                name, static_cast<std::size_t>(parsed));
+            if (!inserted.second) {
+                // vartemp may contain declarations from multiple functions.
+                // A name-only region certificate is unsafe when source scopes
+                // collide, even if both arrays happen to have the same size.
+                out.erase(name);
+                ambiguous.insert(name);
+            }
         } catch (...) {
             continue;
         }
