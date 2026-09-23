@@ -153,7 +153,32 @@ int main() {
                 plan.residualSPaths.empty() &&
                 plan.memsPreserving &&
                 plan.skippableIterations == 4 &&
+                !plan.coverageSlots.empty() &&
                 sawX && sawI;
+        }
+
+        bool decisionBuilderOk = false;
+        if (!graph.accelerationPlans.empty()) {
+            auto accelerated = buildLoopSccAccelerationDecisions(
+                {}, loop.get(), graph, 0);
+            if (accelerated && accelerated->size() >= 4) {
+                bool sawAssume = false;
+                bool sawCode = false;
+                for (const auto& decision : *accelerated) {
+                    sawAssume = sawAssume ||
+                        decision.kind ==
+                            PathDecisionKind::SyntheticAssume;
+                    sawCode = sawCode ||
+                        decision.kind ==
+                            PathDecisionKind::SyntheticCode;
+                }
+                decisionBuilderOk =
+                    accelerated->front().kind ==
+                        PathDecisionKind::TrueBranch &&
+                    accelerated->back().kind ==
+                        PathDecisionKind::FalseBranch &&
+                    sawAssume && sawCode;
+            }
         }
 
         const bool ok = graph.complete &&
@@ -173,6 +198,7 @@ int main() {
             graph.tripCountVariable == "i" &&
             graph.tripCountStep == 1 &&
             accelerationOk &&
+            decisionBuilderOk &&
             relation;
         failures += !report("loopscc-determinate-period-two", ok);
     }
