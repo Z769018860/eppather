@@ -174,5 +174,34 @@ int main() {
               << " components=" << (canonicalMulti ? std::to_string(canonicalMulti->factored_projection_components) : "N/A")
               << '\n';
     failures += !canonicalMultiOk;
+    // A LoopSCC path relation is accepted only when the complete SMT path
+    // formula entails the relation between the first and last materialized
+    // SSA states. A wrong affine offset must be rejected.
+    const std::string affineRelationSmt =
+        "(declare-const |x@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa2| (_ BitVec 32))\n"
+        "(assert (= |x@0#ssa1| (bvadd |x@0#ssa0| (_ bv1 32))))\n"
+        "(assert (= |x@0#ssa2| (bvadd |x@0#ssa1| (_ bv1 32))))\n";
+    const auto affineAccepted = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {volce::AffineRelationSummary{"x", 1, 2}});
+    const bool affineAcceptedOk = affineAccepted &&
+        affineAccepted->applied_affine_relation_summaries.size() == 1 &&
+        affineAccepted->rejected_affine_relation_summaries.empty();
+    std::cout << "loopscc-affine-relation-entailed: "
+              << (affineAcceptedOk ? "PASS" : "FAIL") << '\n';
+    failures += !affineAcceptedOk;
+
+    const auto affineRejected = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {volce::AffineRelationSummary{"x", 1, 3}});
+    const bool affineRejectedOk = affineRejected &&
+        affineRejected->applied_affine_relation_summaries.empty() &&
+        affineRejected->rejected_affine_relation_summaries.size() == 1;
+    std::cout << "loopscc-affine-relation-rejected: "
+              << (affineRejectedOk ? "PASS" : "FAIL") << '\n';
+    failures += !affineRejectedOk;
+
     return failures == 0 ? 0 : 1;
 }
