@@ -872,6 +872,25 @@ uniformInsideOutPlan(const LoopSccGraphInfo& nested, CFGNode* nestedLoop) {
             break;
         }
         if (!sawInitVar) return std::nullopt;
+
+        // C99 for-init declarations are scoped to the nested for statement.
+        // Their final value is not visible to the outer SPath and must not be
+        // emitted as synthetic code after the nested loop has been removed.
+        // A pre-declared induction variable (for (j=0; ...)) remains live and
+        // therefore keeps the folded constant transform.
+        static const std::regex declaredInitRe(
+            R"(^[[:space:]]*(?:const[[:space:]]+|volatile[[:space:]]+|signed[[:space:]]+|unsigned[[:space:]]+)*(?:char|short|int|long|float|double|_Bool|size_t)[[:space:]]+)");
+        if (std::regex_search(
+                nestedLoop->initstmt_str, declaredInitRe)) {
+            folded.closedFormTransforms.erase(
+                std::remove_if(
+                    folded.closedFormTransforms.begin(),
+                    folded.closedFormTransforms.end(),
+                    [&](const LoopSccAffineTransform& transform) {
+                        return transform.variable == initVar;
+                    }),
+                folded.closedFormTransforms.end());
+        }
     }
 
     return folded;
