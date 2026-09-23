@@ -32,6 +32,8 @@ struct LoopSccSPathInfo {
     // by the restricted scalar-affine model and no array/dereference access or
     // opaque call/effect was observed.
     bool accelerationEffectSafe{true};
+    // False when any branch guard on the SPath is outside the interval model.
+    bool guardModelComplete{true};
     bool returnsToHeader{false};
     bool exitsLoop{false};
 };
@@ -61,6 +63,10 @@ struct LoopSccCycleInfo {
     std::vector<std::size_t> spathOrder;
     std::size_t period{0};
     bool determinate{false};
+    // Every internal phase transition is proved by interval inclusion after
+    // applying the source affine transform. The loop-control guard is excluded
+    // here because exact trip-count proof handles it separately.
+    bool phaseGuardsProved{false};
     bool guardedClosedFormCandidate{false};
     // Exact affine transform accumulated across one complete cycle, rendered
     // as human-readable relations for validation and later VolCE transport.
