@@ -303,14 +303,18 @@ fi
 
 # 8. Fixed-cell writes may produce a machine-readable memory-transition
 # candidate, but still must not authorize acceleration before VolCE/alias proof.
-run_case fixed_cell_memory testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100
+run_case fixed_cell_memory testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1
 fixed_cell_candidates="$(metric_max 'LOOPSCC MEMORY CELL TRANSITION CANDIDATES' "$OUT_DIR/fixed_cell_memory.log")"
 fixed_cell_mems="$(metric_max 'LOOPSCC OBSERVED MEMORY MEMS' "$OUT_DIR/fixed_cell_memory.log")"
 fixed_cell_accel="$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_relations="$(metric_max 'VOLCE LOOPSCC MEMORY RELATIONS APPLIED' "$OUT_DIR/fixed_cell_memory.log")"
+fixed_cell_rejected="$(metric_max 'VOLCE LOOPSCC MEMORY RELATIONS REJECTED' "$OUT_DIR/fixed_cell_memory.log")"
 if [[ -z "$fixed_cell_candidates" || "$fixed_cell_candidates" -lt 1 ||
       -z "$fixed_cell_mems" || "$fixed_cell_mems" -lt 2 ||
+      -z "$fixed_cell_relations" || "$fixed_cell_relations" -lt 1 ||
+      ( -n "$fixed_cell_rejected" && "$fixed_cell_rejected" -gt 0 ) ||
       "$fixed_cell_accel" != 0 ]]; then
-  echo "fixed_cell_memory: expected transition candidate with acceleration fallback" >&2
+  echo "fixed_cell_memory: expected entailed memory relation with acceleration fallback" >&2
   cat "$OUT_DIR/fixed_cell_memory.log" >&2
   exit 1
 fi
