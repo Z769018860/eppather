@@ -615,6 +615,117 @@ buildAccelerationValidationDecisions(
     return compressed;
 }
 
+std::string renderMemoryCellAssignment(
+    const LoopSccMemoryCellTransform& transform) {
+    std::ostringstream os;
+    const std::string cell =
+        transform.region + "[" + std::to_string(transform.index) + "]";
+    os << cell << " = ";
+    if (transform.scale == 0) {
+        os << transform.offset;
+    } else if (transform.scale == 1) {
+        os << cell;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    } else if (transform.scale == -1) {
+        os << "0 - " << cell;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    } else {
+        os << transform.scale << " * " << cell;
+        if (transform.offset > 0) os << " + " << transform.offset;
+        else if (transform.offset < 0) os << " - " << -transform.offset;
+    }
+    os << ";";
+    return os.str();
+}
+
+std::optional<std::vector<PathDecision>>
+buildMemorySummaryValidationDecisions(
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    const LoopSccMemorySummaryCandidate& candidate,
+    const std::vector<PathDecision>& decisions,
+    std::size_t& compressedSummaryMems) {
+    compressedSummaryMems = 0;
+    if (!loop || !candidate.exact ||
+        candidate.cycleIndex >= graph.cycles.size()) {
+        return std::nullopt;
+    }
+    const auto& cycle = graph.cycles[candidate.cycleIndex];
+    if (!cycle.phaseGuardsProved ||
+        candidate.entryPhase >= cycle.spathOrder.size()) {
+        return std::nullopt;
+    }
+
+    std::size_t firstTrue = decisions.size();
+    std::size_t finalFalse = decisions.size();
+    for (std::size_t i = 0; i < decisions.size(); ++i) {
+        if (decisions[i].node != loop) continue;
+        if (decisions[i].kind == PathDecisionKind::TrueBranch &&
+            firstTrue == decisions.size()) {
+            firstTrue = i;
+        } else if (firstTrue != decisions.size() &&
+                   decisions[i].kind == PathDecisionKind::FalseBranch) {
+            finalFalse = i;
+        }
+    }
+    if (firstTrue == decisions.size() ||
+        finalFalse == decisions.size() ||
+        finalFalse <= firstTrue) {
+        return std::nullopt;
+    }
+
+    std::vector<PathDecision> out(
+        decisions.begin(),
+        decisions.begin() + static_cast<std::ptrdiff_t>(firstTrue));
+    out.push_back(PathDecision{
+        loop, PathDecisionKind::TrueBranch, {}});
+
+    const std::size_t entryPathId =
+        cycle.spathOrder[candidate.entryPhase];
+    if (entryPathId >= graph.spaths.size()) return std::nullopt;
+    const auto& entryPath = graph.spaths[entryPathId];
+    const std::string loopTrue = "T: " + loop->cond_str;
+    for (const auto& guard : entryPath.guards) {
+        if (guard == loopTrue) continue;
+        if (guard.rfind("T: ", 0) == 0) {
+            out.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                guard.substr(3)});
+        } else if (guard.rfind("F: ", 0) == 0) {
+            out.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                "!(" + guard.substr(3) + ")"});
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    for (const auto& transform :
+         candidate.scalarClosedFormTransforms) {
+        out.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode,
+            renderAccelerationAssignment(transform)});
+    }
+    for (const auto& transform :
+         candidate.closedFormTransforms) {
+        const auto code = renderMemoryCellAssignment(transform);
+        compressedSummaryMems += static_cast<std::size_t>(
+            estimateMemsFromLine(code));
+        out.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode, code});
+    }
+
+    out.push_back(PathDecision{
+        loop, PathDecisionKind::FalseBranch, {}});
+    out.insert(
+        out.end(),
+        decisions.begin() + static_cast<std::ptrdiff_t>(finalFalse + 1),
+        decisions.end());
+    return out;
+}
+
 }  // namespace
 
 std::optional<std::vector<PathDecision>>
