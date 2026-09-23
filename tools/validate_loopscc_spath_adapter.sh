@@ -7,10 +7,10 @@ OUT_DIR="${OUT_DIR:-$ROOT/loopscc-spath-results}"
 mkdir -p "$OUT_DIR"
 
 run_case() {
-  local name="$1" source="$2" maxloop="$3"
+  local name="$1" source="$2" maxloop="$3" maxpaths="${4:-12}"
   local log="$OUT_DIR/$name.log"
   EPPATHER_LOOP_SCC_ANALYZE=1 "$CNIP" -q \
-    --maxloop "$maxloop" --maxpaths 12 "$ROOT/$source" >"$log" 2>&1
+    --maxloop "$maxloop" --maxpaths "$maxpaths" "$ROOT/$source" >"$log" 2>&1
   if ! grep -q '^\[LOOPSCC SPATHS\]: ' "$log"; then
     echo "$name: missing LoopSCC structural metrics" >&2
     cat "$log" >&2
@@ -35,7 +35,7 @@ if [[ -z "$osc_spaths" || "$osc_spaths" -lt 2 ||
   exit 1
 fi
 
-run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 4
+run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 4 100
 periodic_cycles="$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/periodic.log")"
 periodic_osc="$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/periodic.log")"
 periodic_candidates="$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/periodic.log")"
