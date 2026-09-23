@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cctype>
 #include <climits>
+#include <cstdlib>
 #include <functional>
+#include <limits>
 #include <map>
 #include <regex>
 #include <set>
