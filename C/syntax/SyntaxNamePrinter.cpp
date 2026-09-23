@@ -2900,7 +2900,6 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                     graph.accelerationPlans[planIndex];
                 if (!plan.exact || !plan.memsPreserving ||
                     plan.totalIterations <= 0 ||
-                    plan.residualPhases != 0 ||
                     plan.skippableIterations !=
                         plan.totalIterations) {
                     continue;
