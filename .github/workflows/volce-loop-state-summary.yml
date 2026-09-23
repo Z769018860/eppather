@@ -14,6 +14,8 @@ on:
       - 'tests/LoopSccAdapterTests.cpp'
       - 'tools/validate_volce_loop_summaries.sh'
       - 'tools/validate_volce_loop_failure_modes.sh'
+      - 'tools/validate_loopscc_spath_adapter.sh'
+      - 'testcase/loop_hybrid/22_spath_oscillation.c'
       - '.github/workflows/volce-loop-state-summary.yml'
 
 jobs:
@@ -28,6 +30,10 @@ jobs:
       - run: cmake --build build_ci_volce_summary --target loopscc-adapter-tests -j2
       - run: ./build_ci_volce_summary/loopscc-adapter-tests
       - run: cmake --build build_ci_volce_summary --target cnip -j2
+      - name: Validate LoopSCC SPath/CSG adapter
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
+        run: bash tools/validate_loopscc_spath_adapter.sh
       - name: Validate entailed summaries through VolCE
         env:
           CNIP: ${{ github.workspace }}/build_ci_volce_summary/cnip
@@ -49,3 +55,4 @@ jobs:
             volce-loop-summary-results/
             volce-loop-failure-results/
             loopscc-effect-results/
+            loopscc-spath-results/
