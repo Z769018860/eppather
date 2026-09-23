@@ -56,8 +56,40 @@ if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: x_after_period=0$' "$OUT_DIR/periodic.log"; then
-  echo "periodic: missing exact canonical period transform for x" >&2
+if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: state_after_period=state >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC PHASE TRACE\]: complete=1 matched=1 period=2 entry_phase=[01] iterations=4 full_periods=2 residual=0$' "$OUT_DIR/periodic.log"; then
+  echo "periodic: concrete path was not mapped to two complete periods" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+if [[ -z "$periodic_relations" || "$periodic_relations" -lt 1 ]]; then
+  echo "periodic: expected at least one SMT-entailed LoopSCC affine relation" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
+
+run_case nested testcase/loop_hybrid/12_nested_for.c 4
+nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
+if [[ "$nested_complete" != 0 ]]; then
+  echo "nested: expected conservative incomplete outer graph" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
+  echo "nested: missing inside-out fallback diagnostic" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0"
+ "$OUT_DIR/periodic.log"; then
+  echo "periodic: missing exact canonical period transform for state" >&2
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
