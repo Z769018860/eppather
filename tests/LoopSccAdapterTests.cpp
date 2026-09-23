@@ -103,7 +103,8 @@ int main() {
     // therefore leaves one unique successor and predecessor per SPath.
     // Applying the transform twice yields x_after_period=x.
     {
-        auto loop = loopNode("i < 10");
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
         auto branch = ifNode("x >= 0");
         auto nonNegative = node("x = 0 - x - 1;");
         auto negative = node("x = 0 - x - 1;");
@@ -140,6 +141,9 @@ int main() {
             graph.cycles[0].period == 2 &&
             graph.cycles[0].determinate &&
             graph.cycles[0].guardedClosedFormCandidate &&
+            graph.provedTripCount == 4 &&
+            graph.tripCountVariable == "i" &&
+            graph.tripCountStep == 1 &&
             relation;
         failures += !report("loopscc-determinate-period-two", ok);
     }
