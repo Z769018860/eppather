@@ -3711,6 +3711,44 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VolCE] N/A" << endl;
             }
         }
+        if (!eval.loopSccGraphs.empty()) {
+            std::size_t spaths = 0;
+            std::size_t transitions = 0;
+            std::size_t sccs = 0;
+            std::size_t cyclicSccs = 0;
+            std::size_t multiNodeSccs = 0;
+            std::size_t maxSccSize = 0;
+            std::size_t csgEdges = 0;
+            bool complete = true;
+            for (const auto& graph : eval.loopSccGraphs) {
+                spaths += graph.spaths.size();
+                transitions += graph.transitionCount;
+                sccs += graph.sccCount;
+                cyclicSccs += graph.cyclicSccCount;
+                multiNodeSccs += graph.multiNodeSccCount;
+                maxSccSize = std::max(maxSccSize, graph.maxSccSize);
+                csgEdges += graph.contractedEdgeCount;
+                complete = complete && graph.complete;
+            }
+            cout << "[LOOPSCC SPATHS]: " << spaths << endl;
+            cout << "[LOOPSCC TRANSITIONS]: " << transitions << endl;
+            cout << "[LOOPSCC SCCS]: " << sccs << endl;
+            cout << "[LOOPSCC CYCLIC SCCS]: " << cyclicSccs << endl;
+            cout << "[LOOPSCC MULTI-NODE SCCS]: " << multiNodeSccs << endl;
+            cout << "[LOOPSCC MAX SCC SIZE]: " << maxSccSize << endl;
+            cout << "[LOOPSCC CSG EDGES]: " << csgEdges << endl;
+            cout << "[LOOPSCC GRAPH COMPLETE]: " << (complete ? 1 : 0) << endl;
+            resultFile << "[loopscc_spaths]:" << spaths << "\n";
+            resultFile << "[loopscc_transitions]:" << transitions << "\n";
+            resultFile << "[loopscc_sccs]:" << sccs << "\n";
+            resultFile << "[loopscc_cyclic_sccs]:" << cyclicSccs << "\n";
+            resultFile << "[loopscc_multi_node_sccs]:" << multiNodeSccs << "\n";
+            resultFile << "[loopscc_max_scc_size]:" << maxSccSize << "\n";
+            resultFile << "[loopscc_csg_edges]:" << csgEdges << "\n";
+            resultFile << "[loopscc_graph_complete]:" << (complete ? 1 : 0)
+                       << "\n";
+        }
+
         recordFeasiblePath(
             pathCount, mem, path, callees, volceCount, volceMemoryTerms);
 
