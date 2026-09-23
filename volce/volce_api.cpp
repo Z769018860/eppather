@@ -1150,6 +1150,15 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
             ctx, solver, projection_terms, applied, apply_entailed_summaries,
             retained);
 
+    // The rebuilt solver simplifies assertions, including canonical memory
+    // addresses such as (bvadd 0 1) -> 1. Normalize projection terms in the
+    // same way so dependency matching and alias checks refer to the same cell
+    // expressions after reconstruction.
+    for (auto& term : projection_terms) {
+        term = Z3_simplify(ctx, term);
+        Z3_ast_vector_push(ctx, retained, term);
+    }
+
     // Factor only after semantics-preserving SSA elimination and solver
     // reconstruction. The reduced solver is equivalent over the remaining
     // projected terms, while transient store/SSA structure that no longer
