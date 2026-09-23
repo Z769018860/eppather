@@ -600,7 +600,6 @@ buildLoopSccAccelerationDecisions(
     }
     const auto& plan = graph.accelerationPlans[planIndex];
     if (!plan.exact || !plan.memsPreserving ||
-        plan.residualPhases != 0 ||
         plan.skippableIterations != plan.totalIterations ||
         plan.cycleIndex >= graph.cycles.size()) {
         return std::nullopt;
