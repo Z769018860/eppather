@@ -1058,6 +1058,7 @@ std::size_t eliminateEntailedSsaDefinitions(
     Z3_context ctx, Z3_solver solver,
     std::vector<Z3_ast>& projection_terms,
     const std::vector<std::string>& applied,
+    const std::vector<std::string>& applied_affine_relations,
     bool enabled,
     Z3_ast_vector retained) {
     std::unordered_set<std::string> prefixes;
@@ -1070,6 +1071,17 @@ std::size_t eliminateEntailedSsaDefinitions(
             const auto suffix = name.rfind("#ssa");
             if (suffix != std::string::npos)
                 prefixes.insert(name.substr(0, suffix + 4));
+        }
+        for (const auto& item : applied_affine_relations) {
+            const auto colon = item.find(':');
+            const auto arrow = item.find("->", colon == std::string::npos ? 0 : colon + 1);
+            if (colon == std::string::npos || arrow == std::string::npos)
+                continue;
+            const std::string entry =
+                item.substr(colon + 1, arrow - colon - 1);
+            const auto suffix = entry.rfind("#ssa");
+            if (suffix != std::string::npos)
+                prefixes.insert(entry.substr(0, suffix + 4));
         }
     }
 
@@ -1273,8 +1285,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     Z3_ast_vector_inc_ref(ctx, retained);
     const std::size_t counting_assertions =
         eliminateEntailedSsaDefinitions(
-            ctx, solver, projection_terms, applied, apply_entailed_summaries,
-            retained);
+            ctx, solver, projection_terms, applied, applied_affine_relations,
+            apply_entailed_summaries, retained);
 
     // The rebuilt solver simplifies assertions, including canonical memory
     // addresses such as (bvadd 0 1) -> 1. Normalize projection terms in the
