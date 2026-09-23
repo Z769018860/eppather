@@ -262,5 +262,35 @@ int main() {
               << (linearRejectedOk ? "PASS" : "FAIL") << '\n';
     failures += !linearRejectedOk;
 
+    // Fixed-cell LoopSCC memory summaries bind the source region through
+    // its materialized base and compare the initial %a cell with the final
+    // %a#ssa_final cell. A correct +4 relation must be entailed; +5 must not.
+    const std::string memoryRelationSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_final| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |a@0#base| (_ BitVec 32))\n"
+        "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_final| "
+        "(store %a |a@0#base| "
+        "(bvadd (select %a |a@0#base|) (_ bv4 32)))))\n";
+    const auto memoryRelationAccepted =
+        volce::validateMemoryCellRelationsFromSmt2(
+            memoryRelationSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4}});
+    const auto memoryRelationRejected =
+        volce::validateMemoryCellRelationsFromSmt2(
+            memoryRelationSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 5}});
+    const bool memoryRelationOk =
+        memoryRelationAccepted && memoryRelationRejected &&
+        memoryRelationAccepted->applied.size() == 1 &&
+        memoryRelationAccepted->rejected.empty() &&
+        memoryRelationRejected->applied.empty() &&
+        memoryRelationRejected->rejected.size() == 1;
+    std::cout << "loopscc-fixed-cell-memory-relation-entailment: "
+              << (memoryRelationOk ? "PASS" : "FAIL") << '\n';
+    failures += !memoryRelationOk;
+
     return failures == 0 ? 0 : 1;
 }
