@@ -99,9 +99,35 @@ void observeMemoryAccess(BuiltPath& path,
         const auto eq = text.find('=');
         if (eq != std::string::npos) {
             const std::string lhs = trim(text.substr(0, eq));
-            access.writesMemory =
-                lhs.find('[') != std::string::npos ||
-                (!lhs.empty() && lhs.front() == '*');
+            const bool lhsArray =
+                lhs.find('[') != std::string::npos;
+            const bool lhsPointer =
+                !lhs.empty() && lhs.front() == '*';
+            access.writesMemory = lhsArray || lhsPointer;
+
+            // Compound assignment performs an implicit read of the lvalue
+            // before writing it. Lexically there is only one a[i] / *p token,
+            // so add the missing read to match epat++ MEMS semantics.
+            std::size_t op = eq;
+            while (op > 0 &&
+                   std::isspace(static_cast<unsigned char>(
+                       text[op - 1])) != 0) {
+                --op;
+            }
+            const bool compoundAssignment =
+                op > 0 &&
+                (text[op - 1] == '+' || text[op - 1] == '-' ||
+                 text[op - 1] == '*' || text[op - 1] == '/' ||
+                 text[op - 1] == '%' || text[op - 1] == '&' ||
+                 text[op - 1] == '|' || text[op - 1] == '^' ||
+                 text[op - 1] == '<' || text[op - 1] == '>');
+            if (compoundAssignment && access.writesMemory) {
+                if (lhsArray) {
+                    ++access.arraySubscripts;
+                } else if (lhsPointer) {
+                    ++access.pointerDereferences;
+                }
+            }
         }
     }
 
