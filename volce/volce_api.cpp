@@ -1142,6 +1142,18 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
         apply_entailed_summaries);
+
+    // Prove projection independence before SSA substitution and solver
+    // reconstruction. This retains every dependency from the original path
+    // formula; later elimination may remove constraints, but cannot justify
+    // separating terms that were coupled here.
+    std::optional<ProjectionFactorization> proven_factorization;
+    if (bounded_memory_terms.size() >= 5 &&
+        (memory_regions.empty() || memory_regions.size() == 1)) {
+        proven_factorization =
+            buildProjectionFactorization(ctx, solver, projection_terms);
+    }
+
     Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
     Z3_ast_vector_inc_ref(ctx, retained);
     const std::size_t counting_assertions =
@@ -1161,25 +1173,16 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     bool used_factorization = false;
 
     // A conjunction can be counted component-wise only when every projected
-    // term is disconnected from the others through both explicit constraints
-    // and possible memory aliasing. The dependency proof is intentionally
-    // conservative: array stores, array-valued relations, quantifiers,
-    // unknown alias checks, or other unsupported constructs fall back to the
-    // existing exact whole-formula enumeration.
-    // First exact deployment gate: factor one canonical memory region at a
-    // time. Multiple C array/pointer parameters may alias unless a separate
-    // region-disjointness proof exists, so they retain monolithic counting.
-    if (bounded_memory_terms.size() >= 5 &&
-        (memory_regions.empty() || memory_regions.size() == 1)) {
-        if (auto factorization =
-                buildProjectionFactorization(ctx, solver, projection_terms)) {
-            if (auto factored =
-                    countFactoredProjection(ctx, solver, *factorization)) {
-                count = *factored;
-                factored_projection_components =
-                    factorization->components.size();
-                used_factorization = true;
-            }
+    // term was proved disconnected in the complete pre-elimination formula.
+    // Unsupported memory operations and ambiguous aliasing make that proof
+    // fail and retain exact monolithic counting.
+    if (proven_factorization) {
+        if (auto factored =
+                countFactoredProjection(ctx, solver, *proven_factorization)) {
+            count = *factored;
+            factored_projection_components =
+                proven_factorization->components.size();
+            used_factorization = true;
         }
     }
 
