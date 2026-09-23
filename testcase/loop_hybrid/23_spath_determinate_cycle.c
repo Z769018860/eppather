@@ -1,12 +1,10 @@
 int main(int x) {
-    int i = 0;
-    while (i < 4) {
+    for (int i = 0; i < 4; i = i + 1) {
         if (x < 0) {
             x = 1;
         } else {
             x = -1;
         }
-        i = i + 1;
     }
     return x;
 }
