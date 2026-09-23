@@ -71,6 +71,16 @@ struct LoopSccAffineStateSummary {
     std::size_t observedIterations{0};
 };
 
+struct LoopSccMemoryCellStateSummary {
+    std::string region;
+    long long index{0};
+    long long scale{1};
+    long long offset{0};
+    std::size_t period{0};
+    std::size_t observedIterations{0};
+    std::size_t observedMems{0};
+};
+
 struct LoopSccAccelerationValidation {
     std::string loopCondition;
     bool attempted{false};
@@ -100,6 +110,10 @@ struct EpatResult {
     // Path-specific affine relations from a proved determinate SPath cycle.
     // They are candidates only; VolCE must still prove them entailed by SMT.
     std::vector<LoopSccAffineStateSummary> loopSccAffineStateSummaries;
+    // Fixed-cell memory relations remain validation-only until frame/alias
+    // proofs certify that untouched memory is preserved.
+    std::vector<LoopSccMemoryCellStateSummary>
+        loopSccMemoryCellStateSummaries;
     std::vector<LoopSccAccelerationValidation>
         loopSccAccelerationValidations;
 };
