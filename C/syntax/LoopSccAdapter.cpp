@@ -797,6 +797,48 @@ void deriveAccelerationPlans(CFGNode* loop,
     }
 }
 
+std::optional<LoopSccAccelerationPlan>
+uniformInsideOutPlan(const LoopSccGraphInfo& nested) {
+    if (!nested.complete || nested.provedTripCount < 0 ||
+        nested.accelerationPlans.empty()) {
+        return std::nullopt;
+    }
+
+    auto normalizedTransforms = [](const LoopSccAccelerationPlan& plan) {
+        std::map<std::string, std::pair<long long, long long>> out;
+        for (const auto& transform : plan.closedFormTransforms) {
+            out[transform.variable] =
+                std::make_pair(transform.scale, transform.offset);
+        }
+        return out;
+    };
+
+    const LoopSccAccelerationPlan* representative = nullptr;
+    std::map<std::string, std::pair<long long, long long>> reference;
+    std::vector<int> referenceCoverage;
+    for (const auto& plan : nested.accelerationPlans) {
+        if (!plan.exact || !plan.memsPreserving ||
+            plan.skippableIterations != plan.totalIterations ||
+            plan.totalIterations != nested.provedTripCount) {
+            return std::nullopt;
+        }
+        auto transforms = normalizedTransforms(plan);
+        auto coverage = plan.coverageSlots;
+        std::sort(coverage.begin(), coverage.end());
+        if (!representative) {
+            representative = &plan;
+            reference = std::move(transforms);
+            referenceCoverage = std::move(coverage);
+            continue;
+        }
+        if (transforms != reference || coverage != referenceCoverage) {
+            return std::nullopt;
+        }
+    }
+    if (!representative || reference.empty()) return std::nullopt;
+    return *representative;
+}
+
 void deriveUniformTripCount(CFGNode* loop,
                             const std::vector<BuiltPath>& built,
                             LoopSccGraphInfo& result) {
@@ -879,6 +921,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     std::vector<BuiltPath> built;
     bool truncated = false;
     bool unsupported = false;
+    std::unordered_set<CFGNode*> summarizedNestedLoops;
 
     std::function<void(std::shared_ptr<CFGNode>, BuiltPath,
                        std::unordered_set<CFGNode*>, std::size_t)> visit;
@@ -919,9 +962,43 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
             return;
         }
         if (current->isLoop) {
-            unsupported = true;
-            result.diagnostics.push_back(
-                "nested loop requires inside-out LoopSCC summary");
+            const auto nested = LoopSccAdapter::analyze(
+                current.get(), maxPaths, maxNodesPerPath);
+            const auto nestedPlan = uniformInsideOutPlan(nested);
+            if (!nestedPlan) {
+                unsupported = true;
+                result.diagnostics.push_back(
+                    "nested loop requires inside-out LoopSCC summary");
+                return;
+            }
+
+            for (const auto& transform :
+                 nestedPlan->closedFormTransforms) {
+                composeUpdate(
+                    path, transform.variable,
+                    transform.scale, transform.offset,
+                    "inside-out nested LoopSCC summary");
+            }
+            for (int slot : nestedPlan->coverageSlots) {
+                recordCoverageSlot(path, slot);
+            }
+            if (summarizedNestedLoops.insert(current.get()).second) {
+                ++result.insideOutNestedSummaryCount;
+                result.diagnostics.push_back(
+                    "inside-out summarized nested loop: " +
+                    current->cond_str);
+            }
+
+            auto afterNested = current->getNextFalseNode();
+            if (!afterNested) {
+                unsupported = true;
+                result.diagnostics.push_back(
+                    "inside-out nested loop has no exit edge");
+                return;
+            }
+            visit(
+                afterNested, std::move(path),
+                std::move(seen), depth + 1);
             return;
         }
         if (!seen.insert(current.get()).second) {
