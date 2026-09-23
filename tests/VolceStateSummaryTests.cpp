@@ -102,7 +102,11 @@ int main() {
         manyCells->bounded_memory_terms.size() == 6 &&
         manyCells->factored_projection_components == 5;
     std::cout << "bounded-memory-enumeration: "
-              << (boundedEnumerationOk ? "PASS" : "FAIL") << '\n';
+              << (boundedEnumerationOk ? "PASS" : "FAIL")
+              << " count=" << (manyCells ? std::to_string(manyCells->count) : "N/A")
+              << " memory_terms=" << (manyCells ? std::to_string(manyCells->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (manyCells ? std::to_string(manyCells->factored_projection_components) : "N/A")
+              << '\n';
     failures += !boundedEnumerationOk;
 
     // Two symbolic source regions are not independent unless the formula
@@ -122,7 +126,11 @@ int main() {
         aliasing->bounded_memory_terms.size() == 6 &&
         aliasing->factored_projection_components == 0;
     std::cout << "projection-factorization-alias-guard: "
-              << (aliasingOk ? "PASS" : "FAIL") << '\n';
+              << (aliasingOk ? "PASS" : "FAIL")
+              << " count=" << (aliasing ? std::to_string(aliasing->count) : "N/A")
+              << " memory_terms=" << (aliasing ? std::to_string(aliasing->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (aliasing ? std::to_string(aliasing->factored_projection_components) : "N/A")
+              << '\n';
     failures += !aliasingOk;
 
     // Once bases are fixed apart, six canonical cells are provably disjoint
@@ -144,7 +152,11 @@ int main() {
         disjoint->bounded_memory_terms.size() == 6 &&
         disjoint->factored_projection_components >= 6;
     std::cout << "projection-factorization-disjoint-regions: "
-              << (disjointOk ? "PASS" : "FAIL") << '\n';
+              << (disjointOk ? "PASS" : "FAIL")
+              << " count=" << (disjoint ? std::to_string(disjoint->count) : "N/A")
+              << " memory_terms=" << (disjoint ? std::to_string(disjoint->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (disjoint ? std::to_string(disjoint->factored_projection_components) : "N/A")
+              << '\n';
     failures += !disjointOk;
     return failures == 0 ? 0 : 1;
 }
