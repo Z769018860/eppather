@@ -3976,6 +3976,32 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << (trace.matchedAccelerationPlan ? 1 : 0) << "\n";
         }
 
+        for (const auto& validation :
+             eval.loopSccAccelerationValidations) {
+            cout << "[LOOPSCC COMPRESSED VALIDATION]: attempted="
+                 << (validation.attempted ? 1 : 0)
+                 << " matched=" << (validation.matched ? 1 : 0)
+                 << " status_match="
+                 << (validation.statusMatched ? 1 : 0)
+                 << " mem_match="
+                 << (validation.memMatched ? 1 : 0)
+                 << " original_decisions="
+                 << validation.originalDecisionCount
+                 << " compressed_decisions="
+                 << validation.compressedDecisionCount
+                 << " baseline_mem=" << validation.baselineMem
+                 << " compressed_mem=" << validation.compressedMem
+                 << endl;
+            resultFile << "[loopscc_compressed_validation_matched]:"
+                       << (validation.matched ? 1 : 0) << "\n";
+            resultFile << "[loopscc_compressed_original_decisions]:"
+                       << validation.originalDecisionCount << "\n";
+            resultFile << "[loopscc_compressed_decisions]:"
+                       << validation.compressedDecisionCount << "\n";
+            resultFile << "[loopscc_compressed_mem_match]:"
+                       << (validation.memMatched ? 1 : 0) << "\n";
+        }
+
         recordFeasiblePath(
             pathCount, mem, path, callees, volceCount, volceMemoryTerms);
 
