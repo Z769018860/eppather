@@ -472,6 +472,41 @@ int main() {
         failures += !report("loopscc-inside-out-nested-for", ok);
     }
 
+    // If the nested for reuses a variable declared in an outer scope, that
+    // induction state remains visible after the nested loop and must therefore
+    // be exported as the folded constant j=2.
+    {
+        auto outer = forLoopNode("int i = 0;", "i < 3", "i = i + 1");
+        auto inner = forLoopNode("j = 0;", "j < 2", "j = j + 1");
+        auto incX = node("x = x + 1;");
+        auto exit = node("return x;");
+
+        outer->setNextNode(inner);
+        outer->setNextFalseNode(exit);
+        inner->setNextNode(incX);
+        inner->setNextFalseNode(outer);
+        incX->setNextNode(inner);
+
+        const auto graph = LoopSccAdapter::analyze(outer.get());
+        bool sawJ2 = false;
+        if (graph.accelerationPlans.size() == 1) {
+            for (const auto& transform :
+                 graph.accelerationPlans[0].closedFormTransforms) {
+                if (transform.variable == "j") {
+                    sawJ2 = transform.scale == 0 &&
+                            transform.offset == 2;
+                }
+            }
+        }
+        const bool ok = graph.complete &&
+            graph.insideOutNestedSummaryCount == 1 &&
+            graph.accelerationPlans.size() == 1 &&
+            graph.accelerationPlans[0].exact &&
+            sawJ2;
+        failures += !report(
+            "loopscc-inside-out-predeclared-for-index", ok);
+    }
+
     // Nested loops require inside-out summaries. The first adapter stage must
     // diagnose and fall back instead of pretending the outer graph is exact.
     {
