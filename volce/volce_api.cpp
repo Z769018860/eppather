@@ -1158,8 +1158,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     // real read-only array cases from using factorization even when the
     // counting formula had become a conjunction of independent bounds.
     std::optional<ProjectionFactorization> proven_factorization;
-    if (bounded_memory_terms.size() >= 5 &&
-        (memory_regions.empty() || memory_regions.size() == 1)) {
+    if (bounded_memory_terms.size() >= 5) {
         proven_factorization =
             buildProjectionFactorization(ctx, solver, projection_terms);
     }
