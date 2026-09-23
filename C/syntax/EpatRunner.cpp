@@ -894,6 +894,34 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                 }
             }
 
+            if (trace.complete && trace.matchedDeterminateCycle) {
+                for (const auto& candidate :
+                     graph.memorySummaryCandidates) {
+                    if (!candidate.exact ||
+                        candidate.cycleIndex != trace.cycleIndex ||
+                        candidate.entryPhase != trace.entryPhase ||
+                        candidate.totalIterations !=
+                            static_cast<long long>(
+                                trace.observedIterations)) {
+                        continue;
+                    }
+                    for (const auto& relation :
+                         candidate.closedFormTransforms) {
+                        result.loopSccMemoryCellStateSummaries.push_back(
+                            LoopSccMemoryCellStateSummary{
+                                relation.region,
+                                relation.index,
+                                relation.scale,
+                                relation.offset,
+                                candidate.period,
+                                trace.observedIterations,
+                                candidate.observedMems});
+                    }
+                    result.loopStateSummaryDiagnostics.push_back(
+                        "loopscc: fixed-cell memory summary matched unfolded path");
+                }
+            }
+
             if (envEnabled("EPPATHER_LOOP_SCC_ACCEL_VALIDATE") &&
                 trace.matchedAccelerationPlan) {
                 LoopSccAccelerationValidation validation;
