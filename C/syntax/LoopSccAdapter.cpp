@@ -581,11 +581,16 @@ void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
                 static_cast<long long>(cycle.period));
 
         std::set<std::string> variables;
+        bool memsPreserving = true;
         for (std::size_t pathId : cycle.spathOrder) {
             if (pathId >= built.size()) {
                 variables.clear();
+                memsPreserving = false;
                 break;
             }
+            memsPreserving =
+                memsPreserving &&
+                built[pathId].info.accelerationEffectSafe;
             for (const auto& entry : built[pathId].transforms)
                 variables.insert(entry.first);
         }
@@ -600,6 +605,10 @@ void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
             plan.totalIterations = result.provedTripCount;
             plan.completePeriods = fullPeriods;
             plan.residualPhases = residual;
+            plan.memsPreserving = memsPreserving;
+            plan.skippableIterations = memsPreserving
+                ? fullPeriods * static_cast<long long>(cycle.period)
+                : 0;
             bool exact = true;
 
             for (std::size_t r = 0; r < residual; ++r) {
@@ -656,6 +665,7 @@ void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
             }
 
             plan.exact = exact &&
+                plan.memsPreserving &&
                 !plan.closedFormTransforms.empty();
             if (!plan.exact) {
                 plan.diagnostics.push_back(
