@@ -200,6 +200,8 @@ struct VolceResult {
     std::vector<std::string> rejectedAffineRelationSummaries;
     std::vector<std::string> appliedMemoryRelationSummaries;
     std::vector<std::string> rejectedMemoryRelationSummaries;
+    std::vector<std::string> appliedMemoryFrameSummaries;
+    std::vector<std::string> rejectedMemoryFrameSummaries;
     std::size_t formulaAssertions{0};
     std::size_t smtDeclarations{0};
     std::size_t projectionTerms{0};
@@ -444,6 +446,10 @@ std::optional<VolceResult> runVolce(
                 memoryValidation->applied;
             result.rejectedMemoryRelationSummaries =
                 memoryValidation->rejected;
+            result.appliedMemoryFrameSummaries =
+                memoryValidation->frame_applied;
+            result.rejectedMemoryFrameSummaries =
+                memoryValidation->frame_rejected;
         } else {
             for (const auto& relation : memoryRelations) {
                 result.rejectedMemoryRelationSummaries.push_back(
@@ -3940,6 +3946,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VOLCE LOOPSCC MEMORY RELATIONS REJECTED]: "
                      << volceResult->rejectedMemoryRelationSummaries.size()
                      << endl;
+                cout << "[VOLCE LOOPSCC MEMORY FRAMES APPLIED]: "
+                     << volceResult->appliedMemoryFrameSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY FRAMES REJECTED]: "
+                     << volceResult->rejectedMemoryFrameSummaries.size()
+                     << endl;
                 cout << "[VOLCE FORMULA ASSERTIONS]: "
                      << volceResult->formulaAssertions << endl;
                 cout << "[VOLCE SMT DECLARATIONS]: "
@@ -4001,6 +4013,20 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     resultFile << "[volce_loopscc_memory_relation_rejected]:"
                                << rejected << "\n";
                     cout << "[VOLCE LOOPSCC MEMORY RELATION REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedMemoryFrameSummaries) {
+                    resultFile << "[volce_loopscc_memory_frame]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY FRAME]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedMemoryFrameSummaries) {
+                    resultFile << "[volce_loopscc_memory_frame_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY FRAME REJECTED]: "
                          << rejected << endl;
                 }
                 for (const auto& diagnostic :
