@@ -39,6 +39,10 @@ struct MemoryCellAffineRelationSummary {
 struct MemoryRelationValidationResult {
     std::vector<std::string> applied;
     std::vector<std::string> rejected;
+    // Frame validation proves every discovered source cell not written by the
+    // summary is unchanged in %a#ssa_final. This remains validation-only.
+    std::vector<std::string> frame_applied;
+    std::vector<std::string> frame_rejected;
 };
 
 struct MemoryRegionProjection {
