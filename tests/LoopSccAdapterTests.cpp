@@ -1,4 +1,6 @@
 #include "syntax/LoopSccAdapter.h"
+#include "syntax/EpatRunner.h"
+#include "solver.h"
 #include "syntax/SyntaxNamePrinter.h"
 
 #include <algorithm>
@@ -260,6 +262,41 @@ int main() {
         const bool ok = !graph.complete && graph.spaths.empty() &&
                         !graph.diagnostics.empty();
         failures += !report("loopscc-nested-fallback", ok);
+    }
+
+    // Isolate epat++/SSA from CFG wiring: this is the exact expected
+    // determinate four-iteration path for the end-to-end periodic fixture.
+    {
+        const std::string script =
+            "int state = 0;\n"
+            "int i = 0;\n"
+            "@(i < 4);\n"
+            "@(state < 1);\n"
+            "state = 2;\n"
+            "i = i + 1;\n"
+            "@(i < 4);\n"
+            "@(!(state < 1));\n"
+            "state = 0;\n"
+            "i = i + 1;\n"
+            "@(i < 4);\n"
+            "@(state < 1);\n"
+            "state = 2;\n"
+            "i = i + 1;\n"
+            "@(i < 4);\n"
+            "@(!(state < 1));\n"
+            "state = 0;\n"
+            "i = i + 1;\n"
+            "@(!(i < 4));\n"
+            "return state;\n";
+        psy::C::EpatRunner runner("");
+        const auto raw = runner.solveScript(script);
+        epat::setSsaProvenanceVariables({"state", "i"});
+        const auto withSsa = runner.solveScript(script);
+        epat::clearSsaProvenanceVariables();
+        const bool ok =
+            raw.status == epat::result::feasible &&
+            withSsa.status == epat::result::feasible;
+        failures += !report("loopscc-periodic-epat-script", ok);
     }
 
     return failures == 0 ? 0 : 1;
