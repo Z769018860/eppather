@@ -244,11 +244,22 @@ int main() {
                 plan.residualPhases == 1 &&
                 plan.residualSPaths.size() == 1 &&
                 plan.memsPreserving &&
-                plan.skippableIterations == 4 &&
+                plan.skippableIterations == 5 &&
                 sawX && sawI;
         }
+        bool residualBuilderOk = false;
+        if (!graph.accelerationPlans.empty()) {
+            auto accelerated = buildLoopSccAccelerationDecisions(
+                {}, loop.get(), graph, 0);
+            residualBuilderOk = accelerated &&
+                accelerated->front().kind ==
+                    PathDecisionKind::TrueBranch &&
+                accelerated->back().kind ==
+                    PathDecisionKind::FalseBranch;
+        }
         failures += !report(
-            "loopscc-acceleration-residual-phase", plansOk);
+            "loopscc-acceleration-residual-phase",
+            plansOk && residualBuilderOk);
     }
 
     // Unsupported guards may still be useful structurally, but they are not
