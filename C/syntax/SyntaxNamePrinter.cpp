@@ -3719,6 +3719,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t multiNodeSccs = 0;
             std::size_t maxSccSize = 0;
             std::size_t csgEdges = 0;
+            std::size_t determinateCycles = 0;
+            std::size_t oscillatingCycles = 0;
+            std::size_t closedFormCandidates = 0;
+            std::size_t maxPeriod = 0;
             bool complete = true;
             for (const auto& graph : eval.loopSccGraphs) {
                 spaths += graph.spaths.size();
@@ -3728,6 +3732,23 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 multiNodeSccs += graph.multiNodeSccCount;
                 maxSccSize = std::max(maxSccSize, graph.maxSccSize);
                 csgEdges += graph.contractedEdgeCount;
+                determinateCycles += graph.determinateCycleCount;
+                oscillatingCycles += graph.oscillatingCycleCount;
+                closedFormCandidates += graph.guardedClosedFormCandidateCount;
+                for (const auto& cycle : graph.cycles) {
+                    maxPeriod = std::max(maxPeriod, cycle.period);
+                    if (cycle.determinate) {
+                        cout << "[LOOPSCC CYCLE]: scc=" << cycle.sccId
+                             << " period=" << cycle.period
+                             << " closed_form_candidate="
+                             << (cycle.guardedClosedFormCandidate ? 1 : 0)
+                             << endl;
+                        for (const auto& relation : cycle.periodAffineUpdates) {
+                            cout << "[LOOPSCC PERIOD TRANSFORM]: "
+                                 << relation << endl;
+                        }
+                    }
+                }
                 complete = complete && graph.complete;
                 for (const auto& diagnostic : graph.diagnostics) {
                     cout << "[LOOPSCC DIAGNOSTIC]: " << diagnostic << endl;
@@ -3741,6 +3762,11 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[LOOPSCC MULTI-NODE SCCS]: " << multiNodeSccs << endl;
             cout << "[LOOPSCC MAX SCC SIZE]: " << maxSccSize << endl;
             cout << "[LOOPSCC CSG EDGES]: " << csgEdges << endl;
+            cout << "[LOOPSCC DETERMINATE CYCLES]: " << determinateCycles << endl;
+            cout << "[LOOPSCC OSCILLATING CYCLES]: " << oscillatingCycles << endl;
+            cout << "[LOOPSCC CLOSED FORM CANDIDATES]: "
+                 << closedFormCandidates << endl;
+            cout << "[LOOPSCC MAX PERIOD]: " << maxPeriod << endl;
             cout << "[LOOPSCC GRAPH COMPLETE]: " << (complete ? 1 : 0) << endl;
             resultFile << "[loopscc_spaths]:" << spaths << "\n";
             resultFile << "[loopscc_transitions]:" << transitions << "\n";
@@ -3749,6 +3775,11 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile << "[loopscc_multi_node_sccs]:" << multiNodeSccs << "\n";
             resultFile << "[loopscc_max_scc_size]:" << maxSccSize << "\n";
             resultFile << "[loopscc_csg_edges]:" << csgEdges << "\n";
+            resultFile << "[loopscc_determinate_cycles]:" << determinateCycles << "\n";
+            resultFile << "[loopscc_oscillating_cycles]:" << oscillatingCycles << "\n";
+            resultFile << "[loopscc_closed_form_candidates]:"
+                       << closedFormCandidates << "\n";
+            resultFile << "[loopscc_max_period]:" << maxPeriod << "\n";
             resultFile << "[loopscc_graph_complete]:" << (complete ? 1 : 0)
                        << "\n";
         }
