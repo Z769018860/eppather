@@ -21,12 +21,15 @@ enum class PathDecisionKind {
     TrueBranch, // assume condition is true
     FalseBranch,// assume condition is false
     LoopInit,   // for-loop initializer
-    LoopUpdate  // for-loop post expression
+    LoopUpdate, // for-loop post expression
+    SyntheticAssume, // LoopSCC validation-only summary guard
+    SyntheticCode    // LoopSCC validation-only affine assignment
 };
 
 struct PathDecision {
     CFGNode* node{nullptr};
     PathDecisionKind kind{PathDecisionKind::Code};
+    std::string syntheticText;
 };
 
 struct AffineLoopStateSummary {
@@ -67,6 +70,18 @@ struct LoopSccAffineStateSummary {
     std::size_t observedIterations{0};
 };
 
+struct LoopSccAccelerationValidation {
+    std::string loopCondition;
+    bool attempted{false};
+    bool statusMatched{false};
+    bool memMatched{false};
+    bool matched{false};
+    std::size_t originalDecisionCount{0};
+    std::size_t compressedDecisionCount{0};
+    int baselineMem{0};
+    int compressedMem{0};
+};
+
 struct EpatResult {
     epat::result status{epat::result::unknown};
     int mem{0};
@@ -81,6 +96,8 @@ struct EpatResult {
     // Path-specific affine relations from a proved determinate SPath cycle.
     // They are candidates only; VolCE must still prove them entailed by SMT.
     std::vector<LoopSccAffineStateSummary> loopSccAffineStateSummaries;
+    std::vector<LoopSccAccelerationValidation>
+        loopSccAccelerationValidations;
 };
 
 class EpatRunner {
