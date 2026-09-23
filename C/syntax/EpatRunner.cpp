@@ -434,6 +434,32 @@ LoopSccPhaseTrace buildLoopSccPhaseTrace(
         trace.residualPhases =
             trace.period == 0 ? trace.observedIterations
                               : trace.observedIterations % trace.period;
+
+        // Compose the exact machine-readable SPath transforms in the concrete
+        // phase order. Missing entries are identity transforms for that SPath.
+        // The cycle-level candidate gate already excludes unknown/memory writes.
+        std::map<std::string, std::pair<long long, long long>> composed;
+        for (std::size_t pathId : trace.spathSequence) {
+            if (pathId >= graph.spaths.size()) {
+                trace.diagnostics.push_back(
+                    "phase trace refers to an out-of-range SPath");
+                trace.pathAffineTransforms.clear();
+                return trace;
+            }
+            for (const auto& relation : graph.spaths[pathId].affineTransforms) {
+                auto inserted = composed.emplace(
+                    relation.variable, std::make_pair(1LL, 0LL));
+                auto& current = inserted.first->second;
+                current.second =
+                    relation.scale * current.second + relation.offset;
+                current.first = relation.scale * current.first;
+            }
+        }
+        for (const auto& entry : composed) {
+            trace.pathAffineTransforms.push_back(
+                LoopSccAffineTransform{
+                    entry.first, entry.second.first, entry.second.second});
+        }
         return trace;
     }
 
@@ -561,6 +587,29 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             provenanceVariables.push_back(prediction.inductionVariable);
         }
     }
+    // Analyze the structural LoopSCC graph before invoking epat++ so state
+    // variables participating in a proved scalar periodic candidate are also
+    // materialized as SSA states. The relation is still only a candidate here;
+    // VolCE performs the semantic entailment proof after solving the full path.
+    std::unordered_map<CFGNode*, LoopSccGraphInfo> loopSccAnalysis;
+    if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
+        for (CFGNode* loop : provenanceLoops) {
+            auto graph = LoopSccAdapter::analyze(loop);
+            for (const auto& cycle : graph.cycles) {
+                if (!cycle.guardedClosedFormCandidate) continue;
+                for (const auto& relation : cycle.periodAffineTransforms) {
+                    if (std::find(
+                            provenanceVariables.begin(),
+                            provenanceVariables.end(),
+                            relation.variable) == provenanceVariables.end()) {
+                        provenanceVariables.push_back(relation.variable);
+                    }
+                }
+            }
+            loopSccAnalysis.emplace(loop, std::move(graph));
+        }
+    }
+
     // Array-indexed paths with multiple loops can create a large chain of
     // symbolic memory expressions.  Materializing every induction write on
     // those paths exceeded the bounded integration budget.  Keep their
@@ -581,19 +630,36 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     EpatResult result = solveScript(render(decisions));
     epat::clearSsaProvenanceVariables();
 
-    // The first structural LoopSCC stage is deliberately opt-in and
-    // observational. It extracts one-iteration SPaths, builds a conservative
-    // SPath graph and contracts its SCCs, but does not replace unfolding or
-    // add constraints to the solver.
+    // Structural LoopSCC analysis remains opt-in. At this stage it also
+    // exports a path-specific affine relation only for a concrete phase trace
+    // that matches a proved guarded closed-form cycle. The relation is not
+    // trusted by itself: it is transported to VolCE for SMT entailment.
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
         for (CFGNode* loop : provenanceLoops) {
-            auto graph = LoopSccAdapter::analyze(loop);
+            auto found = loopSccAnalysis.find(loop);
+            LoopSccGraphInfo graph =
+                found != loopSccAnalysis.end()
+                    ? std::move(found->second)
+                    : LoopSccAdapter::analyze(loop);
             for (const auto& diagnostic : graph.diagnostics) {
                 result.loopStateSummaryDiagnostics.push_back(
                     "loopscc: " + diagnostic);
             }
-            result.loopSccPhaseTraces.push_back(
-                buildLoopSccPhaseTrace(loop, graph, decisions));
+            auto trace = buildLoopSccPhaseTrace(loop, graph, decisions);
+            if (trace.complete && trace.matchedDeterminateCycle &&
+                trace.cycleIndex < graph.cycles.size() &&
+                graph.cycles[trace.cycleIndex].guardedClosedFormCandidate) {
+                for (const auto& relation : trace.pathAffineTransforms) {
+                    result.loopSccAffineStateSummaries.push_back(
+                        LoopSccAffineStateSummary{
+                            relation.variable,
+                            relation.scale,
+                            relation.offset,
+                            trace.period,
+                            trace.observedIterations});
+                }
+            }
+            result.loopSccPhaseTraces.push_back(std::move(trace));
             result.loopSccGraphs.push_back(std::move(graph));
         }
     }
