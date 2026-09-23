@@ -10,6 +10,8 @@
 
 using psy::C::CFGNode;
 using psy::C::LoopSccAdapter;
+using psy::C::PathDecisionKind;
+using psy::C::buildLoopSccAccelerationDecisions;
 
 namespace {
 
