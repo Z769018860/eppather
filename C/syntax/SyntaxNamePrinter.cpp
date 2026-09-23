@@ -3784,6 +3784,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t determinateCycles = 0;
             std::size_t oscillatingCycles = 0;
             std::size_t closedFormCandidates = 0;
+            std::size_t accelerationPlans = 0;
+            std::size_t exactAccelerationPlans = 0;
             std::size_t maxPeriod = 0;
             long long maxProvedTripCount = -1;
             std::string provedTripVariable;
@@ -3799,6 +3801,27 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 determinateCycles += graph.determinateCycleCount;
                 oscillatingCycles += graph.oscillatingCycleCount;
                 closedFormCandidates += graph.guardedClosedFormCandidateCount;
+                accelerationPlans += graph.accelerationPlans.size();
+                for (const auto& plan : graph.accelerationPlans) {
+                    if (plan.exact) ++exactAccelerationPlans;
+                    cout << "[LOOPSCC ACCELERATION PLAN]: cycle="
+                         << plan.cycleIndex
+                         << " entry_phase=" << plan.entryPhase
+                         << " iterations=" << plan.totalIterations
+                         << " period=" << plan.period
+                         << " full_periods=" << plan.completePeriods
+                         << " residual=" << plan.residualPhases
+                         << " exact=" << (plan.exact ? 1 : 0)
+                         << endl;
+                    for (const auto& transform :
+                         plan.closedFormTransforms) {
+                        cout << "[LOOPSCC ACCELERATION TRANSFORM]: "
+                             << transform.variable
+                             << " scale=" << transform.scale
+                             << " offset=" << transform.offset
+                             << endl;
+                    }
+                }
                 if (graph.provedTripCount >= 0 &&
                     graph.provedTripCount > maxProvedTripCount) {
                     maxProvedTripCount = graph.provedTripCount;
@@ -3835,6 +3858,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[LOOPSCC OSCILLATING CYCLES]: " << oscillatingCycles << endl;
             cout << "[LOOPSCC CLOSED FORM CANDIDATES]: "
                  << closedFormCandidates << endl;
+            cout << "[LOOPSCC ACCELERATION PLANS]: "
+                 << accelerationPlans << endl;
+            cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
+                 << exactAccelerationPlans << endl;
             cout << "[LOOPSCC MAX PERIOD]: " << maxPeriod << endl;
             if (maxProvedTripCount >= 0) {
                 cout << "[LOOPSCC PROVED TRIP COUNT]: "
@@ -3854,6 +3881,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile << "[loopscc_oscillating_cycles]:" << oscillatingCycles << "\n";
             resultFile << "[loopscc_closed_form_candidates]:"
                        << closedFormCandidates << "\n";
+            resultFile << "[loopscc_acceleration_plans]:"
+                       << accelerationPlans << "\n";
+            resultFile << "[loopscc_exact_acceleration_plans]:"
+                       << exactAccelerationPlans << "\n";
             resultFile << "[loopscc_max_period]:" << maxPeriod << "\n";
             if (maxProvedTripCount >= 0) {
                 resultFile << "[loopscc_proved_trip_count]:"
@@ -3873,6 +3904,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << " iterations=" << trace.observedIterations
                  << " full_periods=" << trace.completePeriods
                  << " residual=" << trace.residualPhases
+                 << endl;
+            cout << "[LOOPSCC ACCELERATION TRACE]: matched="
+                 << (trace.matchedAccelerationPlan ? 1 : 0)
+                 << " plan=" << trace.accelerationPlanIndex
                  << endl;
             if (!trace.spathSequence.empty()) {
                 cout << "[LOOPSCC PHASE SEQUENCE]:";
@@ -3897,6 +3932,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << trace.completePeriods << "\n";
             resultFile << "[loopscc_phase_residual]:"
                        << trace.residualPhases << "\n";
+            resultFile << "[loopscc_acceleration_trace_matched]:"
+                       << (trace.matchedAccelerationPlan ? 1 : 0) << "\n";
         }
 
         recordFeasiblePath(
