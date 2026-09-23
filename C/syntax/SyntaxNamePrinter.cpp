@@ -3729,6 +3729,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 maxSccSize = std::max(maxSccSize, graph.maxSccSize);
                 csgEdges += graph.contractedEdgeCount;
                 complete = complete && graph.complete;
+                for (const auto& diagnostic : graph.diagnostics) {
+                    cout << "[LOOPSCC DIAGNOSTIC]: " << diagnostic << endl;
+                    resultFile << "[loopscc_diagnostic]:" << diagnostic << "\n";
+                }
             }
             cout << "[LOOPSCC SPATHS]: " << spaths << endl;
             cout << "[LOOPSCC TRANSITIONS]: " << transitions << endl;
