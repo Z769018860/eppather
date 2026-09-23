@@ -196,9 +196,9 @@ void markUnknownWrite(BuiltPath& path,
     }
 }
 
-void parseUpdate(BuiltPath& path, const std::string& raw) {
+bool parseUpdate(BuiltPath& path, const std::string& raw) {
     std::string text = trim(raw);
-    if (text.empty()) return;
+    if (text.empty()) return true;
     if (!text.empty() && text.back() == ';') text.pop_back();
     text = trim(text);
 
@@ -222,23 +222,23 @@ void parseUpdate(BuiltPath& path, const std::string& raw) {
 
     if (std::regex_match(text, m, postfix)) {
         composeUpdate(path, m[1].str(), 1, m[2].str() == "++" ? 1 : -1, raw);
-        return;
+        return true;
     }
     if (std::regex_match(text, m, prefix)) {
         composeUpdate(path, m[2].str(), 1, m[1].str() == "++" ? 1 : -1, raw);
-        return;
+        return true;
     }
     if (std::regex_match(text, m, compound)) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-=") value = -value;
         composeUpdate(path, m[1].str(), 1, value, raw);
-        return;
+        return true;
     }
     if (std::regex_match(text, m, selfAdd)) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-") value = -value;
         composeUpdate(path, m[1].str(), 1, value, raw);
-        return;
+        return true;
     }
     if (std::regex_match(text, m, selfNegate) ||
         std::regex_match(text, m, zeroMinusSelf)) {
@@ -248,11 +248,11 @@ void parseUpdate(BuiltPath& path, const std::string& raw) {
             if (m[2].str() == "-") value = -value;
         }
         composeUpdate(path, m[1].str(), -1, value, raw);
-        return;
+        return true;
     }
     if (std::regex_match(text, m, constantAssign)) {
         composeUpdate(path, m[1].str(), 0, std::stoll(m[2].str()), raw);
-        return;
+        return true;
     }
 
     // Array/dereference writes are kept as an explicit memory marker. The
@@ -263,12 +263,22 @@ void parseUpdate(BuiltPath& path, const std::string& raw) {
          (!text.empty() && text.front() == '*'))) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
-        return;
+        path.info.accelerationEffectSafe = false;
+        return false;
     }
 
     if (std::regex_match(text, m, simpleAssign)) {
         markUnknownWrite(path, m[1].str(), raw);
+        path.info.accelerationEffectSafe = false;
+        return false;
     }
+
+    // Any remaining executable statement is outside the restricted scalar
+    // affine semantics (for example a call, declaration with initializer,
+    // pointer read, multiplication, or other side effect). Keep structural
+    // SPath information, but never use such a path for acceleration.
+    path.info.accelerationEffectSafe = false;
+    return false;
 }
 
 Interval applyTransform(const Interval& input, const AffineTransform& transform) {
@@ -447,6 +457,11 @@ void detectDeterminateCycles(const std::vector<BuiltPath>& built,
         bool exact = true;
         for (std::size_t pathId : order) {
             if (!built[pathId].info.returnsToHeader) exact = false;
+            if (!built[pathId].info.accelerationEffectSafe) {
+                exact = false;
+                cycle.diagnostics.push_back(
+                    "opaque or memory effect prevents acceleration");
+            }
             for (const auto& write : built[pathId].info.writes) {
                 if (write == "*memory*") {
                     exact = false;
@@ -754,8 +769,9 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
             return;
         }
         if (current.get() == loop) {
-            if (loop->isFor && !loop->expr_str.empty()) {
-                parseUpdate(path, loop->expr_str);
+            if (loop->isFor && !loop->expr_str.empty() &&
+                !parseUpdate(path, loop->expr_str)) {
+                path.info.accelerationEffectSafe = false;
             }
             path.info.returnsToHeader = true;
             built.push_back(std::move(path));
@@ -798,8 +814,9 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         }
 
         const std::string code = current->getCode();
-        if (!code.empty() && code != "Code has not been set yet") {
-            parseUpdate(path, code);
+        if (!code.empty() && code != "Code has not been set yet" &&
+            !parseUpdate(path, code)) {
+            path.info.accelerationEffectSafe = false;
         }
         if (current->getNextFalseNode()) {
             unsupported = true;
