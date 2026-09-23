@@ -81,6 +81,22 @@ struct LoopSccMemoryCellStateSummary {
     std::size_t observedMems{0};
 };
 
+struct LoopSccMemoryAccelerationValidation {
+    std::string loopCondition;
+    bool attempted{false};
+    bool statusMatched{false};
+    bool compensatedMemMatched{false};
+    bool matched{false};
+    std::size_t originalDecisionCount{0};
+    std::size_t compressedDecisionCount{0};
+    std::size_t unfoldedLoopMems{0};
+    std::size_t compressedSummaryMems{0};
+    int baselineMem{0};
+    int compressedMem{0};
+    int compensatedMem{0};
+    std::string compressedSmt;
+};
+
 struct LoopSccAccelerationValidation {
     std::string loopCondition;
     bool attempted{false};
@@ -116,6 +132,8 @@ struct EpatResult {
         loopSccMemoryCellStateSummaries;
     std::vector<LoopSccAccelerationValidation>
         loopSccAccelerationValidations;
+    std::vector<LoopSccMemoryAccelerationValidation>
+        loopSccMemoryAccelerationValidations;
 };
 
 // Build a summarized decision stream for one certified LoopSCC
