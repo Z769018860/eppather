@@ -168,7 +168,7 @@ target_link_libraries(loopscc-adapter-tests
     psychecfe psychecommon dl epat-protocol ${BACKEND_LIB}
     ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so
     ${PROJECT_SOURCE_DIR}/libParser/libParser.a
-    ${Z3_LIB_DIR})
+    ${Z3_LIB})
 
 #if (NOT WIN32 AND NOT MINGW)
     set(PSYCHE_TESTS test-suite)
