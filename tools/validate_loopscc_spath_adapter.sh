@@ -189,6 +189,82 @@ if [[ -z "$baseline_coverage" || "$baseline_coverage" != "$shortcut_coverage" ]]
   exit 1
 fi
 
+# Symbolic entry phase: input x selects one of two deterministic phases.
+# Both unfolded and accelerated modes must partition the same finite domain.
+run_case symbolic_entry testcase/loop_hybrid/24_spath_symbolic_entry_cycle.c 1 100 1
+run_case symbolic_entry_accel testcase/loop_hybrid/24_spath_symbolic_entry_cycle.c 1 100 1 0 1
+
+if ! grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/symbolic_entry_accel.log"; then
+  echo "symbolic_entry_accel: certified shortcut was not used" >&2
+  cat "$OUT_DIR/symbolic_entry_accel.log" >&2
+  exit 1
+fi
+
+symbolic_space="$(metric_max 'VOLCE SOLUTION SPACE COUNT' "$OUT_DIR/symbolic_entry.log")"
+symbolic_accel_space="$(metric_max 'VOLCE SOLUTION SPACE COUNT' "$OUT_DIR/symbolic_entry_accel.log")"
+symbolic_feasible="$(grep -c '^feasible!!!
+nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
+if [[ "$nested_complete" != 0 ]]; then
+  echo "nested: expected conservative incomplete outer graph" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
+  echo "nested: missing inside-out fallback diagnostic" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0,N/A,0"
+ "$OUT_DIR/symbolic_entry.log" || true)"
+symbolic_accel_feasible="$(grep -c '^feasible!!!
+nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
+if [[ "$nested_complete" != 0 ]]; then
+  echo "nested: expected conservative incomplete outer graph" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary$' "$OUT_DIR/nested.log"; then
+  echo "nested: missing inside-out fallback diagnostic" >&2
+  cat "$OUT_DIR/nested.log" >&2
+  exit 1
+fi
+
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0,N/A,0"
+ "$OUT_DIR/symbolic_entry_accel.log" || true)"
+symbolic_coverage="$(grep '^\[COVERAGE SIGNATURE\]: ' "$OUT_DIR/symbolic_entry.log" | sort -u | tr '\n' ';')"
+symbolic_accel_coverage="$(grep '^\[COVERAGE SIGNATURE\]: ' "$OUT_DIR/symbolic_entry_accel.log" | sort -u | tr '\n' ';')"
+
+if [[ -z "$symbolic_space" || "$symbolic_space" != "$symbolic_accel_space" ]]; then
+  echo "symbolic_entry_accel: solution-space partition changed" >&2
+  echo "baseline=$symbolic_space shortcut=$symbolic_accel_space" >&2
+  cat "$OUT_DIR/symbolic_entry_accel.log" >&2
+  exit 1
+fi
+
+if [[ "$symbolic_feasible" -lt 2 || "$symbolic_feasible" != "$symbolic_accel_feasible" ]]; then
+  echo "symbolic_entry_accel: expected the same two input-selected phase paths" >&2
+  echo "baseline=$symbolic_feasible shortcut=$symbolic_accel_feasible" >&2
+  cat "$OUT_DIR/symbolic_entry_accel.log" >&2
+  exit 1
+fi
+
+if [[ -z "$symbolic_coverage" || "$symbolic_coverage" != "$symbolic_accel_coverage" ]]; then
+  echo "symbolic_entry_accel: coverage partition differs from baseline" >&2
+  echo "baseline=$symbolic_coverage" >&2
+  echo "shortcut=$symbolic_accel_coverage" >&2
+  cat "$OUT_DIR/symbolic_entry_accel.log" >&2
+  exit 1
+fi
+
 # Nested loops remain conservative until inside-out SCC composition exists.
 run_case nested testcase/loop_hybrid/12_nested_for.c 4
 nested_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested.log" | sort -n | head -1)"
