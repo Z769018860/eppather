@@ -3785,6 +3785,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t oscillatingCycles = 0;
             std::size_t closedFormCandidates = 0;
             std::size_t maxPeriod = 0;
+            long long maxProvedTripCount = -1;
+            std::string provedTripVariable;
             bool complete = true;
             for (const auto& graph : eval.loopSccGraphs) {
                 spaths += graph.spaths.size();
@@ -3797,6 +3799,11 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 determinateCycles += graph.determinateCycleCount;
                 oscillatingCycles += graph.oscillatingCycleCount;
                 closedFormCandidates += graph.guardedClosedFormCandidateCount;
+                if (graph.provedTripCount >= 0 &&
+                    graph.provedTripCount > maxProvedTripCount) {
+                    maxProvedTripCount = graph.provedTripCount;
+                    provedTripVariable = graph.tripCountVariable;
+                }
                 for (const auto& cycle : graph.cycles) {
                     maxPeriod = std::max(maxPeriod, cycle.period);
                     if (cycle.determinate) {
@@ -3829,6 +3836,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[LOOPSCC CLOSED FORM CANDIDATES]: "
                  << closedFormCandidates << endl;
             cout << "[LOOPSCC MAX PERIOD]: " << maxPeriod << endl;
+            if (maxProvedTripCount >= 0) {
+                cout << "[LOOPSCC PROVED TRIP COUNT]: "
+                     << maxProvedTripCount << endl;
+                cout << "[LOOPSCC TRIP COUNT VARIABLE]: "
+                     << provedTripVariable << endl;
+            }
             cout << "[LOOPSCC GRAPH COMPLETE]: " << (complete ? 1 : 0) << endl;
             resultFile << "[loopscc_spaths]:" << spaths << "\n";
             resultFile << "[loopscc_transitions]:" << transitions << "\n";
@@ -3842,6 +3855,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile << "[loopscc_closed_form_candidates]:"
                        << closedFormCandidates << "\n";
             resultFile << "[loopscc_max_period]:" << maxPeriod << "\n";
+            if (maxProvedTripCount >= 0) {
+                resultFile << "[loopscc_proved_trip_count]:"
+                           << maxProvedTripCount << "\n";
+                resultFile << "[loopscc_trip_count_variable]:"
+                           << provedTripVariable << "\n";
+            }
             resultFile << "[loopscc_graph_complete]:" << (complete ? 1 : 0)
                        << "\n";
         }
