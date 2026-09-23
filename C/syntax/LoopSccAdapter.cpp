@@ -440,6 +440,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         for (std::size_t j = 0; j < built.size(); ++j) {
             if (!transitionPossible(built[i], built[j])) continue;
             graph[i].push_back(static_cast<int>(j));
+            result.transitions.emplace_back(i, j);
             ++result.transitionCount;
         }
     }
@@ -455,6 +456,14 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     }
 
     result.sccCount = tarjan.components.size();
+    result.sccs.reserve(tarjan.components.size());
+    for (const auto& component : tarjan.components) {
+        std::vector<std::size_t> converted;
+        converted.reserve(component.size());
+        for (int node : component)
+            converted.push_back(static_cast<std::size_t>(node));
+        result.sccs.push_back(std::move(converted));
+    }
     std::vector<int> componentOf(built.size(), -1);
     for (std::size_t cid = 0; cid < tarjan.components.size(); ++cid) {
         const auto& component = tarjan.components[cid];
@@ -482,6 +491,11 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         }
     }
     result.contractedEdgeCount = contractedEdges.size();
+    for (const auto& edge : contractedEdges) {
+        result.contractedEdges.emplace_back(
+            static_cast<std::size_t>(edge.first),
+            static_cast<std::size_t>(edge.second));
+    }
     return result;
 }
 
