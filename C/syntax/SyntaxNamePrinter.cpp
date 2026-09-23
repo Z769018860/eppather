@@ -3783,6 +3783,40 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile << "[loopscc_graph_complete]:" << (complete ? 1 : 0)
                        << "\n";
         }
+        for (const auto& trace : eval.loopSccPhaseTraces) {
+            cout << "[LOOPSCC PHASE TRACE]: complete="
+                 << (trace.complete ? 1 : 0)
+                 << " matched=" << (trace.matchedDeterminateCycle ? 1 : 0)
+                 << " period=" << trace.period
+                 << " entry_phase=" << trace.entryPhase
+                 << " iterations=" << trace.observedIterations
+                 << " full_periods=" << trace.completePeriods
+                 << " residual=" << trace.residualPhases
+                 << endl;
+            if (!trace.spathSequence.empty()) {
+                cout << "[LOOPSCC PHASE SEQUENCE]:";
+                for (std::size_t id : trace.spathSequence) {
+                    cout << " " << id;
+                }
+                cout << endl;
+            }
+            for (const auto& diagnostic : trace.diagnostics) {
+                cout << "[LOOPSCC PHASE DIAGNOSTIC]: "
+                     << diagnostic << endl;
+            }
+            resultFile << "[loopscc_phase_complete]:"
+                       << (trace.complete ? 1 : 0) << "\n";
+            resultFile << "[loopscc_phase_matched]:"
+                       << (trace.matchedDeterminateCycle ? 1 : 0) << "\n";
+            resultFile << "[loopscc_phase_period]:" << trace.period << "\n";
+            resultFile << "[loopscc_phase_entry]:" << trace.entryPhase << "\n";
+            resultFile << "[loopscc_phase_iterations]:"
+                       << trace.observedIterations << "\n";
+            resultFile << "[loopscc_phase_full_periods]:"
+                       << trace.completePeriods << "\n";
+            resultFile << "[loopscc_phase_residual]:"
+                       << trace.residualPhases << "\n";
+        }
 
         recordFeasiblePath(
             pathCount, mem, path, callees, volceCount, volceMemoryTerms);
