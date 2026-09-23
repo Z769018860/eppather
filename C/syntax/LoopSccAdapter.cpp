@@ -37,7 +37,9 @@ struct Interval {
 };
 
 struct AffineTransform {
-    // x' = scale * x + offset. scale is restricted to 0 or 1.
+    // x' = scale * x + offset. The structural adapter currently supports
+    // scale -1, 0, or 1. Scale -1 is needed for sign-flipping periodic
+    // oscillations such as x' = -x - 1.
     long long scale{1};
     long long offset{0};
     bool exact{true};
@@ -205,6 +207,10 @@ void parseUpdate(BuiltPath& path, const std::string& raw) {
         R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\+=|-=)[[:space:]]*(-?[0-9]+)$)");
     static const std::regex selfAdd(
         R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*\1[[:space:]]*([+-])[[:space:]]*([0-9]+)$)");
+    static const std::regex selfNegate(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*-[[:space:]]*\1(?:[[:space:]]*([+-])[[:space:]]*([0-9]+))?$)");
+    static const std::regex zeroMinusSelf(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*0[[:space:]]*-[[:space:]]*\1(?:[[:space:]]*([+-])[[:space:]]*([0-9]+))?$)");
     static const std::regex constantAssign(
         R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)$)");
     static const std::regex simpleAssign(
@@ -228,6 +234,16 @@ void parseUpdate(BuiltPath& path, const std::string& raw) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-") value = -value;
         composeUpdate(path, m[1].str(), 1, value, raw);
+        return;
+    }
+    if (std::regex_match(text, m, selfNegate) ||
+        std::regex_match(text, m, zeroMinusSelf)) {
+        long long value = 0;
+        if (m[3].matched) {
+            value = std::stoll(m[3].str());
+            if (m[2].str() == "-") value = -value;
+        }
+        composeUpdate(path, m[1].str(), -1, value, raw);
         return;
     }
     if (std::regex_match(text, m, constantAssign)) {
@@ -256,9 +272,22 @@ Interval applyTransform(const Interval& input, const AffineTransform& transform)
     if (transform.scale == 0) {
         return Interval{transform.offset, transform.offset};
     }
-    return Interval{
-        clampAdd(input.lower, transform.offset),
-        clampAdd(input.upper, transform.offset)};
+    if (transform.scale == 1) {
+        return Interval{
+            clampAdd(input.lower, transform.offset),
+            clampAdd(input.upper, transform.offset)};
+    }
+    if (transform.scale == -1) {
+        auto negateBound = [](long long value) {
+            if (value <= kNegInf / 2) return kPosInf;
+            if (value >= kPosInf / 2) return kNegInf;
+            return -value;
+        };
+        return Interval{
+            clampAdd(negateBound(input.upper), transform.offset),
+            clampAdd(negateBound(input.lower), transform.offset)};
+    }
+    return Interval{};
 }
 
 bool disjoint(const Interval& lhs, const Interval& rhs) {
@@ -328,6 +357,7 @@ std::string renderPeriodTransform(const std::string& variable,
     if (transform.scale == 0) {
         os << transform.offset;
     } else {
+        if (transform.scale == -1) os << "-";
         os << variable;
         if (transform.offset > 0) os << "+" << transform.offset;
         else if (transform.offset < 0) os << transform.offset;
