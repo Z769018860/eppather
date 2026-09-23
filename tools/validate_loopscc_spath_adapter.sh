@@ -42,13 +42,14 @@ fi
 # Full chain: SPath/CSG -> determinate cycle -> concrete phase trace ->
 # SSA provenance -> VolCE entailment. The summary remains redundant with the
 # unfolded path at this stage; the gate proves semantic validity first.
-run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 4 100 1
+run_case periodic testcase/loop_hybrid/23_spath_determinate_cycle.c 1 100 1
 periodic_cycles="$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/periodic.log")"
 periodic_osc="$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/periodic.log")"
 periodic_candidates="$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/periodic.log")"
 periodic_max="$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/periodic.log")"
 periodic_complete="$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/periodic.log")"
 periodic_relations="$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/periodic.log")"
+periodic_trip_count="$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/periodic.log")"
 periodic_rejected="$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS REJECTED' "$OUT_DIR/periodic.log")"
 
 if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
@@ -74,6 +75,11 @@ if [[ -z "$periodic_relations" || "$periodic_relations" -lt 1 ]]; then
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
+if [[ "$periodic_trip_count" != 4 ]]; then
+  echo "periodic: expected LoopSCC to prove four iterations despite --maxloop 1" >&2
+  cat "$OUT_DIR/periodic.log" >&2
+  exit 1
+fi
 if [[ -n "$periodic_rejected" && "$periodic_rejected" -gt 0 ]]; then
   echo "periodic: guarded periodic relation was unexpectedly rejected" >&2
   cat "$OUT_DIR/periodic.log" >&2
@@ -93,7 +99,7 @@ if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC s
   exit 1
 fi
 
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations"
-echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0"
+echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count"
+echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A"
+echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count"
+echo "nested,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested.log"),$nested_complete,0,N/A"
