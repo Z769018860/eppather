@@ -481,6 +481,9 @@ void detectDeterminateCycles(const std::vector<BuiltPath>& built,
             if (exact) {
                 cycle.periodAffineUpdates.push_back(
                     renderPeriodTransform(variable, combined));
+                cycle.periodAffineTransforms.push_back(
+                    LoopSccAffineTransform{
+                        variable, combined.scale, combined.offset});
             }
         }
 
@@ -601,6 +604,16 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
 
     for (std::size_t i = 0; i < built.size(); ++i) {
         built[i].info.id = i;
+        built[i].info.affineTransforms.clear();
+        for (const auto& entry : built[i].transforms) {
+            if (!entry.second.exact ||
+                built[i].unknownWrites.count(entry.first) != 0) {
+                continue;
+            }
+            built[i].info.affineTransforms.push_back(
+                LoopSccAffineTransform{
+                    entry.first, entry.second.scale, entry.second.offset});
+        }
         result.spaths.push_back(built[i].info);
     }
     if (truncated) {
