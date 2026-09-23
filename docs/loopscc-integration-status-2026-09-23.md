@@ -14,12 +14,12 @@ Implemented stages:
 5. epat++ preserves source-to-SSA provenance for selected scalar induction variables;
 6. entailed SSA definitions are substituted away before model counting;
 7. array/pointer/VLA inputs use bounded canonical memory projections;
-8. the reduced counting formula is now decomposed into **proved-independent projection components** and exact component counts are multiplied.
+8. the reduced counting formula is now decomposed into **proved-independent projection components** and exact component counts are multiplied;
+9. an opt-in structural LoopSCC adapter enumerates one-iteration acyclic SPaths, records guards/write sets/simple affine updates, builds a conservative SPath transition graph, runs Tarjan SCC decomposition, and retains the contracted CSG structure for the next summarization stage.
 
 Still not implemented from full LoopSCC:
 
-- SPath/CSG construction for general SCCs;
-- periodic oscillation interval discovery;
+- periodic oscillation interval discovery over SPath SCCs;
 - determinate-cycle / multi-cycle closed forms;
 - general multi-variable and data-dependent loop summarization;
 - source-level alias summaries that can replace canonical memory abstraction.
@@ -91,16 +91,37 @@ For comparison, the previous `ap04` memory run used about 14.6 seconds in model 
 
 The maxloop sensitivity runs at 2, 5, and 8 also completed for the selected array/pointer subjects, with the same completed counts for the previously problematic `ap06` and `ap15`.
 
+## SPath / CSG structural stage
+
+PR #98 adds the first control-flow structure layer. With
+`EPPATHER_LOOP_SCC_ANALYZE=1`, Eppather enumerates acyclic one-iteration
+SPaths, retains branch guards, scalar/memory write sets and simple affine
+updates, builds a conservative transition graph, computes Tarjan SCCs, and
+retains both SCC membership and contracted CSG edges. This stage is
+observational only: it does not replace unfolding or assert a new VolCE
+constraint. Nested loops are marked incomplete until inside-out composition is
+implemented.
+
+See `docs/loopscc-spath-csg-adapter-2026-09-23.md` for the exact supported
+forms, metrics and fallbacks.
+
 ## Next LoopSCC gate
 
-The next step should move from affine induction summaries to a real **SPath/CSG adapter** for multi-branch SCCs:
+The next step is now **restricted periodic/oscillation detection over the
+retained SPath SCCs**:
 
-1. recover one-iteration acyclic SPaths inside a loop SCC;
-2. record per-SPath affine state transforms and path guards;
-3. build a compact cycle-transition graph;
-4. detect periodic/oscillating transition patterns only when the graph and guards prove them;
-5. export a guarded closed-form transition to the existing VolCE entailment interface;
-6. retain bounded unfolding whenever the SPath/CSG proof is incomplete;
-7. validate against the same exact solution-count and weighted-MEMS A/B gates before using the summary to reduce enumeration.
+1. identify SCC-local variables whose guards and updates are fully represented
+   by the current interval/affine model;
+2. detect a small proved periodic cycle (starting with reciprocal two-SPath
+   oscillation) and derive its oscillation interval;
+3. express the candidate as a guarded closed-form transition;
+4. send that transition through the existing SMT entailment gate before it can
+   influence VolCE or bypass unfolding;
+5. keep general multi-variable, memory-writing, ambiguous-guard and incomplete
+   SCCs on the existing bounded path;
+6. validate exact solution-count and weighted-MEMS equality against the
+   validation-only baseline before measuring performance.
 
-Array/pointer state should remain behind alias-aware write-set checks; do not allow a new SPath/CSG summary to bypass memory unfolding until the corresponding memory transition is proved.
+Array/pointer state remains behind alias-aware write-set checks; no SPath/CSG
+summary may bypass memory unfolding until the corresponding memory transition
+is proved.
