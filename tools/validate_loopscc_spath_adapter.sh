@@ -15,6 +15,7 @@ run_case() {
     args+=(--volce --volce-lower -8 --volce-upper 8)
   fi
   if [[ "$debug" == "1" ]]; then
+    args+=(-c)
     EPPATHER_LOOP_SCC_ANALYZE=1 \
     EPPATHER_LOOP_SCC_BOUND_TRACE=1 \
     EPPATHER_DEBUG_EPAT_SCRIPT=1 \
