@@ -39,11 +39,17 @@ namespace epat {
             try {
                 visit(ast_);
                 if constexpr (std::is_same_v<Lv, LinearMemoryLv>) {
-                    if (epat::isMemorySsaProvenanceEnabled() &&
-                        mem_.array_) {
-                        auto finalMemory = gc.constant(
-                            "%a#ssa_final", mem_.array_.get_sort());
-                        smt_.pushCond(finalMemory == mem_.array_);
+                    if (epat::isMemorySsaProvenanceEnabled()) {
+                        // Constant-address locals normally stay in map_ and do
+                        // not initialize the functional array. Provenance mode
+                        // needs a whole-memory endpoint even for those paths,
+                        // so materialize the current final map into %a first.
+                        mem_.array_init();
+                        if (mem_.array_) {
+                            auto finalMemory = gc.constant(
+                                "%a#ssa_final", mem_.array_.get_sort());
+                            smt_.pushCond(finalMemory == mem_.array_);
+                        }
                     }
                 }
                 switch (smt_.solve()) {
