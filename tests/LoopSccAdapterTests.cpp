@@ -357,13 +357,18 @@ int main() {
                     "int a[1];\nint i = 0;\n");
                 const auto shortcutEval =
                     shortcutRunner.solve(shortcut->decisions);
+                const auto ambiguousShortcut =
+                    buildLoopSccMemoryAccelerationDecisions(
+                        {}, loop.get(), graph, 0,
+                        "int a[1];\nint a[1];\nint i = 0;\n");
                 shortcutPlanOk =
                     shortcut->unfoldedMems == 16 &&
                     shortcut->compressedSummaryMems == 2 &&
                     shortcut->compensationMems == 14 &&
                     sawSyntheticMems &&
                     shortcutEval.status == epat::result::feasible &&
-                    shortcutEval.mem == 16;
+                    shortcutEval.mem == 16 &&
+                    !ambiguousShortcut;
             }
         }
         const bool ok = graph.complete &&
