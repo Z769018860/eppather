@@ -150,6 +150,8 @@ struct VolceResult {
     std::vector<std::string> appliedStateSummaries;
     std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
+    std::vector<std::string> appliedAffineRelationSummaries;
+    std::vector<std::string> rejectedAffineRelationSummaries;
     std::size_t formulaAssertions{0};
     std::size_t smtDeclarations{0};
     std::size_t projectionTerms{0};
@@ -311,7 +313,8 @@ std::optional<VolceResult> runVolce(
     int lowerBound,
     int upperBound,
     const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {},
-    const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {}) {
+    const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {},
+    const std::vector<psy::C::LoopSccAffineStateSummary>& loopSccSummaries = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -326,6 +329,12 @@ std::optional<VolceResult> runVolce(
             summary.step,
             summary.iterations,
             summary.finalValue});
+    }
+    std::vector<volce::AffineRelationSummary> affineRelations;
+    affineRelations.reserve(loopSccSummaries.size());
+    for (const auto& summary : loopSccSummaries) {
+        affineRelations.push_back(volce::AffineRelationSummary{
+            summary.variable, summary.scale, summary.offset});
     }
     const char* disableSummaries =
         std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");
@@ -343,12 +352,12 @@ std::optional<VolceResult> runVolce(
         memoryRegions.push_back(volce::MemoryRegionProjection{
             region.name, region.cells, region.variableLength});
     }
-    const auto countResult = summaries.empty()
+    const auto countResult = summaries.empty() && affineRelations.empty()
         ? volce::countModelsFromSmt2(
               smt2, {}, range, includeMemoryTerms, memoryRegions)
         : volce::countModelsFromSmt2WithSummaries(
               smt2, summaries, {}, range, includeMemoryTerms, memoryRegions,
-              !summariesDisabled);
+              !summariesDisabled, affineRelations);
     if (!countResult) {
         return std::nullopt;
     }
@@ -363,6 +372,10 @@ std::optional<VolceResult> runVolce(
     result.validatedGroundStateSummaries =
         countResult->validated_ground_state_summaries;
     result.rejectedStateSummaries = countResult->rejected_state_summaries;
+    result.appliedAffineRelationSummaries =
+        countResult->applied_affine_relation_summaries;
+    result.rejectedAffineRelationSummaries =
+        countResult->rejected_affine_relation_summaries;
     result.formulaAssertions = countResult->formula_assertions;
     result.smtDeclarations = countResult->smt_declarations;
     result.projectionTerms = countResult->projection_terms;
@@ -3638,7 +3651,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[VolCE range]: [" << volceLower << ", " << volceUpper << "]" << endl;
             const auto volceResult = runVolce(
                 smt2, volceLower, volceUpper, eval.loopStateSummaries,
-                inputMemoryRegions_);
+                inputMemoryRegions_, eval.loopSccAffineStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 volceMemoryTerms = volceResult->boundedMemoryTerms;
@@ -3664,6 +3677,12 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << volceResult->validatedGroundStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
                      << volceResult->rejectedStateSummaries.size() << endl;
+                cout << "[VOLCE LOOPSCC AFFINE RELATIONS APPLIED]: "
+                     << volceResult->appliedAffineRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC AFFINE RELATIONS REJECTED]: "
+                     << volceResult->rejectedAffineRelationSummaries.size()
+                     << endl;
                 cout << "[VOLCE FORMULA ASSERTIONS]: "
                      << volceResult->formulaAssertions << endl;
                 cout << "[VOLCE SMT DECLARATIONS]: "
@@ -3697,6 +3716,20 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     resultFile << "[volce_loop_summary_rejected]:"
                                << rejected << "\n";
                     cout << "[VOLCE LOOP SUMMARY REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedAffineRelationSummaries) {
+                    resultFile << "[volce_loopscc_affine_relation]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC AFFINE RELATION]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedAffineRelationSummaries) {
+                    resultFile << "[volce_loopscc_affine_relation_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC AFFINE RELATION REJECTED]: "
                          << rejected << endl;
                 }
                 for (const auto& diagnostic :
