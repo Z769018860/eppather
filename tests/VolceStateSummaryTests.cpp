@@ -106,19 +106,20 @@ int main() {
     failures += !boundedEnumerationOk;
 
     // Two symbolic source regions are not independent unless the formula
-    // proves their bases cannot alias. p==q is feasible here, so the exact
-    // count must preserve the shared-cell case and factorization must be
-    // rejected. 3 equal-base pairs contribute 3 values each; six distinct-
-    // base pairs contribute 3^2 values each: 3*3 + 6*9 = 63.
+    // proves their bases cannot alias. With three cells per region and bases
+    // in {-1,0,1}, every relative offset 0, +/-1, +/-2 is feasible. The exact
+    // projected count is 3*3^3 + 4*3^4 + 2*3^5 = 891, and the factorization
+    // guard must keep the mutually aliasing base/cell terms in one component.
     const std::string aliasingSmt =
         "(declare-const p (_ BitVec 32))\n"
         "(declare-const q (_ BitVec 32))\n"
         "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n";
     const auto aliasing = volce::countModelsFromSmt2(
         aliasingSmt, {}, volce::Range{-1, 1}, true,
-        {{"p", 1, true}, {"q", 1, true}});
+        {{"p", 3, true}, {"q", 3, true}});
     const bool aliasingOk = aliasing &&
-        aliasing->count == 63 &&
+        aliasing->count == 891 &&
+        aliasing->bounded_memory_terms.size() == 6 &&
         aliasing->factored_projection_components == 0;
     std::cout << "projection-factorization-alias-guard: "
               << (aliasingOk ? "PASS" : "FAIL") << '\n';
