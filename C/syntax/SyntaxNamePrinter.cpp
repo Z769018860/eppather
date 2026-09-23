@@ -82,10 +82,34 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
         const int requested = std::max(0, safetyCap);
         if (!node->isWhile) return requested;
 
-        // While CFG nodes do not yet retain a normalized initializer/update.
-        // Recover a conservative budget only for a canonical variable-vs-
-        // integer condition. Data-dependent conditions continue to honor the
-        // requested maxloop without guessing.
+        // A complete LoopSCC SPath graph can recover an exact trip count even
+        // when nested branches prevented the legacy while-update metadata
+        // from being classified as a simple affine loop. Enable this only with
+        // the LoopSCC analysis flag until the A/B gates promote it by default.
+        const char* loopSccAnalyze = std::getenv("EPPATHER_LOOP_SCC_ANALYZE");
+        if (loopSccAnalyze && *loopSccAnalyze &&
+            std::string(loopSccAnalyze) != "0" &&
+            !node->initstmt_str.empty()) {
+            static std::unordered_map<const psy::C::CFGNode*, long long>
+                provedTripCounts;
+            auto it = provedTripCounts.find(node);
+            if (it == provedTripCounts.end()) {
+                auto graph = psy::C::LoopSccAdapter::analyze(
+                    const_cast<psy::C::CFGNode*>(node));
+                it = provedTripCounts.emplace(
+                    node, graph.provedTripCount).first;
+            }
+            if (it->second >= 0) {
+                const long long hardBudget = std::max<long long>(
+                    requested, exactLoopAutoliftCap(requested));
+                return static_cast<int>(std::min<long long>(
+                    it->second, hardBudget));
+            }
+        }
+
+        // Without a LoopSCC proof, retain the legacy conservative budget for a
+        // canonical variable-vs-integer condition. Data-dependent conditions
+        // continue to honor the requested maxloop without guessing.
         static const std::regex direct(
             "\\b[A-Za-z_][A-Za-z0-9_]*\\b[[:space:]]*"
             "(?:<=|<|>=|>)[[:space:]]*(-?[0-9]+)");
@@ -1365,7 +1389,12 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                         updates.size() == 1) {
                         n->expr_str = updates.front();
                     } else {
-                        n->initstmt_str.clear();
+                        // Keep a proved, non-stale constant initializer even
+                        // when nested control prevents the legacy single-update
+                        // while summary. LoopSCC may still prove that every
+                        // one-iteration SPath applies the same affine control
+                        // step. Keeping only the initializer cannot make the
+                        // older predictor exact because expr_str stays empty.
                         n->expr_str.clear();
                     }
                 }
