@@ -318,6 +318,16 @@ if [[ -z "$fixed_cell_candidates" || "$fixed_cell_candidates" -lt 1 ||
   cat "$OUT_DIR/fixed_cell_memory.log" >&2
   exit 1
 fi
+if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 compensated_mem_match=1 ' "$OUT_DIR/fixed_cell_memory.log"; then
+  echo "fixed_cell_memory: compressed path did not preserve feasibility/compensated MEMS" >&2
+  cat "$OUT_DIR/fixed_cell_memory.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_match=1' "$OUT_DIR/fixed_cell_memory.log"; then
+  echo "fixed_cell_memory: compressed path changed solution space or weighted MEMS" >&2
+  cat "$OUT_DIR/fixed_cell_memory.log" >&2
+  exit 1
+fi
 
 # 9. Array-writing nested loops remain conservative because their memory
 # transition is not yet alias-safe for inside-out acceleration.
