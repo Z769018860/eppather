@@ -784,6 +784,150 @@ void provePhaseGuards(const std::vector<BuiltPath>& built,
     }
 }
 
+void deriveMemorySummaryCandidates(
+    const std::vector<BuiltPath>& built,
+    LoopSccGraphInfo& result) {
+    if (!result.complete || result.provedTripCount < 0) return;
+
+    for (std::size_t cycleIndex = 0;
+         cycleIndex < result.cycles.size(); ++cycleIndex) {
+        const auto& cycle = result.cycles[cycleIndex];
+        if (!cycle.determinate || !cycle.phaseGuardsProved ||
+            cycle.period == 0 ||
+            cycle.spathOrder.size() != cycle.period) {
+            continue;
+        }
+
+        bool memoryModelComplete = true;
+        std::set<std::pair<std::string, long long>> cells;
+        for (std::size_t pathId : cycle.spathOrder) {
+            if (pathId >= built.size()) {
+                memoryModelComplete = false;
+                break;
+            }
+            const auto& path = built[pathId];
+            if (!path.info.memoryTransitionModelComplete) {
+                memoryModelComplete = false;
+                break;
+            }
+            if (path.info.writesMemory && path.memoryTransforms.empty()) {
+                memoryModelComplete = false;
+                break;
+            }
+            for (const auto& entry : path.memoryTransforms) {
+                if (!entry.second.exact) {
+                    memoryModelComplete = false;
+                    break;
+                }
+                cells.insert(entry.first);
+            }
+            if (!memoryModelComplete) break;
+        }
+        if (!memoryModelComplete || cells.empty()) continue;
+
+        const long long fullPeriods =
+            result.provedTripCount /
+            static_cast<long long>(cycle.period);
+        const std::size_t residual =
+            static_cast<std::size_t>(
+                result.provedTripCount %
+                static_cast<long long>(cycle.period));
+
+        for (std::size_t entryPhase = 0;
+             entryPhase < cycle.period; ++entryPhase) {
+            LoopSccMemorySummaryCandidate candidate;
+            candidate.cycleIndex = cycleIndex;
+            candidate.entryPhase = entryPhase;
+            candidate.period = cycle.period;
+            candidate.totalIterations = result.provedTripCount;
+            bool exact = true;
+
+            __int128 mems = 0;
+            if (fullPeriods > 0) {
+                std::size_t onePeriodMems = 0;
+                for (std::size_t pathId : cycle.spathOrder) {
+                    onePeriodMems += built[pathId].info.observedMems;
+                }
+                mems += static_cast<__int128>(onePeriodMems) *
+                        fullPeriods;
+            }
+            for (std::size_t r = 0; r < residual; ++r) {
+                const std::size_t pathId =
+                    cycle.spathOrder[
+                        (entryPhase + r) % cycle.period];
+                mems += built[pathId].info.observedMems;
+            }
+            if (mems < 0 ||
+                mems > std::numeric_limits<std::size_t>::max()) {
+                exact = false;
+            } else {
+                candidate.observedMems =
+                    static_cast<std::size_t>(mems);
+            }
+
+            for (const auto& cell : cells) {
+                AffineTransform onePeriod;
+                for (std::size_t step = 0;
+                     step < cycle.period; ++step) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + step) % cycle.period];
+                    auto it = built[pathId].memoryTransforms.find(cell);
+                    if (it == built[pathId].memoryTransforms.end()) {
+                        continue;
+                    }
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, onePeriod, next)) {
+                        exact = false;
+                        break;
+                    }
+                    onePeriod = next;
+                }
+                if (!exact) break;
+
+                AffineTransform accumulated;
+                if (!affinePower(
+                        onePeriod, fullPeriods, accumulated)) {
+                    exact = false;
+                    break;
+                }
+                for (std::size_t r = 0; r < residual; ++r) {
+                    const std::size_t pathId =
+                        cycle.spathOrder[
+                            (entryPhase + r) % cycle.period];
+                    auto it = built[pathId].memoryTransforms.find(cell);
+                    if (it == built[pathId].memoryTransforms.end()) {
+                        continue;
+                    }
+                    AffineTransform next;
+                    if (!checkedAffineCompose(
+                            it->second, accumulated, next)) {
+                        exact = false;
+                        break;
+                    }
+                    accumulated = next;
+                }
+                if (!exact) break;
+
+                candidate.closedFormTransforms.push_back(
+                    LoopSccMemoryCellTransform{
+                        cell.first, cell.second,
+                        accumulated.scale, accumulated.offset});
+            }
+
+            candidate.exact =
+                exact && !candidate.closedFormTransforms.empty();
+            if (!candidate.exact) {
+                candidate.diagnostics.push_back(
+                    "fixed-cell T^k composition failed");
+            }
+            result.memorySummaryCandidates.push_back(
+                std::move(candidate));
+        }
+    }
+}
+
 void deriveAccelerationPlans(CFGNode* loop,
                              const std::vector<BuiltPath>& built,
                              LoopSccGraphInfo& result) {
@@ -1340,6 +1484,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         built, graph, tarjan.components, componentOf, result);
     deriveUniformTripCount(loop, built, result);
     provePhaseGuards(built, result);
+    deriveMemorySummaryCandidates(built, result);
     deriveAccelerationPlans(loop, built, result);
     return result;
 }
