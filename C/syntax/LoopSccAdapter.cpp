@@ -321,6 +321,149 @@ void strongConnect(int v,
     state.components.push_back(std::move(component));
 }
 
+std::string renderPeriodTransform(const std::string& variable,
+                                  const AffineTransform& transform) {
+    std::ostringstream os;
+    os << variable << "_after_period=";
+    if (transform.scale == 0) {
+        os << transform.offset;
+    } else {
+        os << variable;
+        if (transform.offset > 0) os << "+" << transform.offset;
+        else if (transform.offset < 0) os << transform.offset;
+    }
+    return os.str();
+}
+
+void detectDeterminateCycles(const std::vector<BuiltPath>& built,
+                             const std::vector<std::vector<int>>& graph,
+                             const std::vector<std::vector<int>>& components,
+                             const std::vector<int>& componentOf,
+                             LoopSccGraphInfo& result) {
+    for (std::size_t cid = 0; cid < components.size(); ++cid) {
+        const auto& component = components[cid];
+        if (component.empty()) continue;
+
+        bool cyclic = component.size() > 1;
+        if (!cyclic && component.size() == 1) {
+            const int node = component.front();
+            cyclic = std::find(graph[node].begin(), graph[node].end(), node) !=
+                     graph[node].end();
+        }
+        if (!cyclic) continue;
+
+        bool determinate = result.complete;
+        std::unordered_map<int, int> successor;
+        std::unordered_map<int, int> predecessorCount;
+        for (int node : component) predecessorCount[node] = 0;
+
+        for (int node : component) {
+            int internalSuccessor = -1;
+            int internalCount = 0;
+            for (int to : graph[node]) {
+                if (componentOf[to] != static_cast<int>(cid)) {
+                    // A periodic closed component may not have an escape edge.
+                    determinate = false;
+                    continue;
+                }
+                internalSuccessor = to;
+                ++internalCount;
+            }
+            if (internalCount != 1) {
+                determinate = false;
+            } else {
+                successor[node] = internalSuccessor;
+                ++predecessorCount[internalSuccessor];
+            }
+        }
+        for (const auto& entry : predecessorCount) {
+            if (entry.second != 1) determinate = false;
+        }
+        if (!determinate) continue;
+
+        const int start = *std::min_element(component.begin(), component.end());
+        std::vector<std::size_t> order;
+        std::unordered_set<int> visited;
+        int current = start;
+        for (std::size_t step = 0; step < component.size(); ++step) {
+            if (!visited.insert(current).second) {
+                determinate = false;
+                break;
+            }
+            order.push_back(static_cast<std::size_t>(current));
+            auto it = successor.find(current);
+            if (it == successor.end()) {
+                determinate = false;
+                break;
+            }
+            current = it->second;
+        }
+        if (!determinate || current != start ||
+            order.size() != component.size()) {
+            continue;
+        }
+
+        LoopSccCycleInfo cycle;
+        cycle.sccId = cid;
+        cycle.spathOrder = order;
+        cycle.period = order.size();
+        cycle.determinate = true;
+
+        std::set<std::string> touched;
+        bool exact = true;
+        for (std::size_t pathId : order) {
+            if (!built[pathId].info.returnsToHeader) exact = false;
+            for (const auto& write : built[pathId].info.writes) {
+                if (write == "*memory*") {
+                    exact = false;
+                    cycle.diagnostics.push_back(
+                        "memory write prevents guarded closed form");
+                } else {
+                    touched.insert(write);
+                }
+            }
+            if (!built[pathId].unknownWrites.empty()) {
+                for (const auto& write : built[pathId].unknownWrites) {
+                    if (write != "*memory*") {
+                        cycle.diagnostics.push_back(
+                            "non-affine write to " + write +
+                            " prevents guarded closed form");
+                    }
+                }
+                exact = false;
+            }
+        }
+
+        for (const auto& variable : touched) {
+            AffineTransform combined;
+            for (std::size_t pathId : order) {
+                auto it = built[pathId].transforms.find(variable);
+                if (it == built[pathId].transforms.end()) continue;
+                const auto& next = it->second;
+                if (!next.exact) {
+                    exact = false;
+                    break;
+                }
+                combined.offset = next.scale * combined.offset + next.offset;
+                combined.scale = next.scale * combined.scale;
+            }
+            if (exact) {
+                cycle.periodAffineUpdates.push_back(
+                    renderPeriodTransform(variable, combined));
+            }
+        }
+
+        cycle.guardedClosedFormCandidate =
+            exact && !touched.empty() && result.complete;
+        ++result.determinateCycleCount;
+        if (cycle.period > 1) ++result.oscillatingCycleCount;
+        if (cycle.guardedClosedFormCandidate) {
+            ++result.guardedClosedFormCandidateCount;
+        }
+        result.cycles.push_back(std::move(cycle));
+    }
+}
+
 }  // namespace
 
 LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
@@ -496,6 +639,9 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
             static_cast<std::size_t>(edge.first),
             static_cast<std::size_t>(edge.second));
     }
+
+    detectDeterminateCycles(
+        built, graph, tarjan.components, componentOf, result);
     return result;
 }
 
