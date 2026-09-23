@@ -141,7 +141,10 @@ GuardConstraint parseGuard(const std::string& raw, bool truth) {
 void addGuard(BuiltPath& path, const std::string& expr, bool truth) {
     path.info.guards.push_back(std::string(truth ? "T: " : "F: ") + expr);
     const auto parsed = parseGuard(expr, truth);
-    if (!parsed.recognized) return;
+    if (!parsed.recognized) {
+        path.info.guardModelComplete = false;
+        return;
+    }
     auto it = path.guardIntervals.find(parsed.variable);
     if (it == path.guardIntervals.end()) {
         path.guardIntervals.emplace(parsed.variable, parsed.interval);
@@ -307,6 +310,46 @@ Interval applyTransform(const Interval& input, const AffineTransform& transform)
 bool disjoint(const Interval& lhs, const Interval& rhs) {
     return lhs.empty() || rhs.empty() ||
            lhs.upper < rhs.lower || rhs.upper < lhs.lower;
+}
+
+bool intervalSubset(const Interval& inner, const Interval& outer) {
+    return !inner.empty() &&
+           inner.lower >= outer.lower &&
+           inner.upper <= outer.upper;
+}
+
+bool transitionGuaranteed(const BuiltPath& source,
+                          const BuiltPath& target,
+                          const std::string& loopControlVariable) {
+    if (!source.info.guardModelComplete ||
+        !target.info.guardModelComplete) {
+        return false;
+    }
+
+    for (const auto& targetGuard : target.guardIntervals) {
+        const std::string& variable = targetGuard.first;
+        if (!loopControlVariable.empty() &&
+            variable == loopControlVariable) {
+            continue;
+        }
+
+        Interval after;
+        auto sourceGuard = source.guardIntervals.find(variable);
+        if (sourceGuard != source.guardIntervals.end()) {
+            after = sourceGuard->second;
+        }
+        if (source.unknownWrites.count(variable) != 0) {
+            return false;
+        }
+        auto transform = source.transforms.find(variable);
+        if (transform != source.transforms.end()) {
+            after = applyTransform(after, transform->second);
+        }
+        if (!intervalSubset(after, targetGuard.second)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool transitionPossible(const BuiltPath& source, const BuiltPath& target) {
@@ -559,6 +602,38 @@ bool affinePower(AffineTransform base,
     return true;
 }
 
+void provePhaseGuards(const std::vector<BuiltPath>& built,
+                      LoopSccGraphInfo& result) {
+    if (!result.complete || result.provedTripCount < 0 ||
+        result.tripCountVariable.empty()) {
+        return;
+    }
+
+    for (auto& cycle : result.cycles) {
+        if (!cycle.determinate || cycle.spathOrder.empty()) {
+            continue;
+        }
+        bool proved = true;
+        for (std::size_t i = 0; i < cycle.spathOrder.size(); ++i) {
+            const std::size_t from = cycle.spathOrder[i];
+            const std::size_t to =
+                cycle.spathOrder[(i + 1) % cycle.spathOrder.size()];
+            if (from >= built.size() || to >= built.size() ||
+                !transitionGuaranteed(
+                    built[from], built[to],
+                    result.tripCountVariable)) {
+                proved = false;
+                break;
+            }
+        }
+        cycle.phaseGuardsProved = proved;
+        if (!proved) {
+            cycle.diagnostics.push_back(
+                "phase guard inclusion proof failed; shortcut disabled");
+        }
+    }
+}
+
 void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
                              LoopSccGraphInfo& result) {
     if (!result.complete || result.provedTripCount < 0) return;
@@ -567,6 +642,7 @@ void deriveAccelerationPlans(const std::vector<BuiltPath>& built,
          cycleIndex < result.cycles.size(); ++cycleIndex) {
         const auto& cycle = result.cycles[cycleIndex];
         if (!cycle.determinate || !cycle.guardedClosedFormCandidate ||
+            !cycle.phaseGuardsProved ||
             cycle.period == 0 ||
             cycle.spathOrder.size() != cycle.period) {
             continue;
@@ -927,6 +1003,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     detectDeterminateCycles(
         built, graph, tarjan.components, componentOf, result);
     deriveUniformTripCount(loop, built, result);
+    provePhaseGuards(built, result);
     deriveAccelerationPlans(built, result);
     return result;
 }
