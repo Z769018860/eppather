@@ -10,6 +10,14 @@ namespace C {
 
 class CFGNode;
 
+struct LoopSccAffineTransform {
+    std::string variable;
+    // x' = scale * x + offset. The current structural adapter emits only
+    // scale 0 (constant assignment) or 1 (affine increment/decrement).
+    long long scale{1};
+    long long offset{0};
+};
+
 // One acyclic entry-to-backedge/exit path through a single loop iteration.
 // This is structural metadata only: the adapter does not replace bounded
 // unfolding or assert any summary into VolCE.
@@ -18,6 +26,8 @@ struct LoopSccSPathInfo {
     std::vector<std::string> guards;
     std::vector<std::string> writes;
     std::vector<std::string> affineUpdates;
+    // Machine-readable form of the exact scalar transforms above.
+    std::vector<LoopSccAffineTransform> affineTransforms;
     bool returnsToHeader{false};
     bool exitsLoop{false};
 };
@@ -32,6 +42,9 @@ struct LoopSccCycleInfo {
     // Exact affine transform accumulated across one complete cycle, rendered
     // as human-readable relations for validation and later VolCE transport.
     std::vector<std::string> periodAffineUpdates;
+    // Same period transform in machine-readable form for path-specific
+    // composition and VolCE entailment.
+    std::vector<LoopSccAffineTransform> periodAffineTransforms;
     std::vector<std::string> diagnostics;
 };
 
