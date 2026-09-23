@@ -14,6 +14,8 @@ The 20 loop-summary comparison cases passed with identical counts and weighted M
 
 The final-code array/pointer workflow https://github.com/Z769018860/eppather/actions/runs/35480385768 confirms 17/20 memory runs complete, including ap04 with 59,049 models at maxloop 2, 5 and 8. ap06, ap07 and ap15 remain TIMEOUT under the unchanged 60-second per-case bound.
 
-## Remaining problem
+## Follow-up resolved on 2026-09-23
 
-ap06 and ap15 involve two arrays (potentially many independently projected cells); ap07 reads six cells. Traversal order alone does not reduce an exponential number of projected valuations. The next algorithmic step is a *proved* decomposition of independent projection components, multiplying their exact finite counts only after verifying factorization. Preserve aliasing and path constraints, and compare the result with direct enumeration on small correlated arrays before applying to larger cases.
+The proposed next step was implemented in PR #97 as a proved projection-component factorization. The dependency proof is performed on the semantics-preserving reduced counting formula after SSA elimination and solver reconstruction. Correlated memory cells remain connected; symbolic addresses that may alias are conservatively joined.
+
+On workflow run 35883347768, memory projection completed on 20/20 subjects under the unchanged 60-second per-case limit. The three remaining timeouts from this report all completed: ap06 counted 1,948,617 projected models in about 2.96 seconds of model-count time, ap07 counted 531,441 in about 15.8 ms, and ap15 counted 1,948,617 in about 2.94 seconds. See `docs/loopscc-integration-status-2026-09-23.md` for the current integration boundary and next SPath/CSG gate.

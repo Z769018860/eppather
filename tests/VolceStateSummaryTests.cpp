@@ -99,9 +99,80 @@ int main() {
         {{"region", 6, true}});
     const bool boundedEnumerationOk = manyCells &&
         manyCells->count == 243 &&
-        manyCells->bounded_memory_terms.size() == 6;
+        manyCells->bounded_memory_terms.size() == 6 &&
+        manyCells->factored_projection_components == 5;
     std::cout << "bounded-memory-enumeration: "
-              << (boundedEnumerationOk ? "PASS" : "FAIL") << '\n';
+              << (boundedEnumerationOk ? "PASS" : "FAIL")
+              << " count=" << (manyCells ? std::to_string(manyCells->count) : "N/A")
+              << " memory_terms=" << (manyCells ? std::to_string(manyCells->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (manyCells ? std::to_string(manyCells->factored_projection_components) : "N/A")
+              << '\n';
     failures += !boundedEnumerationOk;
+
+    // Two symbolic source regions are not independent unless the formula
+    // proves their bases cannot alias. With three cells per region and bases
+    // in {-1,0,1}, every relative offset 0, +/-1, +/-2 is feasible. The exact
+    // projected count is 3*3^3 + 4*3^4 + 2*3^5 = 891, and the factorization
+    // guard must keep the mutually aliasing base/cell terms in one component.
+    const std::string aliasingSmt =
+        "(declare-const p (_ BitVec 32))\n"
+        "(declare-const q (_ BitVec 32))\n"
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n";
+    const auto aliasing = volce::countModelsFromSmt2(
+        aliasingSmt, {}, volce::Range{-1, 1}, true,
+        {{"p", 3, true}, {"q", 3, true}});
+    const bool aliasingOk = aliasing &&
+        aliasing->count == 891 &&
+        aliasing->bounded_memory_terms.size() == 6 &&
+        aliasing->factored_projection_components == 0;
+    std::cout << "projection-factorization-alias-guard: "
+              << (aliasingOk ? "PASS" : "FAIL")
+              << " count=" << (aliasing ? std::to_string(aliasing->count) : "N/A")
+              << " memory_terms=" << (aliasing ? std::to_string(aliasing->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (aliasing ? std::to_string(aliasing->factored_projection_components) : "N/A")
+              << '\n';
+    failures += !aliasingOk;
+
+    // Six cells in one canonical region have distinct constant addresses.
+    // With no cross-cell constraint, exact factorization should expose all six
+    // independent projected dimensions and preserve 3^6 models.
+    const std::string disjointSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(assert (= (select %a (_ bv0 32)) (select %a (_ bv0 32))))\n";
+    const auto disjoint = volce::countModelsFromSmt2(
+        disjointSmt, {}, volce::Range{-1, 1}, true,
+        {{"region", 6, true}});
+    const bool disjointOk = disjoint &&
+        disjoint->count == 729 &&
+        disjoint->bounded_memory_terms.size() == 6 &&
+        disjoint->factored_projection_components == 6;
+    std::cout << "projection-factorization-disjoint-regions: "
+              << (disjointOk ? "PASS" : "FAIL")
+              << " count=" << (disjoint ? std::to_string(disjoint->count) : "N/A")
+              << " memory_terms=" << (disjoint ? std::to_string(disjoint->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (disjoint ? std::to_string(disjoint->factored_projection_components) : "N/A")
+              << '\n';
+    failures += !disjointOk;
+
+    // Multiple canonical regions that have no surviving source base symbol are
+    // already represented by non-overlapping fallback address ranges in the
+    // existing memory-projection abstraction. Factorization may exploit that
+    // canonical representation, but it must not change its exact count.
+    const std::string canonicalMultiSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n";
+    const auto canonicalMulti = volce::countModelsFromSmt2(
+        canonicalMultiSmt, {}, volce::Range{-1, 1}, true,
+        {{"left", 3, true}, {"right", 3, true}});
+    const bool canonicalMultiOk = canonicalMulti &&
+        canonicalMulti->count == 729 &&
+        canonicalMulti->bounded_memory_terms.size() == 6 &&
+        canonicalMulti->factored_projection_components == 6;
+    std::cout << "projection-factorization-canonical-multi-region: "
+              << (canonicalMultiOk ? "PASS" : "FAIL")
+              << " count=" << (canonicalMulti ? std::to_string(canonicalMulti->count) : "N/A")
+              << " memory_terms=" << (canonicalMulti ? std::to_string(canonicalMulti->bounded_memory_terms.size()) : "N/A")
+              << " components=" << (canonicalMulti ? std::to_string(canonicalMulti->factored_projection_components) : "N/A")
+              << '\n';
+    failures += !canonicalMultiOk;
     return failures == 0 ? 0 : 1;
 }
