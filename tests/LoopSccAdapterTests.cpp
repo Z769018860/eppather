@@ -362,6 +362,58 @@ int main() {
         failures += !report("loopscc-contracted-csg", ok);
     }
 
+    // Safe scalar nesting is summarized inside-out. The inner j-loop adds
+    // two to x; the outer i-loop repeats that exact summary three times.
+    {
+        auto outer = loopNode("i < 3");
+        outer->initstmt_str = "i = 0;";
+        auto resetJ = node("j = 0;");
+        auto inner = loopNode("j < 2");
+        inner->initstmt_str = "j = 0;";
+        auto incX = node("x = x + 1;");
+        auto incJ = node("j = j + 1;");
+        auto incI = node("i = i + 1;");
+        auto exit = node("return x;");
+
+        outer->setNextNode(resetJ);
+        outer->setNextFalseNode(exit);
+        resetJ->setNextNode(inner);
+        inner->setNextNode(incX);
+        inner->setNextFalseNode(incI);
+        incX->setNextNode(incJ);
+        incJ->setNextNode(inner);
+        incI->setNextNode(outer);
+
+        const auto graph = LoopSccAdapter::analyze(outer.get());
+        bool sawX6 = false;
+        bool sawI3 = false;
+        bool sawJ2 = false;
+        if (graph.accelerationPlans.size() == 1) {
+            for (const auto& transform :
+                 graph.accelerationPlans[0].closedFormTransforms) {
+                if (transform.variable == "x") {
+                    sawX6 = transform.scale == 1 &&
+                            transform.offset == 6;
+                } else if (transform.variable == "i") {
+                    sawI3 = transform.scale == 1 &&
+                            transform.offset == 3;
+                } else if (transform.variable == "j") {
+                    sawJ2 = transform.scale == 0 &&
+                            transform.offset == 2;
+                }
+            }
+        }
+        const bool ok = graph.complete &&
+            graph.insideOutNestedSummaryCount == 1 &&
+            graph.provedTripCount == 3 &&
+            graph.accelerationPlans.size() == 1 &&
+            graph.accelerationPlans[0].exact &&
+            graph.accelerationPlans[0].memsPreserving &&
+            graph.accelerationPlans[0].skippableIterations == 3 &&
+            sawX6 && sawI3 && sawJ2;
+        failures += !report("loopscc-inside-out-scalar-nested", ok);
+    }
+
     // Nested loops require inside-out summaries. The first adapter stage must
     // diagnose and fall back instead of pretending the outer graph is exact.
     {
