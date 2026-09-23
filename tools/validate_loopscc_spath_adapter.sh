@@ -36,7 +36,7 @@ if [[ "$nested_complete" != 0 ]]; then
   cat "$OUT_DIR/nested.log" >&2
   exit 1
 fi
-if ! grep -q 'LOOP SUMMARY DIAGNOSTIC.*loopscc: nested loop requires inside-out'     "$OUT_DIR/nested.log"; then
+if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested.log"; then
   echo "nested: missing inside-out fallback diagnostic" >&2
   cat "$OUT_DIR/nested.log" >&2
   exit 1
