@@ -134,6 +134,50 @@ std::vector<Z3_ast> collectBitVectorSelects(Z3_context ctx,
     return selects;
 }
 
+Z3_ast findNamedArrayConstantFromAst(
+    Z3_context ctx,
+    Z3_ast ast,
+    const std::string& expected_name,
+    std::unordered_set<unsigned>& seen) {
+    const unsigned ast_id = Z3_get_ast_id(ctx, ast);
+    if (!seen.insert(ast_id).second) return nullptr;
+    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) return nullptr;
+
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    if (Z3_get_app_num_args(ctx, app) == 0 &&
+        Z3_get_decl_kind(ctx, decl) == Z3_OP_UNINTERPRETED &&
+        Z3_get_sort_kind(ctx, Z3_get_sort(ctx, ast)) == Z3_ARRAY_SORT) {
+        const char* raw =
+            Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+        if (raw && expected_name == raw) return ast;
+    }
+
+    const unsigned argc = Z3_get_app_num_args(ctx, app);
+    for (unsigned i = 0; i < argc; ++i) {
+        if (Z3_ast found = findNamedArrayConstantFromAst(
+                ctx, Z3_get_app_arg(ctx, app, i), expected_name, seen)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
+Z3_ast findNamedArrayConstant(
+    Z3_context ctx,
+    Z3_ast_vector vec,
+    const std::string& expected_name) {
+    std::unordered_set<unsigned> seen;
+    const unsigned num = Z3_ast_vector_size(ctx, vec);
+    for (unsigned i = 0; i < num; ++i) {
+        if (Z3_ast found = findNamedArrayConstantFromAst(
+                ctx, Z3_ast_vector_get(ctx, vec, i), expected_name, seen)) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
 struct DeclInfo {
     std::string name;
     unsigned bits;
@@ -993,8 +1037,15 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     if (include_memory_terms && !memory_regions.empty()) {
         Z3_sort word = Z3_mk_bv_sort(ctx, 32);
         Z3_sort memory_sort = Z3_mk_array_sort(ctx, word, word);
-        Z3_ast memory = Z3_mk_const(
-            ctx, Z3_mk_string_symbol(ctx, "%a"), memory_sort);
+        // Reuse the array declaration parsed from the path formula whenever
+        // it is present. Creating another constant with the same printed
+        // symbol produces a distinct Z3 declaration, which would disconnect
+        // canonical projections from constraints on epat++'s %a memory.
+        Z3_ast memory = findNamedArrayConstant(ctx, vec, "%a");
+        if (!memory) {
+            memory = Z3_mk_const(
+                ctx, Z3_mk_string_symbol(ctx, "%a"), memory_sort);
+        }
         std::unordered_set<unsigned> seen_memory_terms;
         std::size_t fallback_base = 0;
         for (const auto& region : memory_regions) {
@@ -1082,7 +1133,11 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     // conservative: array stores, array-valued relations, quantifiers,
     // unknown alias checks, or other unsupported constructs fall back to the
     // existing exact whole-formula enumeration.
-    if (bounded_memory_terms.size() >= 5) {
+    // First exact deployment gate: factor one canonical memory region at a
+    // time. Multiple C array/pointer parameters may alias unless a separate
+    // region-disjointness proof exists, so they retain monolithic counting.
+    if (bounded_memory_terms.size() >= 5 &&
+        (memory_regions.empty() || memory_regions.size() == 1)) {
         if (auto factorization =
                 buildProjectionFactorization(ctx, solver, projection_terms)) {
             if (auto factored =
