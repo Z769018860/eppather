@@ -2919,43 +2919,55 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
     // ===================== IF =====================
     if (node->isIf) {
-        const int d   = node->depth;
-        const int idx = (d < 1000 ? d : 999); // 兼容你已有的固定槽位
+        const int d = node->depth;
 
-        // 保存快照到固定数组槽位
-        temp_pathCoverage[idx] = pathCoverage;
-        temp_loopCount[idx]    = loopCount;
+        // Branch state must be stack-local.  A CFG node can be revisited on
+        // successive loop iterations, so indexing member scratch storage by
+        // node->depth is not re-entrant: a recursive visit to the same IF
+        // overwrites the outer snapshot before its false branch is explored.
+        // That used to drop valid alternating paths such as T,F,T,F.
+        const std::vector<bool> snap_cov = pathCoverage;
+        const std::vector<int> snap_lc = loopCount;
 
         // True
         {
-            auto        cov_t = pathCoverage;
+            auto cov_t = snap_cov;
             ensure_cov_vec(cov_t, d);
             cov_t[2 * d] = true;
+            loopCount = snap_lc;
 
-            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            decisions.push_back(PathDecision{
+                node.get(), PathDecisionKind::TrueBranch});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
-                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
+                DFS2(node->getNextNode(), cov_t, decisions, depth + 1,
+                     pathCount, maxloop, maxpaths, enableVolce,
+                     volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
         }
 
-        // False（恢复快照再走）
+        // False starts from the exact same caller state, independent of any
+        // recursive visits performed by the true branch.
         {
-            pathCoverage = temp_pathCoverage[idx];
-            loopCount    = temp_loopCount[idx];
-
-            auto        cov_f = pathCoverage;
+            auto cov_f = snap_cov;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
+            loopCount = snap_lc;
 
-            decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+            decisions.push_back(PathDecision{
+                node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
-                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
+                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1,
+                     pathCount, maxloop, maxpaths, enableVolce,
+                     volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
         }
+
+        loopCount = snap_lc;
+        pathCoverage = snap_cov;
         return;
     }
 
