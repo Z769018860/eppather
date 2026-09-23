@@ -49,7 +49,7 @@ if [[ -z "$periodic_cycles" || "$periodic_cycles" -lt 1 ||
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
 fi
-if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: x_after_period=x
+if ! grep -q '^\[LOOPSCC PERIOD TRANSFORM\]: state_after_period=state
   echo "periodic: missing exact canonical period transform for x" >&2
   cat "$OUT_DIR/periodic.log" >&2
   exit 1
