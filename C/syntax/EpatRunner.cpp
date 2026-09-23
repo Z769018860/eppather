@@ -842,6 +842,53 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                         "loopscc: symbolic acceleration plan matched unfolded path");
                 }
             }
+
+            if (envEnabled("EPPATHER_LOOP_SCC_ACCEL_VALIDATE") &&
+                trace.matchedAccelerationPlan) {
+                LoopSccAccelerationValidation validation;
+                validation.loopCondition = loop->cond_str;
+                validation.attempted = true;
+                validation.originalDecisionCount = decisions.size();
+
+                auto compressed =
+                    buildAccelerationValidationDecisions(
+                        loop, graph, trace, decisions);
+                if (compressed) {
+                    validation.compressedDecisionCount =
+                        compressed->size();
+                    epat::setSsaProvenanceVariables(
+                        provenanceVariables);
+                    EpatResult compressedResult =
+                        solveScript(render(*compressed));
+                    epat::clearSsaProvenanceVariables();
+
+                    validation.baselineMem = result.mem;
+                    validation.compressedMem =
+                        compressedResult.mem;
+                    validation.statusMatched =
+                        compressedResult.status == result.status;
+                    validation.memMatched =
+                        compressedResult.mem == result.mem;
+                    validation.matched =
+                        validation.statusMatched &&
+                        validation.memMatched &&
+                        validation.compressedDecisionCount <
+                            validation.originalDecisionCount;
+                    if (!validation.matched) {
+                        result.loopStateSummaryDiagnostics.push_back(
+                            "loopscc: compressed acceleration validation mismatch");
+                    } else {
+                        result.loopStateSummaryDiagnostics.push_back(
+                            "loopscc: compressed acceleration validation matched");
+                    }
+                } else {
+                    result.loopStateSummaryDiagnostics.push_back(
+                        "loopscc: failed to construct compressed validation path");
+                }
+                result.loopSccAccelerationValidations.push_back(
+                    std::move(validation));
+            }
+
             result.loopSccPhaseTraces.push_back(std::move(trace));
             result.loopSccGraphs.push_back(std::move(graph));
         }
