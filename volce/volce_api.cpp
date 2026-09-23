@@ -1,10 +1,12 @@
 #include "volce/volce_api.h"
 
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <fstream>
 #include <limits>
 #include <string_view>
+#include <unordered_map>
 #include <unordered_set>
 
 #include "z3.h"
@@ -402,6 +404,335 @@ std::uint64_t countModelsByProjection(Z3_context ctx, Z3_solver solver,
     return count;
 }
 
+
+class ProjectionDisjointSet {
+public:
+    explicit ProjectionDisjointSet(std::size_t initial) {
+        parent_.reserve(initial);
+        rank_.reserve(initial);
+        for (std::size_t i = 0; i < initial; ++i) {
+            parent_.push_back(i);
+            rank_.push_back(0);
+        }
+    }
+
+    std::size_t addNode() {
+        const std::size_t id = parent_.size();
+        parent_.push_back(id);
+        rank_.push_back(0);
+        return id;
+    }
+
+    std::size_t find(std::size_t node) {
+        if (parent_[node] != node)
+            parent_[node] = find(parent_[node]);
+        return parent_[node];
+    }
+
+    void unite(std::size_t lhs, std::size_t rhs) {
+        lhs = find(lhs);
+        rhs = find(rhs);
+        if (lhs == rhs) return;
+        if (rank_[lhs] < rank_[rhs]) std::swap(lhs, rhs);
+        parent_[rhs] = lhs;
+        if (rank_[lhs] == rank_[rhs]) ++rank_[lhs];
+    }
+
+private:
+    std::vector<std::size_t> parent_;
+    std::vector<unsigned> rank_;
+};
+
+struct SelectDependency {
+    std::size_t node{0};
+    Z3_ast select{nullptr};
+    Z3_ast array{nullptr};
+    Z3_ast address{nullptr};
+};
+
+struct ProjectionFactorization {
+    std::vector<std::vector<Z3_ast>> components;
+};
+
+std::uint64_t dependencyKey(unsigned kind, unsigned ast_id) {
+    return (static_cast<std::uint64_t>(kind) << 32) |
+           static_cast<std::uint64_t>(ast_id);
+}
+
+bool isPlainArrayConstant(Z3_context ctx, Z3_ast ast) {
+    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) return false;
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    return Z3_get_app_num_args(ctx, app) == 0 &&
+           Z3_get_decl_kind(ctx, decl) == Z3_OP_UNINTERPRETED &&
+           Z3_get_sort_kind(ctx, Z3_get_sort(ctx, ast)) == Z3_ARRAY_SORT;
+}
+
+std::size_t getAuxDependencyNode(
+    ProjectionDisjointSet& dsu,
+    std::unordered_map<std::uint64_t, std::size_t>& aux_nodes,
+    unsigned kind,
+    unsigned ast_id) {
+    const auto key = dependencyKey(kind, ast_id);
+    auto it = aux_nodes.find(key);
+    if (it != aux_nodes.end()) return it->second;
+    const auto node = dsu.addNode();
+    aux_nodes.emplace(key, node);
+    return node;
+}
+
+void rememberSelectDependency(
+    Z3_context ctx,
+    Z3_ast ast,
+    std::size_t node,
+    std::unordered_map<unsigned, std::size_t>& seen_selects,
+    std::vector<SelectDependency>& selects,
+    bool& unsafe) {
+    if (Z3_get_ast_kind(ctx, ast) != Z3_APP_AST) return;
+    Z3_app app = Z3_to_app(ctx, ast);
+    if (Z3_get_decl_kind(ctx, Z3_get_app_decl(ctx, app)) != Z3_OP_SELECT ||
+        Z3_get_app_num_args(ctx, app) < 2) {
+        return;
+    }
+    Z3_ast array = Z3_get_app_arg(ctx, app, 0);
+    if (!isPlainArrayConstant(ctx, array)) {
+        // Store chains and array-valued expressions can couple otherwise
+        // distinct cells; keep the existing monolithic enumeration.
+        unsafe = true;
+        return;
+    }
+    const unsigned id = Z3_get_ast_id(ctx, ast);
+    if (seen_selects.emplace(id, node).second) {
+        selects.push_back(
+            SelectDependency{node, ast, array, Z3_get_app_arg(ctx, app, 1)});
+    }
+}
+
+void collectProjectionDependencies(
+    Z3_context ctx,
+    Z3_ast ast,
+    const std::unordered_map<unsigned, std::size_t>& projection_by_ast,
+    ProjectionDisjointSet& dsu,
+    std::unordered_map<std::uint64_t, std::size_t>& aux_nodes,
+    std::unordered_map<unsigned, std::size_t>& seen_selects,
+    std::vector<SelectDependency>& selects,
+    std::vector<std::size_t>& nodes,
+    bool& unsafe) {
+    const unsigned ast_id = Z3_get_ast_id(ctx, ast);
+    auto projected = projection_by_ast.find(ast_id);
+    if (projected != projection_by_ast.end()) {
+        nodes.push_back(projected->second);
+        rememberSelectDependency(
+            ctx, ast, projected->second, seen_selects, selects, unsafe);
+        return;
+    }
+
+    const Z3_ast_kind ast_kind = Z3_get_ast_kind(ctx, ast);
+    if (ast_kind == Z3_VAR_AST || ast_kind == Z3_QUANTIFIER_AST) {
+        unsafe = true;
+        return;
+    }
+    if (ast_kind != Z3_APP_AST) return;
+
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    const Z3_decl_kind decl_kind = Z3_get_decl_kind(ctx, decl);
+    const unsigned argc = Z3_get_app_num_args(ctx, app);
+
+    if (decl_kind == Z3_OP_STORE) {
+        unsafe = true;
+        return;
+    }
+    if (decl_kind == Z3_OP_SELECT) {
+        const auto node = getAuxDependencyNode(
+            dsu, aux_nodes, 1, ast_id);
+        nodes.push_back(node);
+        rememberSelectDependency(
+            ctx, ast, node, seen_selects, selects, unsafe);
+        return;
+    }
+
+    if (decl_kind == Z3_OP_UNINTERPRETED) {
+        if (argc != 0) {
+            unsafe = true;
+            return;
+        }
+        const Z3_sort_kind sort_kind =
+            Z3_get_sort_kind(ctx, Z3_get_sort(ctx, ast));
+        if (sort_kind == Z3_BV_SORT) {
+            nodes.push_back(getAuxDependencyNode(
+                dsu, aux_nodes, 2, ast_id));
+        } else if (sort_kind == Z3_ARRAY_SORT) {
+            // A raw array value outside select() can express extensional
+            // relations across many cells, so it is not separable here.
+            unsafe = true;
+        }
+        return;
+    }
+
+    for (unsigned i = 0; i < argc; ++i) {
+        collectProjectionDependencies(
+            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast, dsu,
+            aux_nodes, seen_selects, selects, nodes, unsafe);
+    }
+}
+
+void collectAddressDependencies(
+    Z3_context ctx,
+    Z3_ast ast,
+    const std::unordered_map<unsigned, std::size_t>& projection_by_ast,
+    ProjectionDisjointSet& dsu,
+    std::unordered_map<std::uint64_t, std::size_t>& aux_nodes,
+    std::vector<std::size_t>& nodes,
+    bool& unsafe) {
+    const unsigned ast_id = Z3_get_ast_id(ctx, ast);
+    auto projected = projection_by_ast.find(ast_id);
+    if (projected != projection_by_ast.end()) {
+        nodes.push_back(projected->second);
+        return;
+    }
+    const Z3_ast_kind ast_kind = Z3_get_ast_kind(ctx, ast);
+    if (ast_kind == Z3_VAR_AST || ast_kind == Z3_QUANTIFIER_AST) {
+        unsafe = true;
+        return;
+    }
+    if (ast_kind != Z3_APP_AST) return;
+    Z3_app app = Z3_to_app(ctx, ast);
+    Z3_func_decl decl = Z3_get_app_decl(ctx, app);
+    const Z3_decl_kind decl_kind = Z3_get_decl_kind(ctx, decl);
+    const unsigned argc = Z3_get_app_num_args(ctx, app);
+    if (decl_kind == Z3_OP_SELECT || decl_kind == Z3_OP_STORE) {
+        unsafe = true;
+        return;
+    }
+    if (decl_kind == Z3_OP_UNINTERPRETED) {
+        if (argc == 0 &&
+            Z3_get_sort_kind(ctx, Z3_get_sort(ctx, ast)) == Z3_BV_SORT) {
+            nodes.push_back(getAuxDependencyNode(
+                dsu, aux_nodes, 2, ast_id));
+        } else if (argc != 0) {
+            unsafe = true;
+        }
+        return;
+    }
+    for (unsigned i = 0; i < argc; ++i) {
+        collectAddressDependencies(
+            ctx, Z3_get_app_arg(ctx, app, i), projection_by_ast, dsu,
+            aux_nodes, nodes, unsafe);
+    }
+}
+
+bool mayAliasSelects(
+    Z3_context ctx,
+    Z3_solver solver,
+    const SelectDependency& lhs,
+    const SelectDependency& rhs) {
+    if (!Z3_is_eq_ast(ctx, lhs.array, rhs.array)) return false;
+    if (Z3_is_eq_ast(ctx, lhs.address, rhs.address)) return true;
+    Z3_solver_push(ctx, solver);
+    Z3_solver_assert(ctx, solver, Z3_mk_eq(ctx, lhs.address, rhs.address));
+    const Z3_lbool status = Z3_solver_check(ctx, solver);
+    Z3_solver_pop(ctx, solver, 1);
+    // UNKNOWN is conservatively treated as possible aliasing.
+    return status != Z3_L_FALSE;
+}
+
+std::optional<ProjectionFactorization> buildProjectionFactorization(
+    Z3_context ctx,
+    Z3_solver solver,
+    const std::vector<Z3_ast>& projection_terms) {
+    if (projection_terms.size() < 2) return std::nullopt;
+
+    ProjectionDisjointSet dsu(projection_terms.size());
+    std::unordered_map<unsigned, std::size_t> projection_by_ast;
+    projection_by_ast.reserve(projection_terms.size());
+    for (std::size_t i = 0; i < projection_terms.size(); ++i)
+        projection_by_ast.emplace(
+            Z3_get_ast_id(ctx, projection_terms[i]), i);
+
+    std::unordered_map<std::uint64_t, std::size_t> aux_nodes;
+    std::unordered_map<unsigned, std::size_t> seen_selects;
+    std::vector<SelectDependency> selects;
+    bool unsafe = false;
+
+    Z3_ast_vector assertions = Z3_solver_get_assertions(ctx, solver);
+    Z3_ast_vector_inc_ref(ctx, assertions);
+    const unsigned assertion_count = Z3_ast_vector_size(ctx, assertions);
+    for (unsigned i = 0; i < assertion_count && !unsafe; ++i) {
+        std::vector<std::size_t> nodes;
+        collectProjectionDependencies(
+            ctx, Z3_ast_vector_get(ctx, assertions, i), projection_by_ast,
+            dsu, aux_nodes, seen_selects, selects, nodes, unsafe);
+        if (!nodes.empty()) {
+            const auto first = nodes.front();
+            for (std::size_t j = 1; j < nodes.size(); ++j)
+                dsu.unite(first, nodes[j]);
+        }
+    }
+    Z3_ast_vector_dec_ref(ctx, assertions);
+    if (unsafe) return std::nullopt;
+
+    // Keep the proof cost bounded. Larger memory projections retain the
+    // existing exact enumerator until a cheaper alias analysis is available.
+    if (selects.size() > 64) return std::nullopt;
+
+    for (std::size_t i = 0; i < selects.size() && !unsafe; ++i) {
+        for (std::size_t j = i + 1; j < selects.size(); ++j) {
+            if (!mayAliasSelects(ctx, solver, selects[i], selects[j]))
+                continue;
+            dsu.unite(selects[i].node, selects[j].node);
+            std::vector<std::size_t> address_nodes;
+            collectAddressDependencies(
+                ctx, selects[i].address, projection_by_ast, dsu, aux_nodes,
+                address_nodes, unsafe);
+            collectAddressDependencies(
+                ctx, selects[j].address, projection_by_ast, dsu, aux_nodes,
+                address_nodes, unsafe);
+            for (auto node : address_nodes) {
+                dsu.unite(selects[i].node, node);
+                dsu.unite(selects[j].node, node);
+            }
+            if (unsafe) break;
+        }
+    }
+    if (unsafe) return std::nullopt;
+
+    std::unordered_map<std::size_t, std::size_t> component_index;
+    ProjectionFactorization result;
+    for (std::size_t i = 0; i < projection_terms.size(); ++i) {
+        const auto root = dsu.find(i);
+        auto inserted = component_index.emplace(
+            root, result.components.size());
+        if (inserted.second)
+            result.components.emplace_back();
+        result.components[inserted.first->second].push_back(
+            projection_terms[i]);
+    }
+    if (result.components.size() <= 1) return std::nullopt;
+    return result;
+}
+
+std::optional<std::uint64_t> countFactoredProjection(
+    Z3_context ctx,
+    Z3_solver solver,
+    const ProjectionFactorization& factorization) {
+    std::uint64_t product = 1;
+    for (const auto& component : factorization.components) {
+        Z3_solver_push(ctx, solver);
+        const std::uint64_t component_count = component.size() >= 5
+            ? countModelsByProjection(ctx, solver, component, 0)
+            : countModels(ctx, solver, component);
+        Z3_solver_pop(ctx, solver, 1);
+        if (component_count == 0) return std::uint64_t{0};
+        if (product > std::numeric_limits<std::uint64_t>::max() /
+                          component_count) {
+            return std::nullopt;
+        }
+        product *= component_count;
+    }
+    return product;
+}
+
 std::optional<volce::Range> lookupRange(const std::string& name,
                                        const std::unordered_map<std::string, volce::Range>& ranges,
                                        const std::optional<volce::Range>& default_range) {
@@ -741,21 +1072,46 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     const auto count_warmup_end = std::chrono::steady_clock::now();
 
     const auto count_start = std::chrono::steady_clock::now();
-    // Restrict recursive search to one small canonical region. Several
-    // regions combined with scalar inputs can require an infeasible number
-    // of recursive solver checks (e.g. cJSON's separate input/output arrays).
-    std::uint64_t count = memory_regions.size() == 1 &&
-                          memory_regions[0].cells <= 6 &&
-                          bounded_memory_terms.size() >= 5
-        ? countModelsByProjection(ctx, solver, projection_terms, 0)
-        : countModels(ctx, solver, projection_terms);
+    std::size_t factored_projection_components = 0;
+    std::uint64_t count = 0;
+    bool used_factorization = false;
+
+    // A conjunction can be counted component-wise only when every projected
+    // term is disconnected from the others through both explicit constraints
+    // and possible memory aliasing. The dependency proof is intentionally
+    // conservative: array stores, array-valued relations, quantifiers,
+    // unknown alias checks, or other unsupported constructs fall back to the
+    // existing exact whole-formula enumeration.
+    if (bounded_memory_terms.size() >= 5) {
+        if (auto factorization =
+                buildProjectionFactorization(ctx, solver, projection_terms)) {
+            if (auto factored =
+                    countFactoredProjection(ctx, solver, *factorization)) {
+                count = *factored;
+                factored_projection_components =
+                    factorization->components.size();
+                used_factorization = true;
+            }
+        }
+    }
+
+    if (!used_factorization) {
+        // Retain the bounded recursive enumerator for one small canonical
+        // region. It keeps solver state bounded even when the component proof
+        // cannot separate the formula.
+        count = memory_regions.size() == 1 &&
+                memory_regions[0].cells <= 6 &&
+                bounded_memory_terms.size() >= 5
+            ? countModelsByProjection(ctx, solver, projection_terms, 0)
+            : countModels(ctx, solver, projection_terms);
+    }
     Z3_ast_vector_dec_ref(ctx, retained);
     const auto count_end = std::chrono::steady_clock::now();
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
         formula_assertions, decls.size(), projection_terms.size(),
-        counting_assertions,
+        counting_assertions, factored_projection_components,
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
                 warmup_end - warmup_start +
