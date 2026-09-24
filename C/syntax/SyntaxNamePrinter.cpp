@@ -3633,6 +3633,7 @@ static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
+static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
 constexpr int kMaxMemsUpperInfinity =
@@ -3697,6 +3698,90 @@ static std::optional<bool> literalConstantGuardTruth(std::string expr) {
     if (negate) truth = !truth;
     return truth;
 }
+
+static std::optional<bool> pathLocalScalarGuardTruth(
+    SyntaxNamePrinter* self,
+    std::string expr,
+    const std::vector<PathDecision>& decisions) {
+    expr = trimGuardText(std::move(expr));
+    bool negate = false;
+    for (;;) {
+        while (hasSingleOuterParens(expr)) {
+            expr = trimGuardText(expr.substr(1, expr.size() - 2));
+        }
+        if (!expr.empty() && expr.front() == '!') {
+            negate = !negate;
+            expr = trimGuardText(expr.substr(1));
+            continue;
+        }
+        break;
+    }
+    while (hasSingleOuterParens(expr)) {
+        expr = trimGuardText(expr.substr(1, expr.size() - 2));
+    }
+
+    static const std::regex identRe(
+        "^[A-Za-z_][A-Za-z0-9_]*$");
+    if (!std::regex_match(expr, identRe)) {
+        return std::nullopt;
+    }
+
+    // A local scalar can be modified through an alias only if its address is
+    // taken.  Refuse the optimization in that case; unknown always falls back
+    // to the ordinary symbolic search.
+    const std::string escaped = expr;
+    const std::regex addressTaken(
+        "&[[:space:]]*\\b" + escaped + "\\b");
+    if (std::regex_search(self->vartemp, addressTaken)) {
+        return std::nullopt;
+    }
+
+    const std::regex exactLiteralAssign(
+        "^[[:space:]]*" + escaped +
+        "[[:space:]]*=[[:space:]]*(-?[0-9]+)"
+        "[[:space:]]*;?[[:space:]]*$");
+    const std::regex anyDirectWrite(
+        "\\b" + escaped +
+        "\\b[[:space:]]*(?:=|\\+=|-=|\\*=|/=|%=|\\+\\+|--)");
+    const std::regex prefixWrite(
+        "(?:\\+\\+|--)[[:space:]]*\\b" + escaped + "\\b");
+
+    for (auto it = decisions.rbegin(); it != decisions.rend(); ++it) {
+        if (!it->node) continue;
+        std::string code;
+        switch (it->kind) {
+        case PathDecisionKind::Code:
+            code = it->node->getCode();
+            break;
+        case PathDecisionKind::LoopInit:
+            code = it->node->initstmt_str;
+            break;
+        case PathDecisionKind::LoopUpdate:
+            code = it->node->expr_str;
+            break;
+        default:
+            continue;
+        }
+        if (code.empty()) continue;
+
+        std::smatch match;
+        if (std::regex_match(code, match, exactLiteralAssign)) {
+            const long long value =
+                std::strtoll(match[1].str().c_str(), nullptr, 10);
+            bool truth = value != 0;
+            if (negate) truth = !truth;
+            return truth;
+        }
+        // Once an unknown direct write is encountered, an older constant no
+        // longer describes the current path state.
+        if (std::regex_search(code, anyDirectWrite) ||
+            std::regex_search(code, prefixWrite)) {
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
+}
+
 
 static int syntaxDecisionMemsUpper(
     SyntaxNamePrinter* self,
@@ -4074,8 +4159,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     }
 
     if (entry->isIf) {
-        const auto literalGuard =
+        auto literalGuard =
             literalConstantGuardTruth(entry->cond_str);
+        if (!literalGuard) {
+            literalGuard = pathLocalScalarGuardTruth(
+                this, entry->cond_str, decisions);
+        }
         std::string curPath = pathPrefix;
 
         auto tLoopMap = loopUnrollMap;
@@ -4096,6 +4185,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const bool falseGuardCanHold =
             (!literalGuard || !*literalGuard) &&
             entry->getNextFalseNode();
+        if (literalGuard &&
+            ((entry->getNextNode() && !trueGuardCanHold) ||
+             (entry->getNextFalseNode() && !falseGuardCanHold))) {
+            ++maxMemsPathLocalGuardPrunes;
+        }
         const int tPotential =
             branchOrderEnabled && trueGuardCanHold
                 ? addMemsUpper(
@@ -4474,6 +4568,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
+        std::cout << "[DP PATH LOCAL GUARD PRUNES]: "
+                  << maxMemsPathLocalGuardPrunes << std::endl;
         std::cout << "[DP MEMS UPPER SOUNDNESS CHECKS]: "
                   << maxMemsUpperSoundnessChecks << std::endl;
         std::cout << "[DP MEMS UPPER UNDERESTIMATES]: "
