@@ -1,5 +1,9 @@
 name: MaxMEMS cocktail final timeout candidate
 
+concurrency:
+  group: maxmems-cocktail-final-candidate-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
