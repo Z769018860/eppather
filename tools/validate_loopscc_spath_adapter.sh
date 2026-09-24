@@ -337,77 +337,7 @@ if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_ma
 fi
 
 run_case fixed_cell_memory_accel testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate
-
-# 9. Two-cell frame: only a[0] is summarized, while a[1] carries symbolic
-# input across the loop. Baseline must prove one untouched frame cell and the
-# structural shortcut must preserve the same solution space/MEMS/coverage.
-run_case fixed_cell_frame testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1
-if ! grep -Eq '^\[VOLCE LOOPSCC MEMORY FRAME\]: .*cells=2 untouched_checked=1# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: expected proof for one untouched array cell" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 compensated_mem_match=1 ' "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: compressed frame path did not preserve feasibility/MEMS" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_match=1' "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: compressed frame path changed solution space/wMEMS" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-
-run_case fixed_cell_frame_accel testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate
-
-# 10. Array-writing nested loops remain conservative because their memory
-# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_memory_accel.log"; then
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate$' "$OUT_DIR/fixed_cell_memory_accel.log"; then
   echo "fixed_cell_memory_accel: memory shortcut request was not conservatively blocked" >&2
   cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
   exit 1
@@ -420,32 +350,11 @@ fi
 compare_modes fixed_cell_memory fixed_cell_memory_accel
 
 # 9. Two-cell frame: only a[0] is summarized, while a[1] carries symbolic
-# input across the loop. Baseline must prove one untouched frame cell and the
-# structural shortcut must preserve the same solution space/MEMS/coverage.
+# input across the loop. The unfolded baseline must prove that a[1] is
+# untouched. A runtime memory-shortcut request remains blocked until that proof
+# can be made independently before DFS replacement.
 run_case fixed_cell_frame testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1
-if ! grep -Eq '^\[VOLCE LOOPSCC MEMORY FRAME\]: .*cells=2 untouched_checked=1# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_frame.log"; then
+if ! grep -Eq '^\[VOLCE LOOPSCC MEMORY FRAME\]: .*cells=2 untouched_checked=1' "$OUT_DIR/fixed_cell_frame.log"; then
   echo "fixed_cell_frame: expected proof for one untouched array cell" >&2
   cat "$OUT_DIR/fixed_cell_frame.log" >&2
   exit 1
@@ -462,37 +371,7 @@ if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_ma
 fi
 
 run_case fixed_cell_frame_accel testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_frame_accel.log"; then
-  echo "fixed_cell_frame_accel: fixed-memory shortcut was not used" >&2
-  cat "$OUT_DIR/fixed_cell_frame_accel.log" >&2
-  exit 1
-fi
-compare_modes fixed_cell_frame fixed_cell_frame_accel
-
-# 10. Array-writing nested loops remain conservative because their memory
-# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_frame_accel.log"; then
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate$' "$OUT_DIR/fixed_cell_frame_accel.log"; then
   echo "fixed_cell_frame_accel: frame-sensitive memory shortcut request was not blocked" >&2
   cat "$OUT_DIR/fixed_cell_frame_accel.log" >&2
   exit 1
@@ -526,89 +405,8 @@ echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_m
 echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
 echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
 echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_memory_accel.log"; then
-  echo "fixed_cell_memory_accel: memory shortcut request was not conservatively blocked" >&2
-  cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
-  exit 1
-fi
-if grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_memory_accel.log"; then
-  echo "fixed_cell_memory_accel: uncertified memory shortcut executed" >&2
-  cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
-  exit 1
-fi
-compare_modes fixed_cell_memory fixed_cell_memory_accel
-
-# 9. Two-cell frame: only a[0] is summarized, while a[1] carries symbolic
-# input across the loop. Baseline must prove one untouched frame cell and the
-# structural shortcut must preserve the same solution space/MEMS/coverage.
-run_case fixed_cell_frame testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1
-if ! grep -Eq '^\[VOLCE LOOPSCC MEMORY FRAME\]: .*cells=2 untouched_checked=1# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
-echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
- "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: expected proof for one untouched array cell" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 compensated_mem_match=1 ' "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: compressed frame path did not preserve feasibility/MEMS" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_match=1' "$OUT_DIR/fixed_cell_frame.log"; then
-  echo "fixed_cell_frame: compressed frame path changed solution space/wMEMS" >&2
-  cat "$OUT_DIR/fixed_cell_frame.log" >&2
-  exit 1
-fi
-
-run_case fixed_cell_frame_accel testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_frame_accel.log"; then
-  echo "fixed_cell_frame_accel: fixed-memory shortcut was not used" >&2
-  cat "$OUT_DIR/fixed_cell_frame_accel.log" >&2
-  exit 1
-fi
-compare_modes fixed_cell_frame fixed_cell_frame_accel
-
-# 10. Array-writing nested loops remain conservative because their memory
-# transition is not yet alias-safe for inside-out acceleration.
-run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
-nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
-if [[ "$nested_memory_complete" != 0 ]]; then
-  echo "nested_memory: expected conservative incomplete outer graph" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC summary' "$OUT_DIR/nested_memory.log"; then
-  echo "nested_memory: missing alias-safe inside-out fallback diagnostic" >&2
-  cat "$OUT_DIR/nested_memory.log" >&2
-  exit 1
-fi
-
-echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
-echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
-echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"
-echo "residual,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/residual.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/residual.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/residual.log")"
-echo "symbolic_entry,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/symbolic_entry.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/symbolic_entry.log")"
-echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_while.log"),$nested_while_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_while.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_while.log")"
-echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
+echo "array_memory_probe,$array_memory_spaths,0,0,0,0,0,$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/array_memory_probe.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/array_memory_probe.log"),0"
+echo "pointer_memory_probe,$pointer_memory_spaths,0,0,0,0,0,$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/pointer_memory_probe.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/pointer_memory_probe.log"),0"
+echo "fixed_cell_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/fixed_cell_memory.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/fixed_cell_memory.log"),0"
+echo "fixed_cell_frame,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/fixed_cell_frame.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/fixed_cell_frame.log"),0"
 echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
