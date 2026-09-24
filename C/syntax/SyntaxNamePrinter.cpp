@@ -3519,6 +3519,8 @@ static std::uint64_t maxMemsPrefixBudgetSkips = 0;
 static std::uint64_t maxMemsLeafSolves = 0;
 static std::uint64_t maxMemsMemoLookups = 0;
 static std::uint64_t maxMemsMemoHits = 0;
+static std::uint64_t maxMemsLazyLeafSkipped = 0;
+static int maxMemsFeasibleIncumbent = -1;
 
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
@@ -3699,12 +3701,35 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const bool lightLeaf =
             lightLeafRaw && *lightLeafRaw &&
             std::string(lightLeafRaw) != "0";
+        const char* lazyLeafRaw =
+            std::getenv("EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY");
+        const bool lazyLeaf =
+            lazyLeafRaw && *lazyLeafRaw &&
+            std::string(lazyLeafRaw) != "0";
+
+        // MEMS is a syntax-only AST count (array subscripts and pointer
+        // dereferences). If this complete leaf cannot beat a feasible path
+        // already found, its feasibility is irrelevant to the global maximum.
+        // Treating the dominated leaf as absent is therefore exact.
+        std::optional<int> syntaxMems;
+        if (lazyLeaf && maxMemsFeasibleIncumbent >= 0) {
+            syntaxMems = runner.countMemsOnly(curDecisions);
+            if (syntaxMems &&
+                *syntaxMems <= maxMemsFeasibleIncumbent) {
+                ++maxMemsLazyLeafSkipped;
+                return store(PathInfo(
+                    0, decisionOnlyPath ? std::string{} : curPath, false));
+            }
+        }
+
         const auto eval = lightLeaf
             ? runner.solveMemsOnly(curDecisions)
             : runner.solve(curDecisions);
         if (eval.status != result::feasible) {
             return store(PathInfo(0, decisionOnlyPath ? std::string{} : curPath, false));
         }
+        maxMemsFeasibleIncumbent =
+            std::max(maxMemsFeasibleIncumbent, eval.mem);
         if (decisionOnlyPath) {
             static const EpatRunner rawRunner("");
             curPath = rawRunner.render(curDecisions);
@@ -3879,6 +3904,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsLeafSolves = 0;
         maxMemsMemoLookups = 0;
         maxMemsMemoHits = 0;
+        maxMemsLazyLeafSkipped = 0;
+        maxMemsFeasibleIncumbent = -1;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3957,6 +3984,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[DP LEAF SOLVES]: " << maxMemsLeafSolves << std::endl;
         std::cout << "[DP MEMO LOOKUPS]: " << maxMemsMemoLookups << std::endl;
         std::cout << "[DP MEMO HITS]: " << maxMemsMemoHits << std::endl;
+        std::cout << "[DP LAZY LEAF SKIPPED]: "
+                  << maxMemsLazyLeafSkipped << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
