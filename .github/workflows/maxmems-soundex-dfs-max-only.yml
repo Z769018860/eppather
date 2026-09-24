@@ -79,7 +79,9 @@ jobs:
               EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
               EPPATHER_DFS2_MAX_ONLY=1 \
               EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
-              "$CNIP" -q "$SRC" 3 1000 > stdout.log 2> stderr.log
+              EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+              EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
+              "$CNIP" -q "$SRC" 3 0 > stdout.log 2> stderr.log
             echo $? > exit_code.txt
           ) || true
 
@@ -166,6 +168,8 @@ jobs:
           EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+          EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+          EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
           python3 tools/maxmems_corpus_experiment.py \
             --cnip "${{ github.workspace }}/build_harness/cnip" \
             --corpus testcase/output_complete2 \
@@ -219,6 +223,8 @@ jobs:
       - name: Compare ordinary and max-only DFS2 on 20 subjects
         run: |
           EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+          EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+          EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
           python3 tools/dfs_max_only_equivalence.py \
             --cnip "${{ github.workspace }}/build_equivalence/cnip" \
             --output-dir dfs-max-only-equivalence
