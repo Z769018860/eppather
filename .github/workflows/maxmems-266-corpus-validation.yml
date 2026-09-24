@@ -1,0 +1,62 @@
+name: MaxMEMS 266 corpus validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/aggregate_maxmems_corpus.py'
+      - 'docs/maxmems-266-corpus-validation.md'
+      - '.github/workflows/maxmems-266-corpus-validation.yml'
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure Eppather
+        run: cmake -S . -B build_maxmems266 -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_maxmems266 --target cnip -j2
+      - name: Validate corpus shard
+        run: |
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems266/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir maxmems-266-shard-${{ matrix.shard }} \
+            --max-loop 3 --max-paths 1000 --timeout 120 \
+            --shard-index ${{ matrix.shard }} --shard-count 6
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-shard-${{ matrix.shard }}
+          path: maxmems-266-shard-${{ matrix.shard }}/
+
+  aggregate:
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: maxmems-266-shard-*
+          path: collected
+          merge-multiple: true
+      - name: Aggregate and check all 266 programs
+        run: |
+          python3 tools/aggregate_maxmems_corpus.py \
+            --input collected --output maxmems-266-results \
+            --expected-programs 266 --strict
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-results
+          path: maxmems-266-results/

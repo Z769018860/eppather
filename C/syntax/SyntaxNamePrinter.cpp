@@ -3293,7 +3293,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 // ========== 驱动：与 DFS2 保持同样的 maxloop 和输出 ==========
 // 改动：无可行路径时输出 "MEMS: -1"
 void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enableVolce) {
-    for (const auto& funcNode : funcDefStack_) {
+    for (size_t funcIndex = 0; funcIndex < funcDefStack_.size(); ++funcIndex) {
+        const auto& funcNode = funcDefStack_[funcIndex];
+        const std::string functionTag = sanitizeFunctionTag(
+            funcNode->functionName.empty() ? ("func_" + std::to_string(funcIndex)) : funcNode->functionName);
         dpMemo.clear();  // 每个函数入口前清空 memo
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
@@ -3303,6 +3306,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
+        std::cout << "[FUNCTION TAG]: " << functionTag << std::endl;
         std::cout << "[MAX MEMS PATH]:\n";
         const std::string fullPath = vartemp + result.path; // 只在这里拼接一次
         if (!result.feasible) {
