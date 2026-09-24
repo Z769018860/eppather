@@ -10,14 +10,6 @@ namespace C {
 
 class CFGNode;
 
-struct LoopSccAffineTransform {
-    std::string variable;
-    // x' = scale * x + offset. The current structural adapter supports
-    // scale -1 (sign flip), 0 (constant), and 1 (increment/decrement).
-    long long scale{1};
-    long long offset{0};
-};
-
 struct LoopSccMemoryAccessInfo {
     std::string sourceText;
     std::size_t arraySubscripts{0};
@@ -31,6 +23,14 @@ struct LoopSccMemoryAccessInfo {
     std::size_t mems() const {
         return arraySubscripts + pointerDereferences;
     }
+};
+
+struct LoopSccAffineTransform {
+    std::string variable;
+    // x' = scale * x + offset. The current structural adapter supports
+    // scale -1 (sign flip), 0 (constant), and 1 (increment/decrement).
+    long long scale{1};
+    long long offset{0};
 };
 
 struct LoopSccMemoryCellTransform {
