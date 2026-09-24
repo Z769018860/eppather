@@ -1,0 +1,78 @@
+name: MaxMEMS cocktail pathlocal fastdiag
+
+concurrency:
+  group: maxmems-cocktail-pathlocal-fastdiag-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-pathlocal-fastdiag.yml'
+
+jobs:
+  diag:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [noseed, greedy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_diag2 -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_diag2 --target cnip -j2
+      - name: Run 20s path-local diagnostic
+        shell: bash
+        run: |
+          set +e
+          OUT="diag-${{ matrix.variant }}"
+          mkdir -p "$OUT"
+          EXTRA=()
+          if [ "${{ matrix.variant }}" = "greedy" ]; then
+            EXTRA+=(EPPATHER_MAXMEMS_SEED_GREEDY=1)
+          fi
+          timeout 20s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
+            "${EXTRA[@]}" \
+            "${{ github.workspace }}/build_diag2/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > "$OUT/stdout.log" 2> "$OUT/stderr.log"
+          echo $? > "$OUT/exit_code.txt"
+          exit 0
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("diag-${{ matrix.variant }}")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*?incumbent=(-?\d+)",err)
+          seed=re.findall(r"\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)",out)
+          result={"variant":"${{ matrix.variant }}","exit":rc,
+                  "last_progress":list(map(int,prog[-1])) if prog else None,
+                  "greedy_seed":int(seed[-1]) if seed else None}
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("PATHLOCAL_FASTDIAG",json.dumps(result,sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pathlocal-fastdiag-${{ matrix.variant }}
+          path: diag-${{ matrix.variant }}/
