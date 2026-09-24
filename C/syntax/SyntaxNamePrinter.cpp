@@ -4170,7 +4170,12 @@ static bool maxMemsInFinalLiteralWhileIteration(
         const auto literal = literalConstantGuardTruth(loopNode->cond_str);
         if (!literal || !*literal) continue;
         const int bound = predictedLoopBound(loopNode, maxloop);
-        if (bound > 0 && count >= bound) return true;
+        // Seed-only ordering: begin preferring a terminating/no-update branch
+        // one iteration before the bounded while budget is exhausted.  This
+        // finds realistic "work, then quiesce and return" witnesses (e.g.
+        // cocktail sort) without changing the exact search space or result.
+        const int terminationWindow = std::max(1, bound - 1);
+        if (bound > 0 && count >= terminationWindow) return true;
     }
     return false;
 }
