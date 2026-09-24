@@ -250,6 +250,10 @@ bash tools/test_loop_bound_predictor.sh
 
 ---
 
+### MaxMEMS corpus 统计口径（更新）
+
+MaxMEMS 的大规模 corpus 不再把原始规范化文件总数作为算法正确率分母。当前使用阶段化 cohort：原始库存 → GNU C 语法有效 → DP 完成 → DP/DFS 可比较 → 无 `maxpaths` 截断的静态验证 → replay 可执行 → 有定义 concrete replay。主静态一致率仅以“无 path-cap 的 DP/DFS 可比程序”为分母；concrete 一致率仅以有定义 replay 为分母。超时、前端失败、path-cap、未定义行为和 replay 不支持均单独报告。详见 [`docs/maxmems-corpus-validation.md`](docs/maxmems-corpus-validation.md)。
+
 ### 最新实验结果汇总（2026-09）
 
 以下数字均来自仓库中已经保存的实验记录。需要注意：这些实验在自适应循环预测模块加入
