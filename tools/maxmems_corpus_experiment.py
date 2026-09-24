@@ -31,13 +31,22 @@ def env_for(cnip: Path) -> dict[str, str]:
     return env
 
 
+def _text(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return str(value)
+
+
 def run_cmd(cmd: list[str], cwd: Path, timeout: int, env: dict[str, str] | None = None):
     try:
         p = subprocess.run(cmd, cwd=cwd, env=env, text=True, capture_output=True, timeout=timeout)
-        return {"status": "ok", "returncode": p.returncode, "stdout": p.stdout, "stderr": p.stderr}
+        return {"status": "ok", "returncode": p.returncode,
+                "stdout": _text(p.stdout), "stderr": _text(p.stderr)}
     except subprocess.TimeoutExpired as exc:
         return {"status": "timeout", "returncode": 124,
-                "stdout": exc.stdout or "", "stderr": exc.stderr or ""}
+                "stdout": _text(exc.stdout), "stderr": _text(exc.stderr)}
 
 
 def parse_dp_blocks(text: str) -> list[dict]:
@@ -232,12 +241,6 @@ def main() -> int:
     selected = [p for i, p in enumerate(files) if i % args.shard_count == args.shard_index]
     out = args.output_dir.resolve(); out.mkdir(parents=True, exist_ok=True)
     programs, functions = [], []
-    for pos, src in enumerate(selected, 1):
-        prog, funcs = analyze_program(src, cnip, args.max_loop, args.max_paths, args.timeout)
-        programs.append(prog); functions.extend(funcs)
-        print(f"[{pos}/{len(selected)}] {src.name}: {prog['status']} "
-              f"static={prog['static_equal_functions']}/{prog['functions_checked']} "
-              f"replay={prog['replay_match_functions']}")
     suffix = f"shard{args.shard_index}"
     program_fields = ["source","status","dp_status","dfs_status","dp_blocks","functions_checked",
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
@@ -245,8 +248,25 @@ def main() -> int:
                       "replay_error_functions","hard_failure","detail"]
     function_fields = ["source","function","dp_mems","dfs_max_mems","feasible_paths","static_equal",
                        "witness_found","replay_status","detail"]
-    write_csv(out / f"programs-{suffix}.csv", programs, program_fields)
-    write_csv(out / f"functions-{suffix}.csv", functions, function_fields)
+
+    for pos, src in enumerate(selected, 1):
+        try:
+            prog, funcs = analyze_program(src, cnip, args.max_loop, args.max_paths, args.timeout)
+        except Exception as exc:
+            prog = {
+                "source": str(src), "status": "harness_error", "dp_status": "", "dfs_status": "",
+                "dp_blocks": 0, "functions_checked": 0, "static_equal_functions": 0,
+                "static_mismatch_functions": 0, "replay_match_functions": 0,
+                "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
+                "replay_error_functions": 0, "hard_failure": 1, "detail": repr(exc),
+            }
+            funcs = []
+        programs.append(prog); functions.extend(funcs)
+        write_csv(out / f"programs-{suffix}.csv", programs, program_fields)
+        write_csv(out / f"functions-{suffix}.csv", functions, function_fields)
+        print(f"[{pos}/{len(selected)}] {src.name}: {prog['status']} "
+              f"static={prog['static_equal_functions']}/{prog['functions_checked']} "
+              f"replay={prog['replay_match_functions']}", flush=True)
     summary = {
         "shard_index": args.shard_index, "shard_count": args.shard_count,
         "corpus_files_seen": len(files), "programs_in_shard": len(programs),
