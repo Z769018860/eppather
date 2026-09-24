@@ -1,0 +1,108 @@
+name: MaxMEMS upper budget freeze
+
+concurrency:
+  group: maxmems-upper-budget-freeze-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-upper-budget-freeze
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - '.github/workflows/maxmems-upper-budget-freeze.yml'
+
+jobs:
+  diagnostic:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [plain, bnb_budget32, bnb_budget64, bnb_budget128, bnb_budget256, greedy_budget128]
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_diag -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_diag --target cnip -j2
+      - name: Run 30s diagnostic
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_diag/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          OUT="diag-${{ matrix.variant }}"
+          mkdir -p "$OUT"
+
+          COMMON=(
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=1000
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=10
+          )
+
+          case "${{ matrix.variant }}" in
+            plain)
+              EXTRA=()
+              ;;
+            bnb_budget32)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32)
+              ;;
+            bnb_budget64)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=64)
+              ;;
+            bnb_budget128)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128)
+              ;;
+            bnb_budget256)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=256)
+              ;;
+            greedy_budget128)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_SEED_GREEDY=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128)
+              ;;
+          esac
+
+          (
+            cd "$OUT"
+            timeout 12s env "${COMMON[@]}" "${EXTRA[@]}" \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+          grep -E '\[DP PROGRESS\]' "$OUT/stderr.log" | tail -20 || true
+      - name: Summarize diagnostic
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("diag-${{ matrix.variant }}")
+          err=(d/"stderr.log").read_text(errors="replace")
+          out=(d/"stdout.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",err)
+          last=prog[-1] if prog else None
+          result={
+            "variant":"${{ matrix.variant }}",
+            "exit":rc,
+            "last_progress":{
+              "states":int(last[0]),"leaves":int(last[1]),"bnb_pruned":int(last[2]),
+              "prefix_checks":int(last[3]),"prefix_pruned":int(last[4]),"incumbent":int(last[5])
+            } if last else None,
+            "greedy_seed": (lambda xs:int(xs[-1]) if xs else None)(re.findall(r"\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)",out)),
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_PROGRESS",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-progress-${{ matrix.variant }}
+          path: diag-${{ matrix.variant }}/
