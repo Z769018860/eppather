@@ -3138,6 +3138,25 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 }
             }
 
+            // Re-entering a for-loop header means the previous body has
+            // completed, so execute the update before checking the condition.
+            // DFS2 already models for-loops in this order.  The old DP code
+            // appended the update only after the recursive body returned; when
+            // the CFG body back-edge revisited this header, the induction
+            // variable was therefore still stale and the next true condition
+            // became spuriously infeasible.
+            if (unroll > 0 && !entry->expr_str.empty()) {
+                curPath += entry->expr_str + ";\n";
+                curDecisions.push_back(
+                    PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
+                if (!isPathFeasibleCached(
+                        this, curDecisions, vartemp + curPath)) {
+                    dpMemo[makeKey(entry.get())] =
+                        PathInfo(0, std::string(), false);
+                    return PathInfo(0, curPath, false);
+                }
+            }
+
             // 达到展开上限：走 false → end/join
             if (unroll >= predictedLoopBound(entry.get(), maxloop)) {
                 std::string fPath = curPath + "@(!(" + entry->cond_str + "));\n";
@@ -3167,16 +3186,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     PathInfo tChild = MaxMemsDP(entry->getNextNode(), maxloop, tPath, depth + 1, loopUnrollMap, tDecisions);
                     unroll--;
                     if (tChild.feasible) {
-                        if (!entry->expr_str.empty()) {
-                            tChild.path += entry->expr_str + ";\n";
-                            auto updateDecisions = tDecisions;
-                            updateDecisions.push_back(PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
-                            if (!isPathFeasibleCached(this, updateDecisions, vartemp + tChild.path)) {
-                                dpMemo[makeKey(entry.get())] = PathInfo(0, std::string(), false);
-                                return PathInfo(0, tChild.path, false);
-                            }
-                            tDecisions.swap(updateDecisions);
-                        }
                         tChild.mems += curMem;
                         writeSuffixMemo(tChild);
                         return tChild;
