@@ -3663,9 +3663,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     // Sequential code introduces state updates but no alternative control-flow
     // choice. Defer prefix solving until the next branch/loop guard so one SMT
     // query can absorb the whole straight-line segment.
-    auto child = MaxMemsDP(entry->getNextNode(), maxloop,
-                           std::move(curPath), depth + 1,
-                           loopUnrollMap, std::move(nextDecisions));
+    auto child = MaxMemsDP(entry->getNextNode(), maxloop, curPath,
+                           depth + 1, loopUnrollMap,
+                           std::move(nextDecisions));
     if (!child.feasible)
         return store(PathInfo(0, curPath, false));
     return store(child);
