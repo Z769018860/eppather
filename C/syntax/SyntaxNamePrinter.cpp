@@ -4840,10 +4840,15 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
             setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
             unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+            const char* seedExitFirstRaw =
+                std::getenv("EPPATHER_MAXMEMS_SEED_EXIT_FIRST");
+            const bool seedExitFirst =
+                seedExitFirstRaw && *seedExitFirstRaw &&
+                std::string(seedExitFirstRaw) != "0";
             maxMemsStopAfterFirstFeasible = true;
             maxMemsFirstFeasibleFound = false;
-            maxMemsSeedExitFirst = false;
-            maxMemsSeedTerminationAware = true;
+            maxMemsSeedExitFirst = seedExitFirst;
+            maxMemsSeedTerminationAware = !seedExitFirst;
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
