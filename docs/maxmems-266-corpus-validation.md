@@ -93,3 +93,19 @@ header and selects the feasible result with larger whole-path MEMS. Conditional
 branches also use independent loop-state snapshots so exploration of one branch
 cannot contaminate its sibling. The controlled MaxMEMS witness workflow and the
 frozen 266-program workflow are both triggered by this change.
+
+
+## Decision-level MEMS scoring
+
+The corpus audit also found that the previous DP ranking score used one cached
+`CFGNode::getMem()` value per CFG node. For a `for` header that value bundled
+loop initialization, the true guard, and the update, even though DFS2 renders
+those decisions at different dynamic visits. The selected path was then
+re-evaluated with epat++ before printing, so path ranking and the reported MEMS
+could use different accounting.
+
+MaxMemsDP now accumulates cached MEMS costs per `PathDecisionKind`:
+`LoopInit`, true/false guard, `LoopUpdate`, and ordinary code. This matches
+the same decision sequence rendered by DFS2. The `-g` output additionally
+reports `[DP INTERNAL MEMS]` and `[DP SCORE DELTA]`; a non-zero delta is
+retained as a diagnostic rather than silently hiding a scoring discrepancy.
