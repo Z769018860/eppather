@@ -12,8 +12,11 @@ run_case() {
   local log="$OUT_DIR/$name.log"
   local args=(-q --maxloop "$maxloop" --maxpaths "$maxpaths")
 
+  local coupled_lower="" coupled_upper=""
   if [[ "$with_volce" == "1" ]]; then
     args+=(--volce --volce-lower -8 --volce-upper 8)
+    coupled_lower="-8"
+    coupled_upper="8"
   fi
 
   if [[ "$debug" == "1" ]]; then
@@ -22,6 +25,8 @@ run_case() {
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
     EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
     EPPATHER_LOOP_SCC_MEMORY_ACCELERATE="$memory_accelerate" \
+    EPPATHER_LOOP_SCC_COUPLED_RANGE_LOWER="$coupled_lower" \
+    EPPATHER_LOOP_SCC_COUPLED_RANGE_UPPER="$coupled_upper" \
     EPPATHER_LOOP_SCC_BOUND_TRACE=1 \
     EPPATHER_DEBUG_EPAT_SCRIPT=1 \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
@@ -30,6 +35,8 @@ run_case() {
     EPPATHER_LOOP_SCC_ACCEL_VALIDATE=1 \
     EPPATHER_LOOP_SCC_ACCELERATE="$accelerate" \
     EPPATHER_LOOP_SCC_MEMORY_ACCELERATE="$memory_accelerate" \
+    EPPATHER_LOOP_SCC_COUPLED_RANGE_LOWER="$coupled_lower" \
+    EPPATHER_LOOP_SCC_COUPLED_RANGE_UPPER="$coupled_upper" \
       "$CNIP" "${args[@]}" "$ROOT/$source" >"$log" 2>&1
   fi
 
@@ -509,8 +516,8 @@ if ! grep -Fq '[LOOPSCC COUPLED AFFINE]: cycle=0 entry_phase=0 iterations=4 peri
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
-if ! grep -Eq '^\[LOOPSCC COUPLED COMPRESSED VALIDATION\]: attempted=1 matched=1 type_certified=1 snapshot_parallel=1 status_match=1 mem_match=1 ' "$OUT_DIR/coupled_affine.log"; then
-  echo "coupled_affine: snapshot-compressed path did not preserve feasibility/MEMS" >&2
+if ! grep -Eq '^\[LOOPSCC COUPLED COMPRESSED VALIDATION\]: attempted=1 matched=1 type_certified=1 snapshot_parallel=1 entry_range=1 preexec_overflow=1 status_match=1 mem_match=1 ' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: snapshot/preexecution-certified path did not preserve feasibility/MEMS" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
@@ -524,8 +531,18 @@ if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: unique signed-integer scalar type 
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
-if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: runtime overflow remains uncertified; validation-only compression' "$OUT_DIR/coupled_affine.log"; then
-  echo "coupled_affine: runtime-overflow gate was not reported" >&2
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: signed-scalar type certificate alone does not prove overflow safety' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: type/overflow certificate separation was not reported" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: loop-entry ranges reconstructed from declarations and path prefix' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: missing preexecution loop-entry range certificate" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: compressed coupled arithmetic preexecution overflow certificate' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: missing preexecution arithmetic certificate" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi

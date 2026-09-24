@@ -4729,6 +4729,10 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << (validation.typeCertified ? 1 : 0)
                  << " snapshot_parallel="
                  << (validation.snapshotParallelized ? 1 : 0)
+                 << " entry_range="
+                 << (validation.entryRangeCertified ? 1 : 0)
+                 << " preexec_overflow="
+                 << (validation.preexecutionOverflowCertified ? 1 : 0)
                  << " status_match="
                  << (validation.statusMatched ? 1 : 0)
                  << " mem_match="
@@ -4749,6 +4753,13 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             resultFile
                 << "[loopscc_coupled_snapshot_parallel]:"
                 << (validation.snapshotParallelized ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_coupled_entry_range_certified]:"
+                << (validation.entryRangeCertified ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_coupled_preexec_overflow_certified]:"
+                << (validation.preexecutionOverflowCertified ? 1 : 0)
+                << "\n";
             for (const auto& diagnostic :
                  validation.certificateDiagnostics) {
                 cout << "[LOOPSCC COUPLED CERTIFICATE]: "

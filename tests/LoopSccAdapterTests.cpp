@@ -1001,10 +1001,76 @@ int main() {
                       "int x = 4;\n"
                       "int y = 3;\n"
                       "int i = 0;\n");
+        auto prefixWrite = node("x = x + 2;");
+        const std::vector<PathDecision> certifiedPrefix{
+            PathDecision{
+                prefixWrite.get(),
+                PathDecisionKind::Code}};
+        const std::string boundedPrefix =
+            "int x = n;\n"
+            "int y = 0;\n"
+            "int i = 0;\n";
+        const auto preexecSafePlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      certifiedPrefix, loop.get(), graph, 0,
+                      boundedPrefix, -8, 8);
+        const bool preexecSafe =
+            preexecSafePlan &&
+            preexecSafePlan->typeCertified &&
+            preexecSafePlan->entryRangeCertified &&
+            preexecSafePlan->preexecutionOverflowCertified &&
+            preexecSafePlan->boundedRangeLower &&
+            *preexecSafePlan->boundedRangeLower == -8 &&
+            preexecSafePlan->boundedRangeUpper &&
+            *preexecSafePlan->boundedRangeUpper == 8 &&
+            !preexecSafePlan->runtimeShortcutEligible;
+
+        const long long nearIntMax =
+            static_cast<long long>(
+                std::numeric_limits<int>::max()) - 1;
+        const auto preexecOverflowPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      {}, loop.get(), graph, 0,
+                      boundedPrefix,
+                      nearIntMax,
+                      static_cast<long long>(
+                          std::numeric_limits<int>::max()));
+        const bool preexecOverflowRejected =
+            preexecOverflowPlan &&
+            preexecOverflowPlan->typeCertified &&
+            preexecOverflowPlan->entryRangeCertified &&
+            !preexecOverflowPlan->preexecutionOverflowCertified;
+
+        auto unknownWrite = node("x = x / 2;");
+        const std::vector<PathDecision> unknownPrefix{
+            PathDecision{
+                unknownWrite.get(),
+                PathDecisionKind::Code}};
+        const auto unknownPrefixPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      unknownPrefix, loop.get(), graph, 0,
+                      boundedPrefix, -8, 8);
+        const bool unknownPrefixRejected =
+            unknownPrefixPlan &&
+            unknownPrefixPlan->typeCertified &&
+            !unknownPrefixPlan->entryRangeCertified &&
+            !unknownPrefixPlan->preexecutionOverflowCertified;
+
         const bool typeFallbacksOk =
             unsignedPlan && !unsignedPlan->typeCertified &&
             pointerPlan && !pointerPlan->typeCertified &&
             ambiguousPlan && !ambiguousPlan->typeCertified;
+
+        const bool preexecutionRangesOk =
+            preexecSafe &&
+            preexecOverflowRejected &&
+            unknownPrefixRejected;
 
         const bool ok = graph.complete &&
             graph.provedTripCount == 4 &&
@@ -1019,6 +1085,9 @@ int main() {
         failures += !report(
             "loopscc-coupled-affine-type-fallbacks",
             typeFallbacksOk);
+        failures += !report(
+            "loopscc-coupled-affine-preexecution-ranges",
+            preexecutionRangesOk);
     }
 
     // Non-linear scalar expressions remain outside the matrix certificate.

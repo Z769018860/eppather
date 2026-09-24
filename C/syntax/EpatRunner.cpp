@@ -217,6 +217,10 @@ bool certifyCoupledAffineTypes(
         return reject("coupled affine trip/phase certificate is incomplete");
     }
 
+    entryRangesCertified = true;
+    diagnostics.push_back(
+        "loop-entry ranges reconstructed from declarations and path prefix");
+
     const auto& state = candidate.closedForm;
     const std::size_t n = state.variables.size();
     if (n < 2 || n > 4 ||
@@ -270,7 +274,7 @@ bool certifyCoupledAffineTypes(
     diagnostics.push_back(
         "unique signed-integer scalar type certificate");
     diagnostics.push_back(
-        "runtime overflow remains uncertified; validation-only compression");
+        "signed-scalar type certificate alone does not prove overflow safety");
     return true;
 }
 
@@ -344,6 +348,614 @@ bool isIdentityCoupledRow(
             return false;
         }
     }
+    return true;
+}
+
+
+struct ScalarInterval {
+    long long lower{0};
+    long long upper{0};
+};
+
+std::string trimScalarText(std::string text) {
+    std::size_t begin = 0;
+    while (begin < text.size() &&
+           std::isspace(static_cast<unsigned char>(text[begin])) != 0) {
+        ++begin;
+    }
+    std::size_t end = text.size();
+    while (end > begin &&
+           std::isspace(static_cast<unsigned char>(text[end - 1])) != 0) {
+        --end;
+    }
+    text = text.substr(begin, end - begin);
+    if (!text.empty() && text.back() == ';') {
+        text.pop_back();
+        while (!text.empty() &&
+               std::isspace(
+                   static_cast<unsigned char>(text.back())) != 0) {
+            text.pop_back();
+        }
+    }
+    return text;
+}
+
+std::optional<std::pair<long long, long long>>
+signedScalarTypeBounds(const std::string& rawType) {
+    const std::string type = normalizeTypeSpelling(rawType);
+    if (type.find("long long") != std::string::npos) {
+        return std::make_pair(
+            std::numeric_limits<long long>::min(),
+            std::numeric_limits<long long>::max());
+    }
+    if (type.find("long") != std::string::npos) {
+        return std::make_pair(
+            static_cast<long long>(
+                std::numeric_limits<long>::min()),
+            static_cast<long long>(
+                std::numeric_limits<long>::max()));
+    }
+    if (type.find("short") != std::string::npos) {
+        return std::make_pair(
+            static_cast<long long>(
+                std::numeric_limits<short>::min()),
+            static_cast<long long>(
+                std::numeric_limits<short>::max()));
+    }
+    if (type == "int" || type == "signed int" ||
+        type == "signed") {
+        return std::make_pair(
+            static_cast<long long>(
+                std::numeric_limits<int>::min()),
+            static_cast<long long>(
+                std::numeric_limits<int>::max()));
+    }
+    return std::nullopt;
+}
+
+bool intervalWithin(
+    const ScalarInterval& value,
+    const std::pair<long long, long long>& bounds) {
+    return value.lower >= bounds.first &&
+           value.upper <= bounds.second &&
+           value.lower <= value.upper;
+}
+
+std::optional<ScalarInterval> intervalFrom128(
+    __int128 lower, __int128 upper) {
+    if (lower > upper ||
+        lower < std::numeric_limits<long long>::min() ||
+        upper > std::numeric_limits<long long>::max()) {
+        return std::nullopt;
+    }
+    return ScalarInterval{
+        static_cast<long long>(lower),
+        static_cast<long long>(upper)};
+}
+
+std::optional<ScalarInterval> scaleInterval(
+    const ScalarInterval& input,
+    long long coefficient) {
+    const __int128 a =
+        static_cast<__int128>(coefficient) * input.lower;
+    const __int128 b =
+        static_cast<__int128>(coefficient) * input.upper;
+    return intervalFrom128(std::min(a, b), std::max(a, b));
+}
+
+std::optional<ScalarInterval> addIntervals(
+    const ScalarInterval& lhs,
+    const ScalarInterval& rhs) {
+    return intervalFrom128(
+        static_cast<__int128>(lhs.lower) + rhs.lower,
+        static_cast<__int128>(lhs.upper) + rhs.upper);
+}
+
+struct DetailedScalarDeclaration {
+    std::string type;
+    std::string name;
+    std::optional<std::string> initializer;
+};
+
+std::optional<DetailedScalarDeclaration>
+parseDetailedScalarDeclaration(const std::string& raw) {
+    const std::string text = trimScalarText(raw);
+    static const std::regex scalar(
+        "^(?:(?:const|volatile)[ \\t]+)*"
+        "((?:signed[ \\t]+)?"
+        "(?:short(?:[ \\t]+int)?|int|"
+        "long(?:[ \\t]+long)?(?:[ \\t]+int)?))"
+        "[ \\t]+([A-Za-z_][A-Za-z0-9_]*)"
+        "[ \\t]*(?:=[ \\t]*(.*))?$");
+    std::smatch match;
+    if (!std::regex_match(text, match, scalar)) {
+        return std::nullopt;
+    }
+    DetailedScalarDeclaration out;
+    out.type = normalizeTypeSpelling(match[1].str());
+    out.name = match[2].str();
+    if (match[3].matched) {
+        const std::string init = trimScalarText(match[3].str());
+        if (!init.empty()) out.initializer = init;
+    }
+    return out;
+}
+
+std::optional<ScalarInterval> evaluateLinearInterval(
+    const std::string& raw,
+    const std::unordered_map<std::string, ScalarInterval>& intervals,
+    const std::unordered_set<std::string>& declaredNames,
+    const ScalarInterval& externalInputRange) {
+    std::string text;
+    for (unsigned char ch : raw) {
+        if (std::isspace(ch) == 0 && ch != ';') {
+            text.push_back(static_cast<char>(ch));
+        }
+    }
+    if (text.empty()) return std::nullopt;
+
+    static const std::regex identifier(
+        R"(^[A-Za-z_][A-Za-z0-9_]*$)");
+    static const std::regex integer(
+        R"(^[0-9]+$)");
+    static const std::regex intTimesVar(
+        R"(^([0-9]+)\*([A-Za-z_][A-Za-z0-9_]*)$)");
+    static const std::regex varTimesInt(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)\*([0-9]+)$)");
+
+    ScalarInterval total{0, 0};
+    std::size_t pos = 0;
+    while (pos < text.size()) {
+        long long sign = 1;
+        if (text[pos] == '+' || text[pos] == '-') {
+            sign = text[pos] == '-' ? -1 : 1;
+            ++pos;
+        }
+        if (pos >= text.size()) return std::nullopt;
+
+        const std::size_t begin = pos;
+        while (pos < text.size() &&
+               text[pos] != '+' && text[pos] != '-') {
+            ++pos;
+        }
+        const std::string term = text.substr(begin, pos - begin);
+        if (term.empty()) return std::nullopt;
+
+        long long coefficient = sign;
+        std::optional<ScalarInterval> base;
+        std::smatch match;
+        try {
+            if (std::regex_match(term, integer)) {
+                const long long value = std::stoll(term);
+                base = ScalarInterval{value, value};
+            } else if (std::regex_match(term, identifier)) {
+                auto found = intervals.find(term);
+                if (found != intervals.end()) {
+                    base = found->second;
+                } else if (declaredNames.find(term) ==
+                           declaredNames.end()) {
+                    base = externalInputRange;
+                } else {
+                    return std::nullopt;
+                }
+            } else if (
+                std::regex_match(term, match, intTimesVar)) {
+                const long long factor =
+                    std::stoll(match[1].str());
+                coefficient =
+                    static_cast<long long>(
+                        static_cast<__int128>(coefficient) *
+                        factor);
+                const std::string name = match[2].str();
+                auto found = intervals.find(name);
+                if (found != intervals.end()) {
+                    base = found->second;
+                } else if (declaredNames.find(name) ==
+                           declaredNames.end()) {
+                    base = externalInputRange;
+                } else {
+                    return std::nullopt;
+                }
+            } else if (
+                std::regex_match(term, match, varTimesInt)) {
+                const long long factor =
+                    std::stoll(match[2].str());
+                coefficient =
+                    static_cast<long long>(
+                        static_cast<__int128>(coefficient) *
+                        factor);
+                const std::string name = match[1].str();
+                auto found = intervals.find(name);
+                if (found != intervals.end()) {
+                    base = found->second;
+                } else if (declaredNames.find(name) ==
+                           declaredNames.end()) {
+                    base = externalInputRange;
+                } else {
+                    return std::nullopt;
+                }
+            } else {
+                return std::nullopt;
+            }
+        } catch (...) {
+            return std::nullopt;
+        }
+
+        auto scaled = scaleInterval(*base, coefficient);
+        if (!scaled) return std::nullopt;
+        auto next = addIntervals(total, *scaled);
+        if (!next) return std::nullopt;
+        total = *next;
+    }
+    return total;
+}
+
+std::optional<std::pair<long long, long long>>
+readCoupledBoundedRange(
+    std::optional<long long> explicitLower,
+    std::optional<long long> explicitUpper) {
+    if (explicitLower || explicitUpper) {
+        if (!explicitLower || !explicitUpper ||
+            *explicitLower > *explicitUpper) {
+            return std::nullopt;
+        }
+        return std::make_pair(*explicitLower, *explicitUpper);
+    }
+
+    const char* lowerRaw =
+        std::getenv("EPPATHER_LOOP_SCC_COUPLED_RANGE_LOWER");
+    const char* upperRaw =
+        std::getenv("EPPATHER_LOOP_SCC_COUPLED_RANGE_UPPER");
+    if (!lowerRaw || !*lowerRaw || !upperRaw || !*upperRaw) {
+        return std::nullopt;
+    }
+    char* lowerEnd = nullptr;
+    char* upperEnd = nullptr;
+    const long long lower =
+        std::strtoll(lowerRaw, &lowerEnd, 10);
+    const long long upper =
+        std::strtoll(upperRaw, &upperEnd, 10);
+    if (lowerEnd == lowerRaw || *lowerEnd != '\0' ||
+        upperEnd == upperRaw || *upperEnd != '\0' ||
+        lower > upper) {
+        return std::nullopt;
+    }
+    return std::make_pair(lower, upper);
+}
+
+bool applyIntervalAssignment(
+    const std::string& raw,
+    std::unordered_map<std::string, ScalarInterval>& intervals,
+    const std::unordered_map<std::string, std::string>& knownTypes,
+    const std::unordered_set<std::string>& declaredNames,
+    const ScalarInterval& externalInputRange,
+    const std::unordered_set<std::string>& candidateVariables) {
+    const std::string text = trimScalarText(raw);
+    if (text.empty()) return true;
+
+    if (auto declaration =
+            parseDetailedScalarDeclaration(text)) {
+        if (!declaration->initializer) {
+            intervals.erase(declaration->name);
+            return candidateVariables.find(declaration->name) ==
+                   candidateVariables.end();
+        }
+        auto value = evaluateLinearInterval(
+            *declaration->initializer, intervals,
+            declaredNames, externalInputRange);
+        if (!value) {
+            intervals.erase(declaration->name);
+            return candidateVariables.find(declaration->name) ==
+                   candidateVariables.end();
+        }
+        auto type = knownTypes.find(declaration->name);
+        if (type != knownTypes.end()) {
+            auto bounds = signedScalarTypeBounds(type->second);
+            if (!bounds || !intervalWithin(*value, *bounds)) {
+                intervals.erase(declaration->name);
+                return candidateVariables.find(declaration->name) ==
+                       candidateVariables.end();
+            }
+        }
+        intervals[declaration->name] = *value;
+        return true;
+    }
+
+    std::smatch match;
+    static const std::regex postfix(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)\s*(\+\+|--)$)");
+    static const std::regex prefix(
+        R"(^(\+\+|--)\s*([A-Za-z_][A-Za-z0-9_]*)$)");
+    static const std::regex compound(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)\s*(\+=|-=)\s*(-?[0-9]+)$)");
+    static const std::regex assign(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.+)$)");
+
+    std::string lhs;
+    std::optional<ScalarInterval> value;
+    if (std::regex_match(text, match, postfix)) {
+        lhs = match[1].str();
+        auto current = intervals.find(lhs);
+        if (current != intervals.end()) {
+            const long long delta =
+                match[2].str() == "++" ? 1 : -1;
+            value = addIntervals(
+                current->second, ScalarInterval{delta, delta});
+        }
+    } else if (std::regex_match(text, match, prefix)) {
+        lhs = match[2].str();
+        auto current = intervals.find(lhs);
+        if (current != intervals.end()) {
+            const long long delta =
+                match[1].str() == "++" ? 1 : -1;
+            value = addIntervals(
+                current->second, ScalarInterval{delta, delta});
+        }
+    } else if (std::regex_match(text, match, compound)) {
+        lhs = match[1].str();
+        auto current = intervals.find(lhs);
+        if (current != intervals.end()) {
+            long long delta = 0;
+            try {
+                delta = std::stoll(match[3].str());
+            } catch (...) {
+                delta = 0;
+                current = intervals.end();
+            }
+            if (current != intervals.end()) {
+                if (match[2].str() == "-=") {
+                    if (delta ==
+                        std::numeric_limits<long long>::min()) {
+                        current = intervals.end();
+                    } else {
+                        delta = -delta;
+                    }
+                }
+                if (current != intervals.end()) {
+                    value = addIntervals(
+                        current->second,
+                        ScalarInterval{delta, delta});
+                }
+            }
+        }
+    } else if (std::regex_match(text, match, assign)) {
+        lhs = match[1].str();
+        value = evaluateLinearInterval(
+            match[2].str(), intervals,
+            declaredNames, externalInputRange);
+    } else {
+        return true;
+    }
+
+    if (lhs.empty()) return true;
+    if (!value) {
+        intervals.erase(lhs);
+        return candidateVariables.find(lhs) ==
+               candidateVariables.end();
+    }
+
+    auto type = knownTypes.find(lhs);
+    if (type != knownTypes.end()) {
+        auto bounds = signedScalarTypeBounds(type->second);
+        if (!bounds || !intervalWithin(*value, *bounds)) {
+            intervals.erase(lhs);
+            return candidateVariables.find(lhs) ==
+                   candidateVariables.end();
+        }
+    }
+    intervals[lhs] = *value;
+    return true;
+}
+
+bool certifyCoupledPreexecutionRanges(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccCoupledAffineCandidate& candidate,
+    const std::unordered_map<std::string, std::string>& certifiedTypes,
+    const std::string& sourcePrefix,
+    long long boundedLower,
+    long long boundedUpper,
+    bool& entryRangesCertified,
+    std::vector<std::string>& diagnostics) {
+    entryRangesCertified = false;
+    auto reject = [&](const std::string& reason) {
+        diagnostics.push_back(reason);
+        return false;
+    };
+    if (boundedLower > boundedUpper) {
+        return reject("invalid coupled bounded input domain");
+    }
+    const ScalarInterval externalInputRange{
+        boundedLower, boundedUpper};
+
+    std::vector<DetailedScalarDeclaration> declarations;
+    std::unordered_set<std::string> declaredNames;
+    std::unordered_set<std::string> ambiguousNames;
+    std::unordered_map<std::string, std::string> knownTypes;
+
+    auto collect = [&](const std::string& raw) {
+        auto declaration = parseDetailedScalarDeclaration(raw);
+        if (!declaration) return;
+        if (!declaredNames.insert(declaration->name).second) {
+            ambiguousNames.insert(declaration->name);
+        }
+        knownTypes[declaration->name] = declaration->type;
+        declarations.push_back(std::move(*declaration));
+    };
+
+    std::stringstream input(sourcePrefix);
+    std::string line;
+    while (std::getline(input, line)) collect(line);
+    if (loop && loop->isFor &&
+        !loop->initstmt_str.empty()) {
+        collect(loop->initstmt_str);
+    }
+
+    std::unordered_set<std::string> candidateVariables(
+        candidate.closedForm.variables.begin(),
+        candidate.closedForm.variables.end());
+    for (const auto& variable : candidateVariables) {
+        if (ambiguousNames.find(variable) != ambiguousNames.end()) {
+            return reject(
+                "ambiguous declaration prevents entry-range proof for " +
+                variable);
+        }
+    }
+
+    std::unordered_map<std::string, ScalarInterval> intervals;
+    // Function parameters are represented in vartemp as ordinary
+    // uninitialized scalar declarations. Treat every such signed scalar as an
+    // unknown value in the configured finite domain; concrete prefix writes
+    // below overwrite this conservative interval before the loop.
+    for (const auto& declaration : declarations) {
+        if (declaration.initializer ||
+            ambiguousNames.find(declaration.name) !=
+                ambiguousNames.end()) {
+            continue;
+        }
+        auto bounds = signedScalarTypeBounds(declaration.type);
+        if (!bounds ||
+            !intervalWithin(externalInputRange, *bounds)) {
+            continue;
+        }
+        intervals[declaration.name] = externalInputRange;
+    }
+
+    bool progress = true;
+    for (std::size_t pass = 0;
+         progress && pass <= declarations.size(); ++pass) {
+        progress = false;
+        for (const auto& declaration : declarations) {
+            if (!declaration.initializer ||
+                ambiguousNames.find(declaration.name) !=
+                    ambiguousNames.end() ||
+                intervals.find(declaration.name) != intervals.end()) {
+                continue;
+            }
+            auto value = evaluateLinearInterval(
+                *declaration.initializer, intervals,
+                declaredNames, externalInputRange);
+            if (!value) continue;
+            auto bounds = signedScalarTypeBounds(declaration.type);
+            if (!bounds || !intervalWithin(*value, *bounds)) {
+                continue;
+            }
+            intervals[declaration.name] = *value;
+            progress = true;
+        }
+    }
+
+    for (const auto& decision : prefix) {
+        if (!decision.node) continue;
+        if (decision.node->hasCallExpr) {
+            return reject(
+                "prefix function call invalidates coupled entry ranges");
+        }
+
+        std::string text;
+        switch (decision.kind) {
+            case PathDecisionKind::Code:
+                text = decision.node->getCode();
+                break;
+            case PathDecisionKind::SyntheticCode:
+                text = decision.syntheticText;
+                break;
+            case PathDecisionKind::LoopInit:
+                text = decision.node->initstmt_str;
+                break;
+            case PathDecisionKind::LoopUpdate:
+                text = decision.node->expr_str;
+                break;
+            default:
+                break;
+        }
+        if (text.empty()) continue;
+        if (!applyIntervalAssignment(
+                text, intervals, knownTypes,
+                declaredNames, externalInputRange,
+                candidateVariables)) {
+            return reject(
+                "prefix write is not interval-certifiable: " +
+                trimScalarText(text));
+        }
+    }
+
+    for (const auto& variable : candidate.closedForm.variables) {
+        auto interval = intervals.find(variable);
+        if (interval == intervals.end()) {
+            return reject(
+                "missing loop-entry interval for " + variable);
+        }
+        auto type = certifiedTypes.find(variable);
+        if (type == certifiedTypes.end()) {
+            return reject(
+                "missing certified type for loop-entry interval " +
+                variable);
+        }
+        auto bounds = signedScalarTypeBounds(type->second);
+        if (!bounds || !intervalWithin(interval->second, *bounds)) {
+            return reject(
+                "loop-entry interval exceeds signed type range for " +
+                variable);
+        }
+    }
+
+    const auto& state = candidate.closedForm;
+    const std::size_t n = state.variables.size();
+    for (std::size_t row = 0; row < n; ++row) {
+        if (isIdentityCoupledRow(state, row)) continue;
+
+        auto targetType = certifiedTypes.find(state.variables[row]);
+        if (targetType == certifiedTypes.end()) {
+            return reject(
+                "missing target type for coupled matrix row");
+        }
+        auto bounds = signedScalarTypeBounds(targetType->second);
+        if (!bounds) {
+            return reject(
+                "unsupported signed target type for coupled matrix row");
+        }
+
+        ScalarInterval running{0, 0};
+        for (std::size_t col = 0; col < n; ++col) {
+            const long long coefficient =
+                state.matrix[row * n + col];
+            if (coefficient == 0) continue;
+            const auto inputInterval =
+                intervals.find(state.variables[col]);
+            if (inputInterval == intervals.end()) {
+                return reject(
+                    "missing source entry interval for coupled matrix row");
+            }
+            auto term = scaleInterval(
+                inputInterval->second, coefficient);
+            if (!term || !intervalWithin(*term, *bounds)) {
+                return reject(
+                    "coupled matrix multiplication may overflow before execution");
+            }
+            auto sum = addIntervals(running, *term);
+            if (!sum || !intervalWithin(*sum, *bounds)) {
+                return reject(
+                    "coupled matrix accumulated sum may overflow before execution");
+            }
+            running = *sum;
+        }
+        if (state.offset[row] != 0) {
+            auto finalValue = addIntervals(
+                running,
+                ScalarInterval{
+                    state.offset[row],
+                    state.offset[row]});
+            if (!finalValue ||
+                !intervalWithin(*finalValue, *bounds)) {
+                return reject(
+                    "coupled matrix offset may overflow before execution");
+            }
+        }
+    }
+
+    diagnostics.push_back(
+        "compressed coupled arithmetic preexecution overflow certificate");
     return true;
 }
 
@@ -1385,7 +1997,9 @@ buildLoopSccCoupledAffineValidationDecisions(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
     std::size_t candidateIndex,
-    const std::string& sourcePrefix) {
+    const std::string& sourcePrefix,
+    std::optional<long long> boundedLower,
+    std::optional<long long> boundedUpper) {
     if (!loop ||
         candidateIndex >= graph.coupledAffineCandidates.size()) {
         return std::nullopt;
@@ -1408,6 +2022,26 @@ buildLoopSccCoupledAffineValidationDecisions(
             certifiedTypes, plan.certificateDiagnostics);
     if (!plan.typeCertified) {
         return plan;
+    }
+
+    if (const auto boundedRange =
+            readCoupledBoundedRange(
+                boundedLower, boundedUpper)) {
+        plan.boundedRangeLower = boundedRange->first;
+        plan.boundedRangeUpper = boundedRange->second;
+        bool entryRangesCertified = false;
+        plan.preexecutionOverflowCertified =
+            certifyCoupledPreexecutionRanges(
+                prefix, loop, candidate, certifiedTypes,
+                sourcePrefix, boundedRange->first,
+                boundedRange->second,
+                entryRangesCertified,
+                plan.certificateDiagnostics);
+        plan.entryRangeCertified =
+            entryRangesCertified;
+    } else {
+        plan.certificateDiagnostics.push_back(
+            "bounded input domain unavailable for preexecution range proof");
     }
 
     const std::string stem =
@@ -2159,6 +2793,10 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                             compressed->typeCertified;
                         validation.snapshotParallelized =
                             compressed->snapshotParallelized;
+                        validation.entryRangeCertified =
+                            compressed->entryRangeCertified;
+                        validation.preexecutionOverflowCertified =
+                            compressed->preexecutionOverflowCertified;
                         validation.certificateDiagnostics =
                             compressed->certificateDiagnostics;
 
