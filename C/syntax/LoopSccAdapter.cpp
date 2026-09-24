@@ -88,8 +88,11 @@ void observeMemoryAccess(BuiltPath& path,
     // safe to ignore; otherwise retain the observation as imprecise.
     if (text.find('*') != std::string::npos &&
         access.pointerDereferences == 0) {
+        // Keep '-' at the end of the ECMAScript character class.
+        // Placing it between '+' and '*' forms an invalid range ("+-*") in
+        // libstdc++ regex and used to throw on ordinary expressions like i*4.
         static const std::regex multiplicationOnly(
-            R"(^[A-Za-z0-9_[:space:]()+-*/%<>=!&|]+$)");
+            R"(^[A-Za-z0-9_[:space:]()+*/%<>=!&|-]+$)");
         if (!std::regex_match(text, multiplicationOnly)) {
             access.precise = false;
         }
