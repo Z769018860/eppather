@@ -18,6 +18,12 @@ struct LoopSccAffineTransform {
     long long offset{0};
 };
 
+struct LoopSccConstantPointerAlias {
+    std::string pointer;
+    std::string region;
+    long long index{0};
+};
+
 struct LoopSccMemoryAccessInfo {
     std::string sourceText;
     std::size_t arraySubscripts{0};
@@ -181,6 +187,19 @@ public:
     static LoopSccGraphInfo analyze(CFGNode* loop,
                                     std::size_t maxPaths = 64,
                                     std::size_t maxNodesPerPath = 128);
+
+    // Narrow alias-aware variant. Only direct fixed aliases recovered from the
+    // source prefix are eligible (for example int *p = a; or
+    // int *p = &a[2];). Pointer arithmetic/reassignment inside the loop still
+    // invalidates the memory-summary effect certificate.
+    static LoopSccGraphInfo analyzeWithConstantPointerAliases(
+        CFGNode* loop,
+        const std::string& sourcePrefix,
+        std::size_t maxPaths = 64,
+        std::size_t maxNodesPerPath = 128);
+
+    static std::vector<LoopSccConstantPointerAlias>
+    parseConstantPointerAliases(const std::string& sourcePrefix);
 };
 
 }  // namespace C
