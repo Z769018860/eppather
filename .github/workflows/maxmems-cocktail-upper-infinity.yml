@@ -1,0 +1,56 @@
+name: MaxMEMS cocktail upper infinity trace
+
+concurrency:
+  group: maxmems-cocktail-upper-infinity-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-upper-infinity
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - '.github/workflows/maxmems-cocktail-upper-infinity.yml'
+
+jobs:
+  trace:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_trace -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_trace --target cnip -j2
+      - name: Run 12s structural upper trace
+        shell: bash
+        run: |
+          mkdir -p upper-trace
+          set +e
+          timeout 12s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_LEXICAL_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=512 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=25 \
+            EPPATHER_MAXMEMS_TRACE_UPPER_INFINITY=1 \
+            "${{ github.workspace }}/build_trace/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > upper-trace/stdout.log 2> upper-trace/stderr.log
+          echo $? > upper-trace/exit_code.txt
+          exit 0
+      - name: Extract infinity trace
+        run: |
+          grep -E '\[DP UPPER CYCLE INFINITY\]|\[DP PROGRESS\]' upper-trace/stderr.log | head -100 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-upper-infinity-trace
+          path: upper-trace/
