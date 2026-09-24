@@ -78,6 +78,9 @@ struct LoopSccSPathInfo {
     // They are candidates only and never authorize acceleration by themselves.
     std::vector<LoopSccMemoryCellTransform> memoryCellTransforms;
     std::size_t observedMems{0};
+    // Portion of observedMems contributed by exact inside-out nested-memory
+    // summaries rather than lexical accesses on this outer SPath.
+    std::size_t certifiedNestedMemoryMems{0};
     bool memoryAccessModelComplete{true};
     bool memoryTransitionModelComplete{true};
     // True when every non-memory effect is represented by the scalar-affine
@@ -160,6 +163,9 @@ struct LoopSccGraphInfo {
     std::size_t oscillatingCycleCount{0};
     std::size_t guardedClosedFormCandidateCount{0};
     std::size_t insideOutNestedSummaryCount{0};
+    // Subset of insideOutNestedSummaryCount whose inner loop carries an exact
+    // fixed-cell memory closed form rather than a scalar-only summary.
+    std::size_t insideOutNestedMemorySummaryCount{0};
     // Exact trip count recovered from the SPath set when every returning
     // iteration path has the same affine step for the loop-control variable.
     // -1 means no such proof is available.

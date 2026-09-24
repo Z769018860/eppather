@@ -4297,6 +4297,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t oscillatingCycles = 0;
             std::size_t closedFormCandidates = 0;
             std::size_t insideOutNestedSummaries = 0;
+            std::size_t insideOutNestedMemorySummaries = 0;
             std::size_t memorySPaths = 0;
             std::size_t memoryWritingSPaths = 0;
             std::size_t impreciseMemorySPaths = 0;
@@ -4322,8 +4323,11 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 closedFormCandidates += graph.guardedClosedFormCandidateCount;
                 insideOutNestedSummaries +=
                     graph.insideOutNestedSummaryCount;
+                insideOutNestedMemorySummaries +=
+                    graph.insideOutNestedMemorySummaryCount;
                 for (const auto& spath : graph.spaths) {
-                    if (!spath.memoryAccesses.empty()) {
+                    if (spath.observedMems > 0 ||
+                        !spath.memoryAccesses.empty()) {
                         ++memorySPaths;
                         observedMemoryMems += spath.observedMems;
                     }
@@ -4401,6 +4405,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << closedFormCandidates << endl;
             cout << "[LOOPSCC INSIDE OUT NESTED SUMMARIES]: "
                  << insideOutNestedSummaries << endl;
+            cout << "[LOOPSCC INSIDE OUT NESTED MEMORY SUMMARIES]: "
+                 << insideOutNestedMemorySummaries << endl;
             cout << "[LOOPSCC MEMORY SPATHS]: "
                  << memorySPaths << endl;
             cout << "[LOOPSCC MEMORY WRITING SPATHS]: "
