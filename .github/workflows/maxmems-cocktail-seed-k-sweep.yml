@@ -1,0 +1,85 @@
+name: MaxMEMS cocktail seed K sweep
+
+concurrency:
+  group: maxmems-cocktail-seed-k-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-seed-k-sweep.yml'
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_ksweep -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_ksweep --target cnip -j2
+      - name: Run K sweep
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_ksweep/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          mkdir -p k-sweep
+          for k in 1 2 3 4; do
+            d="k-sweep/k$k"
+            mkdir -p "$d"
+            set +e
+            timeout 20s env \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+              EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+              EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
+              EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS="$k" \
+              EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+              EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+              EPPATHER_MAXMEMS_PROGRESS_EVERY=25 \
+              "$CNIP" -g "$SRC" 3 > "$d/stdout.log" 2> "$d/stderr.log"
+            rc=$?
+            set -e
+            echo "$rc" > "$d/exit_code.txt"
+          done
+      - name: Summarize K sweep
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("k-sweep")
+          rows=[]
+          for k in (1,2,3,4):
+              d=root/f"k{k}"
+              out=(d/"stdout.log").read_text(errors="replace")
+              err=(d/"stderr.log").read_text(errors="replace")
+              rc=int((d/"exit_code.txt").read_text().strip())
+              def last(p,s):
+                  xs=re.findall(p,s,re.M)
+                  return xs[-1] if xs else None
+              seed=last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out)
+              seen=last(r"^\[DP GREEDY SEED FEASIBLE PATHS\]:\s*(\d+)\s*$",out)
+              prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+).*incumbent=(-?\d+)",err)
+              rows.append({
+                  "k":k,"exit":rc,
+                  "seed":int(seed) if seed else None,
+                  "feasible_seen":int(seen) if seen else None,
+                  "last_progress":list(map(int,prog[-1])) if prog else None,
+              })
+          (root/"summary.json").write_text(json.dumps(rows,indent=2)+"\n")
+          print("COCKTAIL_SEED_K_SWEEP",json.dumps(rows,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-seed-k-sweep-results
+          path: k-sweep/
