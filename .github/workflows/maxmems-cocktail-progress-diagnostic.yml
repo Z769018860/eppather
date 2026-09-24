@@ -45,7 +45,7 @@ jobs:
             EPPATHER_SUPPRESS_REDECL_WARNINGS=1
             EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
             EPPATHER_MAXMEMS_PROGRESS_EVERY=1000
-            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=100
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=10
           )
 
           case "${{ matrix.variant }}" in
@@ -68,7 +68,7 @@ jobs:
 
           (
             cd "$OUT"
-            timeout 30s env "${COMMON[@]}" "${EXTRA[@]}" \
+            timeout 12s env "${COMMON[@]}" "${EXTRA[@]}" \
               "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
             echo $? > exit_code.txt
           ) || true
