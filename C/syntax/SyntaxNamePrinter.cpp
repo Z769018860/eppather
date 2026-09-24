@@ -203,6 +203,11 @@ struct VolceResult {
     std::size_t requiredCoupledAffineRows{0};
     std::size_t appliedCoupledAffineRowsCount{0};
     bool allCoupledAffineRowsEntailed{false};
+    std::vector<std::string> certifiedCoupledOverflowRows;
+    std::vector<std::string> rejectedCoupledOverflowRows;
+    std::size_t requiredCoupledOverflowRows{0};
+    std::size_t certifiedCoupledOverflowRowsCount{0};
+    bool allCoupledOverflowRowsSafe{false};
     std::vector<std::string> appliedMemoryRelationSummaries;
     std::vector<std::string> rejectedMemoryRelationSummaries;
     std::vector<std::string> appliedMemoryFrameSummaries;
@@ -474,6 +479,25 @@ std::optional<VolceResult> runVolce(
         } else {
             result.rejectedCoupledAffineRows.push_back(
                 "coupled affine relation validation unavailable");
+        }
+    }
+    if (!coupledRelations.empty()) {
+        if (const auto overflowValidation =
+                volce::validateCoupledAffineOverflowFromSmt2(
+                    smt2, coupledRelations, range)) {
+            result.certifiedCoupledOverflowRows =
+                overflowValidation->certified;
+            result.rejectedCoupledOverflowRows =
+                overflowValidation->rejected;
+            result.requiredCoupledOverflowRows =
+                overflowValidation->required_rows;
+            result.certifiedCoupledOverflowRowsCount =
+                overflowValidation->certified_rows;
+            result.allCoupledOverflowRowsSafe =
+                overflowValidation->all_rows_safe;
+        } else {
+            result.rejectedCoupledOverflowRows.push_back(
+                "coupled affine bounded-overflow validation unavailable");
         }
     }
     if (!memoryRelations.empty()) {
@@ -4143,6 +4167,16 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 cout << "[VOLCE LOOPSCC COUPLED ALL ENTAILED]: "
                      << (volceResult->allCoupledAffineRowsEntailed ? 1 : 0)
                      << endl;
+                cout << "[VOLCE LOOPSCC COUPLED OVERFLOW ROWS REQUIRED]: "
+                     << volceResult->requiredCoupledOverflowRows << endl;
+                cout << "[VOLCE LOOPSCC COUPLED OVERFLOW ROWS CERTIFIED]: "
+                     << volceResult->certifiedCoupledOverflowRowsCount << endl;
+                cout << "[VOLCE LOOPSCC COUPLED OVERFLOW ROWS REJECTED]: "
+                     << volceResult->rejectedCoupledOverflowRows.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC COUPLED OVERFLOW ALL SAFE]: "
+                     << (volceResult->allCoupledOverflowRowsSafe ? 1 : 0)
+                     << endl;
                 cout << "[VOLCE LOOPSCC MEMORY RELATIONS APPLIED]: "
                      << volceResult->appliedMemoryRelationSummaries.size()
                      << endl;
@@ -4216,6 +4250,20 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     resultFile << "[volce_loopscc_coupled_row_rejected]:"
                                << rejected << "\n";
                     cout << "[VOLCE LOOPSCC COUPLED ROW REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& certified :
+                     volceResult->certifiedCoupledOverflowRows) {
+                    resultFile << "[volce_loopscc_coupled_overflow_safe]:"
+                               << certified << "\n";
+                    cout << "[VOLCE LOOPSCC COUPLED OVERFLOW SAFE]: "
+                         << certified << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedCoupledOverflowRows) {
+                    resultFile << "[volce_loopscc_coupled_overflow_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC COUPLED OVERFLOW REJECTED]: "
                          << rejected << endl;
                 }
                 for (const auto& applied :

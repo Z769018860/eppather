@@ -1486,6 +1486,210 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
 }
 
 
+
+bool proveSignedIntExpressionInRange(
+    Z3_context ctx,
+    Z3_solver solver,
+    Z3_ast expression,
+    unsigned bits) {
+    if (bits < 2 || bits > 63) return false;
+    const std::int64_t magnitude =
+        static_cast<std::int64_t>(1ULL << (bits - 1));
+    const std::int64_t lower = -magnitude;
+    const std::int64_t upper = magnitude - 1;
+    Z3_sort intSort = Z3_mk_int_sort(ctx);
+    Z3_ast lo = Z3_mk_int64(ctx, lower, intSort);
+    Z3_ast hi = Z3_mk_int64(ctx, upper, intSort);
+    Z3_ast below = Z3_mk_lt(ctx, expression, lo);
+    Z3_ast above = Z3_mk_gt(ctx, expression, hi);
+    Z3_ast badArgs[2] = {below, above};
+    Z3_ast bad = Z3_mk_or(ctx, 2, badArgs);
+
+    Z3_solver_push(ctx, solver);
+    Z3_solver_assert(ctx, solver, bad);
+    const Z3_lbool check = Z3_solver_check(ctx, solver);
+    Z3_solver_pop(ctx, solver, 1);
+    return check == Z3_L_FALSE;
+}
+
+std::optional<volce::CoupledAffineOverflowValidationResult>
+validateCoupledAffineOverflowInternal(
+    const std::string& smt2,
+    const std::vector<volce::CoupledAffineRelationSummary>& summaries,
+    const volce::Range& inputRange) {
+    if (smt2.empty() || inputRange.lower > inputRange.upper) {
+        return std::nullopt;
+    }
+
+    const auto parsedDecls = parseBitVectorDecls(smt2);
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(
+        ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    assertParsedFormulas(ctx, solver, vec);
+
+    auto decls = collectZeroArityDecls(ctx, vec);
+    addDeclaredBitVectors(ctx, parsedDecls, decls);
+
+    // Apply exactly the same uniform finite-domain constraint that VolCE uses
+    // for non-SSA projected scalar inputs. Derived loop states remain governed
+    // only by the unfolded SMT equalities.
+    for (auto decl : decls) {
+        Z3_sort sort = Z3_get_range(ctx, decl);
+        const unsigned bits = getBitVectorSize(ctx, sort);
+        if (bits == 0) continue;
+        if (bits > 63 || !fitsSignedRange(bits, inputRange)) {
+            Z3_solver_dec_ref(ctx, solver);
+            Z3_del_context(ctx);
+            return std::nullopt;
+        }
+        const char* rawName =
+            Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+        const std::string name = rawName ? rawName : "";
+        if (isDerivedSsaStateName(name)) continue;
+        Z3_ast var = Z3_mk_app(ctx, decl, 0, nullptr);
+        assertBound(ctx, solver, var, inputRange);
+    }
+
+    volce::CoupledAffineOverflowValidationResult result;
+    for (const auto& summary : summaries) {
+        const std::size_t n = summary.variables.size();
+        if (n < 2 || summary.matrix.size() != n * n ||
+            summary.offset.size() != n) {
+            result.rejected.push_back(
+                "coupled affine matrix dimensions are invalid");
+            continue;
+        }
+
+        for (std::size_t row = 0; row < n; ++row) {
+            if (isIdentityCoupledRow(summary, row)) continue;
+            ++result.required_rows;
+
+            std::string targetReason;
+            auto targetStates = collectUniqueSsaStates(
+                ctx, decls, summary.variables[row], targetReason);
+            if (!targetStates || targetStates->states.size() < 2) {
+                result.rejected.push_back(
+                    "row " + std::to_string(row) + ": " +
+                    (targetReason.empty()
+                         ? summary.variables[row] +
+                               " requires a later SSA exit state"
+                         : targetReason));
+                continue;
+            }
+
+            Z3_ast targetExit = Z3_mk_app(
+                ctx, targetStates->states.back().decl, 0, nullptr);
+            Z3_sort targetSort = Z3_get_sort(ctx, targetExit);
+            const unsigned targetBits =
+                getBitVectorSize(ctx, targetSort);
+            if (targetBits < 2 || targetBits > 63) {
+                result.rejected.push_back(
+                    "row " + std::to_string(row) +
+                    ": unsupported signed target width");
+                continue;
+            }
+
+            Z3_sort intSort = Z3_mk_int_sort(ctx);
+            Z3_ast running =
+                Z3_mk_int64(ctx, 0, intSort);
+            bool safe = true;
+
+            for (std::size_t col = 0; col < n; ++col) {
+                const std::int64_t coefficient =
+                    summary.matrix[row * n + col];
+                if (coefficient == 0) continue;
+
+                std::string sourceReason;
+                auto sourceStates = collectUniqueSsaStates(
+                    ctx, decls, summary.variables[col], sourceReason);
+                if (!sourceStates) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) + ": " +
+                        sourceReason);
+                    safe = false;
+                    break;
+                }
+
+                Z3_ast entry = Z3_mk_app(
+                    ctx, sourceStates->states.front().decl,
+                    0, nullptr);
+                Z3_sort entrySort = Z3_get_sort(ctx, entry);
+                if (!Z3_is_eq_sort(ctx, targetSort, entrySort) ||
+                    !isBitVector(ctx, entrySort)) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) +
+                        ": source/target SSA sorts are incompatible");
+                    safe = false;
+                    break;
+                }
+
+                Z3_ast entryInt =
+                    Z3_mk_bv2int(ctx, entry, true);
+                Z3_ast term = entryInt;
+                if (coefficient != 1) {
+                    Z3_ast factor =
+                        Z3_mk_int64(ctx, coefficient, intSort);
+                    Z3_ast mulArgs[2] = {factor, entryInt};
+                    term = Z3_mk_mul(ctx, 2, mulArgs);
+                }
+                if (!proveSignedIntExpressionInRange(
+                        ctx, solver, term, targetBits)) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) +
+                        ": multiplication term may overflow signed target width");
+                    safe = false;
+                    break;
+                }
+
+                Z3_ast addArgs[2] = {running, term};
+                running = Z3_mk_add(ctx, 2, addArgs);
+                if (!proveSignedIntExpressionInRange(
+                        ctx, solver, running, targetBits)) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) +
+                        ": accumulated matrix sum may overflow signed target width");
+                    safe = false;
+                    break;
+                }
+            }
+            if (!safe) continue;
+
+            if (summary.offset[row] != 0) {
+                Z3_ast offset =
+                    Z3_mk_int64(ctx, summary.offset[row], intSort);
+                Z3_ast addArgs[2] = {running, offset};
+                running = Z3_mk_add(ctx, 2, addArgs);
+                if (!proveSignedIntExpressionInRange(
+                        ctx, solver, running, targetBits)) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) +
+                        ": final matrix offset may overflow signed target width");
+                    continue;
+                }
+            }
+
+            ++result.certified_rows;
+            result.certified.push_back(
+                "row " + std::to_string(row) + " " +
+                summary.variables[row] +
+                ": compressed signed arithmetic safe in bounded input domain");
+        }
+    }
+
+    result.all_rows_safe =
+        result.required_rows > 0 &&
+        result.certified_rows == result.required_rows &&
+        result.rejected.empty();
+
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
+    return result;
+}
+
 std::optional<CoupledAffineValidationResult>
 validateCoupledAffineRelationsFromSmt2(
     const std::string& smt2,
@@ -1625,6 +1829,15 @@ validateCoupledAffineRelationsFromSmt2(
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
+}
+
+std::optional<CoupledAffineOverflowValidationResult>
+validateCoupledAffineOverflowFromSmt2(
+    const std::string& smt2,
+    const std::vector<CoupledAffineRelationSummary>& summaries,
+    const Range& input_range) {
+    return validateCoupledAffineOverflowInternal(
+        smt2, summaries, input_range);
 }
 
 std::optional<MemoryRelationValidationResult>
