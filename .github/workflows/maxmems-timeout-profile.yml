@@ -1,0 +1,50 @@
+name: MaxMEMS timeout profiling
+
+concurrency:
+  group: maxmems-timeout-profile-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/maxmems-timeout-profile
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/e2e_path_validation.py'
+      - 'docs/maxmems-historical-timeout-rescue-manifest.txt'
+      - '.github/workflows/maxmems-timeout-profile.yml'
+
+jobs:
+  profile:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py
+      - name: Configure
+        run: cmake -S . -B build_profile -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_profile --target cnip -j2
+      - name: Profile one unresolved subject
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 EPPATHER_MAXMEMS_PROFILE=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_profile/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-historical-timeout-rescue-manifest.txt \
+            --expected-programs 9 \
+            --output-dir maxmems-timeout-profile-${{ matrix.shard }} \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
+            --shard-index ${{ matrix.shard }} --shard-count 9
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-timeout-profile-${{ matrix.shard }}
+          path: maxmems-timeout-profile-${{ matrix.shard }}/
