@@ -78,6 +78,7 @@ def main() -> int:
                     "id": sid, "status": "ordinary_error",
                     "ordinary_max": "", "max_only_max": "",
                     "ordinary_paths": "", "max_only_paths": "",
+                    "path_count_equal": "",
                     "detail": (p1.stderr or p1.stdout)[-500:].replace("\n", " "),
                 })
                 continue
@@ -92,30 +93,34 @@ def main() -> int:
                     "id": sid, "status": "max_only_error",
                     "ordinary_max": ordinary_max, "max_only_max": "",
                     "ordinary_paths": ordinary_paths, "max_only_paths": "",
+                    "path_count_equal": "",
                     "detail": (p2.stderr or p2.stdout)[-500:].replace("\n", " "),
                 })
                 continue
 
             fast_max, fast_paths = max_only_summary(p2.stdout, function)
-            ok = ordinary_max == fast_max and ordinary_paths == fast_paths
+            max_equal = ordinary_max == fast_max
+            path_count_equal = ordinary_paths == fast_paths
             rows.append({
                 "id": sid,
-                "status": "pass" if ok else "mismatch",
+                "status": "pass" if max_equal else "mismatch",
                 "ordinary_max": ordinary_max,
                 "max_only_max": fast_max,
                 "ordinary_paths": ordinary_paths,
                 "max_only_paths": fast_paths,
-                "detail": "" if ok else "ordinary and max-only DFS2 differ",
+                "path_count_equal": int(path_count_equal),
+                "detail": "" if max_equal else "ordinary and max-only DFS2 maximum differ",
             })
             print(
                 f"{sid}: ordinary={ordinary_max}/{ordinary_paths} "
                 f"max-only={fast_max}/{fast_paths} "
-                f"{'PASS' if ok else 'MISMATCH'}",
+                f"{'PASS' if max_equal else 'MISMATCH'} "
+                f"path-count-equal={path_count_equal}",
                 flush=True,
             )
 
     fields = ["id","status","ordinary_max","max_only_max",
-              "ordinary_paths","max_only_paths","detail"]
+              "ordinary_paths","max_only_paths","path_count_equal","detail"]
     with (out / "summary.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=fields)
         w.writeheader()
