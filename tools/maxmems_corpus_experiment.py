@@ -100,17 +100,10 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
         env = env_for(cnip)
         dp = run_cmd([str(cnip), "-g", str(src), str(max_loop)], dpw, timeout, env)
-        dfs = run_cmd([str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
-                      dfw, timeout, env)
         prog["dp_status"] = dp["status"] if dp["status"] != "ok" else str(dp["returncode"])
-        prog["dfs_status"] = dfs["status"] if dfs["status"] != "ok" else str(dfs["returncode"])
         if dp["status"] != "ok" or dp["returncode"] != 0:
             prog.update(status="dp_failed", hard_failure=1,
                         detail=(dp["stderr"] or dp["stdout"])[-500:].replace("\n", " "))
-            return prog, functions
-        if dfs["status"] != "ok" or dfs["returncode"] != 0:
-            prog.update(status="dfs_failed", hard_failure=1,
-                        detail=(dfs["stderr"] or dfs["stdout"])[-500:].replace("\n", " "))
             return prog, functions
 
         blocks = parse_dp_blocks(dp["stdout"])
@@ -118,6 +111,16 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         if not blocks:
             prog.update(status="dp_parse_error", hard_failure=1,
                         detail="no tagged MaxMEMS block in -g output")
+            return prog, functions
+
+        # Do not spend the full DFS budget when the frontend/DP stage did not
+        # produce a usable MaxMEMS result.
+        dfs = run_cmd([str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
+                      dfw, timeout, env)
+        prog["dfs_status"] = dfs["status"] if dfs["status"] != "ok" else str(dfs["returncode"])
+        if dfs["status"] != "ok" or dfs["returncode"] != 0:
+            prog.update(status="dfs_failed", hard_failure=1,
+                        detail=(dfs["stderr"] or dfs["stdout"])[-500:].replace("\n", " "))
             return prog, functions
 
         has_main = bool(re.search(r"\bmain\s*\(", source))
