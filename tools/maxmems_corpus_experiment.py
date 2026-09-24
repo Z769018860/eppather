@@ -36,6 +36,21 @@ DP_LEAF_SOLVES_RE = re.compile(r"(?m)^\[DP LEAF SOLVES\]:\s*(\d+)")
 DP_MEMO_LOOKUPS_RE = re.compile(r"(?m)^\[DP MEMO LOOKUPS\]:\s*(\d+)")
 DP_MEMO_HITS_RE = re.compile(r"(?m)^\[DP MEMO HITS\]:\s*(\d+)")
 DP_LAZY_LEAF_SKIPPED_RE = re.compile(r"(?m)^\[DP LAZY LEAF SKIPPED\]:\s*(\d+)")
+DFS_MAX_ONLY_BLOCK_RE = re.compile(
+    r"(?m)^\[DFS MAX ONLY FUNCTION\]:\s*(\S+)\s*$"
+    r"\n^\[DFS MAX ONLY MEMS\]:\s*(-?\d+)\s*$"
+    r"\n^\[DFS MAX ONLY FEASIBLE PATHS\]:\s*(\d+)\s*$"
+)
+
+def parse_dfs_max_only(text: str) -> dict[str, dict[str, int]]:
+    return {
+        m.group(1): {
+            "mems": int(m.group(2)),
+            "feasible_paths": int(m.group(3)),
+        }
+        for m in DFS_MAX_ONLY_BLOCK_RE.finditer(text)
+    }
+
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -161,7 +176,8 @@ def dfs_rows(work: Path, function: str) -> list[dict]:
 
 
 def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
-                    timeout: int, retry_timeout: int) -> tuple[dict, list[dict]]:
+                    timeout: int, retry_timeout: int,
+                    dfs_max_only_fallback: bool = False) -> tuple[dict, list[dict]]:
     source = src.read_text(encoding="utf-8-sig", errors="replace")
     prog = {
         "source": str(src), "status": "", "c_syntax_status": "", "c_syntax_detail": "",
@@ -171,6 +187,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
         "replay_error_functions": 0, "path_limit_functions": 0,
         "dp_retried": 0, "dfs_retried": 0,
+        "dfs_max_only_fallback": 0,
         "hard_failure": 0, "detail": "",
     }
     functions = []
@@ -226,10 +243,46 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
             dfs = run_cmd([str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
                           dfw, retry_timeout, env)
         prog["dfs_status"] = dfs["status"] if dfs["status"] != "ok" else str(dfs["returncode"])
+        dfs_max_only: dict[str, dict[str, int]] | None = None
         if dfs["status"] != "ok" or dfs["returncode"] != 0:
-            prog.update(status="dfs_failed", hard_failure=1,
-                        detail=(dfs["stderr"] or dfs["stdout"])[-500:].replace("\n", " "))
-            return prog, functions
+            if dfs_max_only_fallback and dfs["status"] == "timeout":
+                # Preserve ordinary DFS2 as the first oracle. Only after it
+                # exhausts its budget do we use the artifact-free max-only
+                # fallback. It still enumerates bounded paths and invokes the
+                # same feasibility solver at leaves; it merely omits per-path
+                # model/SMT/path artifacts, so replay is intentionally marked
+                # unavailable rather than silently treated as validated.
+                for p in dfw.iterdir():
+                    if p.is_file():
+                        p.unlink()
+                max_env = dict(env)
+                max_env["EPPATHER_DFS2_MAX_ONLY"] = "1"
+                fallback_timeout = retry_timeout if retry_timeout > 0 else timeout
+                dfs_fast = run_cmd(
+                    [str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
+                    dfw, fallback_timeout, max_env
+                )
+                if dfs_fast["status"] == "ok" and dfs_fast["returncode"] == 0:
+                    dfs_max_only = parse_dfs_max_only(dfs_fast["stdout"])
+                    if dfs_max_only:
+                        prog["dfs_max_only_fallback"] = 1
+                        prog["dfs_status"] = "max_only:0"
+                    else:
+                        dfs_fast = {
+                            **dfs_fast,
+                            "status": "parse_error",
+                            "stderr": "no DFS max-only summaries",
+                        }
+                if dfs_max_only is None:
+                    prog.update(
+                        status="dfs_failed", hard_failure=1,
+                        detail=(dfs_fast["stderr"] or dfs_fast["stdout"])[-500:].replace("\n", " ")
+                    )
+                    return prog, functions
+            else:
+                prog.update(status="dfs_failed", hard_failure=1,
+                            detail=(dfs["stderr"] or dfs["stdout"])[-500:].replace("\n", " "))
+                return prog, functions
 
         has_main = bool(re.search(r"\bmain\s*\(", source))
         for block in blocks:
@@ -251,6 +304,36 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                 "witness_inputs": "", "expected_branches": "", "actual_branches": "",
                 "replay_status": "not_attempted", "detail": "",
             }
+            if dfs_max_only is not None:
+                oracle = dfs_max_only.get(tag)
+                if oracle is None:
+                    row["detail"] = "DFS max-only output has no tagged function"
+                    prog["static_mismatch_functions"] += 1
+                    functions.append(row)
+                    continue
+                row["dfs_max_mems"] = oracle["mems"]
+                row["feasible_paths"] = oracle["feasible_paths"]
+                row["paths_enumerated"] = oracle["feasible_paths"]
+                row["path_limit_hit"] = int(
+                    max_paths > 0 and oracle["feasible_paths"] >= max_paths
+                )
+                prog["path_limit_functions"] += row["path_limit_hit"]
+                row["static_equal"] = int(oracle["mems"] == block["mems"])
+                row["replay_status"] = "max_only_oracle"
+                row["detail"] = (
+                    "ordinary DFS2 timed out; max-only DFS oracle used; "
+                    "no per-path model available for concrete replay"
+                )
+                if row["static_equal"]:
+                    prog["static_equal_functions"] += 1
+                else:
+                    prog["static_mismatch_functions"] += 1
+                    row["detail"] += (
+                        f"; DP {block['mems']} != DFS max-only {oracle['mems']}"
+                    )
+                functions.append(row)
+                continue
+
             rows = dfs_rows(dfw, tag)
             row["feasible_paths"] = len(rows)
             row["paths_enumerated"] = len(list(dfw.glob(f"result_{tag}_*.txt")))
@@ -394,6 +477,10 @@ def main() -> int:
     ap.add_argument("--timeout", type=int, default=120)
     ap.add_argument("--retry-timeout", type=int, default=300,
                     help="second-chance timeout used only after a timeout; <= --timeout disables retry")
+    ap.add_argument(
+        "--dfs-max-only-fallback", action="store_true",
+        help="after ordinary DFS2 times out, retry with artifact-free max-only DFS oracle"
+    )
     ap.add_argument("--shard-index", type=int, default=0)
     ap.add_argument("--shard-count", type=int, default=1)
     args = ap.parse_args()
@@ -414,7 +501,7 @@ def main() -> int:
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
                       "replay_unsupported_functions","replay_undefined_functions",
                       "replay_error_functions","path_limit_functions","dp_retried","dfs_retried",
-                      "hard_failure","detail"]
+                      "dfs_max_only_fallback","hard_failure","detail"]
     function_fields = ["source","function","dp_mems","dp_internal_mems","dp_score_delta",
                        "dfs_max_mems","feasible_paths","paths_enumerated","path_limit_hit",
                        "static_equal","witness_found","witness_inputs","expected_branches",
@@ -423,7 +510,8 @@ def main() -> int:
     for pos, src in enumerate(selected, 1):
         try:
             prog, funcs = analyze_program(
-                src, cnip, args.max_loop, args.max_paths, args.timeout, args.retry_timeout
+                src, cnip, args.max_loop, args.max_paths, args.timeout,
+                args.retry_timeout, args.dfs_max_only_fallback
             )
         except Exception as exc:
             prog = {
@@ -435,6 +523,7 @@ def main() -> int:
                 "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
                 "replay_error_functions": 0, "path_limit_functions": 0,
                 "dp_retried": 0, "dfs_retried": 0,
+                "dfs_max_only_fallback": 0,
                 "hard_failure": 1, "detail": repr(exc),
             }
             funcs = []
