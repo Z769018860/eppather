@@ -311,7 +311,50 @@ if grep -q '^\[LOOPSCC MEMORY PREEXEC CERTIFICATE\]: certified=1' "$OUT_DIR/poin
   exit 1
 fi
 
-# 8. Fixed-cell local-array writes first pass the unfolded semantic proof:
+# 8. Constant pointer alias: p=&a[1] is normalized to the same fixed-cell
+# certificate. The pointer is never reassigned, so the unfolded baseline must
+# prove relation + frame and the opt-in memory shortcut must be A/B equivalent.
+run_case pointer_alias testcase/loop_hybrid/29_spath_constant_pointer_alias.c 1 100 1
+pointer_alias_candidates="$(metric_max 'LOOPSCC MEMORY CELL TRANSITION CANDIDATES' "$OUT_DIR/pointer_alias.log")"
+pointer_alias_relations="$(metric_max 'VOLCE LOOPSCC MEMORY RELATIONS APPLIED' "$OUT_DIR/pointer_alias.log")"
+pointer_alias_frames="$(metric_max 'VOLCE LOOPSCC MEMORY FRAMES APPLIED' "$OUT_DIR/pointer_alias.log")"
+if [[ -z "$pointer_alias_candidates" || "$pointer_alias_candidates" -lt 1 ||
+      -z "$pointer_alias_relations" || "$pointer_alias_relations" -lt 1 ||
+      -z "$pointer_alias_frames" || "$pointer_alias_frames" -lt 1 ]]; then
+  echo "pointer_alias: expected fixed-cell candidate, relation and frame proof" >&2
+  cat "$OUT_DIR/pointer_alias.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC DIAGNOSTIC]: constant pointer alias: p -> a[1]' "$OUT_DIR/pointer_alias.log"; then
+  echo "pointer_alias: constant alias was not recovered" >&2
+  cat "$OUT_DIR/pointer_alias.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VALIDATION\]: attempted=1 matched=1 status_match=1 compensated_mem_match=1 ' "$OUT_DIR/pointer_alias.log"; then
+  echo "pointer_alias: compressed alias path did not preserve feasibility/MEMS" >&2
+  cat "$OUT_DIR/pointer_alias.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_match=1' "$OUT_DIR/pointer_alias.log"; then
+  echo "pointer_alias: compressed alias path changed solution space/wMEMS" >&2
+  cat "$OUT_DIR/pointer_alias.log" >&2
+  exit 1
+fi
+
+run_case pointer_alias_accel testcase/loop_hybrid/29_spath_constant_pointer_alias.c 1 100 1 0 0 1
+if ! grep -q '^\[LOOPSCC MEMORY PREEXEC CERTIFICATE\]: certified=1 ' "$OUT_DIR/pointer_alias_accel.log"; then
+  echo "pointer_alias_accel: missing constant-alias preexecution certificate" >&2
+  cat "$OUT_DIR/pointer_alias_accel.log" >&2
+  exit 1
+fi
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/pointer_alias_accel.log"; then
+  echo "pointer_alias_accel: certified constant-pointer shortcut was not used" >&2
+  cat "$OUT_DIR/pointer_alias_accel.log" >&2
+  exit 1
+fi
+compare_modes pointer_alias pointer_alias_accel
+
+# 9. Fixed-cell local-array writes first pass the unfolded semantic proof:
 # relation + frame + compensated MEMS + VolCE count/wMEMS. Then exercise the
 # independently opt-in structural memory shortcut and compare it A/B.
 run_case fixed_cell_memory testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1
@@ -357,7 +400,7 @@ if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_memor
 fi
 compare_modes fixed_cell_memory fixed_cell_memory_accel
 
-# 9. Two-cell frame: only a[0] is summarized, while a[1] carries symbolic
+# 10. Two-cell frame: only a[0] is summarized, while a[1] carries symbolic
 # input across the loop. The unfolded baseline must prove that a[1] is
 # untouched. A runtime memory-shortcut request remains blocked until that proof
 # can be made independently before DFS replacement.
@@ -391,7 +434,7 @@ if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_frame
 fi
 compare_modes fixed_cell_frame fixed_cell_frame_accel
 
-# 10. Array-writing nested loops remain conservative because their memory
+# 11. Array-writing nested loops remain conservative because their memory
 # transition is not yet alias-safe for inside-out acceleration.
 run_case nested_memory testcase/loop_hybrid/12_nested_for.c 4
 nested_memory_complete="$(sed -n 's/^\[LOOPSCC GRAPH COMPLETE\]: //p' "$OUT_DIR/nested_memory.log" | sort -n | head -1)"
@@ -415,6 +458,7 @@ echo "nested_while,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_while.log"),$(
 echo "nested_scalar,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_scalar.log"),$nested_complete,$(metric_max 'VOLCE LOOPSCC AFFINE RELATIONS APPLIED' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_scalar.log"),$(metric_max 'LOOPSCC EXACT ACCELERATION PLANS' "$OUT_DIR/nested_scalar.log")"
 echo "array_memory_probe,$array_memory_spaths,0,0,0,0,0,$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/array_memory_probe.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/array_memory_probe.log"),0"
 echo "pointer_memory_probe,$pointer_memory_spaths,0,0,0,0,0,$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/pointer_memory_probe.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/pointer_memory_probe.log"),0"
+echo "pointer_alias,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/pointer_alias.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/pointer_alias.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/pointer_alias.log"),0"
 echo "fixed_cell_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/fixed_cell_memory.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/fixed_cell_memory.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/fixed_cell_memory.log"),0"
 echo "fixed_cell_frame,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/fixed_cell_frame.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/fixed_cell_frame.log"),0"
 echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"

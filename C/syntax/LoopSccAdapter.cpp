@@ -10,6 +10,7 @@
 #include <regex>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -62,6 +63,28 @@ struct BuiltPath {
         memoryTransforms;
     std::set<std::string> unknownWrites;
 };
+
+using ConstantPointerAliasMap =
+    std::unordered_map<std::string, std::pair<std::string, long long>>;
+
+// Alias-aware analysis is opt-in and thread-local so recursive inside-out
+// analyses inherit the same immutable source-prefix alias certificate.
+thread_local const ConstantPointerAliasMap* activeConstantPointerAliases =
+    nullptr;
+
+const std::pair<std::string, long long>* constantPointerAlias(
+    const std::string& pointer) {
+    if (!activeConstantPointerAliases) return nullptr;
+    auto it = activeConstantPointerAliases->find(pointer);
+    return it == activeConstantPointerAliases->end() ? nullptr : &it->second;
+}
+
+void invalidateConstantPointerAliasWrite(
+    BuiltPath& path, const std::string& variable) {
+    if (!constantPointerAlias(variable)) return;
+    path.info.memorySummaryEffectSafe = false;
+    path.info.memoryTransitionModelComplete = false;
+}
 
 void observeMemoryAccess(BuiltPath& path,
                          const std::string& raw,
@@ -349,22 +372,26 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
 
     if (std::regex_match(text, m, postfix)) {
         composeUpdate(path, m[1].str(), 1, m[2].str() == "++" ? 1 : -1, raw);
+        invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
     }
     if (std::regex_match(text, m, prefix)) {
         composeUpdate(path, m[2].str(), 1, m[1].str() == "++" ? 1 : -1, raw);
+        invalidateConstantPointerAliasWrite(path, m[2].str());
         return true;
     }
     if (std::regex_match(text, m, compound)) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-=") value = -value;
         composeUpdate(path, m[1].str(), 1, value, raw);
+        invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
     }
     if (std::regex_match(text, m, selfAdd)) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-") value = -value;
         composeUpdate(path, m[1].str(), 1, value, raw);
+        invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
     }
     if (std::regex_match(text, m, selfNegate) ||
@@ -375,11 +402,58 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
             if (m[2].str() == "-") value = -value;
         }
         composeUpdate(path, m[1].str(), -1, value, raw);
+        invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
     }
     if (std::regex_match(text, m, constantAssign)) {
         composeUpdate(path, m[1].str(), 0, std::stoll(m[2].str()), raw);
+        invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
+    }
+
+    // Narrow constant-pointer aliases are normalized to the same fixed-cell
+    // transition representation used by direct array syntax. The alias map is
+    // recovered outside the loop from declarations such as "int *p = a;" or
+    // "int *p = &a[2];". Any in-loop reassignment of p is handled by the
+    // ordinary unknown-scalar-write path and invalidates memorySummaryEffectSafe.
+    static const std::regex pointerSelfAdd(
+        R"(^\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*\*[[:space:]]*\1[[:space:]]*([+-])[[:space:]]*([0-9]+)$)");
+    static const std::regex pointerCompound(
+        R"(^\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\+=|-=)[[:space:]]*(-?[0-9]+)$)");
+    static const std::regex pointerConstant(
+        R"(^\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)$)");
+
+    auto applyPointerCell = [&](const std::string& pointer,
+                                long long scale,
+                                long long offset) {
+        const auto* alias = constantPointerAlias(pointer);
+        if (!alias) return false;
+        if (!composeMemoryCellUpdate(
+                path, alias->first, alias->second, scale, offset)) {
+            path.info.memoryTransitionModelComplete = false;
+            path.info.memorySummaryEffectSafe = false;
+        }
+        recordWrite(path, "*memory*");
+        path.unknownWrites.insert("*memory*");
+        path.info.accelerationEffectSafe = false;
+        return true;
+    };
+
+    if (std::regex_match(text, m, pointerSelfAdd)) {
+        long long value = std::stoll(m[3].str());
+        if (m[2].str() == "-") value = -value;
+        if (applyPointerCell(m[1].str(), 1, value)) return false;
+    }
+    if (std::regex_match(text, m, pointerCompound)) {
+        long long value = std::stoll(m[3].str());
+        if (m[2].str() == "-=") value = -value;
+        if (applyPointerCell(m[1].str(), 1, value)) return false;
+    }
+    if (std::regex_match(text, m, pointerConstant)) {
+        if (applyPointerCell(
+                m[1].str(), 0, std::stoll(m[2].str()))) {
+            return false;
+        }
     }
 
     // Recognize a restricted constant-index memory transition. This only
@@ -1573,6 +1647,110 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
     provePhaseGuards(built, result);
     deriveMemorySummaryCandidates(built, result);
     deriveAccelerationPlans(loop, built, result);
+    return result;
+}
+
+
+std::vector<LoopSccConstantPointerAlias>
+LoopSccAdapter::parseConstantPointerAliases(
+    const std::string& sourcePrefix) {
+    std::vector<LoopSccConstantPointerAlias> out;
+    std::unordered_map<std::string, LoopSccConstantPointerAlias> unique;
+    std::unordered_set<std::string> ambiguous;
+
+    // First stage intentionally accepts declarations only. General assignments
+    // require dominance/lifetime reasoning and remain fallback cases.
+    static const std::regex decayDecl(
+        R"((?:^|[;{}\n])[[:space:]]*(?:const[[:space:]]+)?(?:(?:unsigned|signed)[[:space:]]+)?(?:int|long|short|char)[[:space:]]*\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*;)");
+    static const std::regex addressDecl(
+        R"((?:^|[;{}\n])[[:space:]]*(?:const[[:space:]]+)?(?:(?:unsigned|signed)[[:space:]]+)?(?:int|long|short|char)[[:space:]]*\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*&[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*([0-9]+)[[:space:]]*\][[:space:]]*;)");
+
+    auto add = [&](const std::string& pointer,
+                   const std::string& region,
+                   long long index) {
+        if (ambiguous.count(pointer)) return;
+        LoopSccConstantPointerAlias alias{pointer, region, index};
+        auto it = unique.find(pointer);
+        if (it == unique.end()) {
+            unique.emplace(pointer, std::move(alias));
+            return;
+        }
+        if (it->second.region != region || it->second.index != index) {
+            unique.erase(it);
+            ambiguous.insert(pointer);
+        } else {
+            // Multiple textual declarations of the same pointer name are
+            // scope-ambiguous for a name-only certificate.
+            unique.erase(it);
+            ambiguous.insert(pointer);
+        }
+    };
+
+    for (std::sregex_iterator it(
+             sourcePrefix.begin(), sourcePrefix.end(), addressDecl), end;
+         it != end; ++it) {
+        const std::string pointer = (*it)[1].str();
+        try {
+            add(pointer, (*it)[2].str(),
+                std::stoll((*it)[3].str()));
+        } catch (const std::out_of_range&) {
+            // An index that cannot be represented by the certificate's
+            // signed 64-bit cell index is not a constant alias we can prove.
+            // Treat it exactly like any other ambiguous/unsupported alias
+            // instead of aborting loop analysis.
+            unique.erase(pointer);
+            ambiguous.insert(pointer);
+        }
+    }
+    for (std::sregex_iterator it(
+             sourcePrefix.begin(), sourcePrefix.end(), decayDecl), end;
+         it != end; ++it) {
+        // Do not reinterpret the "&a[k]" declaration as an array-decay alias;
+        // decayDecl cannot consume '&', but keep this loop separate for clarity.
+        add((*it)[1].str(), (*it)[2].str(), 0);
+    }
+
+    out.reserve(unique.size());
+    for (const auto& entry : unique) out.push_back(entry.second);
+    std::sort(
+        out.begin(), out.end(),
+        [](const LoopSccConstantPointerAlias& lhs,
+           const LoopSccConstantPointerAlias& rhs) {
+            return lhs.pointer < rhs.pointer;
+        });
+    return out;
+}
+
+LoopSccGraphInfo LoopSccAdapter::analyzeWithConstantPointerAliases(
+    CFGNode* loop,
+    const std::string& sourcePrefix,
+    std::size_t maxPaths,
+    std::size_t maxNodesPerPath) {
+    ConstantPointerAliasMap aliases;
+    for (const auto& alias : parseConstantPointerAliases(sourcePrefix)) {
+        aliases.emplace(
+            alias.pointer,
+            std::make_pair(alias.region, alias.index));
+    }
+
+    const ConstantPointerAliasMap* previous =
+        activeConstantPointerAliases;
+    activeConstantPointerAliases = aliases.empty() ? nullptr : &aliases;
+    LoopSccGraphInfo result;
+    try {
+        result = analyze(loop, maxPaths, maxNodesPerPath);
+    } catch (...) {
+        activeConstantPointerAliases = previous;
+        throw;
+    }
+    activeConstantPointerAliases = previous;
+
+    for (const auto& alias :
+         parseConstantPointerAliases(sourcePrefix)) {
+        result.diagnostics.push_back(
+            "constant pointer alias: " + alias.pointer + " -> " +
+            alias.region + "[" + std::to_string(alias.index) + "]");
+    }
     return result;
 }
 
