@@ -24,7 +24,7 @@ jobs:
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
           EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
-          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD=1 \
+          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_combined/cnip" \
@@ -40,7 +40,7 @@ jobs:
             EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
             EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
             EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
-            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
             EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
             EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
             "${{ github.workspace }}/build_combined/cnip" -g \
