@@ -1,14 +1,14 @@
-name: MaxMEMS active timeout rescue
+name: MaxMEMS frozen timeout rescue v2
 
 concurrency:
-  group: maxmems-active-timeout-${{ github.ref }}
+  group: maxmems-frozen-timeout-v2-${{ github.ref }}
   cancel-in-progress: false
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - experiment/maxmems-prefix-pruning-rescue
+      - experiment/maxmems-timeout-freeze-v2-20260924
     paths:
       - 'C/syntax/SyntaxNamePrinter.cpp'
       - 'C/syntax/SyntaxNamePrinter.h'
