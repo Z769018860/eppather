@@ -39,8 +39,7 @@ jobs:
           EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=128 \
           EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
           EPPATHER_MAXMEMS_SEED_GREEDY=1 \
-            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=8 \
-          EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
+            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
           EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
           EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
           python3 tools/maxmems_witness_experiment.py \
@@ -65,9 +64,7 @@ jobs:
           EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=128 \
             EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
             EPPATHER_MAXMEMS_SEED_GREEDY=1 \
-            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=8 \
-            EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
-          EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
+            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
             EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
             "${{ github.workspace }}/build_candidate/cnip" -g \
             "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
