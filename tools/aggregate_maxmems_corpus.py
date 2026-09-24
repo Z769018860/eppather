@@ -49,11 +49,50 @@ def main():
         and r.get("status") not in ("dp_failed","dfs_failed","dp_parse_error")
         for r in programs
     )
+    analyzed_programs=sum(int(r.get("functions_checked") or 0)>0 for r in programs)
+    valid_c_programs=sum(r.get("c_syntax_status")=="valid" for r in programs)
+    invalid_c_programs=sum(r.get("c_syntax_status")=="invalid" for r in programs)
+    syntax_timeout_programs=sum(r.get("c_syntax_status")=="timeout" for r in programs)
+    dp_timeout_programs=sum(r.get("status")=="dp_failed" and r.get("dp_status")=="timeout" for r in programs)
+    dfs_timeout_programs=sum(r.get("status")=="dfs_failed" and r.get("dfs_status")=="timeout" for r in programs)
+    dp_parse_error_programs=sum(r.get("status")=="dp_parse_error" for r in programs)
+    true_static_mismatch_programs=sum(int(r.get("static_mismatch_functions") or 0)>0 for r in programs)
+    replay_mismatch_programs=sum(
+        int(r.get("static_mismatch_functions") or 0)==0
+        and any(f.get("source")==r.get("source") and f.get("replay_status")=="mismatch" for f in functions)
+        for r in programs
+    )
+    retry_attempted_programs=sum(
+        r.get("dp_retried")=="1" or r.get("dfs_retried")=="1" for r in programs
+    )
+    retry_rescued_programs=sum(
+        (r.get("dp_retried")=="1" or r.get("dfs_retried")=="1")
+        and r.get("status") not in ("dp_failed","dfs_failed") for r in programs
+    )
+    delta_known=[r for r in functions if str(r.get("dp_score_delta","")).strip()!=""]
+    delta_nonzero=sum(int(r.get("dp_score_delta") or 0)!=0 for r in delta_known)
+    replay_status_counts={}
+    for r in functions:
+        st=r.get("replay_status") or "missing"
+        replay_status_counts[st]=replay_status_counts.get(st,0)+1
     summary={
         "expected_programs":args.expected_programs,
         "programs_collected":len(programs),
         "unique_programs":len(program_sources),
+        "valid_c_programs":valid_c_programs,
+        "invalid_c_programs":invalid_c_programs,
+        "syntax_timeout_programs":syntax_timeout_programs,
+        "analyzed_programs":analyzed_programs,
         "static_equal_programs":len(static_equal),
+        "static_equal_rate_all":(len(static_equal)/args.expected_programs if args.expected_programs else 0.0),
+        "static_equal_rate_analyzed":(len(static_equal)/analyzed_programs if analyzed_programs else 0.0),
+        "true_static_mismatch_programs":true_static_mismatch_programs,
+        "replay_only_mismatch_programs":replay_mismatch_programs,
+        "dp_timeout_programs":dp_timeout_programs,
+        "dfs_timeout_programs":dfs_timeout_programs,
+        "dp_parse_error_programs":dp_parse_error_programs,
+        "retry_attempted_programs":retry_attempted_programs,
+        "retry_rescued_programs":retry_rescued_programs,
         "hard_failure_programs":len(hard),
         "full_replay_programs":len(full),
         "partial_replay_programs":len(partial),
@@ -69,6 +108,11 @@ def main():
         "replay_undefined_functions":replay_undefined,
         "replay_error_functions":replay_error,
         "replay_mismatch_functions":replay_mismatch,
+        "dp_score_delta_known_functions":len(delta_known),
+        "dp_score_delta_nonzero_functions":delta_nonzero,
+        "replay_status_counts":replay_status_counts,
+        "historical_20260509_static_equal_programs":145,
+        "gain_vs_20260509_static_equal_programs":len(static_equal)-145,
     }
     for name, rows in (("programs.csv",programs),("functions.csv",functions)):
         if rows:
@@ -89,7 +133,19 @@ def main():
     (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
     md=["# MaxMEMS 266-program corpus validation","",
         f"- Programs collected: **{summary['programs_collected']} / {args.expected_programs}**",
-        f"- Programs with DP/DFS equality (including capped DFS where applicable): **{summary['static_equal_programs']}**",
+        f"- GNU C syntax-valid normalized programs: **{summary['valid_c_programs']}**",
+        f"- GNU C syntax-invalid normalized programs: **{summary['invalid_c_programs']}**",
+        f"- Programs reaching function-level DP/DFS comparison: **{summary['analyzed_programs']}**",
+        f"- Programs with DP/DFS equality (including capped DFS where applicable): **{summary['static_equal_programs']}** "
+        f"({summary['static_equal_rate_all']:.1%} of frozen corpus; {summary['static_equal_rate_analyzed']:.1%} of analyzed programs)",
+        f"- Historical 2026-05-09 DP=DFS baseline: **145 / 266**; current gain: **{summary['gain_vs_20260509_static_equal_programs']:+d}**",
+        f"- True static-mismatch programs: **{summary['true_static_mismatch_programs']}**",
+        f"- Replay-only mismatch programs: **{summary['replay_only_mismatch_programs']}**",
+        f"- DP timeout programs after retry: **{summary['dp_timeout_programs']}**",
+        f"- DFS timeout programs after retry: **{summary['dfs_timeout_programs']}**",
+        f"- DP parse-error programs: **{summary['dp_parse_error_programs']}**",
+        f"- Retry attempted/rescued programs: **{summary['retry_attempted_programs']} / {summary['retry_rescued_programs']}**",
+        f"- Non-zero DP score-delta diagnostics: **{summary['dp_score_delta_nonzero_functions']} / {summary['dp_score_delta_known_functions']}**",
         f"- Hard-failure programs: **{summary['hard_failure_programs']}**",
         f"- Full concrete-replay programs: **{summary['full_replay_programs']}**",
         f"- Partial concrete-replay programs: **{summary['partial_replay_programs']}**",
