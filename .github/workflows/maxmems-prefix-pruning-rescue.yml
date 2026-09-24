@@ -12,8 +12,8 @@ on:
     paths:
       - 'C/syntax/SyntaxNamePrinter.cpp'
       - 'C/syntax/SyntaxNamePrinter.h'
-      - 'C/syntax/EpatRunner.h'
       - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
       - 'tools/maxmems_corpus_experiment.py'
       - 'tools/maxmems_witness_experiment.py'
       - 'tools/e2e_path_validation.py'
@@ -33,9 +33,11 @@ jobs:
         run: cmake -S . -B build_prefix_witness -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_prefix_witness --target cnip -j2
-      - name: Run 20-case witness gate with prefix pruning
+      - name: Run 20-case witness gate
         run: |
-          EPPATHER_PREFIX_FEASIBILITY=1 EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_prefix_witness/cnip" \
             --output-dir maxmems-prefix-witness-results
@@ -46,12 +48,8 @@ jobs:
           path: maxmems-prefix-witness-results/
 
   baseline-rescue:
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Validate harness
@@ -60,7 +58,7 @@ jobs:
         run: cmake -S . -B build_baseline_rescue -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_baseline_rescue --target cnip -j2
-      - name: Run one subject with current baseline
+      - name: Run current baseline on all 9 timeout subjects
         run: |
           EPPATHER_MAXMEMS_CORE_ONLY=1 \
           python3 tools/maxmems_corpus_experiment.py \
@@ -68,66 +66,58 @@ jobs:
             --corpus testcase/output_complete2 \
             --manifest docs/maxmems-historical-timeout-rescue-manifest.txt \
             --expected-programs 9 \
-            --output-dir maxmems-baseline-rescue-${{ matrix.shard }} \
-            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
-            --shard-index ${{ matrix.shard }} --shard-count 9
+            --output-dir maxmems-baseline-rescue \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: maxmems-baseline-rescue-${{ matrix.shard }}
-          path: maxmems-baseline-rescue-${{ matrix.shard }}/
+          name: maxmems-baseline-rescue
+          path: maxmems-baseline-rescue/
 
-  prefix-rescue:
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+  optimized-rescue:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - name: Validate harness
         run: python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py
       - name: Configure
-        run: cmake -S . -B build_prefix_rescue -DANALYSIS_BACKEND=epat++
+        run: cmake -S . -B build_optimized_rescue -DANALYSIS_BACKEND=epat++
       - name: Build cnip
-        run: cmake --build build_prefix_rescue --target cnip -j2
-      - name: Run one subject with prefix pruning
+        run: cmake --build build_optimized_rescue --target cnip -j2
+      - name: Run optimized search on all 9 timeout subjects
         run: |
-          EPPATHER_PREFIX_FEASIBILITY=1 EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           python3 tools/maxmems_corpus_experiment.py \
-            --cnip "${{ github.workspace }}/build_prefix_rescue/cnip" \
+            --cnip "${{ github.workspace }}/build_optimized_rescue/cnip" \
             --corpus testcase/output_complete2 \
             --manifest docs/maxmems-historical-timeout-rescue-manifest.txt \
             --expected-programs 9 \
-            --output-dir maxmems-prefix-rescue-${{ matrix.shard }} \
-            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
-            --shard-index ${{ matrix.shard }} --shard-count 9
+            --output-dir maxmems-prefix-rescue \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: maxmems-prefix-rescue-${{ matrix.shard }}
-          path: maxmems-prefix-rescue-${{ matrix.shard }}/
-
+          name: maxmems-prefix-rescue
+          path: maxmems-prefix-rescue/
 
   compare:
-    needs: [witness-gate, baseline-rescue, prefix-rescue]
+    needs: [witness-gate, baseline-rescue, optimized-rescue]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: maxmems-baseline-rescue-*
+          name: maxmems-baseline-rescue
           path: baseline
-          merge-multiple: true
       - uses: actions/download-artifact@v4
         with:
-          pattern: maxmems-prefix-rescue-*
+          name: maxmems-prefix-rescue
           path: prefix
-          merge-multiple: true
-      - name: Compare baseline and prefix pruning
+      - name: Compare baseline and optimized search
         run: |
           python3 tools/compare_maxmems_prefix_rescue.py \
             --baseline baseline --prefix prefix \
