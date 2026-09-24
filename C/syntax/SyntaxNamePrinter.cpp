@@ -2902,6 +2902,8 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // 为 T/F 分支分别保存快照
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
+        const auto exactStableTrip =
+            exactStableForTripCount(node.get(), maxloop);
 
         // Fixed-cell memory shortcut. This is separately opt-in and stricter
         // than scalar acceleration: every memory relation must be a fixed cell
@@ -3121,7 +3123,10 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         }
 
         // False：@(!(cond)) → 走 CFG 的 false 边（join/end）
-        {
+        // A certified stable affine induction variable cannot satisfy the
+        // exit guard before its proved trip count. Break/return edges leave
+        // through the body CFG and remain fully represented.
+        if (!exactStableTrip || snap_lc[d] >= *exactStableTrip) {
             auto        cov_f = snap_cov;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
