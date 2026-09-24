@@ -49,6 +49,12 @@ struct AffineTransform {
     bool exact{true};
 };
 
+struct LinearExpr {
+    std::map<std::string, long long> coefficients;
+    long long constant{0};
+    bool exact{true};
+};
+
 struct GuardConstraint {
     std::string variable;
     Interval interval;
@@ -61,6 +67,9 @@ struct BuiltPath {
     std::map<std::string, AffineTransform> transforms;
     std::map<std::pair<std::string, long long>, AffineTransform>
         memoryTransforms;
+    // Entry-state expressions for sequential scalar linear assignments.
+    std::map<std::string, LinearExpr> coupledState;
+    std::set<std::string> coupledVariables;
     std::set<std::string> unknownWrites;
 };
 
@@ -84,6 +93,7 @@ void invalidateConstantPointerAliasWrite(
     if (!constantPointerAlias(variable)) return;
     path.info.memorySummaryEffectSafe = false;
     path.info.memoryTransitionModelComplete = false;
+    path.info.coupledAffineEffectSafe = false;
 }
 
 void observeMemoryAccess(BuiltPath& path,
@@ -284,6 +294,155 @@ void recordWrite(BuiltPath& path, const std::string& variable) {
     }
 }
 
+
+bool checkedLinearAccumulate(long long& target, __int128 delta) {
+    const __int128 value =
+        static_cast<__int128>(target) + delta;
+    if (value < std::numeric_limits<long long>::min() ||
+        value > std::numeric_limits<long long>::max()) {
+        return false;
+    }
+    target = static_cast<long long>(value);
+    return true;
+}
+
+bool parseLinearRhs(
+    const std::string& raw,
+    std::map<std::string, long long>& coefficients,
+    long long& constant) {
+    std::string text;
+    text.reserve(raw.size());
+    for (unsigned char ch : raw) {
+        if (std::isspace(ch) == 0) text.push_back(static_cast<char>(ch));
+    }
+    if (text.empty()) return false;
+
+    static const std::regex identifier(
+        R"(^[A-Za-z_][A-Za-z0-9_]*$)");
+    static const std::regex integer(
+        R"(^[0-9]+$)");
+    static const std::regex intTimesVar(
+        R"(^([0-9]+)\*([A-Za-z_][A-Za-z0-9_]*)$)");
+    static const std::regex varTimesInt(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)\*([0-9]+)$)");
+
+    std::size_t pos = 0;
+    while (pos < text.size()) {
+        int sign = 1;
+        if (text[pos] == '+' || text[pos] == '-') {
+            sign = text[pos] == '-' ? -1 : 1;
+            ++pos;
+        }
+        if (pos >= text.size()) return false;
+
+        const std::size_t begin = pos;
+        while (pos < text.size() &&
+               text[pos] != '+' && text[pos] != '-') {
+            ++pos;
+        }
+        const std::string term = text.substr(begin, pos - begin);
+        if (term.empty()) return false;
+
+        std::smatch match;
+        try {
+            if (std::regex_match(term, identifier)) {
+                auto& coeff = coefficients[term];
+                if (!checkedLinearAccumulate(coeff, sign)) return false;
+            } else if (std::regex_match(term, integer)) {
+                const long long value = std::stoll(term);
+                if (!checkedLinearAccumulate(
+                        constant,
+                        static_cast<__int128>(sign) * value)) {
+                    return false;
+                }
+            } else if (std::regex_match(term, match, intTimesVar)) {
+                const long long value = std::stoll(match[1].str());
+                auto& coeff = coefficients[match[2].str()];
+                if (!checkedLinearAccumulate(
+                        coeff,
+                        static_cast<__int128>(sign) * value)) {
+                    return false;
+                }
+            } else if (std::regex_match(term, match, varTimesInt)) {
+                const long long value = std::stoll(match[2].str());
+                auto& coeff = coefficients[match[1].str()];
+                if (!checkedLinearAccumulate(
+                        coeff,
+                        static_cast<__int128>(sign) * value)) {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } catch (const std::out_of_range&) {
+            return false;
+        }
+    }
+
+    for (auto it = coefficients.begin();
+         it != coefficients.end();) {
+        if (it->second == 0) it = coefficients.erase(it);
+        else ++it;
+    }
+    return true;
+}
+
+LinearExpr identityLinearExpr(const std::string& variable) {
+    LinearExpr out;
+    out.coefficients[variable] = 1;
+    return out;
+}
+
+bool addScaledLinearExpr(
+    LinearExpr& target,
+    const LinearExpr& source,
+    long long scale) {
+    if (!source.exact) return false;
+    if (!checkedLinearAccumulate(
+            target.constant,
+            static_cast<__int128>(scale) * source.constant)) {
+        return false;
+    }
+    for (const auto& entry : source.coefficients) {
+        auto& coeff = target.coefficients[entry.first];
+        if (!checkedLinearAccumulate(
+                coeff,
+                static_cast<__int128>(scale) * entry.second)) {
+            return false;
+        }
+        if (coeff == 0) target.coefficients.erase(entry.first);
+    }
+    return true;
+}
+
+bool composeCoupledAssignment(
+    BuiltPath& path,
+    const std::string& lhs,
+    const std::string& rhs) {
+    std::map<std::string, long long> rawCoefficients;
+    long long rawConstant = 0;
+    if (!parseLinearRhs(rhs, rawCoefficients, rawConstant)) {
+        return false;
+    }
+
+    LinearExpr result;
+    result.constant = rawConstant;
+    for (const auto& entry : rawCoefficients) {
+        const auto current = path.coupledState.find(entry.first);
+        const LinearExpr source =
+            current == path.coupledState.end()
+                ? identityLinearExpr(entry.first)
+                : current->second;
+        if (!addScaledLinearExpr(result, source, entry.second)) {
+            return false;
+        }
+        path.coupledVariables.insert(entry.first);
+    }
+    path.coupledVariables.insert(lhs);
+    path.coupledState[lhs] = std::move(result);
+    return true;
+}
+
 void composeUpdate(BuiltPath& path,
                    const std::string& variable,
                    long long scale,
@@ -369,20 +528,52 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)$)");
     static const std::regex simpleAssign(
         R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=.*$)");
+    static const std::regex scalarAssignCapture(
+        R"(^([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(.+)$)");
+
+    bool coupledAssignmentSeen = false;
+    bool coupledAssignmentExact = false;
+    std::smatch coupledMatch;
+    if (std::regex_match(text, coupledMatch, scalarAssignCapture)) {
+        coupledAssignmentSeen = true;
+        coupledAssignmentExact = composeCoupledAssignment(
+            path, coupledMatch[1].str(), coupledMatch[2].str());
+        if (!coupledAssignmentExact) {
+            path.info.coupledAffineEffectSafe = false;
+        }
+    }
 
     if (std::regex_match(text, m, postfix)) {
-        composeUpdate(path, m[1].str(), 1, m[2].str() == "++" ? 1 : -1, raw);
+        const long long delta = m[2].str() == "++" ? 1 : -1;
+        if (!composeCoupledAssignment(
+                path, m[1].str(),
+                m[1].str() + (delta > 0 ? "+" : "-") + "1")) {
+            path.info.coupledAffineEffectSafe = false;
+        }
+        composeUpdate(path, m[1].str(), 1, delta, raw);
         invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
     }
     if (std::regex_match(text, m, prefix)) {
-        composeUpdate(path, m[2].str(), 1, m[1].str() == "++" ? 1 : -1, raw);
+        const long long delta = m[1].str() == "++" ? 1 : -1;
+        if (!composeCoupledAssignment(
+                path, m[2].str(),
+                m[2].str() + (delta > 0 ? "+" : "-") + "1")) {
+            path.info.coupledAffineEffectSafe = false;
+        }
+        composeUpdate(path, m[2].str(), 1, delta, raw);
         invalidateConstantPointerAliasWrite(path, m[2].str());
         return true;
     }
     if (std::regex_match(text, m, compound)) {
         long long value = std::stoll(m[3].str());
         if (m[2].str() == "-=") value = -value;
+        if (!composeCoupledAssignment(
+                path, m[1].str(),
+                m[1].str() + (value >= 0 ? "+" : "") +
+                    std::to_string(value))) {
+            path.info.coupledAffineEffectSafe = false;
+        }
         composeUpdate(path, m[1].str(), 1, value, raw);
         invalidateConstantPointerAliasWrite(path, m[1].str());
         return true;
@@ -436,6 +627,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
+        path.info.coupledAffineEffectSafe = false;
         return true;
     };
 
@@ -486,6 +678,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
+        path.info.coupledAffineEffectSafe = false;
         return false;
     }
     if (std::regex_match(text, m, cellCompound)) {
@@ -498,6 +691,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
+        path.info.coupledAffineEffectSafe = false;
         return false;
     }
     if (std::regex_match(text, m, cellConstant)) {
@@ -509,6 +703,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
+        path.info.coupledAffineEffectSafe = false;
         return false;
     }
 
@@ -522,6 +717,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         recordWrite(path, "*memory*");
         path.unknownWrites.insert("*memory*");
         path.info.accelerationEffectSafe = false;
+        path.info.coupledAffineEffectSafe = false;
         return false;
     }
 
@@ -529,6 +725,9 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
         markUnknownWrite(path, m[1].str(), raw);
         path.info.accelerationEffectSafe = false;
         path.info.memorySummaryEffectSafe = false;
+        if (!coupledAssignmentSeen || !coupledAssignmentExact) {
+            path.info.coupledAffineEffectSafe = false;
+        }
         return false;
     }
 
@@ -538,6 +737,7 @@ bool parseUpdate(BuiltPath& path, const std::string& raw) {
     // SPath information, but never use such a path for acceleration.
     path.info.accelerationEffectSafe = false;
     path.info.memorySummaryEffectSafe = false;
+    path.info.coupledAffineEffectSafe = false;
     return false;
 }
 
@@ -887,6 +1087,307 @@ void provePhaseGuards(const std::vector<BuiltPath>& built,
         if (!proved) {
             cycle.diagnostics.push_back(
                 "phase guard inclusion proof failed; shortcut disabled");
+        }
+    }
+}
+
+
+struct DenseAffine {
+    std::size_t n{0};
+    std::vector<long long> matrix;
+    std::vector<long long> offset;
+    bool exact{true};
+};
+
+DenseAffine denseIdentity(std::size_t n) {
+    DenseAffine out;
+    out.n = n;
+    out.matrix.assign(n * n, 0);
+    out.offset.assign(n, 0);
+    for (std::size_t i = 0; i < n; ++i) {
+        out.matrix[i * n + i] = 1;
+    }
+    return out;
+}
+
+bool checkedDenseAccumulate(long long& total, __int128 term) {
+    const __int128 value =
+        static_cast<__int128>(total) + term;
+    if (value < std::numeric_limits<long long>::min() ||
+        value > std::numeric_limits<long long>::max()) {
+        return false;
+    }
+    total = static_cast<long long>(value);
+    return true;
+}
+
+bool checkedDenseCompose(
+    const DenseAffine& after,
+    const DenseAffine& before,
+    DenseAffine& out) {
+    if (!after.exact || !before.exact ||
+        after.n == 0 || after.n != before.n) {
+        return false;
+    }
+    const std::size_t n = after.n;
+    DenseAffine result = denseIdentity(n);
+    std::fill(result.matrix.begin(), result.matrix.end(), 0);
+    std::fill(result.offset.begin(), result.offset.end(), 0);
+
+    for (std::size_t i = 0; i < n; ++i) {
+        for (std::size_t j = 0; j < n; ++j) {
+            long long value = 0;
+            for (std::size_t k = 0; k < n; ++k) {
+                const __int128 term =
+                    static_cast<__int128>(
+                        after.matrix[i * n + k]) *
+                    before.matrix[k * n + j];
+                if (!checkedDenseAccumulate(value, term)) {
+                    return false;
+                }
+            }
+            result.matrix[i * n + j] = value;
+        }
+
+        long long bias = after.offset[i];
+        for (std::size_t k = 0; k < n; ++k) {
+            const __int128 term =
+                static_cast<__int128>(
+                    after.matrix[i * n + k]) *
+                before.offset[k];
+            if (!checkedDenseAccumulate(bias, term)) {
+                return false;
+            }
+        }
+        result.offset[i] = bias;
+    }
+
+    out = std::move(result);
+    return true;
+}
+
+bool densePower(
+    DenseAffine base,
+    long long exponent,
+    DenseAffine& out) {
+    if (exponent < 0 || !base.exact || base.n == 0) return false;
+    DenseAffine result = denseIdentity(base.n);
+    while (exponent > 0) {
+        if ((exponent & 1LL) != 0) {
+            DenseAffine next;
+            if (!checkedDenseCompose(base, result, next)) {
+                return false;
+            }
+            result = std::move(next);
+        }
+        exponent >>= 1;
+        if (exponent == 0) break;
+        DenseAffine squared;
+        if (!checkedDenseCompose(base, base, squared)) {
+            return false;
+        }
+        base = std::move(squared);
+    }
+    out = std::move(result);
+    return true;
+}
+
+bool denseFromPath(
+    const BuiltPath& path,
+    const std::vector<std::string>& variables,
+    DenseAffine& out) {
+    if (variables.empty()) return false;
+    std::unordered_map<std::string, std::size_t> index;
+    for (std::size_t i = 0; i < variables.size(); ++i) {
+        index.emplace(variables[i], i);
+    }
+
+    DenseAffine result = denseIdentity(variables.size());
+    for (std::size_t row = 0; row < variables.size(); ++row) {
+        const auto state = path.coupledState.find(variables[row]);
+        if (state == path.coupledState.end()) continue;
+        if (!state->second.exact) return false;
+
+        for (std::size_t col = 0; col < variables.size(); ++col) {
+            result.matrix[row * variables.size() + col] = 0;
+        }
+        for (const auto& coefficient :
+             state->second.coefficients) {
+            const auto col = index.find(coefficient.first);
+            if (col == index.end()) return false;
+            result.matrix[
+                row * variables.size() + col->second] =
+                    coefficient.second;
+        }
+        result.offset[row] = state->second.constant;
+    }
+    out = std::move(result);
+    return true;
+}
+
+bool hasCrossVariableCoefficient(const DenseAffine& transform) {
+    for (std::size_t row = 0; row < transform.n; ++row) {
+        for (std::size_t col = 0; col < transform.n; ++col) {
+            if (row != col &&
+                transform.matrix[row * transform.n + col] != 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+void deriveCoupledAffineCandidates(
+    const std::vector<BuiltPath>& built,
+    LoopSccGraphInfo& result) {
+    if (!result.complete || result.provedTripCount < 0) return;
+
+    constexpr std::size_t kMaxCoupledVariables = 4;
+    for (std::size_t cycleIndex = 0;
+         cycleIndex < result.cycles.size(); ++cycleIndex) {
+        const auto& cycle = result.cycles[cycleIndex];
+        if (!cycle.determinate || !cycle.phaseGuardsProved ||
+            cycle.period == 0 ||
+            cycle.spathOrder.size() != cycle.period) {
+            continue;
+        }
+
+        std::set<std::string> variableSet;
+        bool safe = true;
+        for (std::size_t pathId : cycle.spathOrder) {
+            if (pathId >= built.size()) {
+                safe = false;
+                break;
+            }
+            const auto& path = built[pathId];
+            if (!path.info.coupledAffineEffectSafe ||
+                !path.info.guardModelComplete ||
+                path.info.writesMemory ||
+                path.info.observedMems != 0) {
+                safe = false;
+                break;
+            }
+            variableSet.insert(
+                path.coupledVariables.begin(),
+                path.coupledVariables.end());
+        }
+        if (!safe ||
+            variableSet.size() < 2 ||
+            variableSet.size() > kMaxCoupledVariables) {
+            continue;
+        }
+
+        std::vector<std::string> variables(
+            variableSet.begin(), variableSet.end());
+        std::unordered_map<std::size_t, DenseAffine> pathTransforms;
+        for (std::size_t pathId : cycle.spathOrder) {
+            DenseAffine transform;
+            if (!denseFromPath(
+                    built[pathId], variables, transform)) {
+                safe = false;
+                break;
+            }
+            pathTransforms.emplace(
+                pathId, std::move(transform));
+        }
+        if (!safe) continue;
+
+        const long long fullPeriods =
+            result.provedTripCount /
+            static_cast<long long>(cycle.period);
+        const std::size_t residual =
+            static_cast<std::size_t>(
+                result.provedTripCount %
+                static_cast<long long>(cycle.period));
+
+        for (std::size_t entryPhase = 0;
+             entryPhase < cycle.period; ++entryPhase) {
+            DenseAffine onePeriod =
+                denseIdentity(variables.size());
+            bool exact = true;
+            for (std::size_t step = 0;
+                 step < cycle.period; ++step) {
+                const std::size_t pathId =
+                    cycle.spathOrder[
+                        (entryPhase + step) % cycle.period];
+                auto it = pathTransforms.find(pathId);
+                if (it == pathTransforms.end()) {
+                    exact = false;
+                    break;
+                }
+                DenseAffine next;
+                if (!checkedDenseCompose(
+                        it->second, onePeriod, next)) {
+                    exact = false;
+                    break;
+                }
+                onePeriod = std::move(next);
+            }
+            if (!exact ||
+                !hasCrossVariableCoefficient(onePeriod)) {
+                continue;
+            }
+
+            DenseAffine accumulated;
+            if (!densePower(
+                    onePeriod, fullPeriods, accumulated)) {
+                continue;
+            }
+            for (std::size_t r = 0; r < residual; ++r) {
+                const std::size_t pathId =
+                    cycle.spathOrder[
+                        (entryPhase + r) % cycle.period];
+                auto it = pathTransforms.find(pathId);
+                if (it == pathTransforms.end()) {
+                    exact = false;
+                    break;
+                }
+                DenseAffine next;
+                if (!checkedDenseCompose(
+                        it->second, accumulated, next)) {
+                    exact = false;
+                    break;
+                }
+                accumulated = std::move(next);
+            }
+            if (!exact) continue;
+
+            LoopSccCoupledAffineCandidate candidate;
+            candidate.cycleIndex = cycleIndex;
+            candidate.entryPhase = entryPhase;
+            candidate.period = cycle.period;
+            candidate.totalIterations = result.provedTripCount;
+            candidate.completePeriods = fullPeriods;
+            candidate.residualPhases = residual;
+            candidate.closedForm.variables = variables;
+            candidate.closedForm.matrix =
+                accumulated.matrix;
+            candidate.closedForm.offset =
+                accumulated.offset;
+
+            std::set<int> coverage;
+            if (fullPeriods > 0) {
+                for (std::size_t pathId : cycle.spathOrder) {
+                    coverage.insert(
+                        built[pathId].info.coverageSlots.begin(),
+                        built[pathId].info.coverageSlots.end());
+                }
+            }
+            for (std::size_t r = 0; r < residual; ++r) {
+                const std::size_t pathId =
+                    cycle.spathOrder[
+                        (entryPhase + r) % cycle.period];
+                coverage.insert(
+                    built[pathId].info.coverageSlots.begin(),
+                    built[pathId].info.coverageSlots.end());
+            }
+            candidate.coverageSlots.assign(
+                coverage.begin(), coverage.end());
+            candidate.exact = true;
+            candidate.diagnostics.push_back(
+                "structural-only coupled affine matrix; runtime shortcut disabled");
+            result.coupledAffineCandidates.push_back(
+                std::move(candidate));
         }
     }
 }
@@ -1918,6 +2419,7 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
         built, graph, tarjan.components, componentOf, result);
     deriveUniformTripCount(loop, built, result);
     provePhaseGuards(built, result);
+    deriveCoupledAffineCandidates(built, result);
     deriveMemorySummaryCandidates(built, result);
     deriveAccelerationPlans(loop, built, result);
     return result;
