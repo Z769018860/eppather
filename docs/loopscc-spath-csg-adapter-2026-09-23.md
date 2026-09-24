@@ -133,3 +133,7 @@ The next LoopSCC work is:
 
 Until memory-transition proofs are implemented, array/pointer loops remain
 fallback cases even when their MEMS observations are precise.
+
+### Fixed-memory shortcut safety gate (2026-09-24)
+
+Fixed-cell local-array summaries now support exact structural T^k composition, explicit MEMS compensation, VolCE memory-relation entailment, and untouched-region frame validation. These memory summaries remain **validation-only** in DFS: requesting `EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1` is conservatively blocked until the relation and frame certificates can be established independently before loop replacement. Pointer, symbolic-index, cross-cell, ambiguous-region, VLA/unknown-region, and opaque effects continue to fall back to unfolding.
