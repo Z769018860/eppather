@@ -1404,6 +1404,18 @@ epat::result EpatRunner::checkFeasible(
         auto root = epat::Root::fromString(script);
         auto solver = epat::Solver::create(std::move(root));
         solver->setCollectArtifacts(false);
+        if (const char* timeoutRaw =
+                std::getenv("EPPATHER_PREFIX_SOLVER_TIMEOUT_MS")) {
+            char* end = nullptr;
+            const unsigned long parsed =
+                std::strtoul(timeoutRaw, &end, 10);
+            if (end != timeoutRaw && *end == '\0' && parsed > 0) {
+                solver->setTimeoutMs(static_cast<unsigned>(
+                    std::min<unsigned long>(
+                        parsed,
+                        std::numeric_limits<unsigned>::max())));
+            }
+        }
         status = solver->feasible();
     } catch (const std::exception&) {
         status = epat::result::unknown;
