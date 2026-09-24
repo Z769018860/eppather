@@ -4320,6 +4320,33 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const auto eval = lightLeaf
             ? runner.solveMemsOnly(curDecisions)
             : runner.solve(curDecisions);
+
+        const char* leafDiagRaw =
+            std::getenv("EPPATHER_MAXMEMS_LEAF_DIAGNOSTIC_LIMIT");
+        if (leafDiagRaw && *leafDiagRaw) {
+            char* end = nullptr;
+            const unsigned long long limit =
+                std::strtoull(leafDiagRaw, &end, 10);
+            if (end != leafDiagRaw && *end == '\0' &&
+                maxMemsLeafSolves <= limit) {
+                static const EpatRunner rawRunner("");
+                const std::string diagPath = rawRunner.render(curDecisions);
+                const std::size_t keep = 1800;
+                const std::string tail = diagPath.size() > keep
+                    ? diagPath.substr(diagPath.size() - keep)
+                    : diagPath;
+                std::cerr << "[DP LEAF DIAG]: leaf="
+                          << maxMemsLeafSolves
+                          << " status=" << static_cast<int>(eval.status)
+                          << " mem=" << eval.mem
+                          << " decisions=" << curDecisions.size()
+                          << "\n[DP LEAF PATH TAIL]\n"
+                          << tail
+                          << "\n[DP LEAF PATH END]"
+                          << std::endl;
+            }
+        }
+
         if (eval.status != result::feasible) {
             return store(PathInfo(0, decisionOnlyPath ? std::string{} : curPath, false));
         }
