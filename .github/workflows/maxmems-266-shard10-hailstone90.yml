@@ -1,0 +1,43 @@
+name: MaxMEMS shard10 hailstone 90s diagnostic
+
+concurrency:
+  group: maxmems-shard10-hailstone90-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - '.github/workflows/maxmems-266-shard10-hailstone90.yml'
+
+jobs:
+  hailstone90:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_hailstone90 -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_hailstone90 --target cnip -j2
+      - name: Run hailstone with one 90s attempt
+        continue-on-error: true
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_hailstone90/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir maxmems-shard10-hailstone90 \
+            --manifest docs/maxmems-266-shard10-manifest.txt \
+            --expected-programs 22 \
+            --max-loop 3 --max-paths 1000 \
+            --timeout 90 --retry-timeout 90 \
+            --shard-index 9 --shard-count 22
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-shard10-hailstone90
+          path: maxmems-shard10-hailstone90/
+          if-no-files-found: warn
