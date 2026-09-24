@@ -3628,12 +3628,193 @@ static int decisionMemCached(SyntaxNamePrinter* self,
 }
 
 
+static std::unordered_map<std::string, int> syntaxDecisionMemsCache;
+static std::unordered_map<std::string, int> remainingMemsUpperCache;
+static std::uint64_t maxMemsBranchBoundPruned = 0;
+static std::uint64_t maxMemsUpperBoundStates = 0;
+constexpr int kMaxMemsUpperInfinity =
+    std::numeric_limits<int>::max() / 4;
+
+static int addMemsUpper(int a, int b) {
+    if (a < 0 || b < 0) return kMaxMemsUpperInfinity;
+    if (a >= kMaxMemsUpperInfinity || b >= kMaxMemsUpperInfinity)
+        return kMaxMemsUpperInfinity;
+    if (a > kMaxMemsUpperInfinity - b)
+        return kMaxMemsUpperInfinity;
+    return a + b;
+}
+
+static int syntaxDecisionMemsUpper(
+    SyntaxNamePrinter* self,
+    CFGNode* node,
+    PathDecisionKind kind) {
+    if (!node) return 0;
+    const std::string key =
+        std::to_string(reinterpret_cast<std::uintptr_t>(node)) + ":" +
+        std::to_string(static_cast<int>(kind)) + ":" +
+        std::to_string(std::hash<std::string>{}(self->vartemp));
+    if (auto it = syntaxDecisionMemsCache.find(key);
+        it != syntaxDecisionMemsCache.end()) {
+        return it->second;
+    }
+
+    EpatRunner runner(self->vartemp);
+    const auto mem = runner.countMemsOnly(
+        {PathDecision{node, kind}});
+    // Failure must never create an underestimated upper bound.
+    const int value = mem
+        ? std::max(0, *mem)
+        : kMaxMemsUpperInfinity;
+    syntaxDecisionMemsCache.emplace(key, value);
+    return value;
+}
+
+static int remainingMemsUpperBound(
+    SyntaxNamePrinter* self,
+    const std::shared_ptr<CFGNode>& entry,
+    int maxloop,
+    int depth,
+    std::unordered_map<CFGNode*, int> loopMap) {
+    if (!entry) return 0;
+    if (depth > 1000) return kMaxMemsUpperInfinity;
+
+    if (entry->isLoop) {
+        for (auto& [loopNode, count] : loopMap) {
+            if (loopNode && loopNode != entry.get() &&
+                loopNode->depth > entry->depth) {
+                count = 0;
+            }
+        }
+    }
+
+    const std::string key =
+        std::to_string(reinterpret_cast<std::uintptr_t>(entry.get())) + "|" +
+        LoopMapKey(loopMap) + "|" + std::to_string(maxloop) + "|" +
+        std::to_string(std::hash<std::string>{}(self->vartemp));
+    if (auto it = remainingMemsUpperCache.find(key);
+        it != remainingMemsUpperCache.end()) {
+        return it->second;
+    }
+    ++maxMemsUpperBoundStates;
+
+    auto storeUpper = [&](int value) {
+        remainingMemsUpperCache.emplace(key, value);
+        return value;
+    };
+
+    if (entry->isReturn || !entry->getNextNode()) {
+        if (!entry->isLoop && !entry->isIf && !entry->isFuncDef &&
+            !(entry->isVarDef && entry->nodeLevel == 3) &&
+            !entry->getCode().empty()) {
+            return storeUpper(syntaxDecisionMemsUpper(
+                self, entry.get(), PathDecisionKind::Code));
+        }
+        return storeUpper(0);
+    }
+
+    if (entry->isFuncDef ||
+        (entry->isVarDef && entry->nodeLevel == 3)) {
+        return storeUpper(remainingMemsUpperBound(
+            self, entry->getNextNode(), maxloop, depth + 1,
+            std::move(loopMap)));
+    }
+
+    if (entry->isIf) {
+        int best = 0;
+        if (entry->getNextNode()) {
+            best = std::max(
+                best,
+                addMemsUpper(
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::TrueBranch),
+                    remainingMemsUpperBound(
+                        self, entry->getNextNode(), maxloop,
+                        depth + 1, loopMap)));
+        }
+        if (entry->getNextFalseNode()) {
+            best = std::max(
+                best,
+                addMemsUpper(
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::FalseBranch),
+                    remainingMemsUpperBound(
+                        self, entry->getNextFalseNode(), maxloop,
+                        depth + 1, loopMap)));
+        }
+        return storeUpper(best);
+    }
+
+    if (entry->isLoop) {
+        const int unroll = loopMap[entry.get()];
+        const int bound = predictedLoopBound(entry.get(), maxloop);
+        int common = 0;
+        if (entry->isFor) {
+            if (unroll == 0 && !entry->initstmt_str.empty() &&
+                entry->initstmt_str != ";") {
+                common = addMemsUpper(
+                    common,
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::LoopInit));
+            }
+            if (unroll > 0 && !entry->expr_str.empty()) {
+                common = addMemsUpper(
+                    common,
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::LoopUpdate));
+            }
+        }
+
+        int bestBranch = 0;
+        if (unroll < bound && entry->getNextNode()) {
+            auto trueMap = loopMap;
+            trueMap[entry.get()] = unroll + 1;
+            bestBranch = std::max(
+                bestBranch,
+                addMemsUpper(
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::TrueBranch),
+                    remainingMemsUpperBound(
+                        self, entry->getNextNode(), maxloop,
+                        depth + 1, std::move(trueMap))));
+        }
+        if (entry->getNextFalseNode()) {
+            bestBranch = std::max(
+                bestBranch,
+                addMemsUpper(
+                    syntaxDecisionMemsUpper(
+                        self, entry.get(),
+                        PathDecisionKind::FalseBranch),
+                    remainingMemsUpperBound(
+                        self, entry->getNextFalseNode(), maxloop,
+                        depth + 1, loopMap)));
+        }
+        return storeUpper(addMemsUpper(common, bestBranch));
+    }
+
+    int local = 0;
+    if (!entry->getCode().empty()) {
+        local = syntaxDecisionMemsUpper(
+            self, entry.get(), PathDecisionKind::Code);
+    }
+    return storeUpper(addMemsUpper(
+        local,
+        remainingMemsUpperBound(
+            self, entry->getNextNode(), maxloop,
+            depth + 1, std::move(loopMap))));
+}
+
 PathInfo SyntaxNamePrinter::MaxMemsDP(
     const std::shared_ptr<CFGNode>& entry,
     int maxloop,
     std::string pathPrefix,
     int depth,
     std::unordered_map<CFGNode*, int>& loopUnrollMap,
+    int currentMemsUpper,
     std::vector<PathDecision> decisions
 ) {
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
@@ -3648,6 +3829,26 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 loopNode->depth > entry->depth) {
                 count = 0;
             }
+        }
+    }
+
+    const char* branchBoundRaw =
+        std::getenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+    const bool branchBoundEnabled =
+        branchBoundRaw && *branchBoundRaw &&
+        std::string(branchBoundRaw) != "0";
+    if (branchBoundEnabled &&
+        maxMemsFeasibleIncumbent >= 0 &&
+        currentMemsUpper >= 0 &&
+        currentMemsUpper < kMaxMemsUpperInfinity) {
+        const int remaining = remainingMemsUpperBound(
+            this, entry, maxloop, depth, loopUnrollMap);
+        const int totalUpper =
+            addMemsUpper(currentMemsUpper, remaining);
+        if (totalUpper < kMaxMemsUpperInfinity &&
+            totalUpper <= maxMemsFeasibleIncumbent) {
+            ++maxMemsBranchBoundPruned;
+            return PathInfo(0, pathPrefix, false);
         }
     }
 
@@ -3702,6 +3903,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 if (!decisionOnlyPath) curPath += code + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::Code});
+                currentMemsUpper = addMemsUpper(
+                    currentMemsUpper,
+                    syntaxDecisionMemsUpper(
+                        this, entry.get(),
+                        PathDecisionKind::Code));
             }
         }
         ++maxMemsLeafSolves;
@@ -3723,7 +3929,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         // Treating the dominated leaf as absent is therefore exact.
         std::optional<int> syntaxMems;
         if (lazyLeaf && maxMemsFeasibleIncumbent >= 0) {
-            syntaxMems = runner.countMemsOnly(curDecisions);
+            if (currentMemsUpper >= 0 &&
+                currentMemsUpper < kMaxMemsUpperInfinity) {
+                syntaxMems = currentMemsUpper;
+            } else {
+                syntaxMems = runner.countMemsOnly(curDecisions);
+            }
             if (syntaxMems &&
                 *syntaxMems <= maxMemsFeasibleIncumbent) {
                 ++maxMemsLazyLeafSkipped;
@@ -3753,7 +3964,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         (entry->isVarDef && entry->nodeLevel == 3)) {
         auto child = MaxMemsDP(entry->getNextNode(), maxloop,
                                std::move(pathPrefix), depth + 1,
-                               loopUnrollMap, std::move(decisions));
+                               loopUnrollMap, currentMemsUpper,
+                               std::move(decisions));
         return store(child);
     }
 
@@ -3772,9 +3984,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             isPathFeasibleCached(
                 this, tDecisions,
                 decisionOnlyPath ? std::string{} : vartemp + tPath)) {
+            const int tMemsUpper = addMemsUpper(
+                currentMemsUpper,
+                syntaxDecisionMemsUpper(
+                    this, entry.get(),
+                    PathDecisionKind::TrueBranch));
             tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
                               std::move(tPath), depth + 1, tLoopMap,
-                              std::move(tDecisions));
+                              tMemsUpper, std::move(tDecisions));
         }
 
         auto fLoopMap = loopUnrollMap;
@@ -3789,9 +4006,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             isPathFeasibleCached(
                 this, fDecisions,
                 decisionOnlyPath ? std::string{} : vartemp + fPath)) {
+            const int fMemsUpper = addMemsUpper(
+                currentMemsUpper,
+                syntaxDecisionMemsUpper(
+                    this, entry.get(),
+                    PathDecisionKind::FalseBranch));
             fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
                               std::move(fPath), depth + 1, fLoopMap,
-                              std::move(fDecisions));
+                              fMemsUpper, std::move(fDecisions));
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
@@ -3817,6 +4039,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     curPath += entry->initstmt_str + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopInit});
+                currentMemsUpper = addMemsUpper(
+                    currentMemsUpper,
+                    syntaxDecisionMemsUpper(
+                        this, entry.get(),
+                        PathDecisionKind::LoopInit));
 
             }
             if (unroll > 0 && !entry->expr_str.empty()) {
@@ -3824,6 +4051,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     curPath += entry->expr_str + ";\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
+                currentMemsUpper = addMemsUpper(
+                    currentMemsUpper,
+                    syntaxDecisionMemsUpper(
+                        this, entry.get(),
+                        PathDecisionKind::LoopUpdate));
 
             }
         }
@@ -3849,9 +4081,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     decisionOnlyPath ? std::string{} : vartemp + tPath)) {
                 auto tLoopMap = loopUnrollMap;
                 tLoopMap[entry.get()] = unroll + 1;
+                const int tMemsUpper = addMemsUpper(
+                    currentMemsUpper,
+                    syntaxDecisionMemsUpper(
+                        this, entry.get(),
+                        PathDecisionKind::TrueBranch));
                 tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
                                   std::move(tPath), depth + 1, tLoopMap,
-                                  std::move(tDecisions));
+                                  tMemsUpper, std::move(tDecisions));
             }
         }
 
@@ -3874,9 +4111,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     this, fDecisions,
                     decisionOnlyPath ? std::string{} : vartemp + fPath)) {
                 auto fLoopMap = loopUnrollMap;
+                const int fMemsUpper = addMemsUpper(
+                    currentMemsUpper,
+                    syntaxDecisionMemsUpper(
+                        this, entry.get(),
+                        PathDecisionKind::FalseBranch));
                 fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
                                   std::move(fPath), depth + 1, fLoopMap,
-                                  std::move(fDecisions));
+                                  fMemsUpper, std::move(fDecisions));
             }
         }
 
@@ -3896,12 +4138,17 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         if (!decisionOnlyPath) curPath += code + "\n";
         nextDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::Code});
+        currentMemsUpper = addMemsUpper(
+            currentMemsUpper,
+            syntaxDecisionMemsUpper(
+                this, entry.get(), PathDecisionKind::Code));
     }
     // Sequential code introduces state updates but no alternative control-flow
     // choice. Defer prefix solving until the next branch/loop guard so one SMT
     // query can absorb the whole straight-line segment.
     auto child = MaxMemsDP(entry->getNextNode(), maxloop, curPath,
                            depth + 1, loopUnrollMap,
+                           currentMemsUpper,
                            std::move(nextDecisions));
     if (!child.feasible)
         return store(PathInfo(0, curPath, false));
@@ -3918,6 +4165,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             funcNode->functionName.empty() ? ("func_" + std::to_string(funcIndex)) : funcNode->functionName);
         dpMemo.clear();  // 每个函数入口前清空 memo
         decisionMemCache.clear();
+        syntaxDecisionMemsCache.clear();
+        remainingMemsUpperCache.clear();
         feasCache.clear();
         maxMemsPrefixChecks = 0;
         maxMemsPrefixCacheHits = 0;
@@ -3928,12 +4177,15 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsMemoHits = 0;
         maxMemsLazyLeafSkipped = 0;
         maxMemsCertifiedGuardSolverSkips = 0;
+        maxMemsBranchBoundPruned = 0;
+        maxMemsUpperBoundStates = 0;
         maxMemsFeasibleIncumbent = -1;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
-        PathInfo result = MaxMemsDP(funcNode, maxloop, "", 0, loopUnrollMap, {}); // raw path
+        PathInfo result = MaxMemsDP(
+            funcNode, maxloop, "", 0, loopUnrollMap, 0, {}); // raw path
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
@@ -4011,6 +4263,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsLazyLeafSkipped << std::endl;
         std::cout << "[DP CERTIFIED GUARD SOLVER SKIPS]: "
                   << maxMemsCertifiedGuardSolverSkips << std::endl;
+        std::cout << "[DP BRANCH BOUND PRUNED]: "
+                  << maxMemsBranchBoundPruned << std::endl;
+        std::cout << "[DP UPPER BOUND STATES]: "
+                  << maxMemsUpperBoundStates << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
