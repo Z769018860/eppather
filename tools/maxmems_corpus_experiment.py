@@ -19,8 +19,8 @@ from e2e_path_validation import (
     parse_signature,
 )
 
-MEM_RE = re.compile(r"\\[mem\\]:(-?\\d+)")
-DP_PATH_RE = re.compile(r"\\[MAX MEMS PATH\\]:\\s*\\n(.*?)\\nMEMS:\\s*(-?\\d+)", re.S)
+MEM_RE = re.compile(r"\[mem\]:(-?\d+)")
+DP_PATH_RE = re.compile(r"\[MAX MEMS PATH\]:\s*\n(.*?)\nMEMS:\s*(-?\d+)", re.S)
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -70,7 +70,7 @@ def dfs_rows(work: Path, function: str) -> list[dict]:
         if not re.search(r"(?m)^feasible$", txt):
             continue
         mm = MEM_RE.search(txt)
-        im = re.search(r"_(\\d+)\\.txt$", rf.name)
+        im = re.search(r"_(\d+)\.txt$", rf.name)
         if not mm or not im:
             continue
         pid = int(im.group(1))
@@ -120,7 +120,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                         detail="no tagged MaxMEMS block in -g output")
             return prog, functions
 
-        has_main = bool(re.search(r"\\bmain\\s*\\(", source))
+        has_main = bool(re.search(r"\bmain\s*\(", source))
         for block in blocks:
             tag = block["function"]
             row = {
