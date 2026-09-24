@@ -1,0 +1,187 @@
+#pragma once
+
+#include <cstddef>
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace psy {
+namespace C {
+
+class CFGNode;
+
+struct LoopSccAffineTransform {
+    std::string variable;
+    // x' = scale * x + offset. The current structural adapter supports
+    // scale -1 (sign flip), 0 (constant), and 1 (increment/decrement).
+    long long scale{1};
+    long long offset{0};
+};
+
+struct LoopSccMemoryAccessInfo {
+    std::string sourceText;
+    std::size_t arraySubscripts{0};
+    std::size_t pointerDereferences{0};
+    bool writesMemory{false};
+    // True only when the restricted lexical recognizer can account for every
+    // memory-access token in this source fragment according to epat++ MEMS
+    // semantics (array subscript + pointer dereference).
+    bool precise{true};
+
+    std::size_t mems() const {
+        return arraySubscripts + pointerDereferences;
+    }
+};
+
+struct LoopSccMemoryCellTransform {
+    std::string region;
+    long long index{0};
+    // cell' = scale * cell + offset for a constant-index source cell.
+    long long scale{1};
+    long long offset{0};
+};
+
+struct LoopSccMemorySummaryCandidate {
+    std::size_t cycleIndex{0};
+    std::size_t entryPhase{0};
+    std::size_t period{0};
+    long long totalIterations{0};
+    std::size_t observedMems{0};
+    std::vector<LoopSccMemoryCellTransform> closedFormTransforms;
+    // Scalar state needed to make a validation-only compressed path reach the
+    // same loop exit condition as the unfolded execution.
+    std::vector<LoopSccAffineTransform> scalarClosedFormTransforms;
+    bool exact{false};
+    std::vector<std::string> diagnostics;
+};
+
+// One acyclic entry-to-backedge/exit path through a single loop iteration.
+// This is structural metadata only: the adapter does not replace bounded
+// unfolding or assert any summary into VolCE.
+struct LoopSccSPathInfo {
+    std::size_t id{0};
+    std::vector<std::string> guards;
+    std::vector<std::string> writes;
+    std::vector<std::string> affineUpdates;
+    // Machine-readable form of the exact scalar transforms above.
+    std::vector<LoopSccAffineTransform> affineTransforms;
+    // Memory-access observations are kept even when acceleration is rejected.
+    // This is the certificate substrate for later alias-aware memory summaries.
+    std::vector<LoopSccMemoryAccessInfo> memoryAccesses;
+    // Exact constant-index source-cell transitions discovered on this SPath.
+    // They are candidates only and never authorize acceleration by themselves.
+    std::vector<LoopSccMemoryCellTransform> memoryCellTransforms;
+    std::size_t observedMems{0};
+    bool memoryAccessModelComplete{true};
+    bool memoryTransitionModelComplete{true};
+    // True when every non-memory effect is represented by the scalar-affine
+    // model and every memory write is one of the recognized fixed-cell forms.
+    // This is weaker than accelerationEffectSafe, which rejects all memory.
+    bool memorySummaryEffectSafe{true};
+    bool writesMemory{false};
+    // True only when every executable statement on this SPath is represented
+    // by the restricted scalar-affine model and no array/dereference access or
+    // opaque call/effect was observed.
+    bool accelerationEffectSafe{true};
+    // False when any branch guard on the SPath is outside the interval model.
+    bool guardModelComplete{true};
+    // Coverage-matrix slots touched by this concrete one-iteration SPath.
+    // DFS2 uses slot 2*depth for true/ordinary coverage and 2*depth+1 for
+    // false/ordinary coverage.
+    std::vector<int> coverageSlots;
+    bool returnsToHeader{false};
+    bool exitsLoop{false};
+};
+
+struct LoopSccAccelerationPlan {
+    std::size_t cycleIndex{0};
+    std::size_t entryPhase{0};
+    std::size_t period{0};
+    long long totalIterations{0};
+    long long completePeriods{0};
+    std::size_t residualPhases{0};
+    std::vector<std::size_t> residualSPaths;
+    // Exact scalar relation after all proved iterations for this entry phase.
+    std::vector<LoopSccAffineTransform> closedFormTransforms;
+    // Current epat++ MEMS counts array subscripts and pointer dereferences.
+    // The first shortcut gate admits only paths proved free of those accesses,
+    // so skipping the repeated periods preserves MEMS without compensation.
+    bool memsPreserving{false};
+    long long skippableIterations{0};
+    // Exact boolean coverage union of the skipped iterations plus loop exit.
+    std::vector<int> coverageSlots;
+    bool exact{false};
+    std::vector<std::string> diagnostics;
+};
+
+struct LoopSccCycleInfo {
+    std::size_t sccId{0};
+    // Canonical SPath order for one proved deterministic cycle.
+    std::vector<std::size_t> spathOrder;
+    std::size_t period{0};
+    bool determinate{false};
+    // Every internal phase transition is proved by interval inclusion after
+    // applying the source affine transform. The loop-control guard is excluded
+    // here because exact trip-count proof handles it separately.
+    bool phaseGuardsProved{false};
+    bool guardedClosedFormCandidate{false};
+    // Exact affine transform accumulated across one complete cycle, rendered
+    // as human-readable relations for validation and later VolCE transport.
+    std::vector<std::string> periodAffineUpdates;
+    // Same period transform in machine-readable form for path-specific
+    // composition and VolCE entailment.
+    std::vector<LoopSccAffineTransform> periodAffineTransforms;
+    std::vector<std::string> diagnostics;
+};
+
+struct LoopSccGraphInfo {
+    std::string loopCondition;
+    bool complete{false};
+    std::vector<LoopSccSPathInfo> spaths;
+    // Concrete SPath graph and its SCC contraction, retained for the next
+    // periodic/oscillation analysis stage.
+    std::vector<std::pair<std::size_t, std::size_t>> transitions;
+    std::vector<std::vector<std::size_t>> sccs;
+    std::vector<std::pair<std::size_t, std::size_t>> contractedEdges;
+    std::size_t transitionCount{0};
+    std::size_t sccCount{0};
+    std::size_t cyclicSccCount{0};
+    std::size_t multiNodeSccCount{0};
+    std::size_t maxSccSize{0};
+    std::size_t contractedEdgeCount{0};
+    std::vector<LoopSccCycleInfo> cycles;
+    std::size_t determinateCycleCount{0};
+    std::size_t oscillatingCycleCount{0};
+    std::size_t guardedClosedFormCandidateCount{0};
+    std::size_t insideOutNestedSummaryCount{0};
+    // Exact trip count recovered from the SPath set when every returning
+    // iteration path has the same affine step for the loop-control variable.
+    // -1 means no such proof is available.
+    long long provedTripCount{-1};
+    std::string tripCountVariable;
+    long long tripCountStep{0};
+    // Symbolic acceleration plans derived from proved trip count + cycle
+    // structure. One plan is emitted per possible cycle entry phase.
+    std::vector<LoopSccAccelerationPlan> accelerationPlans;
+    // Validation-only memory summaries. These never authorize DFS skipping
+    // until VolCE entailment and alias/frame proofs are added.
+    std::vector<LoopSccMemorySummaryCandidate> memorySummaryCandidates;
+    std::vector<std::string> diagnostics;
+};
+
+// Conservative structural adapter for the first LoopSCC stage:
+//   loop CFG -> one-iteration SPaths -> SPath graph -> SCC contraction.
+//
+// Transitions are over-approximated. A transition is removed only when simple
+// integer guard intervals and exact affine updates prove it impossible.
+// Nested loops, unsupported internal cycles, and path-budget truncation make
+// the graph incomplete; callers must keep the existing bounded-unrolling path.
+class LoopSccAdapter {
+public:
+    static LoopSccGraphInfo analyze(CFGNode* loop,
+                                    std::size_t maxPaths = 64,
+                                    std::size_t maxNodesPerPath = 128);
+};
+
+}  // namespace C
+}  // namespace psy

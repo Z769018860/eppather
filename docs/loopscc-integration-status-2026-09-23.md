@@ -2,29 +2,58 @@
 
 ## Current scope
 
-Eppather currently contains a **LoopSCC-compatible hybrid loop-summary pipeline**, not a complete implementation of the LoopSCC paper.
+Eppather now contains a **restricted certified LoopSCC acceleration pipeline**,
+not merely a structural adapter. It is still not a complete implementation of
+the LoopSCC paper.
 
-Implemented stages:
+Implemented on PR #98:
 
-1. canonical affine `for` loops receive exact trip-count summaries and may automatically lift an insufficient `--maxloop` bound;
-2. structurally simple constant-bound affine `while` loops recover initializer/update metadata with stale-initializer rejection;
-3. completed paths produce affine state-transition candidates of the form
-   `x_out = x_initial + step * iterations`;
-4. VolCE accepts a transition only after an SMT entailment check;
-5. epat++ preserves source-to-SSA provenance for selected scalar induction variables;
-6. entailed SSA definitions are substituted away before model counting;
-7. array/pointer/VLA inputs use bounded canonical memory projections;
-8. the reduced counting formula is now decomposed into **proved-independent projection components** and exact component counts are multiplied.
+1. canonical affine `for` and recoverable constant-bound `while` loops can
+   obtain exact trip-count certificates and lift an insufficient requested
+   `--maxloop`;
+2. one-iteration SPaths, conservative transition graphs, Tarjan SCCs and the
+   contracted CSG are built explicitly;
+3. determinate cycles receive phase-guard proofs and machine-readable affine
+   transforms;
+4. symbolic `T^k` composition supports complete periods, residual phases and
+   symbolic entry phases;
+5. scalar SSA provenance is retained only for selected summarized variables;
+6. VolCE accepts scalar affine relations only after SMT entailment and can then
+   eliminate deterministic SSA definitions;
+7. validation compares unfolded and compressed paths for feasibility, MEMS,
+   coverage, solution-space count and weighted-MEMS contribution;
+8. `EPPATHER_LOOP_SCC_ACCELERATE=1` enables the certified scalar DFS shortcut;
+9. safe scalar nested loops are summarized inside-out before the outer SPath,
+   including canonical nested `for` loops and C99 induction-variable scope;
+10. array/pointer/VLA model counting uses bounded canonical memory projections
+    with proved-independent projection factorization;
+11. SPaths record memory accesses and exact epat++-compatible MEMS observations;
+12. a restricted fixed-local-array memory summary composes constant-index cell
+    transitions across the full loop;
+13. VolCE validates fixed-cell entry-to-exit relations and proves the untouched
+    frame over the declared fixed region;
+14. compressed memory paths use `SyntheticMems` to restore skipped MEMS without
+    adding source/SMT semantics;
+15. `EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1` enables an opt-in fixed-cell DFS
+    shortcut only after a conservative pre-execution structural certificate.
 
-Still not implemented from full LoopSCC:
+Still outside the certified shortcut:
 
-- SPath/CSG construction for general SCCs;
-- periodic oscillation interval discovery;
-- determinate-cycle / multi-cycle closed forms;
-- general multi-variable and data-dependent loop summarization;
-- source-level alias summaries that can replace canonical memory abstraction.
+- pointer dereference/alias summaries;
+- symbolic array indices and ambiguous/cross-region aliases;
+- VLA/unknown region extents;
+- general multi-cycle/non-determinate oscillations;
+- coupled multi-variable affine systems beyond independent scalar relations;
+- nested memory summaries whose inner memory transition cannot be certified
+  independently.
 
-Therefore the current integration should be described as **LoopSCC-compatible affine/state-summary integration with conservative fallback**, not full LoopSCC.
+Therefore the accurate description is now **restricted certified LoopSCC
+acceleration with conservative fallback**, not full LoopSCC.
+
+The current head also contains a regression fix for a memory-observer regex
+that previously threw on ordinary multiplication such as `i * 4`. The newest
+full CI rerun is pending; do not treat the latest fixed-memory A/B matrix as
+green until those runs complete.
 
 ## Latest semantic A/B gate
 
@@ -91,16 +120,53 @@ For comparison, the previous `ap04` memory run used about 14.6 seconds in model 
 
 The maxloop sensitivity runs at 2, 5, and 8 also completed for the selected array/pointer subjects, with the same completed counts for the previously problematic `ap06` and `ap15`.
 
+## SPath / CSG, certified acceleration, nesting, and fixed memory
+
+PR #98 now contains two separately gated runtime shortcuts.
+
+**Scalar shortcut** (`EPPATHER_LOOP_SCC_ACCELERATE=1`):
+
+- SPath/CSG analysis;
+- exact trip count and phase guards;
+- symbolic `T^k` plus residual phases;
+- scalar SSA/VolCE entailment;
+- inside-out scalar nesting;
+- A/B equivalence for feasibility, MEMS, coverage, model count and wMEMS.
+
+**Fixed-memory shortcut** (`EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1`):
+
+- unique one-dimensional fixed local array only;
+- constant in-bounds cell accesses only;
+- exact full-loop fixed-cell affine transition;
+- complete memory/effect and MEMS accounting;
+- untouched-region frame proof;
+- explicit MEMS compensation through `SyntheticMems`;
+- pointer, symbolic-index, VLA, ambiguous-region and opaque cases rejected.
+
+The array/pointer observer remains broader than the shortcut: it records MEMS
+for pointer and symbolic-index subjects even when acceleration is forbidden.
+That distinction is intentional and provides the substrate for the next alias
+proof stage.
+
 ## Next LoopSCC gate
 
-The next step should move from affine induction summaries to a real **SPath/CSG adapter** for multi-branch SCCs:
+The next substantive gates are:
 
-1. recover one-iteration acyclic SPaths inside a loop SCC;
-2. record per-SPath affine state transforms and path guards;
-3. build a compact cycle-transition graph;
-4. detect periodic/oscillating transition patterns only when the graph and guards prove them;
-5. export a guarded closed-form transition to the existing VolCE entailment interface;
-6. retain bounded unfolding whenever the SPath/CSG proof is incomplete;
-7. validate against the same exact solution-count and weighted-MEMS A/B gates before using the summary to reduce enumeration.
+1. establish a **constant pointer-alias certificate** for narrowly resolvable
+   forms such as `p = a` and `p = &a[k]`, while retaining fallback for pointer
+   arithmetic and ambiguous aliases;
+2. compose already-certified fixed-memory summaries inside-out for nested loops;
+3. extend the state relation from independent scalar affine transforms to
+   coupled multi-variable affine systems;
+4. repeat the 20 loop and 20 array/pointer/VLA experiments under several
+   requested `maxloop` values, reporting path equivalence, MEMS, count/wMEMS
+   and runtime effects;
+5. only after the current PR #98 CI matrix is green, merge the implementation
+   into `main`.
 
-Array/pointer state should remain behind alias-aware write-set checks; do not allow a new SPath/CSG summary to bypass memory unfolding until the corresponding memory transition is proved.
+PR #98 remains outside `main` until those current CI gates complete.
+
+
+### Fixed-memory shortcut safety gate (2026-09-24)
+
+Fixed-cell local-array summaries support exact structural T^k composition, explicit MEMS compensation, VolCE memory-relation entailment, and untouched-region frame validation. Runtime replacement remains opt-in via `EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1` and is admitted only when a **pre-execution structural certificate** is available: the SPath graph/trip count/phase cycle are proved complete, every participating memory access is precisely accounted, pointer dereferences are absent, every array token is a constant in-bounds access to a uniquely named one-dimensional fixed local array, and every memory write is covered by the fixed-cell closed form. VolCE relation/frame entailment and model-count/wMEMS A/B remain independent post-hoc oracles for validating this certificate rule. Pointer, symbolic-index, cross-cell, ambiguous-region, VLA/unknown-region, and opaque effects continue to fall back to unfolding.

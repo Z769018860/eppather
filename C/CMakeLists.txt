@@ -59,6 +59,8 @@ set(CFE_SOURCES
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxLexeme_ALL.h
     ${PROJECT_SOURCE_DIR}/syntax/EpatRunner.h
     ${PROJECT_SOURCE_DIR}/syntax/EpatRunner.cpp
+    ${PROJECT_SOURCE_DIR}/syntax/LoopSccAdapter.h
+    ${PROJECT_SOURCE_DIR}/syntax/LoopSccAdapter.cpp
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.h
     ${PROJECT_SOURCE_DIR}/syntax/SyntaxNamePrinter.cpp
     ${PROJECT_SOURCE_DIR}/../volce/volce_api.cpp

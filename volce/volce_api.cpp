@@ -3,8 +3,11 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <map>
+#include <set>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
@@ -913,6 +916,125 @@ void applyEntailedStateSummaries(
     }
 }
 
+struct SsaRelationState {
+    Z3_func_decl decl{nullptr};
+    std::string name;
+    std::string prefix;
+    unsigned version{0};
+};
+
+std::optional<SsaRelationState> parseSsaRelationState(
+    Z3_context ctx,
+    Z3_func_decl decl,
+    const std::string& source) {
+    const char* rawName =
+        Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+    const std::string name = rawName ? rawName : "";
+    if (!isSummaryCandidateName(name, source)) return std::nullopt;
+    const auto marker = name.rfind("#ssa");
+    if (marker == std::string::npos || marker + 4 >= name.size())
+        return std::nullopt;
+    unsigned version = 0;
+    for (std::size_t i = marker + 4; i < name.size(); ++i) {
+        const unsigned char ch = static_cast<unsigned char>(name[i]);
+        if (!std::isdigit(ch)) return std::nullopt;
+        const unsigned digit = static_cast<unsigned>(ch - '0');
+        if (version > (std::numeric_limits<unsigned>::max() - digit) / 10)
+            return std::nullopt;
+        version = version * 10 + digit;
+    }
+    return SsaRelationState{
+        decl, name, name.substr(0, marker), version};
+}
+
+void applyEntailedAffineRelations(
+    Z3_context ctx,
+    Z3_solver solver,
+    const std::vector<Z3_func_decl>& decls,
+    const std::vector<volce::AffineRelationSummary>& summaries,
+    std::vector<std::string>& applied,
+    std::vector<std::string>& rejected,
+    bool apply_entailed_summaries) {
+    for (const auto& summary : summaries) {
+        std::unordered_map<std::string, std::vector<SsaRelationState>> groups;
+        for (auto decl : decls) {
+            auto state = parseSsaRelationState(
+                ctx, decl, summary.variable);
+            if (!state) continue;
+            groups[state->prefix].push_back(std::move(*state));
+        }
+
+        if (groups.size() != 1) {
+            rejected.push_back(
+                summary.variable +
+                ": expected exactly one SSA scope for affine relation");
+            continue;
+        }
+        auto& states = groups.begin()->second;
+        std::sort(
+            states.begin(), states.end(),
+            [](const SsaRelationState& lhs,
+               const SsaRelationState& rhs) {
+                return lhs.version < rhs.version;
+            });
+        if (states.size() < 2 || states.front().version != 0 ||
+            states.front().version == states.back().version) {
+            rejected.push_back(
+                summary.variable +
+                ": affine relation requires SSA entry #ssa0 and a later exit");
+            continue;
+        }
+
+        Z3_ast entry = Z3_mk_app(ctx, states.front().decl, 0, nullptr);
+        Z3_ast exit = Z3_mk_app(ctx, states.back().decl, 0, nullptr);
+        Z3_sort entrySort = Z3_get_sort(ctx, entry);
+        Z3_sort exitSort = Z3_get_sort(ctx, exit);
+        if (!Z3_is_eq_sort(ctx, entrySort, exitSort) ||
+            !isBitVector(ctx, entrySort)) {
+            rejected.push_back(
+                summary.variable +
+                ": affine relation SSA endpoints have incompatible sorts");
+            continue;
+        }
+
+        Z3_ast scale =
+            Z3_mk_int64(ctx, summary.scale, entrySort);
+        Z3_ast offset =
+            Z3_mk_int64(ctx, summary.offset, entrySort);
+        Z3_ast scaled = summary.scale == 1
+            ? entry
+            : (summary.scale == 0
+                ? Z3_mk_int64(ctx, 0, entrySort)
+                : Z3_mk_bvmul(ctx, entry, scale));
+        Z3_ast rhs = summary.offset == 0
+            ? scaled
+            : Z3_mk_bvadd(ctx, scaled, offset);
+        Z3_ast equality = Z3_mk_eq(ctx, exit, rhs);
+
+        Z3_solver_push(ctx, solver);
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+        const Z3_lbool check = Z3_solver_check(ctx, solver);
+        Z3_solver_pop(ctx, solver, 1);
+
+        if (check == Z3_L_FALSE) {
+            if (apply_entailed_summaries) {
+                Z3_solver_assert(ctx, solver, equality);
+            }
+            applied.push_back(
+                summary.variable + ":" +
+                states.front().name + "->" + states.back().name +
+                " scale=" + std::to_string(summary.scale) +
+                " offset=" + std::to_string(summary.offset));
+        } else {
+            rejected.push_back(
+                summary.variable + ":" +
+                states.front().name + "->" + states.back().name +
+                ": path formula does not entail affine relation");
+        }
+    }
+}
+
+
 // A definition (x = expression) of an unprojected SSA state can be
 // existentially eliminated by substituting expression for x everywhere.
 // Restrict this to the declaration scope of an entailed loop summary.
@@ -939,6 +1061,7 @@ std::size_t eliminateEntailedSsaDefinitions(
     Z3_context ctx, Z3_solver solver,
     std::vector<Z3_ast>& projection_terms,
     const std::vector<std::string>& applied,
+    const std::vector<std::string>& applied_affine_relations,
     bool enabled,
     Z3_ast_vector retained) {
     std::unordered_set<std::string> prefixes;
@@ -951,6 +1074,17 @@ std::size_t eliminateEntailedSsaDefinitions(
             const auto suffix = name.rfind("#ssa");
             if (suffix != std::string::npos)
                 prefixes.insert(name.substr(0, suffix + 4));
+        }
+        for (const auto& item : applied_affine_relations) {
+            const auto colon = item.find(':');
+            const auto arrow = item.find("->", colon == std::string::npos ? 0 : colon + 1);
+            if (colon == std::string::npos || arrow == std::string::npos)
+                continue;
+            const std::string entry =
+                item.substr(colon + 1, arrow - colon - 1);
+            const auto suffix = entry.rfind("#ssa");
+            if (suffix != std::string::npos)
+                prefixes.insert(entry.substr(0, suffix + 4));
         }
     }
 
@@ -1022,6 +1156,7 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
                                                Z3_ast_vector vec,
                                                const std::vector<DeclInfo>& parsed_decls,
                                                const std::vector<volce::AffineStateSummary>& summaries,
+                                               const std::vector<volce::AffineRelationSummary>& affine_relations,
                                                const std::unordered_map<std::string, volce::Range>& ranges,
                                                const std::optional<volce::Range>& default_range,
                                                bool include_memory_terms,
@@ -1130,6 +1265,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     std::vector<std::string> applied;
     std::vector<std::string> validated_ground;
     std::vector<std::string> rejected;
+    std::vector<std::string> applied_affine_relations;
+    std::vector<std::string> rejected_affine_relations;
 
     // Both summary and baseline modes receive the same initial solver check.
     // Without this control, summary entailment checks warm Z3's internal state
@@ -1142,13 +1279,17 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     applyEntailedStateSummaries(
         ctx, solver, decls, summaries, applied, validated_ground, rejected,
         apply_entailed_summaries);
+    applyEntailedAffineRelations(
+        ctx, solver, decls, affine_relations,
+        applied_affine_relations, rejected_affine_relations,
+        apply_entailed_summaries);
 
     Z3_ast_vector retained = Z3_mk_ast_vector(ctx);
     Z3_ast_vector_inc_ref(ctx, retained);
     const std::size_t counting_assertions =
         eliminateEntailedSsaDefinitions(
-            ctx, solver, projection_terms, applied, apply_entailed_summaries,
-            retained);
+            ctx, solver, projection_terms, applied, applied_affine_relations,
+            apply_entailed_summaries, retained);
 
     // The rebuilt solver simplifies assertions, including canonical memory
     // addresses such as (bvadd 0 1) -> 1. Normalize projection terms in the
@@ -1212,6 +1353,8 @@ std::optional<volce::CountResult> countInternal(Z3_context ctx,
     return volce::CountResult{
         count, std::move(bounded_vars), std::move(bounded_memory_terms),
         std::move(applied), std::move(validated_ground), std::move(rejected),
+        std::move(applied_affine_relations),
+        std::move(rejected_affine_relations),
         formula_assertions, decls.size(), projection_terms.size(),
         counting_assertions, factored_projection_components,
         static_cast<std::uint64_t>(
@@ -1248,7 +1391,7 @@ std::optional<CountResult> countModelsFromSmt2(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, {}, ranges,
                                 default_range, include_memory_terms,
                                 memory_regions, false);
 
@@ -1265,7 +1408,8 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::optional<Range>& default_range,
     bool include_memory_terms,
     const std::vector<MemoryRegionProjection>& memory_regions,
-    bool apply_entailed_summaries) {
+    bool apply_entailed_summaries,
+    const std::vector<AffineRelationSummary>& affine_relations) {
     if (smt2.empty()) return std::nullopt;
 
     const auto parsed_decls = parseBitVectorDecls(smt2);
@@ -1277,8 +1421,266 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     Z3_ast_vector vec = Z3_parse_smtlib2_string(
         ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
     auto result = countInternal(
-        ctx, solver, vec, parsed_decls, summaries, ranges, default_range,
-        include_memory_terms, memory_regions, apply_entailed_summaries);
+        ctx, solver, vec, parsed_decls, summaries, affine_relations,
+        ranges, default_range, include_memory_terms, memory_regions,
+        apply_entailed_summaries);
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
+    return result;
+}
+
+std::optional<MemoryRelationValidationResult>
+validateMemoryCellRelationsFromSmt2(
+    const std::string& smt2,
+    const std::vector<MemoryCellAffineRelationSummary>& summaries) {
+    if (smt2.empty()) return std::nullopt;
+
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(
+        ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    assertParsedFormulas(ctx, solver, vec);
+
+    MemoryRelationValidationResult result;
+    Z3_ast loopEntryMemory =
+        findNamedArrayConstant(ctx, vec, "%a#ssa_loop_entry");
+    Z3_ast finalMemory =
+        findNamedArrayConstant(ctx, vec, "%a#ssa_final");
+    const auto decls = collectZeroArityDecls(ctx, vec);
+
+    for (const auto& summary : summaries) {
+        if (summary.cell_index < 0) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: negative cell index");
+            continue;
+        }
+        if (summary.region_cells == 0 ||
+            static_cast<std::uint64_t>(summary.cell_index) >=
+                static_cast<std::uint64_t>(summary.region_cells)) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: cell is outside declared summary region");
+            continue;
+        }
+        if (!loopEntryMemory || !finalMemory) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: loop-entry/final memory provenance is missing");
+            continue;
+        }
+
+        Z3_func_decl baseDecl = nullptr;
+        std::string baseName;
+        bool ambiguousBase = false;
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            if (name.find("#base") == std::string::npos ||
+                !isSummaryCandidateName(
+                    name, summary.source_name)) {
+                continue;
+            }
+            if (baseDecl) {
+                ambiguousBase = true;
+                break;
+            }
+            baseDecl = decl;
+            baseName = name;
+        }
+        if (!baseDecl || ambiguousBase) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: expected exactly one source memory base");
+            continue;
+        }
+
+        Z3_ast base = Z3_mk_app(ctx, baseDecl, 0, nullptr);
+        Z3_sort addressSort = Z3_get_sort(ctx, base);
+        if (!isBitVector(ctx, addressSort)) {
+            result.rejected.push_back(
+                summary.source_name + ": memory base is not a bit-vector");
+            continue;
+        }
+        Z3_ast address = base;
+        if (summary.cell_index != 0) {
+            Z3_ast offset =
+                Z3_mk_int64(ctx, summary.cell_index, addressSort);
+            address = Z3_mk_bvadd(ctx, base, offset);
+        }
+
+        // LoopSCC relations are defined over the memory state at loop entry,
+        // not function entry. This absorbs all pre-loop writes exactly.
+        Z3_ast entry =
+            Z3_mk_select(ctx, loopEntryMemory, address);
+        Z3_ast exit = Z3_mk_select(ctx, finalMemory, address);
+        Z3_sort valueSort = Z3_get_sort(ctx, entry);
+        if (!isBitVector(ctx, valueSort) ||
+            !Z3_is_eq_sort(ctx, valueSort, Z3_get_sort(ctx, exit))) {
+            result.rejected.push_back(
+                summary.source_name + ": memory cell sort mismatch");
+            continue;
+        }
+
+        Z3_ast scaled = entry;
+        if (summary.scale == 0) {
+            scaled = Z3_mk_int64(ctx, 0, valueSort);
+        } else if (summary.scale != 1) {
+            Z3_ast scale =
+                Z3_mk_int64(ctx, summary.scale, valueSort);
+            scaled = Z3_mk_bvmul(ctx, entry, scale);
+        }
+        Z3_ast rhs = scaled;
+        if (summary.offset != 0) {
+            Z3_ast offset =
+                Z3_mk_int64(ctx, summary.offset, valueSort);
+            rhs = Z3_mk_bvadd(ctx, scaled, offset);
+        }
+        Z3_ast equality = Z3_mk_eq(ctx, exit, rhs);
+
+        Z3_solver_push(ctx, solver);
+        Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+        const Z3_lbool check = Z3_solver_check(ctx, solver);
+        Z3_solver_pop(ctx, solver, 1);
+
+        const std::string label =
+            summary.source_name + "[" +
+            std::to_string(summary.cell_index) + "]@" + baseName +
+            " scale=" + std::to_string(summary.scale) +
+            " offset=" + std::to_string(summary.offset);
+        if (check == Z3_L_FALSE) {
+            result.applied.push_back(label);
+        } else {
+            result.rejected.push_back(
+                label +
+                ": path formula does not entail memory relation");
+        }
+    }
+
+    // Frame proof over the exact fixed local-array extent supplied by
+    // Eppather. Untouched cells are compared between loop-entry and final
+    // whole-memory snapshots, so pre-loop initialization is handled exactly.
+    struct RegionFrameSpec {
+        std::size_t cells{0};
+        bool extentConflict{false};
+        std::set<std::int64_t> written;
+    };
+    std::unordered_map<std::string, RegionFrameSpec> frameSpecs;
+    for (const auto& summary : summaries) {
+        auto& spec = frameSpecs[summary.source_name];
+        if (summary.region_cells == 0) {
+            spec.extentConflict = true;
+        } else if (spec.cells == 0) {
+            spec.cells = summary.region_cells;
+        } else if (spec.cells != summary.region_cells) {
+            spec.extentConflict = true;
+        }
+        spec.written.insert(summary.cell_index);
+    }
+
+    constexpr std::size_t kMaxFrameCells = 4096;
+    for (const auto& group : frameSpecs) {
+        const std::string& source = group.first;
+        const auto& spec = group.second;
+        if (spec.extentConflict || spec.cells == 0 ||
+            spec.cells > kMaxFrameCells) {
+            result.frame_rejected.push_back(
+                source + ": invalid/unsupported fixed region extent");
+            continue;
+        }
+        if (!loopEntryMemory || !finalMemory) {
+            result.frame_rejected.push_back(
+                source + ": loop-entry/final memory provenance is missing");
+            continue;
+        }
+
+        Z3_func_decl baseDecl = nullptr;
+        std::string baseName;
+        bool ambiguousBase = false;
+        for (auto decl : decls) {
+            const char* raw =
+                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
+            const std::string name = raw ? raw : "";
+            if (name.find("#base") == std::string::npos ||
+                !isSummaryCandidateName(name, source)) {
+                continue;
+            }
+            if (baseDecl) {
+                ambiguousBase = true;
+                break;
+            }
+            baseDecl = decl;
+            baseName = name;
+        }
+        if (!baseDecl || ambiguousBase) {
+            result.frame_rejected.push_back(
+                source + ": expected exactly one local array base");
+            continue;
+        }
+
+        bool valid = true;
+        for (std::int64_t written : spec.written) {
+            if (written < 0 ||
+                static_cast<std::uint64_t>(written) >=
+                    static_cast<std::uint64_t>(spec.cells)) {
+                result.frame_rejected.push_back(
+                    source + "[" + std::to_string(written) +
+                    "]: summary cell is outside declared source region");
+                valid = false;
+            }
+        }
+        if (!valid) continue;
+
+        Z3_ast base = Z3_mk_app(ctx, baseDecl, 0, nullptr);
+        Z3_sort addressSort = Z3_get_sort(ctx, base);
+        std::size_t checked = 0;
+        for (std::size_t index = 0; index < spec.cells; ++index) {
+            if (spec.written.count(
+                    static_cast<std::int64_t>(index)) != 0) {
+                continue;
+            }
+            Z3_ast address = base;
+            if (index != 0) {
+                Z3_ast offset = Z3_mk_int64(
+                    ctx, static_cast<std::int64_t>(index),
+                    addressSort);
+                address = Z3_mk_bvadd(ctx, base, offset);
+            }
+            Z3_ast entry =
+                Z3_mk_select(ctx, loopEntryMemory, address);
+            Z3_ast exit =
+                Z3_mk_select(ctx, finalMemory, address);
+            Z3_ast equality = Z3_mk_eq(ctx, exit, entry);
+
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool check = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+            if (check != Z3_L_FALSE) {
+                result.frame_rejected.push_back(
+                    source + "[" + std::to_string(index) +
+                    "]: final memory does not preserve loop-entry cell");
+                valid = false;
+                break;
+            }
+            ++checked;
+        }
+        if (valid) {
+            result.frame_applied.push_back(
+                source + "@" + baseName +
+                " cells=" + std::to_string(spec.cells) +
+                " untouched_checked=" + std::to_string(checked));
+        }
+    }
+
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;
@@ -1307,7 +1709,7 @@ std::optional<CountResult> countModelsFromSmt2File(
     Z3_solver solver = Z3_mk_solver(ctx);
     Z3_solver_inc_ref(ctx, solver);
     Z3_ast_vector vec = Z3_parse_smtlib2_string(ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
-    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, ranges,
+    auto result = countInternal(ctx, solver, vec, parsed_decls, {}, {}, ranges,
                                 default_range, include_memory_terms, {},
                                 false);
 

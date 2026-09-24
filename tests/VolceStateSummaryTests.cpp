@@ -61,6 +61,65 @@ int main() {
               << (eliminationOk ? "PASS" : "FAIL") << '\n';
     failures += !eliminationOk;
 
+    // LoopSCC periodic relations are accepted only when the complete SMT
+    // path formula entails the relation between the materialized entry state
+    // (#ssa0, created by local initialization) and the latest SSA state.
+    // Two sign flips x' = -x - 1 compose to the identity.
+    const std::string affineRelationSmt =
+        "(declare-const |state@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |state@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |state@0#ssa2| (_ BitVec 32))\n"
+        "(assert (= |state@0#ssa1| "
+        "(bvsub (bvneg |state@0#ssa0|) (_ bv1 32))))\n"
+        "(assert (= |state@0#ssa2| "
+        "(bvsub (bvneg |state@0#ssa1|) (_ bv1 32))))\n";
+    const auto affineAccepted = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"state", 1, 0}});
+    const auto affineRejected = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"state", 1, 1}});
+    const auto affineBaseline = volce::countModelsFromSmt2WithSummaries(
+        affineRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, false,
+        {{"state", 1, 0}});
+    const bool affineRelationOk =
+        affineAccepted && affineRejected && affineBaseline &&
+        affineAccepted->count == affineRejected->count &&
+        affineAccepted->count == affineBaseline->count &&
+        affineAccepted->applied_affine_relation_summaries.size() == 1 &&
+        affineAccepted->rejected_affine_relation_summaries.empty() &&
+        affineAccepted->counting_assertions <
+            affineBaseline->counting_assertions &&
+        affineRejected->applied_affine_relation_summaries.empty() &&
+        affineRejected->rejected_affine_relation_summaries.size() == 1;
+    std::cout << "loopscc-affine-relation-entailment: "
+              << (affineRelationOk ? "PASS" : "FAIL")
+              << " optimized_assertions="
+              << (affineAccepted
+                      ? std::to_string(affineAccepted->counting_assertions)
+                      : "N/A")
+              << " baseline_assertions="
+              << (affineBaseline
+                      ? std::to_string(affineBaseline->counting_assertions)
+                      : "N/A")
+              << '\n';
+    failures += !affineRelationOk;
+
+    const std::string negativeScaleSmt =
+        "(declare-const |flip@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |flip@0#ssa1| (_ BitVec 32))\n"
+        "(assert (= |flip@0#ssa1| "
+        "(bvsub (bvneg |flip@0#ssa0|) (_ bv1 32))))\n";
+    const auto negativeScale = volce::countModelsFromSmt2WithSummaries(
+        negativeScaleSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {{"flip", -1, -1}});
+    const bool negativeScaleOk = negativeScale &&
+        negativeScale->applied_affine_relation_summaries.size() == 1 &&
+        negativeScale->rejected_affine_relation_summaries.empty();
+    std::cout << "loopscc-negative-scale-relation: "
+              << (negativeScaleOk ? "PASS" : "FAIL") << '\n';
+    failures += !negativeScaleOk;
+
     const std::string memorySmt =
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
@@ -174,5 +233,108 @@ int main() {
               << " components=" << (canonicalMulti ? std::to_string(canonicalMulti->factored_projection_components) : "N/A")
               << '\n';
     failures += !canonicalMultiOk;
+    // A LoopSCC path relation is accepted only when the complete SMT path
+    // formula entails the relation between the first and last materialized
+    // SSA states. A wrong affine offset must be rejected.
+    const std::string linearRelationSmt =
+        "(declare-const |x@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa2| (_ BitVec 32))\n"
+        "(assert (= |x@0#ssa1| (bvadd |x@0#ssa0| (_ bv1 32))))\n"
+        "(assert (= |x@0#ssa2| (bvadd |x@0#ssa1| (_ bv1 32))))\n";
+    const auto linearAccepted = volce::countModelsFromSmt2WithSummaries(
+        linearRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {volce::AffineRelationSummary{"x", 1, 2}});
+    const bool linearAcceptedOk = linearAccepted &&
+        linearAccepted->applied_affine_relation_summaries.size() == 1 &&
+        linearAccepted->rejected_affine_relation_summaries.empty();
+    std::cout << "loopscc-linear-relation-entailed: "
+              << (linearAcceptedOk ? "PASS" : "FAIL") << '\n';
+    failures += !linearAcceptedOk;
+
+    const auto linearRejected = volce::countModelsFromSmt2WithSummaries(
+        linearRelationSmt, {}, {}, volce::Range{-8, 8}, false, {}, true,
+        {volce::AffineRelationSummary{"x", 1, 3}});
+    const bool linearRejectedOk = linearRejected &&
+        linearRejected->applied_affine_relation_summaries.empty() &&
+        linearRejected->rejected_affine_relation_summaries.size() == 1;
+    std::cout << "loopscc-linear-relation-rejected: "
+              << (linearRejectedOk ? "PASS" : "FAIL") << '\n';
+    failures += !linearRejectedOk;
+
+    // Fixed-cell LoopSCC memory summaries bind the source region through
+    // its materialized base and compare the initial %a cell with the final
+    // %a#ssa_final cell. A correct +4 relation must be entailed; +5 must not.
+    const std::string memoryRelationSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_loop_entry| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_final| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |a@0#base| (_ BitVec 32))\n"
+        "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_loop_entry| "
+        "(store (store %a |a@0#base| (_ bv10 32)) "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv7 32))))\n"
+        "(assert (= |%a#ssa_final| "
+        "(store |%a#ssa_loop_entry| |a@0#base| "
+        "(bvadd (select |%a#ssa_loop_entry| |a@0#base|) "
+        "(_ bv4 32)))))\n";
+    const auto memoryRelationAccepted =
+        volce::validateMemoryCellRelationsFromSmt2(
+            memoryRelationSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4, 2}});
+    const auto memoryRelationRejected =
+        volce::validateMemoryCellRelationsFromSmt2(
+            memoryRelationSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 5, 2}});
+    const bool memoryRelationOk =
+        memoryRelationAccepted && memoryRelationRejected &&
+        memoryRelationAccepted->applied.size() == 1 &&
+        memoryRelationAccepted->rejected.empty() &&
+        memoryRelationAccepted->frame_applied.size() == 1 &&
+        memoryRelationAccepted->frame_rejected.empty() &&
+        memoryRelationRejected->applied.empty() &&
+        memoryRelationRejected->rejected.size() == 1;
+    std::cout << "loopscc-fixed-cell-memory-relation-entailment: "
+              << (memoryRelationOk ? "PASS" : "FAIL") << '\n';
+    failures += !memoryRelationOk;
+
+    const std::string brokenFrameSmt =
+        "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_loop_entry| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_final| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |a@0#base| (_ BitVec 32))\n"
+        "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_loop_entry| "
+        "(store (store %a |a@0#base| (_ bv10 32)) "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv7 32))))\n"
+        "(assert (= |%a#ssa_final| "
+        "(store "
+        "(store |%a#ssa_loop_entry| "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv0 32)) "
+        "|a@0#base| "
+        "(bvadd (select |%a#ssa_loop_entry| |a@0#base|) "
+        "(_ bv4 32)))))\n";
+    const auto brokenFrame =
+        volce::validateMemoryCellRelationsFromSmt2(
+            brokenFrameSmt,
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4, 2}});
+    const bool brokenFrameOk =
+        brokenFrame &&
+        brokenFrame->applied.size() == 1 &&
+        brokenFrame->frame_applied.empty() &&
+        !brokenFrame->frame_rejected.empty();
+    std::cout << "loopscc-fixed-region-frame-rejection: "
+              << (brokenFrameOk ? "PASS" : "FAIL")
+              << " frame_applied="
+              << (brokenFrame ? brokenFrame->frame_applied.size() : 0)
+              << " frame_rejected="
+              << (brokenFrame ? brokenFrame->frame_rejected.size() : 0)
+              << '\n';
+    failures += !brokenFrameOk;
+
     return failures == 0 ? 0 : 1;
 }

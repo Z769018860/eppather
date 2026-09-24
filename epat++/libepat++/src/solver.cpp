@@ -9,6 +9,7 @@ using namespace epat;
 
 namespace {
 thread_local std::unordered_set<std::string> ssa_provenance_variables;
+thread_local bool memory_ssa_provenance_enabled = false;
 }
 
 void epat::setSsaProvenanceVariables(
@@ -27,6 +28,16 @@ bool epat::isSsaProvenanceVariable(const std::string& name)
 {
     return ssa_provenance_variables.find(name) !=
            ssa_provenance_variables.end();
+}
+
+void epat::setMemorySsaProvenanceEnabled(bool enabled)
+{
+    memory_ssa_provenance_enabled = enabled;
+}
+
+bool epat::isMemorySsaProvenanceEnabled()
+{
+    return memory_ssa_provenance_enabled;
 }
 
 namespace {

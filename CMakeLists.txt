@@ -161,6 +161,15 @@ add_executable(volce-summary-tests
 )
 target_link_libraries(volce-summary-tests ${Z3_LIB})
 
+add_executable(loopscc-adapter-tests
+    ${PROJECT_SOURCE_DIR}/tests/LoopSccAdapterTests.cpp
+)
+target_link_libraries(loopscc-adapter-tests
+    psychecfe psychecommon dl epat-protocol ${BACKEND_LIB}
+    ${PROJECT_SOURCE_DIR}/lpsolve/liblpsolve55.so
+    ${PROJECT_SOURCE_DIR}/libParser/libParser.a
+    ${Z3_LIB})
+
 #if (NOT WIN32 AND NOT MINGW)
     set(PSYCHE_TESTS test-suite)
     add_executable(${PSYCHE_TESTS} ${PSYCHE_TESTS_SOURCES})

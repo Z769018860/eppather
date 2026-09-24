@@ -123,6 +123,31 @@ namespace epat {
         // Aggregate, array, and pointer writes deliberately stay in the memory
         // model because a direct source-to-cell mapping is not alias-safe.
         std::map<void*, int> scalar_state_version_;
+
+        void materializeMemoryRegionBase(const VarDecl& vard, const lv& base)
+        {
+            if (!epat::isMemorySsaProvenanceEnabled() ||
+                !vard.getType().isArray())
+                return;
+            const auto name = this->getUniqueName(vard) + "#base";
+            auto state = gc.constant(name.c_str(), gc.bv_sort(width));
+            this->smt_.pushCond(state == base.to_rv());
+        }
+
+        void materializeLoopEntryMemoryCheckpoint()
+        {
+            if (!epat::isMemorySsaProvenanceEnabled())
+                return;
+            this->mem_.array_init();
+            if (this->mem_.array_) {
+                auto entryMemory = gc.constant(
+                    "%a#ssa_loop_entry",
+                    this->mem_.array_.get_sort());
+                this->smt_.pushCond(
+                    entryMemory == this->mem_.array_);
+            }
+        }
+
         rv materializeScalarState(const VarDecl& vard, rv value)
         {
             if (vard.getType().isArray() || vard.getType().isPointer() ||
@@ -442,10 +467,16 @@ namespace epat {
                 break;
             case DeclKind::VarDecl: {
                 auto& vard = static_cast<const VarDecl&>(decl);
+                if (vard.getName() ==
+                    "__eppather_loopscc_mem_checkpoint") {
+                    materializeLoopEntryMemoryCheckpoint();
+                    break;
+                }
                 bool isComplete = vard.getType().isComplete();
                 auto size = getTypeSize(vard.getType());
                 auto l = this->mem_.alloc(size);
                 setLValue(vard, l);
+                materializeMemoryRegionBase(vard, l);
                 if (vard.hasInit()) {
                     // TODO: 1.init是{}表达式的情形;2.init是结构体右值的情形
                     // TODO: set和store区分

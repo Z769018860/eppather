@@ -82,10 +82,46 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
         const int requested = std::max(0, safetyCap);
         if (!node->isWhile) return requested;
 
-        // While CFG nodes do not yet retain a normalized initializer/update.
-        // Recover a conservative budget only for a canonical variable-vs-
-        // integer condition. Data-dependent conditions continue to honor the
-        // requested maxloop without guessing.
+        // A complete LoopSCC SPath graph can recover an exact trip count even
+        // when nested branches prevented the legacy while-update metadata
+        // from being classified as a simple affine loop. Enable this only with
+        // the LoopSCC analysis flag until the A/B gates promote it by default.
+        const char* loopSccAnalyze = std::getenv("EPPATHER_LOOP_SCC_ANALYZE");
+        if (loopSccAnalyze && *loopSccAnalyze &&
+            std::string(loopSccAnalyze) != "0" &&
+            !node->initstmt_str.empty()) {
+            static std::unordered_map<const psy::C::CFGNode*, long long>
+                provedTripCounts;
+            auto it = provedTripCounts.find(node);
+            if (it == provedTripCounts.end()) {
+                auto graph = psy::C::LoopSccAdapter::analyze(
+                    const_cast<psy::C::CFGNode*>(node));
+                it = provedTripCounts.emplace(
+                    node, graph.provedTripCount).first;
+            }
+            if (it->second >= 0) {
+                const long long hardBudget = std::max<long long>(
+                    requested, exactLoopAutoliftCap(requested));
+                const int bound = static_cast<int>(std::min<long long>(
+                    it->second, hardBudget));
+                const char* trace =
+                    std::getenv("EPPATHER_LOOP_SCC_BOUND_TRACE");
+                if (trace && *trace && std::string(trace) != "0") {
+                    std::cerr << "[LOOPSCC BOUND]: cond="
+                              << node->cond_str
+                              << " source=spath"
+                              << " requested=" << requested
+                              << " proved=" << it->second
+                              << " bound=" << bound
+                              << std::endl;
+                }
+                return bound;
+            }
+        }
+
+        // Without a LoopSCC proof, retain the legacy conservative budget for a
+        // canonical variable-vs-integer condition. Data-dependent conditions
+        // continue to honor the requested maxloop without guessing.
         static const std::regex direct(
             "\\b[A-Za-z_][A-Za-z0-9_]*\\b[[:space:]]*"
             "(?:<=|<|>=|>)[[:space:]]*(-?[0-9]+)");
@@ -100,6 +136,16 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
             const long long guessed = std::min<long long>(
                 exactLoopAutoliftCap(requested),
                 std::max<long long>(requested, 2 * std::llabs(limit) + 2));
+            const char* trace =
+                std::getenv("EPPATHER_LOOP_SCC_BOUND_TRACE");
+            if (trace && *trace && std::string(trace) != "0") {
+                std::cerr << "[LOOPSCC BOUND]: cond="
+                          << node->cond_str
+                          << " source=heuristic"
+                          << " requested=" << requested
+                          << " bound=" << guessed
+                          << std::endl;
+            }
             return static_cast<int>(guessed);
         }
         return requested;
@@ -150,6 +196,12 @@ struct VolceResult {
     std::vector<std::string> appliedStateSummaries;
     std::vector<std::string> validatedGroundStateSummaries;
     std::vector<std::string> rejectedStateSummaries;
+    std::vector<std::string> appliedAffineRelationSummaries;
+    std::vector<std::string> rejectedAffineRelationSummaries;
+    std::vector<std::string> appliedMemoryRelationSummaries;
+    std::vector<std::string> rejectedMemoryRelationSummaries;
+    std::vector<std::string> appliedMemoryFrameSummaries;
+    std::vector<std::string> rejectedMemoryFrameSummaries;
     std::size_t formulaAssertions{0};
     std::size_t smtDeclarations{0};
     std::size_t projectionTerms{0};
@@ -311,7 +363,10 @@ std::optional<VolceResult> runVolce(
     int lowerBound,
     int upperBound,
     const std::vector<psy::C::AffineLoopStateSummary>& loopSummaries = {},
-    const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {}) {
+    const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {},
+    const std::vector<psy::C::LoopSccAffineStateSummary>& loopSccSummaries = {},
+    const std::vector<psy::C::LoopSccMemoryCellStateSummary>&
+        loopSccMemorySummaries = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -326,6 +381,23 @@ std::optional<VolceResult> runVolce(
             summary.step,
             summary.iterations,
             summary.finalValue});
+    }
+    std::vector<volce::AffineRelationSummary> affineRelations;
+    affineRelations.reserve(loopSccSummaries.size());
+    for (const auto& summary : loopSccSummaries) {
+        affineRelations.push_back(volce::AffineRelationSummary{
+            summary.variable, summary.scale, summary.offset});
+    }
+    std::vector<volce::MemoryCellAffineRelationSummary> memoryRelations;
+    memoryRelations.reserve(loopSccMemorySummaries.size());
+    for (const auto& summary : loopSccMemorySummaries) {
+        memoryRelations.push_back(
+            volce::MemoryCellAffineRelationSummary{
+                summary.region,
+                summary.index,
+                summary.scale,
+                summary.offset,
+                summary.regionCells});
     }
     const char* disableSummaries =
         std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");
@@ -343,12 +415,12 @@ std::optional<VolceResult> runVolce(
         memoryRegions.push_back(volce::MemoryRegionProjection{
             region.name, region.cells, region.variableLength});
     }
-    const auto countResult = summaries.empty()
+    const auto countResult = summaries.empty() && affineRelations.empty()
         ? volce::countModelsFromSmt2(
               smt2, {}, range, includeMemoryTerms, memoryRegions)
         : volce::countModelsFromSmt2WithSummaries(
               smt2, summaries, {}, range, includeMemoryTerms, memoryRegions,
-              !summariesDisabled);
+              !summariesDisabled, affineRelations);
     if (!countResult) {
         return std::nullopt;
     }
@@ -363,6 +435,31 @@ std::optional<VolceResult> runVolce(
     result.validatedGroundStateSummaries =
         countResult->validated_ground_state_summaries;
     result.rejectedStateSummaries = countResult->rejected_state_summaries;
+    result.appliedAffineRelationSummaries =
+        countResult->applied_affine_relation_summaries;
+    result.rejectedAffineRelationSummaries =
+        countResult->rejected_affine_relation_summaries;
+    if (!memoryRelations.empty()) {
+        if (const auto memoryValidation =
+                volce::validateMemoryCellRelationsFromSmt2(
+                    smt2, memoryRelations)) {
+            result.appliedMemoryRelationSummaries =
+                memoryValidation->applied;
+            result.rejectedMemoryRelationSummaries =
+                memoryValidation->rejected;
+            result.appliedMemoryFrameSummaries =
+                memoryValidation->frame_applied;
+            result.rejectedMemoryFrameSummaries =
+                memoryValidation->frame_rejected;
+        } else {
+            for (const auto& relation : memoryRelations) {
+                result.rejectedMemoryRelationSummaries.push_back(
+                    relation.source_name + "[" +
+                    std::to_string(relation.cell_index) +
+                    "]: memory relation validation unavailable");
+            }
+        }
+    }
     result.formulaAssertions = countResult->formula_assertions;
     result.smtDeclarations = countResult->smt_declarations;
     result.projectionTerms = countResult->projection_terms;
@@ -1352,7 +1449,12 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                         updates.size() == 1) {
                         n->expr_str = updates.front();
                     } else {
-                        n->initstmt_str.clear();
+                        // Keep a proved, non-stale constant initializer even
+                        // when nested control prevents the legacy single-update
+                        // while summary. LoopSCC may still prove that every
+                        // one-iteration SPath applies the same affine control
+                        // step. Keeping only the initializer cannot make the
+                        // older predictor exact because expr_str stays empty.
                         n->expr_str.clear();
                     }
                 }
@@ -2734,6 +2836,183 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
+        // Fixed-cell memory shortcut. This is separately opt-in and stricter
+        // than scalar acceleration: every memory relation must be a fixed cell
+        // of a one-dimensional local fixed array, with structurally complete
+        // effects and exact MEMS compensation.
+        const char* memoryAccelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
+        const bool memoryAccelRequested =
+            memoryAccelRaw && *memoryAccelRaw &&
+            std::string(memoryAccelRaw) != "0";
+        // Runtime replacement is allowed only after the memory-plan builder
+        // establishes a pre-execution structural certificate. VolCE relation
+        // and untouched-frame proofs remain independent A/B oracles.
+        const bool memoryAccelEnabled = memoryAccelRequested;
+        if (memoryAccelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedMemoryShortcut = false;
+            for (std::size_t candidateIndex = 0;
+                 candidateIndex < graph.memorySummaryCandidates.size();
+                 ++candidateIndex) {
+                auto prefix = decisions;
+                if (!node->initstmt_str.empty() &&
+                    node->initstmt_str != ";") {
+                    prefix.push_back(PathDecision{
+                        node.get(), PathDecisionKind::LoopInit});
+                }
+                auto memoryPlan =
+                    buildLoopSccMemoryAccelerationDecisions(
+                        prefix, node.get(), graph, candidateIndex,
+                        vartemp);
+                if (!memoryPlan) continue;
+                if (!memoryPlan->preexecutionCertified) {
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                        << "preexecution_structural_certificate_failed"
+                        << std::endl;
+                    for (const auto& diagnostic :
+                         memoryPlan->certificateDiagnostics) {
+                        std::cout
+                            << "[LOOPSCC MEMORY PREEXEC DIAGNOSTIC]: "
+                            << diagnostic << std::endl;
+                    }
+                    continue;
+                }
+                std::cout
+                    << "[LOOPSCC MEMORY PREEXEC CERTIFICATE]: certified=1"
+                    << " unfolded_mems=" << memoryPlan->unfoldedMems
+                    << " compensation=" << memoryPlan->compensationMems
+                    << std::endl;
+
+                auto cov_a = snap_cov;
+                for (int slot : memoryPlan->coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(memoryPlan->decisions);
+                if (shortcutEval.status == result::feasible) {
+                    const auto& candidate =
+                        graph.memorySummaryCandidates[candidateIndex];
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT USED]: kind=for period="
+                        << candidate.period
+                        << " iterations=" << candidate.totalIterations
+                        << " entry_phase=" << candidate.entryPhase
+                        << " unfolded_mems=" << memoryPlan->unfoldedMems
+                        << " summary_mems="
+                        << memoryPlan->compressedSummaryMems
+                        << " compensation="
+                        << memoryPlan->compensationMems
+                        << " decisions=" << memoryPlan->decisions.size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         memoryPlan->decisions, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedMemoryShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedMemoryShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
+        // The same certified LoopSCC shortcut used for while-loops also applies
+        // to canonical for-loops once the adapter has proved the total SPath
+        // transform and exact trip count. The for initializer is part of the
+        // entry semantics and must execute exactly once before the closed form;
+        // the repeated post expression is already included in T^k.
+        const char* accelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_ACCELERATE");
+        const bool accelEnabled =
+            accelRaw && *accelRaw && std::string(accelRaw) != "0";
+        if (accelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedShortcut = false;
+            for (std::size_t planIndex = 0;
+                 planIndex < graph.accelerationPlans.size();
+                 ++planIndex) {
+                const auto& plan = graph.accelerationPlans[planIndex];
+                if (!plan.exact || !plan.memsPreserving ||
+                    plan.totalIterations <= 0 ||
+                    plan.skippableIterations != plan.totalIterations) {
+                    continue;
+                }
+
+                auto prefix = decisions;
+                if (!node->initstmt_str.empty() &&
+                    node->initstmt_str != ";") {
+                    prefix.push_back(PathDecision{
+                        node.get(), PathDecisionKind::LoopInit});
+                }
+                auto accelerated =
+                    buildLoopSccAccelerationDecisions(
+                        prefix, node.get(), graph, planIndex);
+                if (!accelerated) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : plan.coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(*accelerated);
+                if (shortcutEval.status == result::feasible) {
+                    std::cout
+                        << "[LOOPSCC DFS SHORTCUT USED]: kind=for period="
+                        << plan.period
+                        << " iterations=" << plan.totalIterations
+                        << " entry_phase=" << plan.entryPhase
+                        << " decisions=" << accelerated->size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         *accelerated, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
@@ -2815,6 +3094,178 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::vector<bool>  snap_cov  = pathCoverage;
         const std::vector<int>   snap_lc   = loopCount;
 
+        // Fixed-cell local-array shortcut with exact MEMS compensation.
+        // Pointer, symbolic-index, cross-cell, VLA/unknown-region and opaque
+        // effects cannot construct this plan and therefore fall back.
+        const char* memoryAccelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
+        const bool memoryAccelRequested =
+            memoryAccelRaw && *memoryAccelRaw &&
+            std::string(memoryAccelRaw) != "0";
+        // Runtime replacement is allowed only after the memory-plan builder
+        // establishes a pre-execution structural certificate. VolCE relation
+        // and untouched-frame proofs remain independent A/B oracles.
+        const bool memoryAccelEnabled = memoryAccelRequested;
+        if (memoryAccelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedMemoryShortcut = false;
+            for (std::size_t candidateIndex = 0;
+                 candidateIndex < graph.memorySummaryCandidates.size();
+                 ++candidateIndex) {
+                auto memoryPlan =
+                    buildLoopSccMemoryAccelerationDecisions(
+                        decisions, node.get(), graph, candidateIndex,
+                        vartemp);
+                if (!memoryPlan) continue;
+                if (!memoryPlan->preexecutionCertified) {
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                        << "preexecution_structural_certificate_failed"
+                        << std::endl;
+                    for (const auto& diagnostic :
+                         memoryPlan->certificateDiagnostics) {
+                        std::cout
+                            << "[LOOPSCC MEMORY PREEXEC DIAGNOSTIC]: "
+                            << diagnostic << std::endl;
+                    }
+                    continue;
+                }
+                std::cout
+                    << "[LOOPSCC MEMORY PREEXEC CERTIFICATE]: certified=1"
+                    << " unfolded_mems=" << memoryPlan->unfoldedMems
+                    << " compensation=" << memoryPlan->compensationMems
+                    << std::endl;
+
+                auto cov_a = snap_cov;
+                for (int slot : memoryPlan->coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(memoryPlan->decisions);
+                if (shortcutEval.status == result::feasible) {
+                    const auto& candidate =
+                        graph.memorySummaryCandidates[candidateIndex];
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT USED]: kind=while period="
+                        << candidate.period
+                        << " iterations=" << candidate.totalIterations
+                        << " entry_phase=" << candidate.entryPhase
+                        << " unfolded_mems=" << memoryPlan->unfoldedMems
+                        << " summary_mems="
+                        << memoryPlan->compressedSummaryMems
+                        << " compensation="
+                        << memoryPlan->compensationMems
+                        << " decisions=" << memoryPlan->decisions.size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         memoryPlan->decisions, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedMemoryShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedMemoryShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
+        // Experimental certified LoopSCC shortcut. It is deliberately
+        // opt-in and restricted to plans that already proved:
+        // - exact trip count and determinate phase cycle;
+        // - phase-guard inclusion;
+        // - scalar affine T^k relation;
+        // - MEMS preservation (no array/dereference/opaque effect);
+        // - zero residual phase.
+        const char* accelRaw =
+            std::getenv("EPPATHER_LOOP_SCC_ACCELERATE");
+        const bool accelEnabled =
+            accelRaw && *accelRaw && std::string(accelRaw) != "0";
+        if (accelEnabled && snap_lc[d] == 0) {
+            const auto graph = LoopSccAdapter::analyze(node.get());
+            bool usedShortcut = false;
+            for (std::size_t planIndex = 0;
+                 planIndex < graph.accelerationPlans.size();
+                 ++planIndex) {
+                const auto& plan =
+                    graph.accelerationPlans[planIndex];
+                if (!plan.exact || !plan.memsPreserving ||
+                    plan.totalIterations <= 0 ||
+                    plan.skippableIterations !=
+                        plan.totalIterations) {
+                    continue;
+                }
+
+                auto accelerated =
+                    buildLoopSccAccelerationDecisions(
+                        decisions, node.get(), graph, planIndex);
+                if (!accelerated) continue;
+
+                auto cov_a = snap_cov;
+                for (int slot : plan.coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >= static_cast<int>(cov_a.size())) {
+                        cov_a.resize(
+                            static_cast<std::size_t>(slot + 1), false);
+                    }
+                    cov_a[static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto saved = loopCount;
+                loopCount = snap_lc;
+                if (static_cast<int>(loopCount.size()) <= d) {
+                    loopCount.resize(d + 1, 0);
+                }
+                loopCount[d] = 0;
+
+                // Unlike ordinary prefix pruning, shortcut admission
+                // must prove that at least one summarized entry phase is
+                // feasible at the loop exit. Otherwise suppressing the
+                // unfolded fallback could lose all valid paths.
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(*accelerated);
+                if (shortcutEval.status == result::feasible) {
+                    std::cout
+                        << "[LOOPSCC DFS SHORTCUT USED]: period="
+                        << plan.period
+                        << " iterations=" << plan.totalIterations
+                        << " entry_phase=" << plan.entryPhase
+                        << " decisions=" << accelerated->size()
+                        << std::endl;
+                    currentPathCallees_ = baseCallees;
+                    DFS2(node->getNextFalseNode(), cov_a,
+                         *accelerated, depth + 1, pathCount,
+                         maxloop, maxpaths, enableVolce,
+                         volceLower, volceUpper, functionTag);
+                    usedShortcut = true;
+                }
+                loopCount = saved;
+            }
+            if (usedShortcut) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // True：@(cond) → 体（顺着 CFG 的 next 走）
         if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
@@ -2855,43 +3306,55 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 
     // ===================== IF =====================
     if (node->isIf) {
-        const int d   = node->depth;
-        const int idx = (d < 1000 ? d : 999); // 兼容你已有的固定槽位
+        const int d = node->depth;
 
-        // 保存快照到固定数组槽位
-        temp_pathCoverage[idx] = pathCoverage;
-        temp_loopCount[idx]    = loopCount;
+        // Branch state must be stack-local.  A CFG node can be revisited on
+        // successive loop iterations, so indexing member scratch storage by
+        // node->depth is not re-entrant: a recursive visit to the same IF
+        // overwrites the outer snapshot before its false branch is explored.
+        // That used to drop valid alternating paths such as T,F,T,F.
+        const std::vector<bool> snap_cov = pathCoverage;
+        const std::vector<int> snap_lc = loopCount;
 
         // True
         {
-            auto        cov_t = pathCoverage;
+            auto cov_t = snap_cov;
             ensure_cov_vec(cov_t, d);
             cov_t[2 * d] = true;
+            loopCount = snap_lc;
 
-            decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
+            decisions.push_back(PathDecision{
+                node.get(), PathDecisionKind::TrueBranch});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
-                DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
+                DFS2(node->getNextNode(), cov_t, decisions, depth + 1,
+                     pathCount, maxloop, maxpaths, enableVolce,
+                     volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
         }
 
-        // False（恢复快照再走）
+        // False starts from the exact same caller state, independent of any
+        // recursive visits performed by the true branch.
         {
-            pathCoverage = temp_pathCoverage[idx];
-            loopCount    = temp_loopCount[idx];
-
-            auto        cov_f = pathCoverage;
+            auto cov_f = snap_cov;
             ensure_cov_vec(cov_f, d);
             cov_f[2 * d + 1] = true;
+            loopCount = snap_lc;
 
-            decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
+            decisions.push_back(PathDecision{
+                node.get(), PathDecisionKind::FalseBranch});
             if (is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
-                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
+                DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1,
+                     pathCount, maxloop, maxpaths, enableVolce,
+                     volceLower, volceUpper, functionTag);
             }
             decisions.pop_back();
         }
+
+        loopCount = snap_lc;
+        pathCoverage = snap_cov;
         return;
     }
 
@@ -3583,7 +4046,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             cout << "[VolCE range]: [" << volceLower << ", " << volceUpper << "]" << endl;
             const auto volceResult = runVolce(
                 smt2, volceLower, volceUpper, eval.loopStateSummaries,
-                inputMemoryRegions_);
+                inputMemoryRegions_, eval.loopSccAffineStateSummaries,
+                eval.loopSccMemoryCellStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 volceMemoryTerms = volceResult->boundedMemoryTerms;
@@ -3609,6 +4073,24 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << volceResult->validatedGroundStateSummaries.size() << endl;
                 cout << "[VOLCE LOOP SUMMARIES REJECTED]: "
                      << volceResult->rejectedStateSummaries.size() << endl;
+                cout << "[VOLCE LOOPSCC AFFINE RELATIONS APPLIED]: "
+                     << volceResult->appliedAffineRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC AFFINE RELATIONS REJECTED]: "
+                     << volceResult->rejectedAffineRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY RELATIONS APPLIED]: "
+                     << volceResult->appliedMemoryRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY RELATIONS REJECTED]: "
+                     << volceResult->rejectedMemoryRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY FRAMES APPLIED]: "
+                     << volceResult->appliedMemoryFrameSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC MEMORY FRAMES REJECTED]: "
+                     << volceResult->rejectedMemoryFrameSummaries.size()
+                     << endl;
                 cout << "[VOLCE FORMULA ASSERTIONS]: "
                      << volceResult->formulaAssertions << endl;
                 cout << "[VOLCE SMT DECLARATIONS]: "
@@ -3644,6 +4126,48 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     cout << "[VOLCE LOOP SUMMARY REJECTED]: "
                          << rejected << endl;
                 }
+                for (const auto& applied :
+                     volceResult->appliedAffineRelationSummaries) {
+                    resultFile << "[volce_loopscc_affine_relation]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC AFFINE RELATION]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedAffineRelationSummaries) {
+                    resultFile << "[volce_loopscc_affine_relation_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC AFFINE RELATION REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedMemoryRelationSummaries) {
+                    resultFile << "[volce_loopscc_memory_relation]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY RELATION]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedMemoryRelationSummaries) {
+                    resultFile << "[volce_loopscc_memory_relation_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY RELATION REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedMemoryFrameSummaries) {
+                    resultFile << "[volce_loopscc_memory_frame]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY FRAME]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedMemoryFrameSummaries) {
+                    resultFile << "[volce_loopscc_memory_frame_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC MEMORY FRAME REJECTED]: "
+                         << rejected << endl;
+                }
                 for (const auto& diagnostic :
                      eval.loopStateSummaryDiagnostics) {
                     resultFile << "[volce_loop_summary_diagnostic]:"
@@ -3651,11 +4175,395 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     cout << "[VOLCE LOOP SUMMARY DIAGNOSTIC]: "
                          << diagnostic << endl;
                 }
+
+                // Validation-only compressed LoopSCC paths are counted over
+                // the exact same finite input domain. Equal model count plus
+                // equal MEMS proves equal per-path weighted-MEMS contribution.
+                for (const auto& validation :
+                     eval.loopSccAccelerationValidations) {
+                    if (!validation.matched ||
+                        validation.compressedSmt.empty()) {
+                        continue;
+                    }
+                    const auto compressedVolce = runVolce(
+                        validation.compressedSmt,
+                        volceLower, volceUpper, {},
+                        inputMemoryRegions_, {});
+                    const auto compressedCount =
+                        parseVolceCount(compressedVolce);
+                    const bool countMatch =
+                        volceCount && compressedCount &&
+                        *volceCount == *compressedCount;
+                    const bool weightedMatch =
+                        countMatch && validation.memMatched;
+
+                    cout << "[LOOPSCC COMPRESSED VOLCE]: baseline_count="
+                         << (volceCount
+                                 ? std::to_string(*volceCount)
+                                 : "N/A")
+                         << " compressed_count="
+                         << (compressedCount
+                                 ? std::to_string(*compressedCount)
+                                 : "N/A")
+                         << " count_match=" << (countMatch ? 1 : 0)
+                         << " weighted_match="
+                         << (weightedMatch ? 1 : 0)
+                         << endl;
+                    resultFile
+                        << "[loopscc_compressed_volce_count_match]:"
+                        << (countMatch ? 1 : 0) << "\n";
+                    resultFile
+                        << "[loopscc_compressed_weighted_match]:"
+                        << (weightedMatch ? 1 : 0) << "\n";
+                    if (compressedCount) {
+                        resultFile
+                            << "[loopscc_compressed_volce_count]:"
+                            << *compressedCount << "\n";
+                    }
+                }
+                for (const auto& validation :
+                     eval.loopSccMemoryAccelerationValidations) {
+                    if (!validation.matched ||
+                        validation.compressedSmt.empty()) {
+                        continue;
+                    }
+                    const auto compressedVolce = runVolce(
+                        validation.compressedSmt,
+                        volceLower, volceUpper, {},
+                        inputMemoryRegions_, {}, {});
+                    const auto compressedCount =
+                        parseVolceCount(compressedVolce);
+                    const bool countMatch =
+                        volceCount && compressedCount &&
+                        *volceCount == *compressedCount;
+                    const bool weightedMatch =
+                        countMatch &&
+                        validation.compensatedMemMatched;
+
+                    cout << "[LOOPSCC MEMORY COMPRESSED VOLCE]: baseline_count="
+                         << (volceCount
+                                 ? std::to_string(*volceCount)
+                                 : "N/A")
+                         << " compressed_count="
+                         << (compressedCount
+                                 ? std::to_string(*compressedCount)
+                                 : "N/A")
+                         << " count_match=" << (countMatch ? 1 : 0)
+                         << " weighted_match="
+                         << (weightedMatch ? 1 : 0)
+                         << endl;
+                    resultFile
+                        << "[loopscc_memory_compressed_volce_count_match]:"
+                        << (countMatch ? 1 : 0) << "\n";
+                    resultFile
+                        << "[loopscc_memory_compressed_weighted_match]:"
+                        << (weightedMatch ? 1 : 0) << "\n";
+                    if (compressedCount) {
+                        resultFile
+                            << "[loopscc_memory_compressed_volce_count]:"
+                            << *compressedCount << "\n";
+                    }
+                }
             } else {
                 resultFile << "[volce]: N/A\n";
                 cout << "[VolCE] N/A" << endl;
             }
         }
+        if (!eval.loopSccGraphs.empty()) {
+            std::size_t spaths = 0;
+            std::size_t transitions = 0;
+            std::size_t sccs = 0;
+            std::size_t cyclicSccs = 0;
+            std::size_t multiNodeSccs = 0;
+            std::size_t maxSccSize = 0;
+            std::size_t csgEdges = 0;
+            std::size_t determinateCycles = 0;
+            std::size_t oscillatingCycles = 0;
+            std::size_t closedFormCandidates = 0;
+            std::size_t insideOutNestedSummaries = 0;
+            std::size_t memorySPaths = 0;
+            std::size_t memoryWritingSPaths = 0;
+            std::size_t impreciseMemorySPaths = 0;
+            std::size_t observedMemoryMems = 0;
+            std::size_t memoryCellTransitionCandidates = 0;
+            std::size_t memorySummaryCandidates = 0;
+            std::size_t accelerationPlans = 0;
+            std::size_t exactAccelerationPlans = 0;
+            std::size_t maxPeriod = 0;
+            long long maxProvedTripCount = -1;
+            std::string provedTripVariable;
+            bool complete = true;
+            for (const auto& graph : eval.loopSccGraphs) {
+                spaths += graph.spaths.size();
+                transitions += graph.transitionCount;
+                sccs += graph.sccCount;
+                cyclicSccs += graph.cyclicSccCount;
+                multiNodeSccs += graph.multiNodeSccCount;
+                maxSccSize = std::max(maxSccSize, graph.maxSccSize);
+                csgEdges += graph.contractedEdgeCount;
+                determinateCycles += graph.determinateCycleCount;
+                oscillatingCycles += graph.oscillatingCycleCount;
+                closedFormCandidates += graph.guardedClosedFormCandidateCount;
+                insideOutNestedSummaries +=
+                    graph.insideOutNestedSummaryCount;
+                for (const auto& spath : graph.spaths) {
+                    if (!spath.memoryAccesses.empty()) {
+                        ++memorySPaths;
+                        observedMemoryMems += spath.observedMems;
+                    }
+                    if (spath.writesMemory) ++memoryWritingSPaths;
+                    if (!spath.memoryAccessModelComplete) {
+                        ++impreciseMemorySPaths;
+                    }
+                    memoryCellTransitionCandidates +=
+                        spath.memoryCellTransforms.size();
+                }
+                memorySummaryCandidates +=
+                    graph.memorySummaryCandidates.size();
+                accelerationPlans += graph.accelerationPlans.size();
+                for (const auto& plan : graph.accelerationPlans) {
+                    if (plan.exact) ++exactAccelerationPlans;
+                    cout << "[LOOPSCC ACCELERATION PLAN]: cycle="
+                         << plan.cycleIndex
+                         << " entry_phase=" << plan.entryPhase
+                         << " iterations=" << plan.totalIterations
+                         << " period=" << plan.period
+                         << " full_periods=" << plan.completePeriods
+                         << " residual=" << plan.residualPhases
+                         << " mems_preserving="
+                         << (plan.memsPreserving ? 1 : 0)
+                         << " skippable_iterations="
+                         << plan.skippableIterations
+                         << " exact=" << (plan.exact ? 1 : 0)
+                         << endl;
+                    for (const auto& transform :
+                         plan.closedFormTransforms) {
+                        cout << "[LOOPSCC ACCELERATION TRANSFORM]: "
+                             << transform.variable
+                             << " scale=" << transform.scale
+                             << " offset=" << transform.offset
+                             << endl;
+                    }
+                }
+                if (graph.provedTripCount >= 0 &&
+                    graph.provedTripCount > maxProvedTripCount) {
+                    maxProvedTripCount = graph.provedTripCount;
+                    provedTripVariable = graph.tripCountVariable;
+                }
+                for (const auto& cycle : graph.cycles) {
+                    maxPeriod = std::max(maxPeriod, cycle.period);
+                    if (cycle.determinate) {
+                        cout << "[LOOPSCC CYCLE]: scc=" << cycle.sccId
+                             << " period=" << cycle.period
+                             << " phase_guards_proved="
+                             << (cycle.phaseGuardsProved ? 1 : 0)
+                             << " closed_form_candidate="
+                             << (cycle.guardedClosedFormCandidate ? 1 : 0)
+                             << endl;
+                        for (const auto& relation : cycle.periodAffineUpdates) {
+                            cout << "[LOOPSCC PERIOD TRANSFORM]: "
+                                 << relation << endl;
+                        }
+                    }
+                }
+                complete = complete && graph.complete;
+                for (const auto& diagnostic : graph.diagnostics) {
+                    cout << "[LOOPSCC DIAGNOSTIC]: " << diagnostic << endl;
+                    resultFile << "[loopscc_diagnostic]:" << diagnostic << "\n";
+                }
+            }
+            cout << "[LOOPSCC SPATHS]: " << spaths << endl;
+            cout << "[LOOPSCC TRANSITIONS]: " << transitions << endl;
+            cout << "[LOOPSCC SCCS]: " << sccs << endl;
+            cout << "[LOOPSCC CYCLIC SCCS]: " << cyclicSccs << endl;
+            cout << "[LOOPSCC MULTI-NODE SCCS]: " << multiNodeSccs << endl;
+            cout << "[LOOPSCC MAX SCC SIZE]: " << maxSccSize << endl;
+            cout << "[LOOPSCC CSG EDGES]: " << csgEdges << endl;
+            cout << "[LOOPSCC DETERMINATE CYCLES]: " << determinateCycles << endl;
+            cout << "[LOOPSCC OSCILLATING CYCLES]: " << oscillatingCycles << endl;
+            cout << "[LOOPSCC CLOSED FORM CANDIDATES]: "
+                 << closedFormCandidates << endl;
+            cout << "[LOOPSCC INSIDE OUT NESTED SUMMARIES]: "
+                 << insideOutNestedSummaries << endl;
+            cout << "[LOOPSCC MEMORY SPATHS]: "
+                 << memorySPaths << endl;
+            cout << "[LOOPSCC MEMORY WRITING SPATHS]: "
+                 << memoryWritingSPaths << endl;
+            cout << "[LOOPSCC IMPRECISE MEMORY SPATHS]: "
+                 << impreciseMemorySPaths << endl;
+            cout << "[LOOPSCC OBSERVED MEMORY MEMS]: "
+                 << observedMemoryMems << endl;
+            cout << "[LOOPSCC MEMORY CELL TRANSITION CANDIDATES]: "
+                 << memoryCellTransitionCandidates << endl;
+            cout << "[LOOPSCC MEMORY SUMMARY CANDIDATES]: "
+                 << memorySummaryCandidates << endl;
+            cout << "[LOOPSCC ACCELERATION PLANS]: "
+                 << accelerationPlans << endl;
+            cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
+                 << exactAccelerationPlans << endl;
+            cout << "[LOOPSCC MAX PERIOD]: " << maxPeriod << endl;
+            if (maxProvedTripCount >= 0) {
+                cout << "[LOOPSCC PROVED TRIP COUNT]: "
+                     << maxProvedTripCount << endl;
+                cout << "[LOOPSCC TRIP COUNT VARIABLE]: "
+                     << provedTripVariable << endl;
+            }
+            cout << "[LOOPSCC GRAPH COMPLETE]: " << (complete ? 1 : 0) << endl;
+            resultFile << "[loopscc_spaths]:" << spaths << "\n";
+            resultFile << "[loopscc_transitions]:" << transitions << "\n";
+            resultFile << "[loopscc_sccs]:" << sccs << "\n";
+            resultFile << "[loopscc_cyclic_sccs]:" << cyclicSccs << "\n";
+            resultFile << "[loopscc_multi_node_sccs]:" << multiNodeSccs << "\n";
+            resultFile << "[loopscc_max_scc_size]:" << maxSccSize << "\n";
+            resultFile << "[loopscc_csg_edges]:" << csgEdges << "\n";
+            resultFile << "[loopscc_determinate_cycles]:" << determinateCycles << "\n";
+            resultFile << "[loopscc_oscillating_cycles]:" << oscillatingCycles << "\n";
+            resultFile << "[loopscc_closed_form_candidates]:"
+                       << closedFormCandidates << "\n";
+            resultFile << "[loopscc_inside_out_nested_summaries]:"
+                       << insideOutNestedSummaries << "\n";
+            resultFile << "[loopscc_memory_spaths]:"
+                       << memorySPaths << "\n";
+            resultFile << "[loopscc_memory_writing_spaths]:"
+                       << memoryWritingSPaths << "\n";
+            resultFile << "[loopscc_imprecise_memory_spaths]:"
+                       << impreciseMemorySPaths << "\n";
+            resultFile << "[loopscc_observed_memory_mems]:"
+                       << observedMemoryMems << "\n";
+            resultFile << "[loopscc_memory_cell_transition_candidates]:"
+                       << memoryCellTransitionCandidates << "\n";
+            resultFile << "[loopscc_memory_summary_candidates]:"
+                       << memorySummaryCandidates << "\n";
+            resultFile << "[loopscc_acceleration_plans]:"
+                       << accelerationPlans << "\n";
+            resultFile << "[loopscc_exact_acceleration_plans]:"
+                       << exactAccelerationPlans << "\n";
+            resultFile << "[loopscc_max_period]:" << maxPeriod << "\n";
+            if (maxProvedTripCount >= 0) {
+                resultFile << "[loopscc_proved_trip_count]:"
+                           << maxProvedTripCount << "\n";
+                resultFile << "[loopscc_trip_count_variable]:"
+                           << provedTripVariable << "\n";
+            }
+            resultFile << "[loopscc_graph_complete]:" << (complete ? 1 : 0)
+                       << "\n";
+        }
+        for (const auto& trace : eval.loopSccPhaseTraces) {
+            cout << "[LOOPSCC PHASE TRACE]: complete="
+                 << (trace.complete ? 1 : 0)
+                 << " matched=" << (trace.matchedDeterminateCycle ? 1 : 0)
+                 << " period=" << trace.period
+                 << " entry_phase=" << trace.entryPhase
+                 << " iterations=" << trace.observedIterations
+                 << " full_periods=" << trace.completePeriods
+                 << " residual=" << trace.residualPhases
+                 << endl;
+            cout << "[LOOPSCC ACCELERATION TRACE]: matched="
+                 << (trace.matchedAccelerationPlan ? 1 : 0)
+                 << " plan=" << trace.accelerationPlanIndex
+                 << endl;
+            if (!trace.spathSequence.empty()) {
+                cout << "[LOOPSCC PHASE SEQUENCE]:";
+                for (std::size_t id : trace.spathSequence) {
+                    cout << " " << id;
+                }
+                cout << endl;
+            }
+            for (const auto& diagnostic : trace.diagnostics) {
+                cout << "[LOOPSCC PHASE DIAGNOSTIC]: "
+                     << diagnostic << endl;
+            }
+            resultFile << "[loopscc_phase_complete]:"
+                       << (trace.complete ? 1 : 0) << "\n";
+            resultFile << "[loopscc_phase_matched]:"
+                       << (trace.matchedDeterminateCycle ? 1 : 0) << "\n";
+            resultFile << "[loopscc_phase_period]:" << trace.period << "\n";
+            resultFile << "[loopscc_phase_entry]:" << trace.entryPhase << "\n";
+            resultFile << "[loopscc_phase_iterations]:"
+                       << trace.observedIterations << "\n";
+            resultFile << "[loopscc_phase_full_periods]:"
+                       << trace.completePeriods << "\n";
+            resultFile << "[loopscc_phase_residual]:"
+                       << trace.residualPhases << "\n";
+            resultFile << "[loopscc_acceleration_trace_matched]:"
+                       << (trace.matchedAccelerationPlan ? 1 : 0) << "\n";
+        }
+
+        for (const auto& validation :
+             eval.loopSccAccelerationValidations) {
+            cout << "[LOOPSCC COMPRESSED VALIDATION]: attempted="
+                 << (validation.attempted ? 1 : 0)
+                 << " matched=" << (validation.matched ? 1 : 0)
+                 << " status_match="
+                 << (validation.statusMatched ? 1 : 0)
+                 << " mem_match="
+                 << (validation.memMatched ? 1 : 0)
+                 << " original_decisions="
+                 << validation.originalDecisionCount
+                 << " compressed_decisions="
+                 << validation.compressedDecisionCount
+                 << " baseline_mem=" << validation.baselineMem
+                 << " compressed_mem=" << validation.compressedMem
+                 << endl;
+            resultFile << "[loopscc_compressed_validation_matched]:"
+                       << (validation.matched ? 1 : 0) << "\n";
+            resultFile << "[loopscc_compressed_original_decisions]:"
+                       << validation.originalDecisionCount << "\n";
+            resultFile << "[loopscc_compressed_decisions]:"
+                       << validation.compressedDecisionCount << "\n";
+            resultFile << "[loopscc_compressed_mem_match]:"
+                       << (validation.memMatched ? 1 : 0) << "\n";
+        }
+        for (const auto& validation :
+             eval.loopSccMemoryAccelerationValidations) {
+            cout << "[LOOPSCC MEMORY COMPRESSED VALIDATION]: attempted="
+                 << (validation.attempted ? 1 : 0)
+                 << " matched=" << (validation.matched ? 1 : 0)
+                 << " status_match="
+                 << (validation.statusMatched ? 1 : 0)
+                 << " compensated_mem_match="
+                 << (validation.compensatedMemMatched ? 1 : 0)
+                 << " original_decisions="
+                 << validation.originalDecisionCount
+                 << " compressed_decisions="
+                 << validation.compressedDecisionCount
+                 << " unfolded_loop_mems="
+                 << validation.unfoldedLoopMems
+                 << " compressed_summary_mems="
+                 << validation.compressedSummaryMems
+                 << " baseline_mem=" << validation.baselineMem
+                 << " compressed_mem=" << validation.compressedMem
+                 << " compensated_mem="
+                 << validation.compensatedMem
+                 << endl;
+            resultFile
+                << "[loopscc_memory_compressed_validation_matched]:"
+                << (validation.matched ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_status_match]:"
+                << (validation.statusMatched ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_mem_match]:"
+                << (validation.compensatedMemMatched ? 1 : 0)
+                << "\n";
+            resultFile
+                << "[loopscc_memory_unfolded_loop_mems]:"
+                << validation.unfoldedLoopMems << "\n";
+            resultFile
+                << "[loopscc_memory_compressed_summary_mems]:"
+                << validation.compressedSummaryMems << "\n";
+        }
+
+        std::string coverageSignature;
+        coverageSignature.reserve(pathCoverage.size());
+        for (bool covered : pathCoverage) {
+            coverageSignature.push_back(covered ? '1' : '0');
+        }
+        cout << "[COVERAGE SIGNATURE]: "
+             << coverageSignature << endl;
+        resultFile << "[coverage_signature]:"
+                   << coverageSignature << "\n";
+
         recordFeasiblePath(
             pathCount, mem, path, callees, volceCount, volceMemoryTerms);
 
