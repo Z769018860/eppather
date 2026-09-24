@@ -1,0 +1,134 @@
+name: MaxMEMS cocktail final rescue
+
+concurrency:
+  group: maxmems-cocktail-final-rescue-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-final-rescue
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-cocktail-final-rescue.yml'
+
+jobs:
+  rescue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_final -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_final --target cnip -j2
+
+      - name: 20-case correctness gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+          EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_final/cnip" \
+            --output-dir final-rescue-gate
+
+      - name: Run single-build cocktail variants
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_final/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          mkdir -p final-rescue
+
+          run_one() {
+            name="$1"; shift
+            d="final-rescue/$name"
+            mkdir -p "$d"
+            set +e
+            timeout 60s env \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+              "$@" \
+              "$CNIP" -g "$SRC" 3 > "$d/stdout.log" 2> "$d/stderr.log"
+            rc=$?
+            set -e
+            echo "$rc" > "$d/exit_code.txt"
+          }
+
+          # Seed only: no recursive suffix upper bound in the exact pass.
+          run_one seed_plain \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1
+
+          # Seed + shallow ordering in the exact pass; ordering never prunes.
+          run_one seed_shallow \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER=1 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1
+
+          # Seed + conservative bounded BnB.
+          run_one seed_bnb_u16 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=16
+
+          run_one seed_bnb_u32 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("final-rescue")
+          rows=[]
+          for d in sorted(p for p in root.iterdir() if p.is_dir()):
+              out=(d/"stdout.log").read_text(errors="replace")
+              err=(d/"stderr.log").read_text(errors="replace")
+              rc=int((d/"exit_code.txt").read_text().strip())
+              def last(pattern,s=out):
+                  xs=re.findall(pattern,s,re.M)
+                  return xs[-1] if xs else None
+              prog=re.findall(
+                  r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",
+                  err)
+              rows.append({
+                  "variant":d.name,
+                  "exit":rc,
+                  "mems":int(last(r"^MEMS:\s*(-?\d+)\s*$")) if last(r"^MEMS:\s*(-?\d+)\s*$") else None,
+                  "dp_time":float(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds")) if last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds") else None,
+                  "greedy_seed":int(last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$")) if last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$") else None,
+                  "result_from_seed":int(last(r"^\[DP RESULT FROM SEED WITNESS\]:\s*(\d+)\s*$")) if last(r"^\[DP RESULT FROM SEED WITNESS\]:\s*(\d+)\s*$") else None,
+                  "last_progress":tuple(map(int,prog[-1])) if prog else None,
+              })
+          (root/"summary.json").write_text(json.dumps(rows,indent=2)+"\n")
+          print("COCKTAIL_FINAL_RESCUE",json.dumps(rows,sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-final-rescue-results
+          path: |
+            final-rescue/
+            final-rescue-gate/
