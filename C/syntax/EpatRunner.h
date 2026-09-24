@@ -190,6 +190,7 @@ struct LoopSccCoupledAffineDecisionPlan {
     std::vector<int> coverageSlots;
     std::vector<std::string> snapshotVariables;
     bool typeCertified{false};
+    bool structuralSemanticCertified{false};
     bool snapshotParallelized{false};
     // Pre-execution interval proof derived only from declaration initializers
     // and the concrete PathDecision prefix before this loop.
@@ -197,8 +198,9 @@ struct LoopSccCoupledAffineDecisionPlan {
     bool preexecutionOverflowCertified{false};
     std::optional<long long> boundedRangeLower;
     std::optional<long long> boundedRangeUpper;
-    // Still false in this stage: SMT row entailment is a post-hoc oracle and
-    // has not yet been converted into a reusable pre-execution semantic cert.
+    // Runtime shortcut eligibility is based only on independently checkable
+    // pre-execution certificates. Post-hoc VolCE row entailment remains an A/B
+    // oracle and is never consulted to make the current DFS replacement.
     bool runtimeShortcutEligible{false};
     std::vector<std::string> certificateDiagnostics;
 };
