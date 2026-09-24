@@ -58,6 +58,7 @@ jobs:
           EPPATHER_MAXMEMS_SEED_GREEDY=1 \
           EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_cocktail/cnip" \
             --output-dir cocktail-greedy-bnb-witness
@@ -82,6 +83,7 @@ jobs:
             EPPATHER_MAXMEMS_BRANCH_BOUND=1
             EPPATHER_SUPPRESS_REDECL_WARNINGS=1
             EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY=1
           )
 
           (
