@@ -1,0 +1,75 @@
+name: MaxMEMS cocktail loop-exit feasibility A-B
+
+concurrency:
+  group: maxmems-cocktail-loop-exit-ab-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-lexical-upper
+    paths:
+      - '.github/workflows/maxmems-cocktail-loop-exit-ab.yml'
+
+jobs:
+  compare:
+    strategy:
+      fail-fast: false
+      matrix:
+        loop_exit: [0, 1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_exit -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_exit --target cnip -j2
+      - name: Run 30s loop-exit A-B
+        shell: bash
+        run: |
+          mkdir -p "exit-${{ matrix.loop_exit }}"
+          set +e
+          timeout 30s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_LEXICAL_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=512 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY="${{ matrix.loop_exit }}" \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            "${{ github.workspace }}/build_exit/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > "exit-${{ matrix.loop_exit }}/stdout.log" \
+            2> "exit-${{ matrix.loop_exit }}/stderr.log"
+          echo $? > "exit-${{ matrix.loop_exit }}/exit_code.txt"
+          exit 0
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          v="${{ matrix.loop_exit }}"
+          d=Path("exit-"+v)
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) loop_exit_checks=(\d+) loop_exit_pruned=(\d+) loop_exit_unknown=(\d+) incumbent=(-?\d+)",err)
+          seed=re.findall(r"\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)",out)
+          result={"loop_exit":int(v),"exit":rc,
+                  "last_progress":list(map(int,prog[-1])) if prog else None,
+                  "seed":int(seed[-1]) if seed else None}
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("LOOP_EXIT_AB",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: loop-exit-${{ matrix.loop_exit }}
+          path: exit-${{ matrix.loop_exit }}/
