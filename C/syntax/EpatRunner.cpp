@@ -783,6 +783,197 @@ buildMemorySummaryValidationDecisions(
     return out;
 }
 
+
+bool certifyFixedMemoryPreexecution(
+    const LoopSccGraphInfo& graph,
+    const LoopSccMemorySummaryCandidate& candidate,
+    const LoopSccCycleInfo& cycle,
+    const std::unordered_map<std::string, std::size_t>& extents,
+    std::vector<std::string>& diagnostics) {
+    auto reject = [&](const std::string& reason) {
+        diagnostics.push_back(reason);
+        return false;
+    };
+
+    if (!graph.complete) {
+        return reject("SPath graph is incomplete");
+    }
+    if (graph.provedTripCount < 0 ||
+        candidate.totalIterations != graph.provedTripCount) {
+        return reject("candidate trip count is not the proved graph trip count");
+    }
+    if (!cycle.determinate || !cycle.phaseGuardsProved ||
+        cycle.period == 0 || cycle.spathOrder.size() != cycle.period) {
+        return reject("cycle/phase certificate is incomplete");
+    }
+    if (!candidate.exact || candidate.closedFormTransforms.empty()) {
+        return reject("fixed-cell closed form is not exact");
+    }
+
+    std::set<std::pair<std::string, long long>> candidateCells;
+    for (const auto& transform : candidate.closedFormTransforms) {
+        const auto extent = extents.find(transform.region);
+        if (extent == extents.end()) {
+            return reject(
+                "summary region is not a unique fixed local array: " +
+                transform.region);
+        }
+        if (transform.index < 0 ||
+            static_cast<unsigned long long>(transform.index) >=
+                static_cast<unsigned long long>(extent->second)) {
+            return reject(
+                "summary cell is outside fixed local array bounds: " +
+                transform.region + "[" +
+                std::to_string(transform.index) + "]");
+        }
+        candidateCells.emplace(transform.region, transform.index);
+    }
+
+    const long long fullPeriods =
+        candidate.totalIterations /
+        static_cast<long long>(cycle.period);
+    const std::size_t residual =
+        static_cast<std::size_t>(
+            candidate.totalIterations %
+            static_cast<long long>(cycle.period));
+
+    std::set<std::size_t> participatingPaths;
+    if (fullPeriods > 0) {
+        participatingPaths.insert(
+            cycle.spathOrder.begin(), cycle.spathOrder.end());
+    }
+    for (std::size_t r = 0; r < residual; ++r) {
+        participatingPaths.insert(
+            cycle.spathOrder[
+                (candidate.entryPhase + r) % cycle.period]);
+    }
+    if (participatingPaths.empty()) {
+        return reject("no SPath participates in the summarized execution");
+    }
+
+    static const std::regex fixedArrayAccess(
+        R"(([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\[[[:space:]]*(-?[0-9]+)[[:space:]]*\])");
+    static const std::regex compoundMemoryAssign(
+        R"((\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=))");
+
+    __int128 expectedMems = 0;
+    auto addPathMems = [&](std::size_t pathId, long long multiplier) -> bool {
+        if (pathId >= graph.spaths.size() || multiplier < 0) return false;
+        expectedMems +=
+            static_cast<__int128>(graph.spaths[pathId].observedMems) *
+            multiplier;
+        return expectedMems <=
+            static_cast<__int128>(
+                std::numeric_limits<std::size_t>::max());
+    };
+    if (fullPeriods > 0) {
+        for (std::size_t pathId : cycle.spathOrder) {
+            if (!addPathMems(pathId, fullPeriods)) {
+                return reject("MEMS certificate overflow");
+            }
+        }
+    }
+    for (std::size_t r = 0; r < residual; ++r) {
+        const std::size_t pathId =
+            cycle.spathOrder[
+                (candidate.entryPhase + r) % cycle.period];
+        if (!addPathMems(pathId, 1)) {
+            return reject("MEMS certificate overflow");
+        }
+    }
+    if (static_cast<std::size_t>(expectedMems) !=
+        candidate.observedMems) {
+        return reject("candidate MEMS differs from exact SPath sum");
+    }
+
+    for (std::size_t pathId : participatingPaths) {
+        if (pathId >= graph.spaths.size()) {
+            return reject("cycle references an unknown SPath");
+        }
+        const auto& path = graph.spaths[pathId];
+        if (!path.returnsToHeader || path.exitsLoop) {
+            return reject("participating SPath is not an exact loop backedge");
+        }
+        if (!path.guardModelComplete ||
+            !path.memoryAccessModelComplete ||
+            !path.memoryTransitionModelComplete ||
+            !path.memorySummaryEffectSafe) {
+            return reject("participating SPath has incomplete guard/effect/memory model");
+        }
+        if (path.writesMemory && path.memoryCellTransforms.empty()) {
+            return reject("memory write lacks fixed-cell transition");
+        }
+
+        for (const auto& access : path.memoryAccesses) {
+            if (!access.precise) {
+                return reject("memory access MEMS observation is imprecise");
+            }
+            if (access.pointerDereferences != 0) {
+                return reject("pointer dereference is not eligible for fixed-array certificate");
+            }
+
+            std::size_t lexicalArrayAccesses = 0;
+            for (std::sregex_iterator it(
+                     access.sourceText.begin(),
+                     access.sourceText.end(),
+                     fixedArrayAccess),
+                 end;
+                 it != end; ++it) {
+                ++lexicalArrayAccesses;
+                const std::string region = (*it)[1].str();
+                const long long index =
+                    std::strtoll((*it)[2].str().c_str(), nullptr, 10);
+                const auto extent = extents.find(region);
+                if (extent == extents.end()) {
+                    return reject(
+                        "memory access region is not a unique fixed local array: " +
+                        region);
+                }
+                if (index < 0 ||
+                    static_cast<unsigned long long>(index) >=
+                        static_cast<unsigned long long>(extent->second)) {
+                    return reject(
+                        "memory access is outside fixed local array bounds: " +
+                        region + "[" + std::to_string(index) + "]");
+                }
+            }
+
+            const bool compound =
+                access.writesMemory &&
+                std::regex_search(
+                    access.sourceText, compoundMemoryAssign);
+            const std::size_t expectedArrayMems =
+                lexicalArrayAccesses + (compound ? 1u : 0u);
+            if (expectedArrayMems != access.arraySubscripts) {
+                return reject(
+                    "array MEMS tokens are not fully explained by constant-index accesses");
+            }
+            if (access.arraySubscripts > 0 &&
+                lexicalArrayAccesses == 0) {
+                return reject("array access could not be structurally localized");
+            }
+        }
+
+        for (const auto& transform : path.memoryCellTransforms) {
+            const auto extent = extents.find(transform.region);
+            if (extent == extents.end() || transform.index < 0 ||
+                static_cast<unsigned long long>(transform.index) >=
+                    static_cast<unsigned long long>(extent->second)) {
+                return reject("SPath fixed-cell transition is outside certified region");
+            }
+            if (candidateCells.find(
+                    {transform.region, transform.index}) ==
+                candidateCells.end()) {
+                return reject("SPath memory write is absent from full-loop closed form");
+            }
+        }
+    }
+
+    diagnostics.push_back(
+        "complete fixed-local-array frame/effect/MEMS certificate");
+    return true;
+}
+
 }  // namespace
 
 std::optional<std::vector<PathDecision>>
@@ -871,16 +1062,12 @@ buildLoopSccMemoryAccelerationDecisions(
 
     const auto extents =
         parseFixedOneDimensionalArrayExtents(sourcePrefix);
-    for (const auto& transform : candidate.closedFormTransforms) {
-        const auto extent = extents.find(transform.region);
-        if (extent == extents.end() || transform.index < 0 ||
-            static_cast<unsigned long long>(transform.index) >=
-                static_cast<unsigned long long>(extent->second)) {
-            return std::nullopt;
-        }
-    }
 
     LoopSccMemoryAccelerationDecisionPlan plan;
+    plan.preexecutionCertified =
+        certifyFixedMemoryPreexecution(
+            graph, candidate, cycle, extents,
+            plan.certificateDiagnostics);
     plan.unfoldedMems = candidate.observedMems;
     plan.decisions = prefix;
     plan.decisions.push_back(PathDecision{
