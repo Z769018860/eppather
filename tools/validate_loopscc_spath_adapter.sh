@@ -529,6 +529,19 @@ if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: runtime overflow remains uncertifi
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
+coupled_rows_required="$(metric_max 'VOLCE LOOPSCC COUPLED ROWS REQUIRED' "$OUT_DIR/coupled_affine.log")"
+coupled_rows_applied="$(metric_max 'VOLCE LOOPSCC COUPLED ROWS APPLIED' "$OUT_DIR/coupled_affine.log")"
+coupled_rows_rejected="$(metric_max 'VOLCE LOOPSCC COUPLED ROWS REJECTED' "$OUT_DIR/coupled_affine.log")"
+coupled_all_entailed="$(metric_max 'VOLCE LOOPSCC COUPLED ALL ENTAILED' "$OUT_DIR/coupled_affine.log")"
+if [[ "$coupled_rows_required" != 3 ||
+      "$coupled_rows_applied" != 3 ||
+      "$coupled_rows_rejected" != 0 ||
+      "$coupled_all_entailed" != 1 ]]; then
+  echo "coupled_affine: unfolded SMT did not entail all three coupled matrix rows" >&2
+  echo "required=$coupled_rows_required applied=$coupled_rows_applied rejected=$coupled_rows_rejected all=$coupled_all_entailed" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
 if grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
   echo "coupled_affine: validation-only stage must not enable DFS shortcut" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
