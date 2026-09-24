@@ -1,0 +1,190 @@
+name: MaxMEMS final timeout gate
+
+concurrency:
+  group: maxmems-final-timeout-gate-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-timeout-final-gate
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_witness_experiment.py'
+      - 'tools/maxmems_corpus_experiment.py'
+      - '.github/workflows/maxmems-final-timeout-gate.yml'
+
+jobs:
+  final-timeout-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build_final_timeout -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_final_timeout --target cnip -j2
+
+      - name: 20-case MaxMEMS correctness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_final_timeout/cnip" \
+            --output-dir final-timeout-witness
+
+      - name: MEMS upper-bound soundness gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_final_timeout/cnip" \
+            --output-dir final-timeout-upper-soundness
+
+      - name: Cocktail-sort BnB rescue
+        shell: bash
+        run: |
+          set +e
+          mkdir -p final-timeout/cocktail
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            "${{ github.workspace }}/build_final_timeout/cnip" \
+            -g "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > final-timeout/cocktail/stdout.log \
+            2> final-timeout/cocktail/stderr.log
+          rc=$?
+          echo "$rc" > final-timeout/cocktail/exit_code.txt
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "cocktail-sort BnB rescue failed with rc=$rc"
+            exit 1
+          fi
+          grep -E '^MEMS:|^\[DP TIME COST\]|^\[DP BRANCH BOUND PRUNED\]|^\[DP BRANCH ORDER SWAPS\]' final-timeout/cocktail/stdout.log || true
+
+      - name: Soundex DP and DFS max-only rescue
+        shell: bash
+        run: |
+          set +e
+          mkdir -p final-timeout/soundex-dp final-timeout/soundex-dfs
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            "${{ github.workspace }}/build_final_timeout/cnip" \
+            -g "${{ github.workspace }}/testcase/output_complete2/soundex.c" 3 \
+            > final-timeout/soundex-dp/stdout.log \
+            2> final-timeout/soundex-dp/stderr.log
+          dp_rc=$?
+          echo "$dp_rc" > final-timeout/soundex-dp/exit_code.txt
+
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_DFS2_MAX_ONLY=1 \
+            "${{ github.workspace }}/build_final_timeout/cnip" \
+            -q "${{ github.workspace }}/testcase/output_complete2/soundex.c" 3 1000 \
+            > final-timeout/soundex-dfs/stdout.log \
+            2> final-timeout/soundex-dfs/stderr.log
+          dfs_rc=$?
+          echo "$dfs_rc" > final-timeout/soundex-dfs/exit_code.txt
+          set -e
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          dp = Path("final-timeout/soundex-dp/stdout.log").read_text(errors="replace")
+          dfs = Path("final-timeout/soundex-dfs/stdout.log").read_text(errors="replace")
+          dp_rc = int(Path("final-timeout/soundex-dp/exit_code.txt").read_text())
+          dfs_rc = int(Path("final-timeout/soundex-dfs/exit_code.txt").read_text())
+
+          dp_vals = [int(x) for x in re.findall(r"(?m)^MEMS:\s*(-?\d+)\s*$", dp)]
+          dfs_vals = [int(x) for x in re.findall(r"(?m)^\[DFS MAX ONLY MEMS\]:\s*(-?\d+)\s*$", dfs)]
+          if dp_rc != 0:
+              raise SystemExit(f"soundex DP failed rc={dp_rc}")
+          if dfs_rc != 0:
+              raise SystemExit(f"soundex DFS max-only failed rc={dfs_rc}")
+          if not dp_vals or not dfs_vals:
+              raise SystemExit("missing soundex MEMS outputs")
+          if dp_vals[-1] != dfs_vals[-1]:
+              raise SystemExit(f"soundex DP/DFS mismatch: {dp_vals[-1]} != {dfs_vals[-1]}")
+          print(f"SOUNDEX_RESOLVED MEMS={dp_vals[-1]}")
+          PY
+
+      - name: Summarize final timeout gate
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          def parse(path, pattern):
+              p = Path(path)
+              if not p.exists():
+                  return None
+              text = p.read_text(errors="replace")
+              vals = re.findall(pattern, text, re.M)
+              return int(vals[-1]) if vals else None
+
+          summary = {
+              "cocktail_exit": int(Path("final-timeout/cocktail/exit_code.txt").read_text()) if Path("final-timeout/cocktail/exit_code.txt").exists() else None,
+              "cocktail_mems": parse("final-timeout/cocktail/stdout.log", r"^MEMS:\s*(-?\d+)\s*$"),
+              "soundex_dp_exit": int(Path("final-timeout/soundex-dp/exit_code.txt").read_text()) if Path("final-timeout/soundex-dp/exit_code.txt").exists() else None,
+              "soundex_dp_mems": parse("final-timeout/soundex-dp/stdout.log", r"^MEMS:\s*(-?\d+)\s*$"),
+              "soundex_dfs_exit": int(Path("final-timeout/soundex-dfs/exit_code.txt").read_text()) if Path("final-timeout/soundex-dfs/exit_code.txt").exists() else None,
+              "soundex_dfs_mems": parse("final-timeout/soundex-dfs/stdout.log", r"^\[DFS MAX ONLY MEMS\]:\s*(-?\d+)\s*$"),
+          }
+          Path("final-timeout/summary.json").write_text(json.dumps(summary, indent=2) + "\n")
+          print("FINAL_TIMEOUT_GATE", json.dumps(summary, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-final-timeout-gate
+          path: |
+            final-timeout/
+            final-timeout-witness/
+            final-timeout-upper-soundness/
