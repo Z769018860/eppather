@@ -13,21 +13,21 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 SCALAR_INT_TYPE = (
-    r"(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?"
-    r"|signed(?:\\s+(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?))?"
-    r"|unsigned(?:\\s+(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?))?)"
+    r"(?:char|short(?:\s+int)?|int|long(?:\s+long)?(?:\s+int)?"
+    r"|signed(?:\s+(?:char|short(?:\s+int)?|int|long(?:\s+long)?(?:\s+int)?))?"
+    r"|unsigned(?:\s+(?:char|short(?:\s+int)?|int|long(?:\s+long)?(?:\s+int)?))?)"
 )
-QUAL = r"(?:(?:const|volatile)\\s+)*"
+QUAL = r"(?:(?:const|volatile)\s+)*"
 FUNC_RE = re.compile(
-    rf"\\b(?:{SCALAR_INT_TYPE}|void)\\s+(?P<name>[A-Za-z_]\\w*)"
-    rf"\\s*\\((?P<params>[^()]*)\\)\\s*\\{{", re.M
+    rf"\b(?:{SCALAR_INT_TYPE}|void)\s+(?P<name>[A-Za-z_]\w*)"
+    rf"\s*\((?P<params>[^()]*)\)\s*\{", re.M
 )
 PARAM_RE = re.compile(
-    rf"^\\s*{QUAL}(?:{SCALAR_INT_TYPE})\\s+{QUAL}(?P<name>[A-Za-z_]\\w*)\\s*$"
+    rf"^\s*{QUAL}(?:{SCALAR_INT_TYPE})\s+{QUAL}(?P<name>[A-Za-z_]\w*)\s*$"
 )
 MODEL_RE = re.compile(
-    rf"\\b(?:{SCALAR_INT_TYPE})\\s+(?P<name>[A-Za-z_]\\w*)"
-    rf"\\s*=\\s*(?P<value>-?\\d+)\\s*;?"
+    rf"\b(?:{SCALAR_INT_TYPE})\s+(?P<name>[A-Za-z_]\w*)"
+    rf"\s*=\s*(?P<value>-?\d+)\s*;?"
 )
 COND_RE = re.compile(r"@\((.*?)\);", re.S)
 
