@@ -164,7 +164,7 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
 }
 
 std::optional<int> exactStableForTripCount(
-    const psy::C::CFGNode* node, int safetyCap) {
+    psy::C::CFGNode* node, int safetyCap) {
     if (!node || !node->isFor) return std::nullopt;
 
     const auto prediction = psy::C::LoopBoundPredictor::predict(
