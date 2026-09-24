@@ -3651,6 +3651,7 @@ static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
+static std::uint64_t maxMemsUpperBoundCacheHits = 0;
 static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
@@ -3850,9 +3851,27 @@ static int remainingMemsUpperBound(
         std::to_string(std::hash<std::string>{}(self->vartemp));
     if (auto it = remainingMemsUpperCache.find(key);
         it != remainingMemsUpperCache.end()) {
+        ++maxMemsUpperBoundCacheHits;
         return it->second;
     }
     ++maxMemsUpperBoundStates;
+    const char* upperProgressRaw =
+        std::getenv("EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY");
+    if (upperProgressRaw && *upperProgressRaw) {
+        char* end = nullptr;
+        const unsigned long long every =
+            std::strtoull(upperProgressRaw, &end, 10);
+        if (end != upperProgressRaw && *end == '\0' && every > 0 &&
+            maxMemsUpperBoundStates % every == 0) {
+            std::cerr << "[DP UPPER PROGRESS]: states="
+                      << maxMemsUpperBoundStates
+                      << " cache_hits=" << maxMemsUpperBoundCacheHits
+                      << " node=" << reinterpret_cast<std::uintptr_t>(entry.get())
+                      << " depth=" << depth
+                      << " loopkey=" << LoopMapKey(loopMap)
+                      << std::endl;
+        }
+    }
 
     auto storeUpper = [&](int value) {
         remainingMemsUpperCache.emplace(key, value);
@@ -4522,6 +4541,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsBranchBoundPruned = 0;
         maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
+        maxMemsUpperBoundCacheHits = 0;
         maxMemsUpperSoundnessChecks = 0;
         maxMemsUpperUnderestimates = 0;
         maxMemsFeasibleIncumbent = -1;
@@ -4784,6 +4804,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
+        std::cout << "[DP UPPER BOUND CACHE HITS]: "
+                  << maxMemsUpperBoundCacheHits << std::endl;
         std::cout << "[DP PATH LOCAL GUARD PRUNES]: "
                   << maxMemsPathLocalGuardPrunes << std::endl;
         std::cout << "[DP MEMS UPPER SOUNDNESS CHECKS]: "
