@@ -315,7 +315,11 @@ public:
         if (it != feasCache.end()) return it->second;
 
         EpatRunner runner(vartemp);
-        bool ok = runner.solve(decisions).status == result::feasible;
+        const auto status = runner.solve(decisions).status;
+        // Safe prefix pruning is three-valued: prune only a prefix that the
+        // solver proves infeasible.  Unknown must remain explorable; treating
+        // it as false can silently discard the true MaxMEMS witness.
+        const bool ok = status != result::infeasible;
         feasCache.emplace(std::move(cacheKey), ok);
         return ok;
     }
