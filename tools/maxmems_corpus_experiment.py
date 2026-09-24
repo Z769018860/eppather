@@ -22,12 +22,12 @@ from e2e_path_validation import (
 
 MEM_RE = re.compile(r"\[mem\]:(-?\d+)")
 DP_PATH_RE = re.compile(
-    r"\\[MAX MEMS PATH\\]:\\s*\\n(.*?)(?=\\n(?:\\[DP INTERNAL MEMS\\]|\\[DP SCORE DELTA\\]|MEMS:))",
+    r"\[MAX MEMS PATH\]:\s*\n(.*?)(?=\n(?:\[DP INTERNAL MEMS\]|\[DP SCORE DELTA\]|MEMS:))",
     re.S,
 )
-DP_MEM_RE = re.compile(r"(?m)^MEMS:\\s*(-?\\d+)")
-DP_INTERNAL_RE = re.compile(r"(?m)^\\[DP INTERNAL MEMS\\]:\\s*(-?\\d+)")
-DP_DELTA_RE = re.compile(r"(?m)^\\[DP SCORE DELTA\\]:\\s*(-?\\d+)")
+DP_MEM_RE = re.compile(r"(?m)^MEMS:\s*(-?\d+)")
+DP_INTERNAL_RE = re.compile(r"(?m)^\[DP INTERNAL MEMS\]:\s*(-?\d+)")
+DP_DELTA_RE = re.compile(r"(?m)^\[DP SCORE DELTA\]:\s*(-?\d+)")
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -281,7 +281,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                     prog["replay_unsupported_functions"] += 1
                     functions.append(row)
                     continue
-            if re.search(r"\\bswitch\\s*\\(", replay_source):
+            if re.search(r"\bswitch\s*\(", replay_source):
                 row["replay_status"] = "unsupported_switch"
                 row["detail"] = (row["detail"] + "; " if row["detail"] else "") + \
                     "concrete replay does not instrument switch/case decisions"

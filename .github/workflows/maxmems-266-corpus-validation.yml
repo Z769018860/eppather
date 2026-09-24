@@ -27,6 +27,28 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
+      - name: Validate experiment harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py tools/aggregate_maxmems_corpus.py
+          python3 - <<'PY'
+          import sys
+          sys.path.insert(0, "tools")
+          from maxmems_corpus_experiment import parse_dp_blocks
+          sample = """[FUNCTION TAG]: smoke
+[DP MAX MEMS]: 7
+[MAX MEMS PATH]:
+@(x > 0);
+[DP INTERNAL MEMS]: 7
+[DP SCORE DELTA]: 0
+MEMS: 7
+"""
+          rows = parse_dp_blocks(sample)
+          assert len(rows) == 1, rows
+          assert rows[0]["function"] == "smoke", rows
+          assert rows[0]["mems"] == 7, rows
+          assert rows[0]["internal_mems"] == 7, rows
+          assert rows[0]["score_delta"] == 0, rows
+          PY
       - name: Configure Eppather
         run: cmake -S . -B build_maxmems266 -DANALYSIS_BACKEND=epat++
       - name: Build cnip
