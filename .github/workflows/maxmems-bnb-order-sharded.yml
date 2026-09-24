@@ -51,26 +51,26 @@ jobs:
           path: bnb-order-sharded-witness/
 
 
-  additive-mems-gate:
+  upper-bound-soundness-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build_additive -DANALYSIS_BACKEND=epat++
+        run: cmake -S . -B build_upper -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_additive --target cnip -j2
-      - name: Validate additive MEMS on 20 controlled witnesses
+      - name: Validate MEMS upper-bound soundness on 20 controlled witnesses
         run: |
           EPPATHER_MAXMEMS_CORE_ONLY=1 \
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
           EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
-          EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS=1 \
-          EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS_STRICT=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_additive/cnip" \
-            --output-dir additive-mems-witness
+            --output-dir upper-bound-soundness-witness
       - uses: actions/upload-artifact@v4
         if: always()
         with:
