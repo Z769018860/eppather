@@ -138,11 +138,13 @@ namespace epat {
         {
             if (!epat::isMemorySsaProvenanceEnabled())
                 return;
-            mem_.array_init();
-            if (mem_.array_) {
+            this->mem_.array_init();
+            if (this->mem_.array_) {
                 auto entryMemory = gc.constant(
-                    "%a#ssa_loop_entry", mem_.array_.get_sort());
-                this->smt_.pushCond(entryMemory == mem_.array_);
+                    "%a#ssa_loop_entry",
+                    this->mem_.array_.get_sort());
+                this->smt_.pushCond(
+                    entryMemory == this->mem_.array_);
             }
         }
 
