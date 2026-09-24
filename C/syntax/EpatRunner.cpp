@@ -1538,6 +1538,16 @@ std::optional<int> EpatRunner::estimateMemsUpperOnly(
         return std::nullopt;
     }
     try {
+        // A lexical estimate cannot account for callee summaries. Refuse the
+        // fast upper bound whenever a decision may invoke another function;
+        // callers treat nullopt as infinity, which is conservative and only
+        // disables pruning for that suffix.
+        for (const auto& decision : decisions) {
+            if (decision.node && !decision.node->calleeNames.empty()) {
+                return std::nullopt;
+            }
+        }
+
         // Render without the source prefix: this method estimates only the
         // decision's/path's incremental MEMS, not declarations in vartemp.
         EpatRunner rawRunner("");
