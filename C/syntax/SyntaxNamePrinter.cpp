@@ -3720,6 +3720,11 @@ constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
 static int addMemsUpper(int a, int b) {
+    // -1 is reserved by remainingMemsUpperBound() for "no bounded
+    // completion". Preserve it instead of turning an impossible suffix into
+    // an infinite upper bound. Other negative values remain conservative
+    // unknowns.
+    if (a == -1 || b == -1) return -1;
     if (a < 0 || b < 0) return kMaxMemsUpperInfinity;
     if (a >= kMaxMemsUpperInfinity || b >= kMaxMemsUpperInfinity)
         return kMaxMemsUpperInfinity;
@@ -4084,7 +4089,7 @@ static int remainingMemsUpperBound(
             }
             best = std::max(best, falseUpper);
         }
-        return storeUpper(best < 0 ? kMaxMemsUpperInfinity : best);
+        return storeUpper(best);
     }
 
     if (entry->isLoop) {
@@ -4294,6 +4299,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         currentMemsUpper < kMaxMemsUpperInfinity) {
         const int remaining = remainingMemsUpperBound(
             this, entry, maxloop, depth, loopUnrollMap);
+        if (remaining < 0) {
+            ++maxMemsBranchBoundPruned;
+            return PathInfo(0, pathPrefix, false);
+        }
         const int totalUpper =
             addMemsUpper(currentMemsUpper, remaining);
         if (totalUpper < kMaxMemsUpperInfinity &&
@@ -4569,6 +4578,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!trueGuardCanHold) return;
+            if (edgeBnbEnabled && tPotential < 0) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (edgeBnbEnabled &&
                 maxMemsFeasibleIncumbent >= 0 &&
                 tPotential >= 0 &&
@@ -4591,6 +4604,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         };
         auto exploreFalse = [&]() {
             if (!falseGuardCanHold) return;
+            if (edgeBnbEnabled && fPotential < 0) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (edgeBnbEnabled &&
                 maxMemsFeasibleIncumbent >= 0 &&
                 fPotential >= 0 &&
@@ -4759,6 +4776,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!trueGuardCanHold) return;
+            if (edgeBnbEnabled && tPotential < 0) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (edgeBnbEnabled &&
                 maxMemsFeasibleIncumbent >= 0 &&
                 tPotential >= 0 &&
@@ -4796,6 +4817,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreFalse = [&]() {
             if (!falseGuardCanHold) return;
+            if (edgeBnbEnabled && fPotential < 0) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (edgeBnbEnabled &&
                 maxMemsFeasibleIncumbent >= 0 &&
                 fPotential >= 0 &&
