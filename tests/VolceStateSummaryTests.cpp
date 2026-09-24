@@ -185,6 +185,69 @@ int main() {
               << '\n';
     failures += !coupledRelationOk;
 
+    const auto coupledOverflowSafe =
+        volce::validateCoupledAffineOverflowFromSmt2(
+            coupledRelationSmt, {coupledCorrect},
+            volce::Range{-8, 8});
+    const bool coupledOverflowSafeOk =
+        coupledOverflowSafe &&
+        coupledOverflowSafe->required_rows == 3 &&
+        coupledOverflowSafe->certified_rows == 3 &&
+        coupledOverflowSafe->certified.size() == 3 &&
+        coupledOverflowSafe->rejected.empty() &&
+        coupledOverflowSafe->all_rows_safe;
+    std::cout << "loopscc-coupled-affine-bounded-overflow-safe: "
+              << (coupledOverflowSafeOk ? "PASS" : "FAIL")
+              << " certified="
+              << (coupledOverflowSafe
+                      ? std::to_string(coupledOverflowSafe->certified_rows)
+                      : "N/A")
+              << "/"
+              << (coupledOverflowSafe
+                      ? std::to_string(coupledOverflowSafe->required_rows)
+                      : "N/A")
+              << '\n';
+    failures += !coupledOverflowSafeOk;
+
+    const std::string coupledOverflow8Smt =
+        "(declare-const |i@0#ssa0| (_ BitVec 8))\n"
+        "(declare-const |i@0#ssa1| (_ BitVec 8))\n"
+        "(declare-const |x@0#ssa0| (_ BitVec 8))\n"
+        "(declare-const |x@0#ssa1| (_ BitVec 8))\n"
+        "(declare-const |y@0#ssa0| (_ BitVec 8))\n"
+        "(declare-const |y@0#ssa1| (_ BitVec 8))\n"
+        "(assert (= |i@0#ssa1| "
+        "(bvadd |i@0#ssa0| (_ bv4 8))))\n"
+        "(assert (= |y@0#ssa1| "
+        "(bvadd |y@0#ssa0| (_ bv4 8))))\n"
+        "(assert (= |x@0#ssa1| "
+        "(bvadd (bvadd |x@0#ssa0| "
+        "(bvmul (_ bv4 8) |y@0#ssa0|)) "
+        "(_ bv6 8))))\n";
+    const auto coupledOverflowUnsafe =
+        volce::validateCoupledAffineOverflowFromSmt2(
+            coupledOverflow8Smt, {coupledCorrect},
+            volce::Range{-100, 100});
+    const bool coupledOverflowUnsafeOk =
+        coupledOverflowUnsafe &&
+        coupledOverflowUnsafe->required_rows == 3 &&
+        coupledOverflowUnsafe->certified_rows == 2 &&
+        coupledOverflowUnsafe->certified.size() == 2 &&
+        coupledOverflowUnsafe->rejected.size() == 1 &&
+        !coupledOverflowUnsafe->all_rows_safe;
+    std::cout << "loopscc-coupled-affine-bounded-overflow-reject: "
+              << (coupledOverflowUnsafeOk ? "PASS" : "FAIL")
+              << " certified="
+              << (coupledOverflowUnsafe
+                      ? std::to_string(coupledOverflowUnsafe->certified_rows)
+                      : "N/A")
+              << "/"
+              << (coupledOverflowUnsafe
+                      ? std::to_string(coupledOverflowUnsafe->required_rows)
+                      : "N/A")
+              << '\n';
+    failures += !coupledOverflowUnsafeOk;
+
     const std::string memorySmt =
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
