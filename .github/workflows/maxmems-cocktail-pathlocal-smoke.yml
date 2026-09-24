@@ -1,0 +1,109 @@
+name: MaxMEMS cocktail path-local smoke
+
+concurrency:
+  group: maxmems-cocktail-path-local-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-pathlocal-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_smoke -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_smoke --target cnip -j2
+
+      - name: 20-case path-local correctness gate
+        run: |
+          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_smoke/cnip" \
+            --output-dir pathlocal-witness
+
+      - name: Run cocktail path-local variants
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_smoke/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          mkdir -p pathlocal-smoke
+
+          run_one() {
+            name="$1"; shift
+            d="pathlocal-smoke/$name"; mkdir -p "$d"
+            set +e
+            timeout 90s env \
+              EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_PROGRESS_EVERY=250 \
+              EPPATHER_MAXMEMS_LEAF_DIAGNOSTIC_LIMIT=3 \
+              "$@" "$CNIP" -g "$SRC" 3 > "$d/stdout.log" 2> "$d/stderr.log"
+            rc=$?
+            set -e
+            echo "$rc" > "$d/exit_code.txt"
+          }
+
+          run_one plain_pathlocal env
+          run_one bnb_pathlocal env \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1
+          run_one seeded_bnb_pathlocal env \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("pathlocal-smoke")
+          rows=[]
+          for d in sorted(p for p in root.iterdir() if p.is_dir()):
+              out=(d/"stdout.log").read_text(errors="replace")
+              err=(d/"stderr.log").read_text(errors="replace")
+              rc=int((d/"exit_code.txt").read_text().strip())
+              def last(p,s=out):
+                  xs=re.findall(p,s,re.M)
+                  return xs[-1] if xs else None
+              prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",err)
+              rows.append({
+                  "variant":d.name,
+                  "exit":rc,
+                  "mems": int(last(r"^MEMS:\s*(-?\d+)\s*$")) if last(r"^MEMS:\s*(-?\d+)\s*$") else None,
+                  "dp_time": float(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds")) if last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds") else None,
+                  "seed": int(last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)")) if last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)") else None,
+                  "last_progress": tuple(map(int,prog[-1])) if prog else None,
+                  "leaf_diag_count": len(re.findall(r"\[DP LEAF DIAG\]",err)),
+              })
+          (root/"summary.json").write_text(json.dumps(rows,indent=2)+"\n")
+          print("COCKTAIL_PATHLOCAL_SMOKE",json.dumps(rows,sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-pathlocal-smoke-results
+          path: |
+            pathlocal-smoke/
+            pathlocal-witness/
