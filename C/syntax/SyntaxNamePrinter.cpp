@@ -3840,6 +3840,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     const bool branchBoundEnabled =
         branchBoundRaw && *branchBoundRaw &&
         std::string(branchBoundRaw) != "0";
+    const char* branchOrderRaw =
+        std::getenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+    const bool branchOrderEnabled =
+        branchBoundEnabled ||
+        (branchOrderRaw && *branchOrderRaw &&
+         std::string(branchOrderRaw) != "0");
     if (branchBoundEnabled &&
         maxMemsFeasibleIncumbent >= 0 &&
         currentMemsUpper >= 0 &&
@@ -4019,7 +4025,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::TrueBranch));
         const int tPotential =
-            branchBoundEnabled && entry->getNextNode()
+            branchOrderEnabled && entry->getNextNode()
                 ? addMemsUpper(
                       tMemsUpper,
                       remainingMemsUpperBound(
@@ -4040,7 +4046,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::FalseBranch));
         const int fPotential =
-            branchBoundEnabled && entry->getNextFalseNode()
+            branchOrderEnabled && entry->getNextFalseNode()
                 ? addMemsUpper(
                       fMemsUpper,
                       remainingMemsUpperBound(
@@ -4077,7 +4083,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 fMemsUpper, std::move(fDecisions));
         };
 
-        if (branchBoundEnabled &&
+        if (branchOrderEnabled &&
             fPotential > tPotential) {
             ++maxMemsBranchOrderSwaps;
             exploreFalse();
@@ -4159,7 +4165,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                       PathDecisionKind::FalseBranch))
             : -1;
         const int tPotential =
-            branchBoundEnabled && trueGuardCanHold
+            branchOrderEnabled && trueGuardCanHold
             ? addMemsUpper(
                   tMemsUpper,
                   remainingMemsUpperBound(
@@ -4167,7 +4173,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                       depth + 1, tLoopMap))
             : -1;
         const int fPotential =
-            branchBoundEnabled && falseGuardCanHold
+            branchOrderEnabled && falseGuardCanHold
             ? addMemsUpper(
                   fMemsUpper,
                   remainingMemsUpperBound(
@@ -4232,7 +4238,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 fMemsUpper, std::move(fDecisions));
         };
 
-        if (branchBoundEnabled &&
+        if (branchOrderEnabled &&
             fPotential > tPotential) {
             ++maxMemsBranchOrderSwaps;
             exploreFalse();
