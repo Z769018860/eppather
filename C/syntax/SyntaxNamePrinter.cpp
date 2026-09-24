@@ -3823,10 +3823,13 @@ static int syntaxDecisionMemsUpper(
     CFGNode* node,
     PathDecisionKind kind) {
     if (!node) return 0;
+    // This cache is cleared at every function entry, so vartemp is already
+    // implicit in its lifetime. Hashing the full normalized source prefix on
+    // every upper-bound cache lookup dominated cocktail-sort before the actual
+    // DP search even began.
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(node)) + ":" +
-        std::to_string(static_cast<int>(kind)) + ":" +
-        std::to_string(std::hash<std::string>{}(self->vartemp));
+        std::to_string(static_cast<int>(kind));
     if (auto it = syntaxDecisionMemsCache.find(key);
         it != syntaxDecisionMemsCache.end()) {
         return it->second;
