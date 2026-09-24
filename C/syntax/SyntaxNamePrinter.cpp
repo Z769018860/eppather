@@ -4989,8 +4989,21 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 oldLazyLeafRaw ? std::optional<std::string>(oldLazyLeafRaw)
                                : std::nullopt;
 
-            setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
-            setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
+            const char* sourceSeedRaw =
+                std::getenv("EPPATHER_MAXMEMS_SEED_SOURCE_ORDER");
+            const bool sourceOrderSeed =
+                sourceSeedRaw && *sourceSeedRaw &&
+                std::string(sourceSeedRaw) != "0";
+            if (sourceOrderSeed) {
+                // Seed sampling should be cheap. Source order reaches bounded
+                // complete leaves without recursively constructing MEMS upper
+                // bounds; the leaves are still solver-certified.
+                unsetenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+                unsetenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER");
+            } else {
+                setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
+                setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
+            }
             unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
             // Loop-exit prefix solving is useful in the exact search, but on
             // cocktail-sort these seed-time queries all returned unknown and
@@ -5023,7 +5036,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsSeedFeasibleTarget = seedFeasibleTarget;
             maxMemsSeedFeasibleSeen = 0;
             maxMemsSeedExitFirst = seedExitFirst;
-            maxMemsSeedTerminationAware = !seedExitFirst;
+            maxMemsSeedTerminationAware =
+                !sourceOrderSeed && !seedExitFirst;
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
