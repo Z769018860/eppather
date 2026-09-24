@@ -194,6 +194,12 @@ public:
     // Run epat++ using CFG decisions directly.
     EpatResult solve(const std::vector<PathDecision>& decisions) const;
 
+    // Feasibility-only fast path for prefix pruning. It preserves the same
+    // bounded CFG/SSA semantics but deliberately skips MEMS, SMT2 and model
+    // extraction, which are unnecessary for an intermediate prefix query.
+    epat::result checkFeasible(
+        const std::vector<PathDecision>& decisions) const;
+
     bool feasible(const std::vector<PathDecision>& decisions) const {
         return solve(decisions).status == epat::result::feasible;
     }
