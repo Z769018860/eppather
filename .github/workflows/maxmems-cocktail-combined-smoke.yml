@@ -1,0 +1,76 @@
+name: MaxMEMS cocktail combined-prune smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - '.github/workflows/maxmems-cocktail-combined-smoke.yml'
+
+jobs:
+  combined:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_combined -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_combined --target cnip -j2
+
+      - name: 20-case combined correctness gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_combined/cnip" \
+            --output-dir combined-witness
+
+      - name: Run cocktail 120s combined
+        shell: bash
+        run: |
+          mkdir -p combined
+          timeout 120s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
+            "${{ github.workspace }}/build_combined/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > combined/stdout.log 2> combined/stderr.log
+          echo $? > combined/exit_code.txt
+        continue-on-error: true
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("combined")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip()) if (d/"exit_code.txt").exists() else 124
+          mem=re.findall(r"^MEMS:\s*(-?\d+)\s*$",out,re.M)
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",err)
+          result={"exit":rc,"mems":int(mem[-1]) if mem else None,"last_progress":prog[-1] if prog else None}
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_COMBINED",json.dumps(result))
+          if rc != 0:
+              raise SystemExit("combined cocktail still timed out")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-combined-results
+          path: |
+            combined/
+            combined-witness/
