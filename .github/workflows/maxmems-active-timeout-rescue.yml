@@ -2,7 +2,7 @@ name: MaxMEMS active timeout rescue
 
 concurrency:
   group: maxmems-active-timeout-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 on:
   workflow_dispatch:
