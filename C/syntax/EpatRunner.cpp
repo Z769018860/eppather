@@ -1531,6 +1531,36 @@ std::optional<int> EpatRunner::countMemsOnly(
     }
 }
 
+
+std::optional<int> EpatRunner::estimateMemsUpperOnly(
+    const std::vector<PathDecision>& decisions) const {
+    if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
+        return std::nullopt;
+    }
+    try {
+        // Render without the source prefix: this method estimates only the
+        // decision's/path's incremental MEMS, not declarations in vartemp.
+        EpatRunner rawRunner("");
+        const std::string script = rawRunner.render(decisions);
+        long long mem = estimateMemsFromScript(script);
+        for (const auto& decision : decisions) {
+            if (decision.kind != PathDecisionKind::SyntheticMems) continue;
+            if (decision.syntheticMems < 0 ||
+                mem > std::numeric_limits<long long>::max() -
+                          decision.syntheticMems) {
+                return std::nullopt;
+            }
+            mem += decision.syntheticMems;
+        }
+        if (mem < 0 || mem > std::numeric_limits<int>::max()) {
+            return std::nullopt;
+        }
+        return static_cast<int>(mem);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 EpatResult EpatRunner::solveMemsOnly(
     const std::vector<PathDecision>& decisions) const {
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
