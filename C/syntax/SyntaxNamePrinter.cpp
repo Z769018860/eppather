@@ -3506,17 +3506,26 @@ inline bool isPathFeasibleCached(
         return true;
     }
     ++maxMemsPrefixChecks;
-    auto it = feasCache.find(fullExpr);
+    std::string cacheExpr = fullExpr;
+    std::string rawPath;
+    if (cacheExpr.empty()) {
+        static const EpatRunner rawRunner("");
+        rawPath = rawRunner.render(decisions);
+        cacheExpr = self->vartemp + rawPath;
+    } else {
+        rawPath = cacheExpr.substr(self->vartemp.size());
+    }
+
+    auto it = feasCache.find(cacheExpr);
     if (it != feasCache.end()) {
         ++maxMemsPrefixCacheHits;
         if (!it->second) ++maxMemsPrefixPruned;
         return it->second;
     }
 
-    bool ok = feasibleWithVartemp(
-        self, decisions, fullExpr.substr(self->vartemp.size()));
+    bool ok = feasibleWithVartemp(self, decisions, rawPath);
     if (!ok) ++maxMemsPrefixPruned;
-    feasCache.emplace(fullExpr, ok);
+    feasCache.emplace(std::move(cacheExpr), ok);
     return ok;
 }
 }  // namespace C
@@ -3585,6 +3594,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     const bool pathMemoEnabled =
         !(noMemoRaw && *noMemoRaw &&
           std::string(noMemoRaw) != "0");
+    const char* decisionOnlyRaw =
+        std::getenv("EPPATHER_MAXMEMS_DECISION_ONLY_PATH");
+    const bool decisionOnlyPath =
+        decisionOnlyRaw && *decisionOnlyRaw &&
+        std::string(decisionOnlyRaw) != "0" &&
+        !pathMemoEnabled;
 
     using MaxMemsStateKey =
         std::tuple<CFGNode*, std::string, std::string>;
@@ -3622,7 +3637,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             !(entry->isVarDef && entry->nodeLevel == 3)) {
             const std::string code = entry->getCode();
             if (!code.empty()) {
-                curPath += code + "\n";
+                if (!decisionOnlyPath) curPath += code + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::Code});
             }
@@ -3631,7 +3646,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         EpatRunner runner(vartemp);
         const auto eval = runner.solve(curDecisions);
         if (eval.status != result::feasible) {
-            return store(PathInfo(0, curPath, false));
+            return store(PathInfo(0, decisionOnlyPath ? std::string{} : curPath, false));
+        }
+        if (decisionOnlyPath) {
+            static const EpatRunner rawRunner("");
+            curPath = rawRunner.render(curDecisions);
         }
         return store(PathInfo(std::max(0, eval.mem), curPath, true));
     }
@@ -3650,27 +3669,34 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         std::string curPath = pathPrefix;
 
         auto tLoopMap = loopUnrollMap;
-        std::string tPath = curPath + "@(" + entry->cond_str + ");\n";
+        std::string tPath = curPath;
+        if (!decisionOnlyPath)
+            tPath += "@(" + entry->cond_str + ");\n";
         auto tDecisions = decisions;
         tDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::TrueBranch});
         PathInfo tInfo(0, tPath, false);
         if (entry->getNextNode() &&
-            isPathFeasibleCached(this, tDecisions, vartemp + tPath)) {
+            isPathFeasibleCached(
+                this, tDecisions,
+                decisionOnlyPath ? std::string{} : vartemp + tPath)) {
             tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
                               std::move(tPath), depth + 1, tLoopMap,
                               std::move(tDecisions));
         }
 
         auto fLoopMap = loopUnrollMap;
-        std::string fPath =
-            curPath + "@(!(" + entry->cond_str + "));\n";
+        std::string fPath = curPath;
+        if (!decisionOnlyPath)
+            fPath += "@(!(" + entry->cond_str + "));\n";
         auto fDecisions = decisions;
         fDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::FalseBranch});
         PathInfo fInfo(0, fPath, false);
         if (entry->getNextFalseNode() &&
-            isPathFeasibleCached(this, fDecisions, vartemp + fPath)) {
+            isPathFeasibleCached(
+                this, fDecisions,
+                decisionOnlyPath ? std::string{} : vartemp + fPath)) {
             fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
                               std::move(fPath), depth + 1, fLoopMap,
                               std::move(fDecisions));
@@ -3695,13 +3721,15 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         if (entry->isFor) {
             if (unroll == 0 && !entry->initstmt_str.empty() &&
                 entry->initstmt_str != ";") {
-                curPath += entry->initstmt_str + "\n";
+                if (!decisionOnlyPath)
+                    curPath += entry->initstmt_str + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopInit});
 
             }
             if (unroll > 0 && !entry->expr_str.empty()) {
-                curPath += entry->expr_str + ";\n";
+                if (!decisionOnlyPath)
+                    curPath += entry->expr_str + ";\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
 
@@ -3712,13 +3740,15 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         PathInfo fInfo(0, curPath, false);
 
         if (unroll < bound && entry->getNextNode()) {
-            std::string tPath =
-                curPath + "@(" + entry->cond_str + ");\n";
+            std::string tPath = curPath;
+            if (!decisionOnlyPath)
+                tPath += "@(" + entry->cond_str + ");\n";
             auto tDecisions = curDecisions;
             tDecisions.push_back(
                 PathDecision{entry.get(), PathDecisionKind::TrueBranch});
             if (isPathFeasibleCached(
-                    this, tDecisions, vartemp + tPath)) {
+                    this, tDecisions,
+                    decisionOnlyPath ? std::string{} : vartemp + tPath)) {
                 auto tLoopMap = loopUnrollMap;
                 tLoopMap[entry.get()] = unroll + 1;
                 tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
@@ -3730,13 +3760,15 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const bool falseGuardCanHold =
             !exactStableTrip || unroll >= *exactStableTrip;
         if (falseGuardCanHold && entry->getNextFalseNode()) {
-            std::string fPath =
-                curPath + "@(!(" + entry->cond_str + "));\n";
+            std::string fPath = curPath;
+            if (!decisionOnlyPath)
+                fPath += "@(!(" + entry->cond_str + "));\n";
             auto fDecisions = curDecisions;
             fDecisions.push_back(
                 PathDecision{entry.get(), PathDecisionKind::FalseBranch});
             if (isPathFeasibleCached(
-                    this, fDecisions, vartemp + fPath)) {
+                    this, fDecisions,
+                    decisionOnlyPath ? std::string{} : vartemp + fPath)) {
                 auto fLoopMap = loopUnrollMap;
                 fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
                                   std::move(fPath), depth + 1, fLoopMap,
@@ -3757,7 +3789,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     auto nextDecisions = decisions;
     const std::string code = entry->getCode();
     if (!code.empty()) {
-        curPath += code + "\n";
+        if (!decisionOnlyPath) curPath += code + "\n";
         nextDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::Code});
     }
