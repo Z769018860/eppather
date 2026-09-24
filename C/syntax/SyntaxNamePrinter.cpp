@@ -3631,6 +3631,7 @@ static int decisionMemCached(SyntaxNamePrinter* self,
 static std::unordered_map<std::string, int> syntaxDecisionMemsCache;
 static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
+static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
 constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
@@ -3980,19 +3981,18 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         tDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::TrueBranch});
         PathInfo tInfo(0, tPath, false);
-        if (entry->getNextNode() &&
-            isPathFeasibleCached(
-                this, tDecisions,
-                decisionOnlyPath ? std::string{} : vartemp + tPath)) {
-            const int tMemsUpper = addMemsUpper(
-                currentMemsUpper,
-                syntaxDecisionMemsUpper(
-                    this, entry.get(),
-                    PathDecisionKind::TrueBranch));
-            tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
-                              std::move(tPath), depth + 1, tLoopMap,
-                              tMemsUpper, std::move(tDecisions));
-        }
+        const int tMemsUpper = addMemsUpper(
+            currentMemsUpper,
+            syntaxDecisionMemsUpper(
+                this, entry.get(), PathDecisionKind::TrueBranch));
+        const int tPotential =
+            entry->getNextNode()
+                ? addMemsUpper(
+                      tMemsUpper,
+                      remainingMemsUpperBound(
+                          this, entry->getNextNode(), maxloop,
+                          depth + 1, tLoopMap))
+                : -1;
 
         auto fLoopMap = loopUnrollMap;
         std::string fPath = curPath;
@@ -4002,18 +4002,56 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         fDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::FalseBranch});
         PathInfo fInfo(0, fPath, false);
-        if (entry->getNextFalseNode() &&
-            isPathFeasibleCached(
-                this, fDecisions,
-                decisionOnlyPath ? std::string{} : vartemp + fPath)) {
-            const int fMemsUpper = addMemsUpper(
-                currentMemsUpper,
-                syntaxDecisionMemsUpper(
-                    this, entry.get(),
-                    PathDecisionKind::FalseBranch));
-            fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
-                              std::move(fPath), depth + 1, fLoopMap,
-                              fMemsUpper, std::move(fDecisions));
+        const int fMemsUpper = addMemsUpper(
+            currentMemsUpper,
+            syntaxDecisionMemsUpper(
+                this, entry.get(), PathDecisionKind::FalseBranch));
+        const int fPotential =
+            entry->getNextFalseNode()
+                ? addMemsUpper(
+                      fMemsUpper,
+                      remainingMemsUpperBound(
+                          this, entry->getNextFalseNode(), maxloop,
+                          depth + 1, fLoopMap))
+                : -1;
+
+        auto exploreTrue = [&]() {
+            if (!entry->getNextNode()) return;
+            if (!isPathFeasibleCached(
+                    this, tDecisions,
+                    decisionOnlyPath
+                        ? std::string{}
+                        : vartemp + tPath)) {
+                return;
+            }
+            tInfo = MaxMemsDP(
+                entry->getNextNode(), maxloop,
+                std::move(tPath), depth + 1, tLoopMap,
+                tMemsUpper, std::move(tDecisions));
+        };
+        auto exploreFalse = [&]() {
+            if (!entry->getNextFalseNode()) return;
+            if (!isPathFeasibleCached(
+                    this, fDecisions,
+                    decisionOnlyPath
+                        ? std::string{}
+                        : vartemp + fPath)) {
+                return;
+            }
+            fInfo = MaxMemsDP(
+                entry->getNextFalseNode(), maxloop,
+                std::move(fPath), depth + 1, fLoopMap,
+                fMemsUpper, std::move(fDecisions));
+        };
+
+        if (branchBoundEnabled &&
+            fPotential > tPotential) {
+            ++maxMemsBranchOrderSwaps;
+            exploreFalse();
+            exploreTrue();
+        } else {
+            exploreTrue();
+            exploreFalse();
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
@@ -4044,7 +4082,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     syntaxDecisionMemsUpper(
                         this, entry.get(),
                         PathDecisionKind::LoopInit));
-
             }
             if (unroll > 0 && !entry->expr_str.empty()) {
                 if (!decisionOnlyPath)
@@ -4056,14 +4093,55 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     syntaxDecisionMemsUpper(
                         this, entry.get(),
                         PathDecisionKind::LoopUpdate));
-
             }
         }
 
         PathInfo tInfo(0, curPath, false);
         PathInfo fInfo(0, curPath, false);
 
-        if (unroll < bound && entry->getNextNode()) {
+        const bool trueGuardCanHold =
+            unroll < bound &&
+            (!exactStableTrip || unroll < *exactStableTrip) &&
+            entry->getNextNode();
+        const bool falseGuardCanHold =
+            (!exactStableTrip || unroll >= *exactStableTrip) &&
+            entry->getNextFalseNode();
+
+        auto tLoopMap = loopUnrollMap;
+        if (trueGuardCanHold) {
+            tLoopMap[entry.get()] = unroll + 1;
+        }
+        const int tMemsUpper = trueGuardCanHold
+            ? addMemsUpper(
+                  currentMemsUpper,
+                  syntaxDecisionMemsUpper(
+                      this, entry.get(),
+                      PathDecisionKind::TrueBranch))
+            : -1;
+        const int fMemsUpper = falseGuardCanHold
+            ? addMemsUpper(
+                  currentMemsUpper,
+                  syntaxDecisionMemsUpper(
+                      this, entry.get(),
+                      PathDecisionKind::FalseBranch))
+            : -1;
+        const int tPotential = trueGuardCanHold
+            ? addMemsUpper(
+                  tMemsUpper,
+                  remainingMemsUpperBound(
+                      this, entry->getNextNode(), maxloop,
+                      depth + 1, tLoopMap))
+            : -1;
+        const int fPotential = falseGuardCanHold
+            ? addMemsUpper(
+                  fMemsUpper,
+                  remainingMemsUpperBound(
+                      this, entry->getNextFalseNode(), maxloop,
+                      depth + 1, loopUnrollMap))
+            : -1;
+
+        auto exploreTrue = [&]() {
+            if (!trueGuardCanHold) return;
             std::string tPath = curPath;
             if (!decisionOnlyPath)
                 tPath += "@(" + entry->cond_str + ");\n";
@@ -4075,26 +4153,24 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             if (certifiedTrue) {
                 ++maxMemsCertifiedGuardSolverSkips;
             }
-            if (certifiedTrue ||
-                isPathFeasibleCached(
+            if (!certifiedTrue &&
+                !isPathFeasibleCached(
                     this, tDecisions,
-                    decisionOnlyPath ? std::string{} : vartemp + tPath)) {
-                auto tLoopMap = loopUnrollMap;
-                tLoopMap[entry.get()] = unroll + 1;
-                const int tMemsUpper = addMemsUpper(
-                    currentMemsUpper,
-                    syntaxDecisionMemsUpper(
-                        this, entry.get(),
-                        PathDecisionKind::TrueBranch));
-                tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
-                                  std::move(tPath), depth + 1, tLoopMap,
-                                  tMemsUpper, std::move(tDecisions));
+                    decisionOnlyPath
+                        ? std::string{}
+                        : vartemp + tPath)) {
+                return;
             }
-        }
+            auto branchLoopMap = loopUnrollMap;
+            branchLoopMap[entry.get()] = unroll + 1;
+            tInfo = MaxMemsDP(
+                entry->getNextNode(), maxloop,
+                std::move(tPath), depth + 1, branchLoopMap,
+                tMemsUpper, std::move(tDecisions));
+        };
 
-        const bool falseGuardCanHold =
-            !exactStableTrip || unroll >= *exactStableTrip;
-        if (falseGuardCanHold && entry->getNextFalseNode()) {
+        auto exploreFalse = [&]() {
+            if (!falseGuardCanHold) return;
             std::string fPath = curPath;
             if (!decisionOnlyPath)
                 fPath += "@(!(" + entry->cond_str + "));\n";
@@ -4106,20 +4182,29 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             if (certifiedFalse) {
                 ++maxMemsCertifiedGuardSolverSkips;
             }
-            if (certifiedFalse ||
-                isPathFeasibleCached(
+            if (!certifiedFalse &&
+                !isPathFeasibleCached(
                     this, fDecisions,
-                    decisionOnlyPath ? std::string{} : vartemp + fPath)) {
-                auto fLoopMap = loopUnrollMap;
-                const int fMemsUpper = addMemsUpper(
-                    currentMemsUpper,
-                    syntaxDecisionMemsUpper(
-                        this, entry.get(),
-                        PathDecisionKind::FalseBranch));
-                fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
-                                  std::move(fPath), depth + 1, fLoopMap,
-                                  fMemsUpper, std::move(fDecisions));
+                    decisionOnlyPath
+                        ? std::string{}
+                        : vartemp + fPath)) {
+                return;
             }
+            auto branchLoopMap = loopUnrollMap;
+            fInfo = MaxMemsDP(
+                entry->getNextFalseNode(), maxloop,
+                std::move(fPath), depth + 1, branchLoopMap,
+                fMemsUpper, std::move(fDecisions));
+        };
+
+        if (branchBoundEnabled &&
+            fPotential > tPotential) {
+            ++maxMemsBranchOrderSwaps;
+            exploreFalse();
+            exploreTrue();
+        } else {
+            exploreTrue();
+            exploreFalse();
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
@@ -4178,6 +4263,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsLazyLeafSkipped = 0;
         maxMemsCertifiedGuardSolverSkips = 0;
         maxMemsBranchBoundPruned = 0;
+        maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
         maxMemsFeasibleIncumbent = -1;
 
@@ -4265,6 +4351,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsCertifiedGuardSolverSkips << std::endl;
         std::cout << "[DP BRANCH BOUND PRUNED]: "
                   << maxMemsBranchBoundPruned << std::endl;
+        std::cout << "[DP BRANCH ORDER SWAPS]: "
+                  << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
