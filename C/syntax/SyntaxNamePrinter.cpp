@@ -4090,6 +4090,17 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!entry->getNextNode()) return;
+            // The child recursion applies the same branch-and-bound test at
+            // entry.  Perform that exact test here first so a dominated
+            // subtree does not pay for an unnecessary prefix SMT query.
+            if (branchBoundEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                tPotential >= 0 &&
+                tPotential < kMaxMemsUpperInfinity &&
+                tPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (!isPathFeasibleCached(
                     this, tDecisions,
                     decisionOnlyPath
@@ -4104,6 +4115,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         };
         auto exploreFalse = [&]() {
             if (!entry->getNextFalseNode()) return;
+            if (branchBoundEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                fPotential >= 0 &&
+                fPotential < kMaxMemsUpperInfinity &&
+                fPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (!isPathFeasibleCached(
                     this, fDecisions,
                     decisionOnlyPath
@@ -4217,6 +4236,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!trueGuardCanHold) return;
+            if (branchBoundEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                tPotential >= 0 &&
+                tPotential < kMaxMemsUpperInfinity &&
+                tPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             std::string tPath = curPath;
             if (!decisionOnlyPath)
                 tPath += "@(" + entry->cond_str + ");\n";
@@ -4246,6 +4273,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreFalse = [&]() {
             if (!falseGuardCanHold) return;
+            if (branchBoundEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                fPotential >= 0 &&
+                fPotential < kMaxMemsUpperInfinity &&
+                fPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             std::string fPath = curPath;
             if (!decisionOnlyPath)
                 fPath += "@(!(" + entry->cond_str + "));\n";
