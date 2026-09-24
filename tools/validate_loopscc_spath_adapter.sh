@@ -542,6 +542,19 @@ if [[ "$coupled_rows_required" != 3 ||
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
+coupled_overflow_required="$(metric_max 'VOLCE LOOPSCC COUPLED OVERFLOW ROWS REQUIRED' "$OUT_DIR/coupled_affine.log")"
+coupled_overflow_certified="$(metric_max 'VOLCE LOOPSCC COUPLED OVERFLOW ROWS CERTIFIED' "$OUT_DIR/coupled_affine.log")"
+coupled_overflow_rejected="$(metric_max 'VOLCE LOOPSCC COUPLED OVERFLOW ROWS REJECTED' "$OUT_DIR/coupled_affine.log")"
+coupled_overflow_safe="$(metric_max 'VOLCE LOOPSCC COUPLED OVERFLOW ALL SAFE' "$OUT_DIR/coupled_affine.log")"
+if [[ "$coupled_overflow_required" != 3 ||
+      "$coupled_overflow_certified" != 3 ||
+      "$coupled_overflow_rejected" != 0 ||
+      "$coupled_overflow_safe" != 1 ]]; then
+  echo "coupled_affine: compressed signed arithmetic is not safe in the bounded input domain" >&2
+  echo "required=$coupled_overflow_required certified=$coupled_overflow_certified rejected=$coupled_overflow_rejected all_safe=$coupled_overflow_safe" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
 if grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
   echo "coupled_affine: validation-only stage must not enable DFS shortcut" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
