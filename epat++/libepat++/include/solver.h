@@ -80,6 +80,14 @@ namespace epat {
          */
         virtual result feasible();
         /**
+         * @brief Enable or disable expensive post-solve artifacts.
+         *
+         * Prefix-feasibility queries only need SAT/UNSAT/UNKNOWN. Disabling
+         * artifacts skips model and SMT2 extraction while preserving exactly
+         * the same feasibility result. Full path solves keep the default true.
+         */
+        virtual void setCollectArtifacts(bool enabled);
+        /**
          * @brief 打印可行的初始输入
          * @note 输出为SMT2格式。使用前需要先调用\ref feasible。
          * @see feasible
