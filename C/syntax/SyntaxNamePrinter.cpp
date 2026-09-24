@@ -3548,6 +3548,11 @@ static std::uint64_t maxMemsPrefixChecks = 0;
 static std::uint64_t maxMemsPrefixCacheHits = 0;
 static std::uint64_t maxMemsPrefixPruned = 0;
 static std::uint64_t maxMemsPrefixBudgetSkips = 0;
+static std::uint64_t maxMemsLoopExitChecks = 0;
+static std::uint64_t maxMemsLoopExitCacheHits = 0;
+static std::uint64_t maxMemsLoopExitPruned = 0;
+static std::uint64_t maxMemsLoopExitUnknown = 0;
+static std::unordered_map<std::string, unsigned char> maxMemsLoopExitFeasCache;
 static std::uint64_t maxMemsLeafSolves = 0;
 static std::uint64_t maxMemsMemoLookups = 0;
 static std::uint64_t maxMemsMemoHits = 0;
@@ -3615,6 +3620,41 @@ inline bool isPathFeasibleCached(
     if (!ok) ++maxMemsPrefixPruned;
     feasCache.emplace(std::move(cacheExpr), ok);
     return ok;
+}
+
+inline bool isLoopExitFeasibleCached(
+    SyntaxNamePrinter* self,
+    const std::vector<PathDecision>& decisions) {
+    const char* raw =
+        std::getenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
+    if (!raw || !*raw || std::string(raw) == "0") {
+        return true;
+    }
+
+    static const EpatRunner rawRunner("");
+    const std::string rendered = rawRunner.render(decisions);
+    const std::string key = self->vartemp + rendered;
+    if (auto it = maxMemsLoopExitFeasCache.find(key);
+        it != maxMemsLoopExitFeasCache.end()) {
+        ++maxMemsLoopExitCacheHits;
+        if (it->second == 0) ++maxMemsLoopExitPruned;
+        return it->second != 0;
+    }
+
+    ++maxMemsLoopExitChecks;
+    EpatRunner runner(self->vartemp);
+    const auto status = runner.checkFeasible(decisions, rendered);
+    unsigned char cached = 2;  // unknown => conservatively keep
+    if (status == epat::result::infeasible) {
+        cached = 0;
+        ++maxMemsLoopExitPruned;
+    } else if (status == epat::result::feasible) {
+        cached = 1;
+    } else {
+        ++maxMemsLoopExitUnknown;
+    }
+    maxMemsLoopExitFeasCache.emplace(key, cached);
+    return cached != 0;
 }
 }  // namespace C
 }  // namespace psy
@@ -4637,6 +4677,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                         : vartemp + fPath)) {
                 return;
             }
+            // Targeted prefix pruning at loop exits.  Unlike global prefix
+            // pruning this adds only one query per attempted exit, and only a
+            // definite UNSAT result removes the subtree.
+            if (!isLoopExitFeasibleCached(this, fDecisions)) {
+                return;
+            }
             auto branchLoopMap = loopUnrollMap;
             fInfo = MaxMemsDP(
                 entry->getNextFalseNode(), maxloop,
@@ -4713,6 +4759,11 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsPrefixCacheHits = 0;
         maxMemsPrefixPruned = 0;
         maxMemsPrefixBudgetSkips = 0;
+        maxMemsLoopExitChecks = 0;
+        maxMemsLoopExitCacheHits = 0;
+        maxMemsLoopExitPruned = 0;
+        maxMemsLoopExitUnknown = 0;
+        maxMemsLoopExitFeasCache.clear();
         maxMemsLeafSolves = 0;
         maxMemsMemoLookups = 0;
         maxMemsMemoHits = 0;
@@ -4992,6 +5043,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[DP PREFIX CACHE HITS]: " << maxMemsPrefixCacheHits << std::endl;
         std::cout << "[DP PREFIX PRUNED]: " << maxMemsPrefixPruned << std::endl;
         std::cout << "[DP PREFIX BUDGET SKIPS]: " << maxMemsPrefixBudgetSkips << std::endl;
+        std::cout << "[DP LOOP EXIT CHECKS]: " << maxMemsLoopExitChecks << std::endl;
+        std::cout << "[DP LOOP EXIT CACHE HITS]: " << maxMemsLoopExitCacheHits << std::endl;
+        std::cout << "[DP LOOP EXIT PRUNED]: " << maxMemsLoopExitPruned << std::endl;
+        std::cout << "[DP LOOP EXIT UNKNOWN]: " << maxMemsLoopExitUnknown << std::endl;
         std::cout << "[DP LEAF SOLVES]: " << maxMemsLeafSolves << std::endl;
         std::cout << "[DP MEMO LOOKUPS]: " << maxMemsMemoLookups << std::endl;
         std::cout << "[DP MEMO HITS]: " << maxMemsMemoHits << std::endl;
