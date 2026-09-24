@@ -2,15 +2,6 @@ name: ProbMEMS 40-case memory-access dataset
 
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - "testcase/probmems_ground_truth/**"
-      - "tools/run_probmems_dataset.sh"
-      - "tools/run_probmems_adaptive_dataset.sh"
-      - "C/syntax/SyntaxNamePrinter.cpp"
-      - "C/syntax/EpatRunner.cpp"
-      - 'epat\\+\\+/libepat\\+\\+/utils/mem_visitor.h'
-      - ".github/workflows/probmems-dataset.yml"
 
 jobs:
   dataset:
