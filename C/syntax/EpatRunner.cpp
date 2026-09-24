@@ -1500,6 +1500,93 @@ epat::result EpatRunner::checkFeasible(
     return status;
 }
 
+EpatResult EpatRunner::solveMemsOnly(
+    const std::vector<PathDecision>& decisions) const {
+    if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
+        return solve(decisions);
+    }
+
+    std::vector<std::string> provenanceVariables;
+    std::unordered_set<CFGNode*> provenanceLoops;
+    for (const auto& decision : decisions) {
+        CFGNode* loop = decision.node;
+        if (!loop || !loop->isLoop ||
+            !provenanceLoops.insert(loop).second) {
+            continue;
+        }
+        const auto prediction = LoopBoundPredictor::predict(
+            loop->initstmt_str, loop->cond_str, loop->expr_str,
+            std::numeric_limits<int>::max());
+        if (prediction.exact() &&
+            !prediction.inductionVariable.empty()) {
+            provenanceVariables.push_back(prediction.inductionVariable);
+        }
+    }
+
+    if (provenanceLoops.size() > 1) {
+        bool indexedMemory = false;
+        for (const auto& decision : decisions) {
+            if (!decision.node) continue;
+            if (decision.node->getCode().find('[') != std::string::npos ||
+                decision.node->cond_str.find('[') != std::string::npos) {
+                indexedMemory = true;
+                break;
+            }
+        }
+        if (indexedMemory) provenanceVariables.clear();
+    }
+
+    epat::setSsaProvenanceVariables(provenanceVariables);
+    epat::setMemorySsaProvenanceEnabled(false);
+
+    EpatResult result;
+    try {
+        const std::string script = render(decisions);
+        auto root = epat::Root::fromString(script);
+        auto solver = epat::Solver::create(std::move(root));
+        solver->setCollectArtifacts(false);
+        result.status = solver->feasible();
+        result.mem = solver->getMem();
+    } catch (const std::exception&) {
+        result.status = epat::result::unknown;
+        result.mem = 0;
+    } catch (...) {
+        result.status = epat::result::unknown;
+        result.mem = 0;
+    }
+
+    epat::setMemorySsaProvenanceEnabled(false);
+    epat::clearSsaProvenanceVariables();
+
+    long long syntheticMems = 0;
+    bool syntheticMemsOverflow = false;
+    for (const auto& decision : decisions) {
+        if (decision.kind != PathDecisionKind::SyntheticMems) continue;
+        if (decision.syntheticMems < 0 ||
+            syntheticMems >
+                std::numeric_limits<long long>::max() -
+                    decision.syntheticMems) {
+            syntheticMemsOverflow = true;
+            break;
+        }
+        syntheticMems += decision.syntheticMems;
+    }
+    if (!syntheticMemsOverflow) {
+        const long long compensated =
+            static_cast<long long>(result.mem) + syntheticMems;
+        if (compensated >= std::numeric_limits<int>::min() &&
+            compensated <= std::numeric_limits<int>::max()) {
+            result.mem = static_cast<int>(compensated);
+        } else {
+            syntheticMemsOverflow = true;
+        }
+    }
+    if (syntheticMemsOverflow) {
+        result.status = epat::result::unknown;
+    }
+    return result;
+}
+
 EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     // Select only induction variables for SSA materialization.  This filter is
     // installed before epat++ evaluates the path, then cleared immediately;
