@@ -592,6 +592,29 @@ int main() {
         failures += !report("loopscc-unsupported-guard-fallback", ok);
     }
 
+    // Plain multiplication is arithmetic, not pointer dereference. It remains
+    // outside the restricted affine shortcut model, but the memory observer
+    // must neither count MEMS nor throw a std::regex range exception.
+    {
+        auto loop = loopNode("i < 2");
+        loop->initstmt_str = "i = 0;";
+        auto multiply = node("x = i * 4;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(multiply);
+        loop->setNextFalseNode(exit);
+        multiply->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 0 &&
+            !graph.spaths[0].accelerationEffectSafe &&
+            graph.accelerationPlans.empty();
+        failures += !report("loopscc-multiplication-not-pointer", ok);
+    }
+
     // Opaque calls are not part of the restricted scalar-affine semantics.
     // Even if the surrounding scalar state looks periodic, acceleration must
     // fall back so hidden memory accesses or side effects cannot be skipped.
