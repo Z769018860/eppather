@@ -198,6 +198,11 @@ struct VolceResult {
     std::vector<std::string> rejectedStateSummaries;
     std::vector<std::string> appliedAffineRelationSummaries;
     std::vector<std::string> rejectedAffineRelationSummaries;
+    std::vector<std::string> appliedCoupledAffineRows;
+    std::vector<std::string> rejectedCoupledAffineRows;
+    std::size_t requiredCoupledAffineRows{0};
+    std::size_t appliedCoupledAffineRowsCount{0};
+    bool allCoupledAffineRowsEntailed{false};
     std::vector<std::string> appliedMemoryRelationSummaries;
     std::vector<std::string> rejectedMemoryRelationSummaries;
     std::vector<std::string> appliedMemoryFrameSummaries;
@@ -366,7 +371,9 @@ std::optional<VolceResult> runVolce(
     const std::vector<psy::C::SourceMemoryRegion>& sourceMemoryRegions = {},
     const std::vector<psy::C::LoopSccAffineStateSummary>& loopSccSummaries = {},
     const std::vector<psy::C::LoopSccMemoryCellStateSummary>&
-        loopSccMemorySummaries = {}) {
+        loopSccMemorySummaries = {},
+    const std::vector<psy::C::LoopSccCoupledAffineStateSummary>&
+        loopSccCoupledSummaries = {}) {
     if (smt2.empty()) {
         return std::nullopt;
     }
@@ -387,6 +394,17 @@ std::optional<VolceResult> runVolce(
     for (const auto& summary : loopSccSummaries) {
         affineRelations.push_back(volce::AffineRelationSummary{
             summary.variable, summary.scale, summary.offset});
+    }
+    std::vector<volce::CoupledAffineRelationSummary> coupledRelations;
+    coupledRelations.reserve(loopSccCoupledSummaries.size());
+    for (const auto& summary : loopSccCoupledSummaries) {
+        volce::CoupledAffineRelationSummary relation;
+        relation.variables = summary.variables;
+        relation.matrix.assign(
+            summary.matrix.begin(), summary.matrix.end());
+        relation.offset.assign(
+            summary.offset.begin(), summary.offset.end());
+        coupledRelations.push_back(std::move(relation));
     }
     std::vector<volce::MemoryCellAffineRelationSummary> memoryRelations;
     memoryRelations.reserve(loopSccMemorySummaries.size());
@@ -439,6 +457,25 @@ std::optional<VolceResult> runVolce(
         countResult->applied_affine_relation_summaries;
     result.rejectedAffineRelationSummaries =
         countResult->rejected_affine_relation_summaries;
+    if (!coupledRelations.empty()) {
+        if (const auto coupledValidation =
+                volce::validateCoupledAffineRelationsFromSmt2(
+                    smt2, coupledRelations)) {
+            result.appliedCoupledAffineRows =
+                coupledValidation->applied;
+            result.rejectedCoupledAffineRows =
+                coupledValidation->rejected;
+            result.requiredCoupledAffineRows =
+                coupledValidation->required_rows;
+            result.appliedCoupledAffineRowsCount =
+                coupledValidation->applied_rows;
+            result.allCoupledAffineRowsEntailed =
+                coupledValidation->all_rows_entailed;
+        } else {
+            result.rejectedCoupledAffineRows.push_back(
+                "coupled affine relation validation unavailable");
+        }
+    }
     if (!memoryRelations.empty()) {
         if (const auto memoryValidation =
                 volce::validateMemoryCellRelationsFromSmt2(
@@ -4063,7 +4100,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             const auto volceResult = runVolce(
                 smt2, volceLower, volceUpper, eval.loopStateSummaries,
                 inputMemoryRegions_, eval.loopSccAffineStateSummaries,
-                eval.loopSccMemoryCellStateSummaries);
+                eval.loopSccMemoryCellStateSummaries,
+                eval.loopSccCoupledAffineStateSummaries);
             if (volceResult) {
                 volceCount = parseVolceCount(volceResult);
                 volceMemoryTerms = volceResult->boundedMemoryTerms;
@@ -4094,6 +4132,16 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                      << endl;
                 cout << "[VOLCE LOOPSCC AFFINE RELATIONS REJECTED]: "
                      << volceResult->rejectedAffineRelationSummaries.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC COUPLED ROWS REQUIRED]: "
+                     << volceResult->requiredCoupledAffineRows << endl;
+                cout << "[VOLCE LOOPSCC COUPLED ROWS APPLIED]: "
+                     << volceResult->appliedCoupledAffineRowsCount << endl;
+                cout << "[VOLCE LOOPSCC COUPLED ROWS REJECTED]: "
+                     << volceResult->rejectedCoupledAffineRows.size()
+                     << endl;
+                cout << "[VOLCE LOOPSCC COUPLED ALL ENTAILED]: "
+                     << (volceResult->allCoupledAffineRowsEntailed ? 1 : 0)
                      << endl;
                 cout << "[VOLCE LOOPSCC MEMORY RELATIONS APPLIED]: "
                      << volceResult->appliedMemoryRelationSummaries.size()
@@ -4154,6 +4202,20 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     resultFile << "[volce_loopscc_affine_relation_rejected]:"
                                << rejected << "\n";
                     cout << "[VOLCE LOOPSCC AFFINE RELATION REJECTED]: "
+                         << rejected << endl;
+                }
+                for (const auto& applied :
+                     volceResult->appliedCoupledAffineRows) {
+                    resultFile << "[volce_loopscc_coupled_row]:"
+                               << applied << "\n";
+                    cout << "[VOLCE LOOPSCC COUPLED ROW]: "
+                         << applied << endl;
+                }
+                for (const auto& rejected :
+                     volceResult->rejectedCoupledAffineRows) {
+                    resultFile << "[volce_loopscc_coupled_row_rejected]:"
+                               << rejected << "\n";
+                    cout << "[VOLCE LOOPSCC COUPLED ROW REJECTED]: "
                          << rejected << endl;
                 }
                 for (const auto& applied :
