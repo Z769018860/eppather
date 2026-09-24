@@ -3709,6 +3709,8 @@ static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
 static std::uint64_t maxMemsUpperBoundCacheHits = 0;
 static std::uint64_t maxMemsUpperBudgetSkips = 0;
+static std::uint64_t maxMemsUpperCycleInfinities = 0;
+static std::uint64_t maxMemsUpperChildInfinities = 0;
 static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
@@ -4020,6 +4022,21 @@ static int remainingMemsUpperBound(
     // conservative: it disables pruning for that cyclic suffix but can never
     // underestimate the true remaining MEMS.
     if (!remainingMemsUpperInProgress.insert(key).second) {
+        ++maxMemsUpperCycleInfinities;
+        const char* traceUpper =
+            std::getenv("EPPATHER_MAXMEMS_TRACE_UPPER_INFINITY");
+        if (traceUpper && *traceUpper && std::string(traceUpper) != "0" &&
+            maxMemsUpperCycleInfinities <= 32) {
+            std::cerr << "[DP UPPER CYCLE INFINITY]: node="
+                      << reinterpret_cast<std::uintptr_t>(entry.get())
+                      << " depth=" << depth
+                      << " isLoop=" << entry->isLoop
+                      << " isIf=" << entry->isIf
+                      << " cond={" << entry->cond_str << "}"
+                      << " code={" << entry->getCode() << "}"
+                      << " loopkey={" << LoopMapKey(loopMap) << "}"
+                      << std::endl;
+        }
         return kMaxMemsUpperInfinity;
     }
     struct UpperProgressGuard {
@@ -4088,6 +4105,7 @@ static int remainingMemsUpperBound(
                     self, entry->getNextNode(), maxloop,
                     depth + 1, loopMap));
             if (trueUpper >= kMaxMemsUpperInfinity) {
+                ++maxMemsUpperChildInfinities;
                 return storeUpper(kMaxMemsUpperInfinity);
             }
             best = std::max(best, trueUpper);
@@ -4102,6 +4120,7 @@ static int remainingMemsUpperBound(
                     self, entry->getNextFalseNode(), maxloop,
                     depth + 1, loopMap));
             if (falseUpper >= kMaxMemsUpperInfinity) {
+                ++maxMemsUpperChildInfinities;
                 return storeUpper(kMaxMemsUpperInfinity);
             }
             best = std::max(best, falseUpper);
@@ -4151,6 +4170,7 @@ static int remainingMemsUpperBound(
                     self, entry->getNextNode(), maxloop,
                     depth + 1, std::move(trueMap)));
             if (trueUpper >= kMaxMemsUpperInfinity) {
+                ++maxMemsUpperChildInfinities;
                 return storeUpper(kMaxMemsUpperInfinity);
             }
             bestBranch = std::max(bestBranch, trueUpper);
@@ -4165,6 +4185,7 @@ static int remainingMemsUpperBound(
                     self, entry->getNextFalseNode(), maxloop,
                     depth + 1, loopMap));
             if (falseUpper >= kMaxMemsUpperInfinity) {
+                ++maxMemsUpperChildInfinities;
                 return storeUpper(kMaxMemsUpperInfinity);
             }
             bestBranch = std::max(bestBranch, falseUpper);
@@ -4868,6 +4889,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsUpperBoundStates = 0;
         maxMemsUpperBoundCacheHits = 0;
         maxMemsUpperBudgetSkips = 0;
+        maxMemsUpperCycleInfinities = 0;
+        maxMemsUpperChildInfinities = 0;
         maxMemsDecisionUpperQueries = 0;
         maxMemsDecisionUpperCacheHits = 0;
         maxMemsUpperSoundnessChecks = 0;
