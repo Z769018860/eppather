@@ -41,13 +41,45 @@ jobs:
           name: maxmems-prefix-witness-results
           path: maxmems-prefix-witness-results/
 
-  timeout-rescue:
+  baseline-rescue:
     strategy:
       fail-fast: false
       matrix:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py
+      - name: Configure
+        run: cmake -S . -B build_baseline_rescue -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_baseline_rescue --target cnip -j2
+      - name: Run one subject with current baseline
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_baseline_rescue/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-historical-timeout-rescue-manifest.txt \
+            --expected-programs 9 \
+            --output-dir maxmems-baseline-rescue-${{ matrix.shard }} \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
+            --shard-index ${{ matrix.shard }} --shard-count 9
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-baseline-rescue-${{ matrix.shard }}
+          path: maxmems-baseline-rescue-${{ matrix.shard }}/
+
+  prefix-rescue:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - name: Validate harness
@@ -56,7 +88,7 @@ jobs:
         run: cmake -S . -B build_prefix_rescue -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_prefix_rescue --target cnip -j2
-      - name: Run one 300s timeout subject with prefix pruning
+      - name: Run one subject with prefix pruning
         run: |
           EPPATHER_PREFIX_FEASIBILITY=1 EPPATHER_MAXMEMS_CORE_ONLY=1 \
           python3 tools/maxmems_corpus_experiment.py \
@@ -65,7 +97,7 @@ jobs:
             --manifest docs/maxmems-historical-timeout-rescue-manifest.txt \
             --expected-programs 9 \
             --output-dir maxmems-prefix-rescue-${{ matrix.shard }} \
-            --max-loop 3 --max-paths 1000 --timeout 300 --retry-timeout 300 \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
             --shard-index ${{ matrix.shard }} --shard-count 9
       - uses: actions/upload-artifact@v4
         if: always()
