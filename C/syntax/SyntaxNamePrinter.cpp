@@ -3702,17 +3702,45 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             std::cout << "[VolCE] N/A" << std::endl;
         } else {
             std::cout << fullPath << std::endl;
-            // MaxMemsDP ranks paths with per-CFG-node estimates.  Re-evaluate the
-            // selected complete script before reporting it so -g and -q use the
-            // same whole-path MEMS semantics.  This also avoids boundary-node
-            // double counting when a memoized loop suffix is replayed.
-            const auto verifiedEval = EpatRunner("").solveScript(fullPath);
-            const int verifiedMems =
-                verifiedEval.status == result::feasible ? verifiedEval.mem : result.mems;
+            // The DP score is already accumulated from the exact PathDecision
+            // sequence (LoopInit/guard/LoopUpdate/Code).  A second whole-script
+            // solve is useful as a diagnostic, but it is not required to select
+            // or report the MaxMEMS witness and some unsupported expressions can
+            // crash that optional post-processing path.  Keep the core MaxMEMS
+            // result independent from the diagnostic verifier.
+            int reportedMems = result.mems;
+            bool verified = false;
+            const char* coreOnlyRaw =
+                std::getenv("EPPATHER_MAXMEMS_CORE_ONLY");
+            const bool coreOnly =
+                coreOnlyRaw && *coreOnlyRaw &&
+                std::string(coreOnlyRaw) != "0";
+            const char* verifyRaw =
+                std::getenv("EPPATHER_VERIFY_SELECTED_PATH");
+            const bool verifySelected =
+                !coreOnly && verifyRaw && *verifyRaw &&
+                std::string(verifyRaw) != "0";
+            if (verifySelected) {
+                const auto verifiedEval =
+                    EpatRunner("").solveScript(fullPath);
+                if (verifiedEval.status == result::feasible) {
+                    reportedMems = verifiedEval.mem;
+                    verified = true;
+                }
+            }
             std::cout << "[DP INTERNAL MEMS]: " << result.mems << std::endl;
-            std::cout << "[DP SCORE DELTA]: " << (verifiedMems - result.mems) << std::endl;
-            std::cout << "MEMS: " << verifiedMems << std::endl;
-            if (enableVolce) {
+            if (verified) {
+                std::cout << "[DP SCORE DELTA]: "
+                          << (reportedMems - result.mems) << std::endl;
+            } else {
+                std::cout << "[DP SCORE DELTA]: N/A" << std::endl;
+            }
+            std::cout << "MEMS: " << reportedMems << std::endl;
+
+            // VolCE is orthogonal to the MaxMEMS validation corpus.  In
+            // core-only mode skip it as well, so an optional model-counting
+            // post-pass cannot turn a completed MaxMEMS analysis into a crash.
+            if (enableVolce && !coreOnly) {
                 const auto eval = EpatRunner("").solveScript(fullPath);
                 const auto volceResult = runVolce(
                     eval.smt, -8, 8, {}, inputMemoryRegions_);

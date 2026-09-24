@@ -149,3 +149,19 @@ For reference, the saved 2026-05-09 all-stage result on the same 266-file
 145 files with DP=DFS MaxMEMS (54.5%).  New results should be compared against
 that 145/266 static-agreement baseline, not against the 391-row multi-stage
 summary that concatenated the 5/20/100/266 runs.
+
+
+## Core-only MaxMEMS validation mode
+
+The 266-program workflow now sets `EPPATHER_MAXMEMS_CORE_ONLY=1`.
+MaxMemsDP already scores the selected witness from the same decision sequence
+used by DFS2.  Re-solving the rendered whole-path script and running VolCE are
+therefore treated as optional diagnostics rather than part of the MaxMEMS
+selection itself.  Several normalized programs reached a valid DP witness but
+then crashed inside the optional whole-script post-pass; counting those cases as
+DP failures understated MaxMEMS coverage.
+
+Core-only mode reports the decision-level DP score directly and skips the
+post-pass.  Correctness is still checked independently by bounded DFS2 and, for
+replay-eligible functions, concrete branch-trace execution.  The corpus,
+`maxloop=3`, `maxpaths=1000`, and all mismatch criteria remain unchanged.

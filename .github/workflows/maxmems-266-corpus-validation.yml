@@ -38,7 +38,7 @@ jobs:
         run: cmake --build build_maxmems266 --target cnip -j2
       - name: Validate corpus shard
         run: |
-          python3 tools/maxmems_corpus_experiment.py \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 python3 tools/maxmems_corpus_experiment.py \
             --cnip "${{ github.workspace }}/build_maxmems266/cnip" \
             --corpus testcase/output_complete2 \
             --output-dir maxmems-266-shard-${{ matrix.shard }} \
