@@ -205,6 +205,14 @@ public:
     std::optional<int> countMemsOnly(
         const std::vector<PathDecision>& decisions) const;
 
+    // Conservative lexical MEMS upper-bound candidate used only by the
+    // experimental MaxMEMS branch-and-bound heuristic. It deliberately avoids
+    // constructing an epat++ AST/solver. A separate leaf-level soundness gate
+    // checks that this value never underestimates exact syntax MEMS before the
+    // heuristic is considered for promotion.
+    std::optional<int> estimateMemsUpperOnly(
+        const std::vector<PathDecision>& decisions) const;
+
     // Feasibility-only fast path for prefix pruning. It preserves the same
     // bounded CFG/SSA semantics but deliberately skips MEMS, SMT2 and model
     // extraction, which are unnecessary for an intermediate prefix query.
