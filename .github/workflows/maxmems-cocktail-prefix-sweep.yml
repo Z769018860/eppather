@@ -1,0 +1,112 @@
+name: MaxMEMS cocktail prefix sweep
+
+concurrency:
+  group: maxmems-cocktail-prefix-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-prefix-sweep
+    paths:
+      - '.github/workflows/maxmems-cocktail-prefix-sweep.yml'
+      - 'docs/maxmems-cocktail-manifest.txt'
+
+jobs:
+  sweep:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: q96-t100
+            budget: 96
+            solver_ms: 100
+          - name: q256-t50
+            budget: 256
+            solver_ms: 50
+          - name: q512-t50
+            budget: 512
+            solver_ms: 50
+          - name: q512-t100
+            budget: 512
+            solver_ms: 100
+          - name: q1024-t25
+            budget: 1024
+            solver_ms: 25
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build_cocktail -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_cocktail --target cnip -j2
+
+      - name: Run cocktail-sort DP
+        shell: bash
+        run: |
+          set -u
+          mkdir -p "cocktail-${{ matrix.name }}"
+          CNIP="${{ github.workspace }}/build_cocktail/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          set +e
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=${{ matrix.solver_ms }} \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=${{ matrix.budget }} \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            /usr/bin/time -f 'WALL_SECONDS=%e' \
+            "$CNIP" -g "$SRC" 3 \
+            > "cocktail-${{ matrix.name }}/stdout.log" \
+            2> "cocktail-${{ matrix.name }}/stderr.log"
+          rc=$?
+          set -e
+          echo "$rc" > "cocktail-${{ matrix.name }}/exit_code.txt"
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+          name = "${{ matrix.name }}"
+          d = Path(f"cocktail-{name}")
+          out = (d/"stdout.log").read_text(errors="replace")
+          err = (d/"stderr.log").read_text(errors="replace")
+          rc = int((d/"exit_code.txt").read_text())
+          def last(pattern):
+              vals = re.findall(pattern, out, re.M)
+              return int(vals[-1]) if vals else None
+          wall = re.findall(r"WALL_SECONDS=([0-9.]+)", err)
+          result = {
+              "name": name,
+              "prefix_budget": ${{ matrix.budget }},
+              "prefix_solver_timeout_ms": ${{ matrix.solver_ms }},
+              "exit_code": rc,
+              "timed_out": rc == 124,
+              "mems": last(r"^MEMS:\s*(-?\d+)\s*$"),
+              "prefix_checks": last(r"^\[DP PREFIX CHECKS\]:\s*(\d+)\s*$"),
+              "prefix_pruned": last(r"^\[DP PREFIX PRUNED\]:\s*(\d+)\s*$"),
+              "prefix_budget_skips": last(r"^\[DP PREFIX BUDGET SKIPS\]:\s*(\d+)\s*$"),
+              "leaf_solves": last(r"^\[DP LEAF SOLVES\]:\s*(\d+)\s*$"),
+              "lazy_leaf_skipped": last(r"^\[DP LAZY LEAF SKIPPED\]:\s*(\d+)\s*$"),
+              "wall_seconds": float(wall[-1]) if wall else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result, indent=2)+"\n")
+          print("COCKTAIL_SWEEP", json.dumps(result, sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-${{ matrix.name }}
+          path: cocktail-${{ matrix.name }}/
