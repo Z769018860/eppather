@@ -2844,22 +2844,10 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const bool memoryAccelRequested =
             memoryAccelRaw && *memoryAccelRaw &&
             std::string(memoryAccelRaw) != "0";
-        // Fixed-memory acceleration is intentionally validation-only for now.
-        // The relation/frame proof is produced from the unfolded path after it
-        // reaches processPathResult2; at this DFS entry there is no independent
-        // semantic certificate yet. Structural exactness, local-array bounds,
-        // and MEMS compensation are necessary but not sufficient to replace
-        // the original memory execution.
-        const bool memoryAccelEnabled = false;
-        if (memoryAccelRequested && snap_lc[d] == 0) {
-            const auto blockedGraph = LoopSccAdapter::analyze(node.get());
-            if (!blockedGraph.memorySummaryCandidates.empty()) {
-                std::cout
-                    << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
-                    << "requires_preexecution_relation_and_frame_certificate"
-                    << std::endl;
-            }
-        }
+        // Runtime replacement is allowed only after the memory-plan builder
+        // establishes a pre-execution structural certificate. VolCE relation
+        // and untouched-frame proofs remain independent A/B oracles.
+        const bool memoryAccelEnabled = memoryAccelRequested;
         if (memoryAccelEnabled && snap_lc[d] == 0) {
             const auto graph = LoopSccAdapter::analyze(node.get());
             bool usedMemoryShortcut = false;
@@ -2877,6 +2865,24 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                         prefix, node.get(), graph, candidateIndex,
                         vartemp);
                 if (!memoryPlan) continue;
+                if (!memoryPlan->preexecutionCertified) {
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                        << "preexecution_structural_certificate_failed"
+                        << std::endl;
+                    for (const auto& diagnostic :
+                         memoryPlan->certificateDiagnostics) {
+                        std::cout
+                            << "[LOOPSCC MEMORY PREEXEC DIAGNOSTIC]: "
+                            << diagnostic << std::endl;
+                    }
+                    continue;
+                }
+                std::cout
+                    << "[LOOPSCC MEMORY PREEXEC CERTIFICATE]: certified=1"
+                    << " unfolded_mems=" << memoryPlan->unfoldedMems
+                    << " compensation=" << memoryPlan->compensationMems
+                    << std::endl;
 
                 auto cov_a = snap_cov;
                 for (int slot : memoryPlan->coverageSlots) {
@@ -3095,22 +3101,10 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const bool memoryAccelRequested =
             memoryAccelRaw && *memoryAccelRaw &&
             std::string(memoryAccelRaw) != "0";
-        // Fixed-memory acceleration is intentionally validation-only for now.
-        // The relation/frame proof is produced from the unfolded path after it
-        // reaches processPathResult2; at this DFS entry there is no independent
-        // semantic certificate yet. Structural exactness, local-array bounds,
-        // and MEMS compensation are necessary but not sufficient to replace
-        // the original memory execution.
-        const bool memoryAccelEnabled = false;
-        if (memoryAccelRequested && snap_lc[d] == 0) {
-            const auto blockedGraph = LoopSccAdapter::analyze(node.get());
-            if (!blockedGraph.memorySummaryCandidates.empty()) {
-                std::cout
-                    << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
-                    << "requires_preexecution_relation_and_frame_certificate"
-                    << std::endl;
-            }
-        }
+        // Runtime replacement is allowed only after the memory-plan builder
+        // establishes a pre-execution structural certificate. VolCE relation
+        // and untouched-frame proofs remain independent A/B oracles.
+        const bool memoryAccelEnabled = memoryAccelRequested;
         if (memoryAccelEnabled && snap_lc[d] == 0) {
             const auto graph = LoopSccAdapter::analyze(node.get());
             bool usedMemoryShortcut = false;
@@ -3122,6 +3116,24 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                         decisions, node.get(), graph, candidateIndex,
                         vartemp);
                 if (!memoryPlan) continue;
+                if (!memoryPlan->preexecutionCertified) {
+                    std::cout
+                        << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                        << "preexecution_structural_certificate_failed"
+                        << std::endl;
+                    for (const auto& diagnostic :
+                         memoryPlan->certificateDiagnostics) {
+                        std::cout
+                            << "[LOOPSCC MEMORY PREEXEC DIAGNOSTIC]: "
+                            << diagnostic << std::endl;
+                    }
+                    continue;
+                }
+                std::cout
+                    << "[LOOPSCC MEMORY PREEXEC CERTIFICATE]: certified=1"
+                    << " unfolded_mems=" << memoryPlan->unfoldedMems
+                    << " compensation=" << memoryPlan->compensationMems
+                    << std::endl;
 
                 auto cov_a = snap_cov;
                 for (int slot : memoryPlan->coverageSlots) {
