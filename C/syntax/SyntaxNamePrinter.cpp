@@ -3596,19 +3596,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curPath += entry->initstmt_str + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopInit});
-                if (!isPathFeasibleCached(
-                        this, curDecisions, vartemp + curPath)) {
-                    return store(PathInfo(0, curPath, false));
-                }
+
             }
             if (unroll > 0 && !entry->expr_str.empty()) {
                 curPath += entry->expr_str + ";\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
-                if (!isPathFeasibleCached(
-                        this, curDecisions, vartemp + curPath)) {
-                    return store(PathInfo(0, curPath, false));
-                }
+
             }
         }
 
@@ -3661,10 +3655,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         nextDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::Code});
     }
-    if (!isPathFeasibleCached(
-            this, nextDecisions, vartemp + curPath)) {
-        return store(PathInfo(0, curPath, false));
-    }
+    // Sequential code introduces state updates but no alternative control-flow
+    // choice. Defer prefix solving until the next branch/loop guard so one SMT
+    // query can absorb the whole straight-line segment.
     auto child = MaxMemsDP(entry->getNextNode(), maxloop, curPath,
                            depth + 1, loopUnrollMap, nextDecisions);
     if (!child.feasible)
