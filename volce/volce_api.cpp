@@ -1435,12 +1435,6 @@ validateMemoryCellRelationsFromSmt2(
     const std::vector<MemoryCellAffineRelationSummary>& summaries) {
     if (smt2.empty()) return std::nullopt;
 
-    // Keep declaration metadata as well as symbols reachable from assertions.
-    // An untouched source cell can disappear from the parsed assertion AST
-    // precisely when the final memory overwrites it with an unrelated value;
-    // frame validation must still know that such a source-region cell exists.
-    const auto parsedDecls = parseBitVectorDecls(smt2);
-
     Z3_config config = Z3_mk_config();
     Z3_context ctx = Z3_mk_context(config);
     Z3_del_config(config);
@@ -1451,7 +1445,8 @@ validateMemoryCellRelationsFromSmt2(
     assertParsedFormulas(ctx, solver, vec);
 
     MemoryRelationValidationResult result;
-    Z3_ast initialMemory = findNamedArrayConstant(ctx, vec, "%a");
+    Z3_ast loopEntryMemory =
+        findNamedArrayConstant(ctx, vec, "%a#ssa_loop_entry");
     Z3_ast finalMemory =
         findNamedArrayConstant(ctx, vec, "%a#ssa_final");
     const auto decls = collectZeroArityDecls(ctx, vec);
@@ -1464,11 +1459,20 @@ validateMemoryCellRelationsFromSmt2(
                 "]: negative cell index");
             continue;
         }
-        if (!initialMemory || !finalMemory) {
+        if (summary.region_cells == 0 ||
+            static_cast<std::uint64_t>(summary.cell_index) >=
+                static_cast<std::uint64_t>(summary.region_cells)) {
             result.rejected.push_back(
                 summary.source_name + "[" +
                 std::to_string(summary.cell_index) +
-                "]: initial/final memory provenance is missing");
+                "]: cell is outside declared summary region");
+            continue;
+        }
+        if (!loopEntryMemory || !finalMemory) {
+            result.rejected.push_back(
+                summary.source_name + "[" +
+                std::to_string(summary.cell_index) +
+                "]: loop-entry/final memory provenance is missing");
             continue;
         }
 
@@ -1513,34 +1517,10 @@ validateMemoryCellRelationsFromSmt2(
             address = Z3_mk_bvadd(ctx, base, offset);
         }
 
-        // Prefer the source cell declaration materialized for a local
-        // uninitialized array. It represents the cell value at source-array
-        // initialization and, when there is no pre-loop write, is the exact
-        // loop-entry value. Falling back to select(%a,address) is conservative:
-        // any intervening source initialization/write makes a wrong relation
-        // fail the entailment check rather than being assumed away.
-        Z3_ast entry = nullptr;
-        const auto baseMarker = baseName.rfind("#base");
-        if (baseMarker != std::string::npos) {
-            const std::string scopePrefix =
-                baseName.substr(0, baseMarker);
-            const std::string expectedCell =
-                scopePrefix + "@" +
-                std::to_string(summary.cell_index);
-            for (auto decl : decls) {
-                const char* raw =
-                    Z3_get_symbol_string(
-                        ctx, Z3_get_decl_name(ctx, decl));
-                const std::string name = raw ? raw : "";
-                if (name == expectedCell) {
-                    entry = Z3_mk_app(ctx, decl, 0, nullptr);
-                    break;
-                }
-            }
-        }
-        if (!entry) {
-            entry = Z3_mk_select(ctx, initialMemory, address);
-        }
+        // LoopSCC relations are defined over the memory state at loop entry,
+        // not function entry. This absorbs all pre-loop writes exactly.
+        Z3_ast entry =
+            Z3_mk_select(ctx, loopEntryMemory, address);
         Z3_ast exit = Z3_mk_select(ctx, finalMemory, address);
         Z3_sort valueSort = Z3_get_sort(ctx, entry);
         if (!isBitVector(ctx, valueSort) ||
@@ -1585,16 +1565,43 @@ validateMemoryCellRelationsFromSmt2(
         }
     }
 
-    // Frame proof for local source arrays. The #base symbol is emitted only
-    // for concrete array objects, not pointer parameters. Source cells
-    // (<scope>@N) define the region's entry state; every discovered cell not
-    // written by the summary must be unchanged in the final memory.
-    std::unordered_map<std::string, std::set<std::int64_t>> writtenCells;
+    // Frame proof over the exact fixed local-array extent supplied by
+    // Eppather. Untouched cells are compared between loop-entry and final
+    // whole-memory snapshots, so pre-loop initialization is handled exactly.
+    struct RegionFrameSpec {
+        std::size_t cells{0};
+        bool extentConflict{false};
+        std::set<std::int64_t> written;
+    };
+    std::unordered_map<std::string, RegionFrameSpec> frameSpecs;
     for (const auto& summary : summaries) {
-        writtenCells[summary.source_name].insert(summary.cell_index);
+        auto& spec = frameSpecs[summary.source_name];
+        if (summary.region_cells == 0) {
+            spec.extentConflict = true;
+        } else if (spec.cells == 0) {
+            spec.cells = summary.region_cells;
+        } else if (spec.cells != summary.region_cells) {
+            spec.extentConflict = true;
+        }
+        spec.written.insert(summary.cell_index);
     }
-    for (const auto& group : writtenCells) {
+
+    constexpr std::size_t kMaxFrameCells = 4096;
+    for (const auto& group : frameSpecs) {
         const std::string& source = group.first;
+        const auto& spec = group.second;
+        if (spec.extentConflict || spec.cells == 0 ||
+            spec.cells > kMaxFrameCells) {
+            result.frame_rejected.push_back(
+                source + ": invalid/unsupported fixed region extent");
+            continue;
+        }
+        if (!loopEntryMemory || !finalMemory) {
+            result.frame_rejected.push_back(
+                source + ": loop-entry/final memory provenance is missing");
+            continue;
+        }
+
         Z3_func_decl baseDecl = nullptr;
         std::string baseName;
         bool ambiguousBase = false;
@@ -1619,76 +1626,14 @@ validateMemoryCellRelationsFromSmt2(
             continue;
         }
 
-        const auto baseMarker = baseName.rfind("#base");
-        if (baseMarker == std::string::npos) {
-            result.frame_rejected.push_back(
-                source + ": malformed memory base provenance");
-            continue;
-        }
-        const std::string scopePrefix =
-            baseName.substr(0, baseMarker);
-        const std::string cellPrefix = scopePrefix + "@";
-
-        struct FrameSourceCell {
-            Z3_func_decl decl{nullptr};
-            unsigned bits{0};
-            std::string name;
-        };
-        std::map<std::int64_t, FrameSourceCell> sourceCells;
-        auto parseCellIndex = [&](const std::string& name)
-            -> std::optional<std::int64_t> {
-            if (name.rfind(cellPrefix, 0) != 0) return std::nullopt;
-            const std::string suffix = name.substr(cellPrefix.size());
-            if (suffix.empty() ||
-                !std::all_of(
-                    suffix.begin(), suffix.end(),
-                    [](unsigned char ch) {
-                        return std::isdigit(ch) != 0;
-                    })) {
-                return std::nullopt;
-            }
-            return std::strtoll(suffix.c_str(), nullptr, 10);
-        };
-
-        for (auto decl : decls) {
-            const char* raw =
-                Z3_get_symbol_string(ctx, Z3_get_decl_name(ctx, decl));
-            const std::string name = raw ? raw : "";
-            const auto index = parseCellIndex(name);
-            if (!index) continue;
-            Z3_sort sort = Z3_get_range(ctx, decl);
-            if (!isBitVector(ctx, sort)) continue;
-            sourceCells.emplace(
-                *index,
-                FrameSourceCell{
-                    decl, Z3_get_bv_sort_size(ctx, sort), name});
-        }
-
-        // collectZeroArityDecls() only sees declarations referenced by an
-        // assertion. Add declared-but-unreferenced cells as conservative frame
-        // obligations. A fresh same-named proxy is sufficient here: because
-        // the cell has no formula occurrence, preservation cannot be entailed
-        // unless the final memory is likewise unconstrained in a compatible
-        // way, so the shortcut remains safely rejected.
-        for (const auto& parsed : parsedDecls) {
-            const auto index = parseCellIndex(parsed.name);
-            if (!index) continue;
-            sourceCells.emplace(
-                *index,
-                FrameSourceCell{nullptr, parsed.bits, parsed.name});
-        }
-        if (sourceCells.empty()) {
-            result.frame_rejected.push_back(
-                source + ": no source cells found for frame proof");
-            continue;
-        }
-
         bool valid = true;
-        for (std::int64_t written : group.second) {
-            if (sourceCells.find(written) == sourceCells.end()) {
+        for (std::int64_t written : spec.written) {
+            if (written < 0 ||
+                static_cast<std::uint64_t>(written) >=
+                    static_cast<std::uint64_t>(spec.cells)) {
                 result.frame_rejected.push_back(
                     source + "[" + std::to_string(written) +
-                    "]: summary cell is outside discovered source region");
+                    "]: summary cell is outside declared source region");
                 valid = false;
             }
         }
@@ -1697,32 +1642,20 @@ validateMemoryCellRelationsFromSmt2(
         Z3_ast base = Z3_mk_app(ctx, baseDecl, 0, nullptr);
         Z3_sort addressSort = Z3_get_sort(ctx, base);
         std::size_t checked = 0;
-        for (const auto& cell : sourceCells) {
-            if (group.second.count(cell.first) != 0) continue;
+        for (std::size_t index = 0; index < spec.cells; ++index) {
+            if (spec.written.count(
+                    static_cast<std::int64_t>(index)) != 0) {
+                continue;
+            }
             Z3_ast address = base;
-            if (cell.first != 0) {
-                Z3_ast offset =
-                    Z3_mk_int64(ctx, cell.first, addressSort);
+            if (index != 0) {
+                Z3_ast offset = Z3_mk_int64(
+                    ctx, static_cast<std::int64_t>(index),
+                    addressSort);
                 address = Z3_mk_bvadd(ctx, base, offset);
             }
-            Z3_ast entry = nullptr;
-            if (cell.second.decl) {
-                entry = Z3_mk_app(
-                    ctx, cell.second.decl, 0, nullptr);
-            } else if (cell.second.bits > 0) {
-                Z3_symbol symbol = Z3_mk_string_symbol(
-                    ctx, cell.second.name.c_str());
-                entry = Z3_mk_const(
-                    ctx, symbol,
-                    Z3_mk_bv_sort(ctx, cell.second.bits));
-            }
-            if (!entry) {
-                result.frame_rejected.push_back(
-                    source + "[" + std::to_string(cell.first) +
-                    "]: source cell declaration cannot be materialized");
-                valid = false;
-                break;
-            }
+            Z3_ast entry =
+                Z3_mk_select(ctx, loopEntryMemory, address);
             Z3_ast exit =
                 Z3_mk_select(ctx, finalMemory, address);
             Z3_ast equality = Z3_mk_eq(ctx, exit, entry);
@@ -1733,8 +1666,8 @@ validateMemoryCellRelationsFromSmt2(
             Z3_solver_pop(ctx, solver, 1);
             if (check != Z3_L_FALSE) {
                 result.frame_rejected.push_back(
-                    source + "[" + std::to_string(cell.first) +
-                    "]: final memory does not preserve untouched cell");
+                    source + "[" + std::to_string(index) +
+                    "]: final memory does not preserve loop-entry cell");
                 valid = false;
                 break;
             }
@@ -1743,7 +1676,7 @@ validateMemoryCellRelationsFromSmt2(
         if (valid) {
             result.frame_applied.push_back(
                 source + "@" + baseName +
-                " cells=" + std::to_string(sourceCells.size()) +
+                " cells=" + std::to_string(spec.cells) +
                 " untouched_checked=" + std::to_string(checked));
         }
     }

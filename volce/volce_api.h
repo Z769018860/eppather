@@ -31,16 +31,18 @@ struct AffineRelationSummary {
 struct MemoryCellAffineRelationSummary {
     std::string source_name;
     std::int64_t cell_index{0};
-    // final_cell = scale * initial_cell + offset
+    // final_cell = scale * loop_entry_cell + offset
     std::int64_t scale{1};
     std::int64_t offset{0};
+    // Exact fixed local-array extent supplied by Eppather.
+    std::size_t region_cells{0};
 };
 
 struct MemoryRelationValidationResult {
     std::vector<std::string> applied;
     std::vector<std::string> rejected;
-    // Frame validation proves every discovered source cell not written by the
-    // summary is unchanged in %a#ssa_final. This remains validation-only.
+    // Frame validation proves every declared region cell not written by the
+    // summary is unchanged from %a#ssa_loop_entry to %a#ssa_final.
     std::vector<std::string> frame_applied;
     std::vector<std::string> frame_rejected;
 };

@@ -396,7 +396,8 @@ std::optional<VolceResult> runVolce(
                 summary.region,
                 summary.index,
                 summary.scale,
-                summary.offset});
+                summary.offset,
+                summary.regionCells});
     }
     const char* disableSummaries =
         std::getenv("EPPATHER_DISABLE_VOLCE_LOOP_SUMMARIES");

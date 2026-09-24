@@ -25,6 +25,7 @@ enum class PathDecisionKind {
     LoopUpdate, // for-loop post expression
     SyntheticAssume, // LoopSCC summary guard
     SyntheticCode,   // LoopSCC affine/memory assignment
+    SyntheticMemoryCheckpoint, // internal loop-entry whole-memory snapshot
     SyntheticMems    // cost-only compensation; emits no SMT/source code
 };
 
@@ -81,6 +82,9 @@ struct LoopSccMemoryCellStateSummary {
     std::size_t period{0};
     std::size_t observedIterations{0};
     std::size_t observedMems{0};
+    // Declared fixed local-array extent. VolCE uses this to prove the full
+    // untouched frame instead of guessing region size from SMT occurrences.
+    std::size_t regionCells{0};
 };
 
 struct LoopSccMemoryAccelerationValidation {

@@ -134,6 +134,18 @@ namespace epat {
             this->smt_.pushCond(state == base.to_rv());
         }
 
+        void materializeLoopEntryMemoryCheckpoint()
+        {
+            if (!epat::isMemorySsaProvenanceEnabled())
+                return;
+            mem_.array_init();
+            if (mem_.array_) {
+                auto entryMemory = gc.constant(
+                    "%a#ssa_loop_entry", mem_.array_.get_sort());
+                this->smt_.pushCond(entryMemory == mem_.array_);
+            }
+        }
+
         rv materializeScalarState(const VarDecl& vard, rv value)
         {
             if (vard.getType().isArray() || vard.getType().isPointer() ||
@@ -453,6 +465,11 @@ namespace epat {
                 break;
             case DeclKind::VarDecl: {
                 auto& vard = static_cast<const VarDecl&>(decl);
+                if (vard.getName() ==
+                    "__eppather_loopscc_mem_checkpoint") {
+                    materializeLoopEntryMemoryCheckpoint();
+                    break;
+                }
                 bool isComplete = vard.getType().isComplete();
                 auto size = getTypeSize(vard.getType());
                 auto l = this->mem_.alloc(size);

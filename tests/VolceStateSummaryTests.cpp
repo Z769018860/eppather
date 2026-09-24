@@ -267,27 +267,27 @@ int main() {
     // %a#ssa_final cell. A correct +4 relation must be entailed; +5 must not.
     const std::string memoryRelationSmt =
         "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_loop_entry| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |%a#ssa_final| "
         "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |a@0#base| (_ BitVec 32))\n"
-        "(declare-const |a@0@0| (_ BitVec 32))\n"
-        "(declare-const |a@0@1| (_ BitVec 32))\n"
         "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_loop_entry| "
+        "(store (store %a |a@0#base| (_ bv10 32)) "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv7 32))))\n"
         "(assert (= |%a#ssa_final| "
-        "(store "
-        "(store "
-        "(store %a |a@0#base| |a@0@0|) "
-        "(bvadd |a@0#base| (_ bv1 32)) |a@0@1|) "
-        "|a@0#base| "
-        "(bvadd |a@0@0| (_ bv4 32)))))\n";
+        "(store |%a#ssa_loop_entry| |a@0#base| "
+        "(bvadd (select |%a#ssa_loop_entry| |a@0#base|) "
+        "(_ bv4 32)))))\n";
     const auto memoryRelationAccepted =
         volce::validateMemoryCellRelationsFromSmt2(
             memoryRelationSmt,
-            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4}});
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4, 2}});
     const auto memoryRelationRejected =
         volce::validateMemoryCellRelationsFromSmt2(
             memoryRelationSmt,
-            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 5}});
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 5, 2}});
     const bool memoryRelationOk =
         memoryRelationAccepted && memoryRelationRejected &&
         memoryRelationAccepted->applied.size() == 1 &&
@@ -302,21 +302,26 @@ int main() {
 
     const std::string brokenFrameSmt =
         "(declare-const %a (Array (_ BitVec 32) (_ BitVec 32)))\n"
+        "(declare-const |%a#ssa_loop_entry| "
+        "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |%a#ssa_final| "
         "(Array (_ BitVec 32) (_ BitVec 32)))\n"
         "(declare-const |a@0#base| (_ BitVec 32))\n"
-        "(declare-const |a@0@0| (_ BitVec 32))\n"
-        "(declare-const |a@0@1| (_ BitVec 32))\n"
         "(assert (= |a@0#base| (_ bv3 32)))\n"
+        "(assert (= |%a#ssa_loop_entry| "
+        "(store (store %a |a@0#base| (_ bv10 32)) "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv7 32))))\n"
         "(assert (= |%a#ssa_final| "
         "(store "
-        "(store %a (bvadd |a@0#base| (_ bv1 32)) (_ bv0 32)) "
+        "(store |%a#ssa_loop_entry| "
+        "(bvadd |a@0#base| (_ bv1 32)) (_ bv0 32)) "
         "|a@0#base| "
-        "(bvadd |a@0@0| (_ bv4 32)))))\n";
+        "(bvadd (select |%a#ssa_loop_entry| |a@0#base|) "
+        "(_ bv4 32)))))\n";
     const auto brokenFrame =
         volce::validateMemoryCellRelationsFromSmt2(
             brokenFrameSmt,
-            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4}});
+            {volce::MemoryCellAffineRelationSummary{"a", 0, 1, 4, 2}});
     const bool brokenFrameOk =
         brokenFrame &&
         brokenFrame->applied.size() == 1 &&

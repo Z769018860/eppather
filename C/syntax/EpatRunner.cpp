@@ -738,6 +738,8 @@ buildMemorySummaryValidationDecisions(
         decisions.begin(),
         decisions.begin() + static_cast<std::ptrdiff_t>(firstTrue));
     out.push_back(PathDecision{
+        loop, PathDecisionKind::SyntheticMemoryCheckpoint, {}});
+    out.push_back(PathDecision{
         loop, PathDecisionKind::TrueBranch, {}});
 
     const std::size_t entryPathId =
@@ -1071,6 +1073,8 @@ buildLoopSccMemoryAccelerationDecisions(
     plan.unfoldedMems = candidate.observedMems;
     plan.decisions = prefix;
     plan.decisions.push_back(PathDecision{
+        loop, PathDecisionKind::SyntheticMemoryCheckpoint, {}, 0});
+    plan.decisions.push_back(PathDecision{
         loop, PathDecisionKind::TrueBranch, {}, 0});
 
     const std::size_t entryPathId =
@@ -1180,6 +1184,13 @@ std::string EpatRunner::render(const std::vector<PathDecision>& decisions) const
                 if (!step.syntheticText.empty()) {
                     appendSafeLine(script, step.syntheticText, true);
                 }
+                break;
+            }
+            case PathDecisionKind::SyntheticMemoryCheckpoint: {
+                // Reserved implementation marker. epat++ intercepts this
+                // declaration and snapshots the current whole-memory state
+                // without allocating a user-visible object.
+                script += "int __eppather_loopscc_mem_checkpoint = 0;\n";
                 break;
             }
             case PathDecisionKind::SyntheticMems: {
@@ -1300,6 +1311,8 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     // VolCE performs the semantic entailment proof after solving the full path.
     std::unordered_map<CFGNode*, LoopSccGraphInfo> loopSccAnalysis;
     bool memoryProvenanceNeeded = false;
+    CFGNode* memoryCheckpointLoop = nullptr;
+    std::size_t memorySummaryLoopCount = 0;
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
         for (CFGNode* loop : provenanceLoops) {
             auto graph = LoopSccAdapter::analyze(loop);
@@ -1319,6 +1332,11 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                     memoryProvenanceNeeded = true;
                     break;
                 }
+            }
+            if (!graph.memorySummaryCandidates.empty()) {
+                ++memorySummaryLoopCount;
+                memoryCheckpointLoop =
+                    memorySummaryLoopCount == 1 ? loop : nullptr;
             }
             loopSccAnalysis.emplace(loop, std::move(graph));
         }
@@ -1340,9 +1358,39 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
         }
         if (indexedMemory) provenanceVariables.clear();
     }
+    auto solverDecisions = decisions;
+    if (memoryProvenanceNeeded &&
+        memorySummaryLoopCount == 1 &&
+        memoryCheckpointLoop) {
+        bool alreadyCheckpointed = false;
+        for (const auto& decision : solverDecisions) {
+            if (decision.kind ==
+                PathDecisionKind::SyntheticMemoryCheckpoint) {
+                alreadyCheckpointed = true;
+                break;
+            }
+        }
+        if (!alreadyCheckpointed) {
+            auto insertion = std::find_if(
+                solverDecisions.begin(), solverDecisions.end(),
+                [&](const PathDecision& decision) {
+                    return decision.node == memoryCheckpointLoop &&
+                           decision.kind ==
+                               PathDecisionKind::TrueBranch;
+                });
+            if (insertion != solverDecisions.end()) {
+                solverDecisions.insert(
+                    insertion,
+                    PathDecision{
+                        memoryCheckpointLoop,
+                        PathDecisionKind::SyntheticMemoryCheckpoint,
+                        {}, 0});
+            }
+        }
+    }
     epat::setSsaProvenanceVariables(provenanceVariables);
     epat::setMemorySsaProvenanceEnabled(memoryProvenanceNeeded);
-    EpatResult result = solveScript(render(decisions));
+    EpatResult result = solveScript(render(solverDecisions));
     epat::setMemorySsaProvenanceEnabled(false);
     epat::clearSsaProvenanceVariables();
 
@@ -1413,7 +1461,9 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                 }
             }
 
-            if (trace.complete && trace.matchedDeterminateCycle) {
+            if (trace.complete && trace.matchedDeterminateCycle &&
+                memorySummaryLoopCount == 1 &&
+                memoryCheckpointLoop == loop) {
                 const auto fixedArrayExtents =
                     parseFixedOneDimensionalArrayExtents(sourcePrefix_);
                 for (const auto& candidate :
@@ -1432,7 +1482,13 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                          candidate.closedFormTransforms) {
                         auto extent = fixedArrayExtents.find(
                             relation.region);
-                        if (extent == fixedArrayExtents.end()) continue;
+                        if (extent == fixedArrayExtents.end()) {
+                            fixedRegionBoundsOk = false;
+                            result.loopStateSummaryDiagnostics.push_back(
+                                "loopscc: rejected fixed-cell summary without unique fixed-array extent " +
+                                relation.region);
+                            break;
+                        }
                         if (relation.index < 0 ||
                             static_cast<unsigned long long>(
                                 relation.index) >=
@@ -1458,7 +1514,9 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                                 relation.offset,
                                 candidate.period,
                                 trace.observedIterations,
-                                candidate.observedMems});
+                                candidate.observedMems,
+                                fixedArrayExtents.at(
+                                    relation.region)});
                     }
                     result.loopStateSummaryDiagnostics.push_back(
                         "loopscc: fixed-cell memory summary matched unfolded path");
