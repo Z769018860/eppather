@@ -158,3 +158,7 @@ state rather than independent scalar relations.
 
 The PR #98 work is not part of `main` until its current CI gates complete and
 the PR is merged.
+
+### Fixed-memory shortcut safety gate (2026-09-24)
+
+Fixed-cell local-array summaries now support exact structural T^k composition, explicit MEMS compensation, VolCE memory-relation entailment, and untouched-region frame validation. These memory summaries remain **validation-only** in DFS: requesting `EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1` is conservatively blocked until the relation and frame certificates can be established independently before loop replacement. Pointer, symbolic-index, cross-cell, ambiguous-region, VLA/unknown-region, and opaque effects continue to fall back to unfolding.
