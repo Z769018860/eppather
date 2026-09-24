@@ -3561,6 +3561,8 @@ static std::uint64_t maxMemsCertifiedGuardSolverSkips = 0;
 static int maxMemsFeasibleIncumbent = -1;
 static bool maxMemsStopAfterFirstFeasible = false;
 static bool maxMemsFirstFeasibleFound = false;
+static int maxMemsSeedFeasibleTarget = 1;
+static int maxMemsSeedFeasibleSeen = 0;
 static bool maxMemsSeedExitFirst = false;
 static bool maxMemsSeedTerminationAware = false;
 
@@ -4417,7 +4419,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
         PathInfo leafResult(std::max(0, eval.mem), curPath, true);
         if (maxMemsStopAfterFirstFeasible) {
-            maxMemsFirstFeasibleFound = true;
+            ++maxMemsSeedFeasibleSeen;
+            if (maxMemsSeedFeasibleSeen >= maxMemsSeedFeasibleTarget) {
+                maxMemsFirstFeasibleFound = true;
+            }
         }
         return store(std::move(leafResult));
     }
@@ -4862,8 +4867,22 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             const bool seedExitFirst =
                 seedExitFirstRaw && *seedExitFirstRaw &&
                 std::string(seedExitFirstRaw) != "0";
+            const char* seedPathsRaw =
+                std::getenv("EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS");
+            int seedFeasibleTarget = 1;
+            if (seedPathsRaw && *seedPathsRaw) {
+                char* end = nullptr;
+                const long parsed = std::strtol(seedPathsRaw, &end, 10);
+                if (end != seedPathsRaw && *end == '\0' && parsed > 0) {
+                    seedFeasibleTarget =
+                        static_cast<int>(std::min<long>(parsed, 64));
+                }
+            }
+
             maxMemsStopAfterFirstFeasible = true;
             maxMemsFirstFeasibleFound = false;
+            maxMemsSeedFeasibleTarget = seedFeasibleTarget;
+            maxMemsSeedFeasibleSeen = 0;
             maxMemsSeedExitFirst = seedExitFirst;
             maxMemsSeedTerminationAware = !seedExitFirst;
             maxMemsFeasibleIncumbent = -1;
@@ -4871,8 +4890,11 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             std::unordered_map<CFGNode*, int> seedLoopMap;
             PathInfo greedy = MaxMemsDP(
                 funcNode, maxloop, "", 0, seedLoopMap, 0, {});
+            const int seedFeasibleSeen = maxMemsSeedFeasibleSeen;
             maxMemsStopAfterFirstFeasible = false;
             maxMemsFirstFeasibleFound = false;
+            maxMemsSeedFeasibleTarget = 1;
+            maxMemsSeedFeasibleSeen = 0;
             maxMemsSeedExitFirst = false;
             maxMemsSeedTerminationAware = false;
 
@@ -4935,10 +4957,14 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 maxMemsFeasibleIncumbent = greedy.mems;
                 std::cout << "[DP GREEDY SEEDED INCUMBENT]: "
                           << greedy.mems << std::endl;
+                std::cout << "[DP GREEDY SEED FEASIBLE PATHS]: "
+                          << seedFeasibleSeen << std::endl;
             } else {
                 maxMemsFeasibleIncumbent = -1;
                 std::cout << "[DP GREEDY SEEDED INCUMBENT]: N/A"
                           << std::endl;
+                std::cout << "[DP GREEDY SEED FEASIBLE PATHS]: "
+                          << seedFeasibleSeen << std::endl;
             }
         }
 
