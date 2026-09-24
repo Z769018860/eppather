@@ -1,0 +1,94 @@
+name: MaxMEMS cocktail exact-upper diagnostic
+
+concurrency:
+  group: maxmems-cocktail-exact-upper-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-exact-upper-diag.yml'
+
+jobs:
+  diagnostic:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [noseed, dfsseed, greedy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_exact_upper -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_exact_upper --target cnip -j2
+      - name: Run 30s exact-upper diagnostic
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_exact_upper/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          OUT="exact-${{ matrix.variant }}"
+          mkdir -p "$OUT"
+
+          COMMON=(
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=64
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=100
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=10
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+          )
+          EXTRA=()
+          case "${{ matrix.variant }}" in
+            dfsseed) EXTRA=(EPPATHER_MAXMEMS_SEED_WITH_DFS2=1) ;;
+            greedy) EXTRA=(EPPATHER_MAXMEMS_SEED_GREEDY=1) ;;
+          esac
+
+          (
+            cd "$OUT"
+            timeout 30s env "${COMMON[@]}" "${EXTRA[@]}"               "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+      - name: Summarize
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("exact-${{ matrix.variant }}")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*incumbent=(-?\d+)",err)
+          up=re.findall(r"\[DP UPPER PROGRESS\]: states=(\d+).*cache_hits=(\d+).*budget_skips=(\d+).*local_misses=(\d+).*local_us=(\d+).*key_us=(\d+).*loopbound_us=(\d+)",err)
+          def last_int(p):
+              xs=re.findall(p,out,re.M); return int(xs[-1]) if xs else None
+          result={
+            "variant":"${{ matrix.variant }}",
+            "exit":rc,
+            "mems":last_int(r"^MEMS:\s*(-?\d+)\s*$"),
+            "seed":last_int(r"^\[DP SEEDED INCUMBENT\]:\s*(\d+)\s*$"),
+            "greedy_seed":last_int(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$"),
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+            "last_upper":list(map(int,up[-1])) if up else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("EXACT_UPPER_DIAG",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: exact-upper-${{ matrix.variant }}
+          path: exact-${{ matrix.variant }}/
