@@ -4096,6 +4096,26 @@ static int remainingMemsUpperBound(
             depth + 1, std::move(loopMap))));
 }
 
+static int shallowBranchSuccessorUpper(
+    SyntaxNamePrinter* self,
+    const std::shared_ptr<CFGNode>& node) {
+    if (!node) return 0;
+    if (node->isFuncDef ||
+        (node->isVarDef && node->nodeLevel == 3)) {
+        return 0;
+    }
+    if (!node->isLoop && !node->isIf) {
+        const std::string code = node->getCode();
+        if (!code.empty()) {
+            return syntaxDecisionMemsUpper(
+                self, node.get(), PathDecisionKind::Code);
+        }
+    }
+    // Shallow ordering is deliberately local. Unknown/non-code successors add
+    // no score; this can weaken ordering but cannot affect correctness.
+    return 0;
+}
+
 PathInfo SyntaxNamePrinter::MaxMemsDP(
     const std::shared_ptr<CFGNode>& entry,
     int maxloop,
@@ -4146,8 +4166,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         std::string(branchBoundRaw) != "0";
     const char* branchOrderRaw =
         std::getenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+    const char* shallowOrderRaw =
+        std::getenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER");
+    const bool shallowBranchOrder =
+        shallowOrderRaw && *shallowOrderRaw &&
+        std::string(shallowOrderRaw) != "0";
     const bool branchOrderEnabled =
-        branchBoundEnabled ||
+        branchBoundEnabled || shallowBranchOrder ||
         (branchOrderRaw && *branchOrderRaw &&
          std::string(branchOrderRaw) != "0");
     if (branchBoundEnabled &&
@@ -4357,9 +4382,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             branchOrderEnabled && trueGuardCanHold
                 ? addMemsUpper(
                       tMemsUpper,
-                      remainingMemsUpperBound(
-                          this, entry->getNextNode(), maxloop,
-                          depth + 1, tLoopMap))
+                      shallowBranchOrder
+                          ? shallowBranchSuccessorUpper(
+                                this, entry->getNextNode())
+                          : remainingMemsUpperBound(
+                                this, entry->getNextNode(), maxloop,
+                                depth + 1, tLoopMap))
                 : -1;
 
         auto fLoopMap = loopUnrollMap;
@@ -4378,9 +4406,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             branchOrderEnabled && falseGuardCanHold
                 ? addMemsUpper(
                       fMemsUpper,
-                      remainingMemsUpperBound(
-                          this, entry->getNextFalseNode(), maxloop,
-                          depth + 1, fLoopMap))
+                      shallowBranchOrder
+                          ? shallowBranchSuccessorUpper(
+                                this, entry->getNextFalseNode())
+                          : remainingMemsUpperBound(
+                                this, entry->getNextFalseNode(), maxloop,
+                                depth + 1, fLoopMap))
                 : -1;
 
         auto exploreTrue = [&]() {
@@ -4501,17 +4532,23 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             branchOrderEnabled && trueGuardCanHold
             ? addMemsUpper(
                   tMemsUpper,
-                  remainingMemsUpperBound(
-                      this, entry->getNextNode(), maxloop,
-                      depth + 1, tLoopMap))
+                  shallowBranchOrder
+                      ? shallowBranchSuccessorUpper(
+                            this, entry->getNextNode())
+                      : remainingMemsUpperBound(
+                            this, entry->getNextNode(), maxloop,
+                            depth + 1, tLoopMap))
             : -1;
         const int fPotential =
             branchOrderEnabled && falseGuardCanHold
             ? addMemsUpper(
                   fMemsUpper,
-                  remainingMemsUpperBound(
-                      this, entry->getNextFalseNode(), maxloop,
-                      depth + 1, loopUnrollMap))
+                  shallowBranchOrder
+                      ? shallowBranchSuccessorUpper(
+                            this, entry->getNextFalseNode())
+                      : remainingMemsUpperBound(
+                            this, entry->getNextFalseNode(), maxloop,
+                            depth + 1, loopUnrollMap))
             : -1;
 
         auto exploreTrue = [&]() {
@@ -4666,6 +4703,11 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             const std::optional<std::string> oldOrder =
                 oldOrderRaw ? std::optional<std::string>(oldOrderRaw)
                             : std::nullopt;
+            const char* oldShallowRaw =
+                std::getenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER");
+            const std::optional<std::string> oldShallow =
+                oldShallowRaw ? std::optional<std::string>(oldShallowRaw)
+                              : std::nullopt;
             const char* oldBoundRaw =
                 std::getenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
             const std::optional<std::string> oldBound =
@@ -4673,6 +4715,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                             : std::nullopt;
 
             setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
+            setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
             unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
             maxMemsStopAfterFirstFeasible = true;
             maxMemsFirstFeasibleFound = false;
@@ -4689,6 +4732,12 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                        oldOrder->c_str(), 1);
             } else {
                 unsetenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+            }
+            if (oldShallow) {
+                setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER",
+                       oldShallow->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER");
             }
             if (oldBound) {
                 setenv("EPPATHER_MAXMEMS_BRANCH_BOUND",
