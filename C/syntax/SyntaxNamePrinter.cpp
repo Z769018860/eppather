@@ -4350,7 +4350,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     if (entry->isIf) {
         auto literalGuard =
             literalConstantGuardTruth(entry->cond_str);
-        if (!literalGuard) {
+        const char* pathLocalRaw =
+            std::getenv("EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE");
+        const bool pathLocalEnabled =
+            pathLocalRaw && *pathLocalRaw &&
+            std::string(pathLocalRaw) != "0";
+        if (!literalGuard && pathLocalEnabled) {
             literalGuard = pathLocalScalarGuardTruth(
                 this, entry->cond_str, decisions);
         }
