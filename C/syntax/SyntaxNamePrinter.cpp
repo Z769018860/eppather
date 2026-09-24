@@ -3399,6 +3399,14 @@ namespace psy {
 namespace C {
 std::unordered_map<std::string, bool> feasCache;
 
+// MaxMEMS search diagnostics. These counters are reset per function by
+// printCFG_greedyDFS() and let timeout experiments distinguish path explosion
+// from solver overhead without changing the search result.
+static std::uint64_t maxMemsPrefixChecks = 0;
+static std::uint64_t maxMemsPrefixCacheHits = 0;
+static std::uint64_t maxMemsPrefixPruned = 0;
+static std::uint64_t maxMemsLeafSolves = 0;
+
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
     SyntaxNamePrinter* self,
@@ -3418,10 +3426,17 @@ inline bool isPathFeasibleCached(
     if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
         return true;
     }
+    ++maxMemsPrefixChecks;
     auto it = feasCache.find(fullExpr);
-    if (it != feasCache.end()) return it->second;
+    if (it != feasCache.end()) {
+        ++maxMemsPrefixCacheHits;
+        if (!it->second) ++maxMemsPrefixPruned;
+        return it->second;
+    }
 
-    bool ok = feasibleWithVartemp(self, decisions, fullExpr.substr(self->vartemp.size()));
+    bool ok = feasibleWithVartemp(
+        self, decisions, fullExpr.substr(self->vartemp.size()));
+    if (!ok) ++maxMemsPrefixPruned;
     feasCache.emplace(fullExpr, ok);
     return ok;
 }
@@ -3515,6 +3530,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     PathDecision{entry.get(), PathDecisionKind::Code});
             }
         }
+        ++maxMemsLeafSolves;
         EpatRunner runner(vartemp);
         const auto eval = runner.solve(curDecisions);
         if (eval.status != result::feasible) {
@@ -3667,6 +3683,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         dpMemo.clear();  // 每个函数入口前清空 memo
         decisionMemCache.clear();
         feasCache.clear();
+        maxMemsPrefixChecks = 0;
+        maxMemsPrefixCacheHits = 0;
+        maxMemsPrefixPruned = 0;
+        maxMemsLeafSolves = 0;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3738,6 +3758,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 std::cout << "[VolCE] N/A" << std::endl;
             }
         }
+        std::cout << "[DP PREFIX CHECKS]: " << maxMemsPrefixChecks << std::endl;
+        std::cout << "[DP PREFIX CACHE HITS]: " << maxMemsPrefixCacheHits << std::endl;
+        std::cout << "[DP PREFIX PRUNED]: " << maxMemsPrefixPruned << std::endl;
+        std::cout << "[DP LEAF SOLVES]: " << maxMemsLeafSolves << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
