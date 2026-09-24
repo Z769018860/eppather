@@ -1,0 +1,76 @@
+name: MaxMEMS cocktail seed smoke
+
+concurrency:
+  group: maxmems-cocktail-seed-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - '.github/workflows/maxmems-cocktail-seed-smoke.yml'
+
+jobs:
+  seed-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_seed -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_seed --target cnip -j2
+      - name: Run 30s feasibility-first seed smoke
+        shell: bash
+        run: |
+          set +e
+          mkdir -p seed-smoke
+          timeout 30s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=25 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            "${{ github.workspace }}/build_seed/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > seed-smoke/stdout.log 2> seed-smoke/stderr.log
+          rc=$?
+          echo "$rc" > seed-smoke/exit_code.txt
+          exit 0
+      - name: Assert seed discovery
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("seed-smoke")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          seed=re.findall(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out,re.M)
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*incumbent=(-?\d+)",err)
+          result={
+            "process_exit":rc,
+            "seed":int(seed[-1]) if seed else None,
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_SEED_SMOKE",json.dumps(result,sort_keys=True))
+          if not seed:
+              raise SystemExit("no certified seed found within 30s")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-seed-smoke-results
+          path: seed-smoke/
