@@ -1,14 +1,14 @@
-name: MaxMEMS cocktail BnB focused
+name: MaxMEMS cocktail greedy-seed focused
 
 concurrency:
-  group: maxmems-cocktail-bnb-focused-${{ github.ref }}
+  group: maxmems-cocktail-greedy-seed-${{ github.ref }}
   cancel-in-progress: false
 
 on:
   workflow_dispatch:
   push:
     branches:
-      - experiment/maxmems-cocktail-bnb-focused
+      - experiment/maxmems-cocktail-greedy-seed
     paths:
       - 'C/syntax/SyntaxNamePrinter.cpp'
       - 'C/syntax/SyntaxNamePrinter.h'
@@ -20,7 +20,7 @@ on:
 jobs:
   focused:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
 
@@ -42,7 +42,7 @@ jobs:
             --cnip "${{ github.workspace }}/build_cocktail/cnip" \
             --output-dir cocktail-upper-soundness
 
-      - name: Validate BnB correctness on 20 controlled subjects
+      - name: Validate greedy-seeded BnB correctness on 20 controlled subjects
         run: |
           EPPATHER_PREFIX_FEASIBILITY=1 \
           EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
@@ -53,20 +53,20 @@ jobs:
           EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
           EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
           EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
-          EPPATHER_MAXMEMS_SEED_WITH_DFS2=1 \
+          EPPATHER_MAXMEMS_SEED_GREEDY=1 \
           EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_cocktail/cnip" \
-            --output-dir cocktail-bnb-witness
+            --output-dir cocktail-greedy-bnb-witness
 
-      - name: Run cocktail-sort order-only and BnB
+      - name: Run cocktail-sort DFS-seed vs greedy-seed BnB
         shell: bash
         run: |
           set -u
           CNIP="${{ github.workspace }}/build_cocktail/cnip"
           SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
-          mkdir -p cocktail-ab/order cocktail-ab/bnb120 cocktail-ab/bnb300
+          mkdir -p cocktail-greedy-ab/dfsseed120 cocktail-greedy-ab/greedy120 cocktail-greedy-ab/greedy300
 
           COMMON=(
             EPPATHER_PREFIX_FEASIBILITY=1
@@ -77,49 +77,49 @@ jobs:
             EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
             EPPATHER_MAXMEMS_LIGHT_LEAF=1
             EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
-            EPPATHER_MAXMEMS_SEED_WITH_DFS2=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
             EPPATHER_SUPPRESS_REDECL_WARNINGS=1
             EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
           )
 
           (
-            cd cocktail-ab/order
+            cd cocktail-greedy-ab/dfsseed120
             timeout 120s env "${COMMON[@]}" \
-              EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+              EPPATHER_MAXMEMS_SEED_WITH_DFS2=1 \
               "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
             echo $? > exit_code.txt
           ) || true
 
           (
-            cd cocktail-ab/bnb120
+            cd cocktail-greedy-ab/greedy120
             timeout 120s env "${COMMON[@]}" \
-              EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+              EPPATHER_MAXMEMS_SEED_GREEDY=1 \
               "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
             echo $? > exit_code.txt
           ) || true
 
-          BNB120_RC=$(cat cocktail-ab/bnb120/exit_code.txt 2>/dev/null || echo 124)
-          if [ "$BNB120_RC" != "0" ]; then
+          GREEDY120_RC=$(cat cocktail-greedy-ab/greedy120/exit_code.txt 2>/dev/null || echo 124)
+          if [ "$GREEDY120_RC" != "0" ]; then
             (
-              cd cocktail-ab/bnb300
+              cd cocktail-greedy-ab/greedy300
               timeout 300s env "${COMMON[@]}" \
-                EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+                EPPATHER_MAXMEMS_SEED_GREEDY=1 \
                 "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
               echo $? > exit_code.txt
             ) || true
           else
-            echo 0 > cocktail-ab/bnb300/exit_code.txt
-            cp cocktail-ab/bnb120/stdout.log cocktail-ab/bnb300/stdout.log
-            cp cocktail-ab/bnb120/stderr.log cocktail-ab/bnb300/stderr.log
+            echo 0 > cocktail-greedy-ab/greedy300/exit_code.txt
+            cp cocktail-greedy-ab/greedy120/stdout.log cocktail-greedy-ab/greedy300/stdout.log
+            cp cocktail-greedy-ab/greedy120/stderr.log cocktail-greedy-ab/greedy300/stderr.log
           fi
 
-      - name: Summarize focused experiment
+      - name: Summarize greedy-seed experiment
         run: |
           python3 - <<'PY'
           import json, re
           from pathlib import Path
 
-          root = Path("cocktail-ab")
+          root = Path("cocktail-greedy-ab")
           def read(name):
               d = root / name
               rc = int((d/"exit_code.txt").read_text().strip()) if (d/"exit_code.txt").exists() else 124
@@ -127,29 +127,36 @@ jobs:
               def last(pattern):
                   vals = re.findall(pattern, out, re.M)
                   return vals[-1] if vals else None
+              def as_int(pattern):
+                  v = last(pattern)
+                  return int(v) if v is not None else None
+              def as_float(pattern):
+                  v = last(pattern)
+                  return float(v) if v is not None else None
               return {
                   "exit": rc,
-                  "mems": int(last(r"^MEMS:\s*(-?\d+)\s*$")) if last(r"^MEMS:\s*(-?\d+)\s*$") else None,
-                  "dp_time": float(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds")) if last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds") else None,
-                  "branch_bound_pruned": int(last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)")) if last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)") else None,
-                  "branch_order_swaps": int(last(r"^\[DP BRANCH ORDER SWAPS\]:\s*(\d+)")) if last(r"^\[DP BRANCH ORDER SWAPS\]:\s*(\d+)") else None,
-                  "leaf_solves": int(last(r"^\[DP LEAF SOLVES\]:\s*(\d+)")) if last(r"^\[DP LEAF SOLVES\]:\s*(\d+)") else None,
-                  "prefix_checks": int(last(r"^\[DP PREFIX CHECKS\]:\s*(\d+)")) if last(r"^\[DP PREFIX CHECKS\]:\s*(\d+)") else None,
-                  "prefix_pruned": int(last(r"^\[DP PREFIX PRUNED\]:\s*(\d+)")) if last(r"^\[DP PREFIX PRUNED\]:\s*(\d+)") else None,
+                  "mems": as_int(r"^MEMS:\s*(-?\d+)\s*$"),
+                  "dp_time": as_float(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds"),
+                  "dfs_seed": as_int(r"^\[DP SEEDED INCUMBENT\]:\s*(\d+)\s*$"),
+                  "greedy_seed": as_int(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$"),
+                  "branch_bound_pruned": as_int(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)"),
+                  "leaf_solves": as_int(r"^\[DP LEAF SOLVES\]:\s*(\d+)"),
+                  "prefix_checks": as_int(r"^\[DP PREFIX CHECKS\]:\s*(\d+)"),
+                  "prefix_pruned": as_int(r"^\[DP PREFIX PRUNED\]:\s*(\d+)"),
               }
 
-          result = {k: read(k) for k in ("order","bnb120","bnb300")}
-          Path("cocktail-ab/summary.json").write_text(json.dumps(result, indent=2)+"\n")
-          print("COCKTAIL_BNB_FOCUSED", json.dumps(result, sort_keys=True))
-          if result["bnb300"]["exit"] != 0:
-              raise SystemExit("cocktail-sort still timed out under 300s BnB")
+          result = {k: read(k) for k in ("dfsseed120","greedy120","greedy300")}
+          Path("cocktail-greedy-ab/summary.json").write_text(json.dumps(result, indent=2)+"\n")
+          print("COCKTAIL_GREEDY_SEED_AB", json.dumps(result, sort_keys=True))
+          if result["greedy300"]["exit"] != 0:
+              raise SystemExit("cocktail-sort still timed out under greedy-seeded 300s BnB")
           PY
 
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: cocktail-bnb-focused-results
+          name: cocktail-greedy-seed-results
           path: |
-            cocktail-ab/
+            cocktail-greedy-ab/
             cocktail-upper-soundness/
-            cocktail-bnb-witness/
+            cocktail-greedy-bnb-witness/
