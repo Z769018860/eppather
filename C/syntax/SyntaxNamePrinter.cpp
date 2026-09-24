@@ -4480,6 +4480,62 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsUpperUnderestimates = 0;
         maxMemsFeasibleIncumbent = -1;
 
+        const char* seedRaw =
+            std::getenv("EPPATHER_MAXMEMS_SEED_WITH_DFS2");
+        const bool seedWithDfs2 =
+            seedRaw && *seedRaw && std::string(seedRaw) != "0";
+        if (seedWithDfs2) {
+            const char* oldMaxOnlyRaw =
+                std::getenv("EPPATHER_DFS2_MAX_ONLY");
+            const std::optional<std::string> oldMaxOnly =
+                oldMaxOnlyRaw
+                    ? std::optional<std::string>(oldMaxOnlyRaw)
+                    : std::nullopt;
+
+            // DFS2's max-only leaf still uses the same epat++ solver, so a
+            // returned value is a certified feasible lower bound. Limiting the
+            // pass to the first feasible path affects only seed quality, never
+            // the final MaxMEMS result.
+            setenv("EPPATHER_DFS2_MAX_ONLY", "1", 1);
+            const int savedMaxmem = maxmem;
+            const int savedMinmem = minmem;
+            const auto savedLoopCount = loopCount;
+            const auto savedCallees = currentPathCallees_;
+
+            maxmem = -1;
+            minmem = std::numeric_limits<int>::max();
+            loopCount.clear();
+            loopCount.resize(maxdepth, 0);
+            std::vector<bool> seedCoverage(maxdepth, false);
+            std::vector<PathDecision> seedDecisions;
+            int seedPathCount = 0;
+            currentPathCallees_.clear();
+            DFS2(funcNode, seedCoverage, seedDecisions, 0,
+                 seedPathCount, maxloop, 1, false, -8, 8,
+                 functionTag);
+            if (maxmem >= 0) {
+                maxMemsFeasibleIncumbent = maxmem;
+                std::cout << "[DP SEEDED INCUMBENT]: "
+                          << maxMemsFeasibleIncumbent << std::endl;
+            } else {
+                std::cout << "[DP SEEDED INCUMBENT]: N/A" << std::endl;
+            }
+
+            maxmem = savedMaxmem;
+            minmem = savedMinmem;
+            loopCount = savedLoopCount;
+            currentPathCallees_ = savedCallees;
+            if (oldMaxOnly) {
+                setenv("EPPATHER_DFS2_MAX_ONLY",
+                       oldMaxOnly->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_DFS2_MAX_ONLY");
+            }
+            // Do not let seed prefix-feasibility answers bias diagnostics or
+            // the main search cache.
+            feasCache.clear();
+        }
+
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
