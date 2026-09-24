@@ -27,11 +27,11 @@ jobs:
           CNIP="${{ github.workspace }}/build_ksweep/cnip"
           SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
           mkdir -p k-sweep
-          for k in 1 2 3 4; do
+          for k in 4 8 16 32; do
             d="k-sweep/k$k"
             mkdir -p "$d"
             set +e
-            timeout 20s env \
+            timeout 45s env \
               EPPATHER_MAXMEMS_CORE_ONLY=1 \
               EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
               EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
@@ -43,7 +43,7 @@ jobs:
               EPPATHER_MAXMEMS_SEED_GREEDY=1 \
               EPPATHER_MAXMEMS_SEED_EXIT_FIRST=1 \
               EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS="$k" \
-              EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+              EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1 \
               EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
               EPPATHER_MAXMEMS_PROGRESS_EVERY=25 \
               "$CNIP" -g "$SRC" 3 > "$d/stdout.log" 2> "$d/stderr.log"
@@ -58,7 +58,7 @@ jobs:
           from pathlib import Path
           root=Path("k-sweep")
           rows=[]
-          for k in (1,2,3,4):
+          for k in (4,8,16,32):
               d=root/f"k{k}"
               out=(d/"stdout.log").read_text(errors="replace")
               err=(d/"stderr.log").read_text(errors="replace")
