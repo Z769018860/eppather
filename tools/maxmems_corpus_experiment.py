@@ -35,6 +35,7 @@ DP_PREFIX_BUDGET_SKIPS_RE = re.compile(r"(?m)^\[DP PREFIX BUDGET SKIPS\]:\s*(\d+
 DP_LEAF_SOLVES_RE = re.compile(r"(?m)^\[DP LEAF SOLVES\]:\s*(\d+)")
 DP_MEMO_LOOKUPS_RE = re.compile(r"(?m)^\[DP MEMO LOOKUPS\]:\s*(\d+)")
 DP_MEMO_HITS_RE = re.compile(r"(?m)^\[DP MEMO HITS\]:\s*(\d+)")
+DP_LAZY_LEAF_SKIPPED_RE = re.compile(r"(?m)^\[DP LAZY LEAF SKIPPED\]:\s*(\d+)")
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -83,6 +84,7 @@ def parse_dp_blocks(text: str) -> list[dict]:
         leaf_solves_m = DP_LEAF_SOLVES_RE.search(rest)
         memo_lookups_m = DP_MEMO_LOOKUPS_RE.search(rest)
         memo_hits_m = DP_MEMO_HITS_RE.search(rest)
+        lazy_leaf_skipped_m = DP_LAZY_LEAF_SKIPPED_RE.search(rest)
         blocks.append({
             "function": tag,
             "path": path,
@@ -96,6 +98,7 @@ def parse_dp_blocks(text: str) -> list[dict]:
             "leaf_solves": int(leaf_solves_m.group(1)) if leaf_solves_m else "",
             "memo_lookups": int(memo_lookups_m.group(1)) if memo_lookups_m else "",
             "memo_hits": int(memo_hits_m.group(1)) if memo_hits_m else "",
+            "lazy_leaf_skipped": int(lazy_leaf_skipped_m.group(1)) if lazy_leaf_skipped_m else "",
             "branches": expected_outcomes(path),
         })
     return blocks
@@ -242,6 +245,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                 "dp_leaf_solves": block.get("leaf_solves", ""),
                 "dp_memo_lookups": block.get("memo_lookups", ""),
                 "dp_memo_hits": block.get("memo_hits", ""),
+                "dp_lazy_leaf_skipped": block.get("lazy_leaf_skipped", ""),
                 "dfs_max_mems": "", "feasible_paths": 0, "paths_enumerated": 0,
                 "path_limit_hit": 0, "static_equal": 0, "witness_found": 0,
                 "witness_inputs": "", "expected_branches": "", "actual_branches": "",
