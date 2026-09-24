@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
@@ -947,6 +948,61 @@ std::optional<SsaRelationState> parseSsaRelationState(
         decl, name, name.substr(0, marker), version};
 }
 
+
+struct CoupledSsaStates {
+    std::vector<SsaRelationState> states;
+};
+
+std::optional<CoupledSsaStates> collectUniqueSsaStates(
+    Z3_context ctx,
+    const std::vector<Z3_func_decl>& decls,
+    const std::string& variable,
+    std::string& reason) {
+    std::unordered_map<std::string, std::vector<SsaRelationState>> groups;
+    for (auto decl : decls) {
+        auto state = parseSsaRelationState(ctx, decl, variable);
+        if (!state) continue;
+        groups[state->prefix].push_back(std::move(*state));
+    }
+    if (groups.size() != 1) {
+        reason =
+            variable +
+            ": expected exactly one SSA scope for coupled affine relation";
+        return std::nullopt;
+    }
+    auto states = std::move(groups.begin()->second);
+    std::sort(
+        states.begin(), states.end(),
+        [](const SsaRelationState& lhs,
+           const SsaRelationState& rhs) {
+            return lhs.version < rhs.version;
+        });
+    if (states.empty() || states.front().version != 0) {
+        reason =
+            variable +
+            ": coupled affine relation requires SSA entry #ssa0";
+        return std::nullopt;
+    }
+    return CoupledSsaStates{std::move(states)};
+}
+
+bool isIdentityCoupledRow(
+    const volce::CoupledAffineRelationSummary& summary,
+    std::size_t row) {
+    const std::size_t n = summary.variables.size();
+    if (row >= n || summary.matrix.size() != n * n ||
+        summary.offset.size() != n || summary.offset[row] != 0) {
+        return false;
+    }
+    for (std::size_t col = 0; col < n; ++col) {
+        const std::int64_t expected = row == col ? 1 : 0;
+        if (summary.matrix[row * n + col] != expected) {
+            return false;
+        }
+    }
+    return true;
+}
+
 void applyEntailedAffineRelations(
     Z3_context ctx,
     Z3_solver solver,
@@ -1424,6 +1480,148 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
         ctx, solver, vec, parsed_decls, summaries, affine_relations,
         ranges, default_range, include_memory_terms, memory_regions,
         apply_entailed_summaries);
+    Z3_solver_dec_ref(ctx, solver);
+    Z3_del_context(ctx);
+    return result;
+}
+
+
+std::optional<CoupledAffineValidationResult>
+validateCoupledAffineRelationsFromSmt2(
+    const std::string& smt2,
+    const std::vector<CoupledAffineRelationSummary>& summaries) {
+    if (smt2.empty()) return std::nullopt;
+
+    Z3_config config = Z3_mk_config();
+    Z3_context ctx = Z3_mk_context(config);
+    Z3_del_config(config);
+    Z3_solver solver = Z3_mk_solver(ctx);
+    Z3_solver_inc_ref(ctx, solver);
+    Z3_ast_vector vec = Z3_parse_smtlib2_string(
+        ctx, smt2.c_str(), 0, nullptr, nullptr, 0, nullptr, nullptr);
+    assertParsedFormulas(ctx, solver, vec);
+    const auto decls = collectZeroArityDecls(ctx, vec);
+
+    CoupledAffineValidationResult result;
+    for (const auto& summary : summaries) {
+        const std::size_t n = summary.variables.size();
+        if (n < 2 || summary.matrix.size() != n * n ||
+            summary.offset.size() != n) {
+            result.rejected.push_back(
+                "coupled affine matrix dimensions are invalid");
+            continue;
+        }
+
+        for (std::size_t row = 0; row < n; ++row) {
+            if (isIdentityCoupledRow(summary, row)) {
+                continue;
+            }
+            ++result.required_rows;
+
+            std::string reason;
+            auto targetStates = collectUniqueSsaStates(
+                ctx, decls, summary.variables[row], reason);
+            if (!targetStates) {
+                result.rejected.push_back(
+                    "row " + std::to_string(row) + ": " + reason);
+                continue;
+            }
+            auto& target = targetStates->states;
+            if (target.size() < 2 ||
+                target.front().version == target.back().version) {
+                result.rejected.push_back(
+                    "row " + std::to_string(row) + ": " +
+                    summary.variables[row] +
+                    " requires a later SSA exit state");
+                continue;
+            }
+
+            Z3_ast exit =
+                Z3_mk_app(ctx, target.back().decl, 0, nullptr);
+            Z3_sort sort = Z3_get_sort(ctx, exit);
+            if (!isBitVector(ctx, sort)) {
+                result.rejected.push_back(
+                    "row " + std::to_string(row) +
+                    ": target SSA state is not a bit-vector");
+                continue;
+            }
+
+            Z3_ast rhs =
+                Z3_mk_int64(ctx, summary.offset[row], sort);
+            bool rowOk = true;
+            std::vector<std::string> entryNames;
+            entryNames.reserve(n);
+
+            for (std::size_t col = 0; col < n; ++col) {
+                const std::int64_t coefficient =
+                    summary.matrix[row * n + col];
+                if (coefficient == 0) {
+                    entryNames.push_back(summary.variables[col] + "#0");
+                    continue;
+                }
+
+                std::string sourceReason;
+                auto sourceStates = collectUniqueSsaStates(
+                    ctx, decls, summary.variables[col], sourceReason);
+                if (!sourceStates) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) + ": " +
+                        sourceReason);
+                    rowOk = false;
+                    break;
+                }
+                const auto& source = sourceStates->states.front();
+                Z3_ast entry =
+                    Z3_mk_app(ctx, source.decl, 0, nullptr);
+                Z3_sort entrySort = Z3_get_sort(ctx, entry);
+                if (!Z3_is_eq_sort(ctx, sort, entrySort) ||
+                    !isBitVector(ctx, entrySort)) {
+                    result.rejected.push_back(
+                        "row " + std::to_string(row) +
+                        ": source/target SSA sorts are incompatible");
+                    rowOk = false;
+                    break;
+                }
+
+                Z3_ast term = entry;
+                if (coefficient != 1) {
+                    Z3_ast factor =
+                        Z3_mk_int64(ctx, coefficient, sort);
+                    term = Z3_mk_bvmul(ctx, entry, factor);
+                }
+                rhs = Z3_mk_bvadd(ctx, rhs, term);
+                entryNames.push_back(source.name);
+            }
+            if (!rowOk) continue;
+
+            Z3_ast equality = Z3_mk_eq(ctx, exit, rhs);
+            Z3_solver_push(ctx, solver);
+            Z3_solver_assert(ctx, solver, Z3_mk_not(ctx, equality));
+            const Z3_lbool check = Z3_solver_check(ctx, solver);
+            Z3_solver_pop(ctx, solver, 1);
+
+            std::ostringstream description;
+            description << "row " << row << " "
+                        << summary.variables[row] << ": "
+                        << target.front().name << "->"
+                        << target.back().name;
+            if (check == Z3_L_FALSE) {
+                ++result.applied_rows;
+                result.applied.push_back(
+                    description.str() + ": entailed");
+            } else {
+                result.rejected.push_back(
+                    description.str() +
+                    ": path formula does not entail coupled affine row");
+            }
+        }
+    }
+
+    result.all_rows_entailed =
+        result.required_rows > 0 &&
+        result.applied_rows == result.required_rows &&
+        result.rejected.empty();
+
     Z3_solver_dec_ref(ctx, solver);
     Z3_del_context(ctx);
     return result;

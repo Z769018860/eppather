@@ -1956,6 +1956,42 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                 }
             }
 
+            if (trace.complete && trace.matchedDeterminateCycle) {
+                for (const auto& candidate :
+                     graph.coupledAffineCandidates) {
+                    if (!candidate.exact ||
+                        candidate.cycleIndex != trace.cycleIndex ||
+                        candidate.entryPhase != trace.entryPhase ||
+                        candidate.totalIterations !=
+                            static_cast<long long>(
+                                trace.observedIterations)) {
+                        continue;
+                    }
+                    std::unordered_map<std::string, std::string>
+                        certifiedTypes;
+                    std::vector<std::string> certificateDiagnostics;
+                    if (!certifyCoupledAffineTypes(
+                            loop, graph, candidate, sourcePrefix_,
+                            certifiedTypes, certificateDiagnostics)) {
+                        for (const auto& diagnostic :
+                             certificateDiagnostics) {
+                            result.loopStateSummaryDiagnostics.push_back(
+                                "loopscc coupled: " + diagnostic);
+                        }
+                        continue;
+                    }
+                    result.loopSccCoupledAffineStateSummaries.push_back(
+                        LoopSccCoupledAffineStateSummary{
+                            candidate.closedForm.variables,
+                            candidate.closedForm.matrix,
+                            candidate.closedForm.offset,
+                            candidate.period,
+                            trace.observedIterations});
+                    result.loopStateSummaryDiagnostics.push_back(
+                        "loopscc: type-certified coupled affine summary matched unfolded path");
+                }
+            }
+
             if (trace.complete && trace.matchedDeterminateCycle &&
                 memoryCheckpointLoop == loop) {
                 const auto fixedArrayExtents =
