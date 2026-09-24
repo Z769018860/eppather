@@ -1,0 +1,50 @@
+name: MaxMEMS 266 shard10 retry
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - '.github/workflows/maxmems-266-final-shard10-retry.yml'
+
+jobs:
+  shard10:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py tools/aggregate_maxmems_corpus.py
+      - name: Configure Eppather
+        run: cmake -S . -B build_maxmems266 -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_maxmems266 --target cnip -j2
+      - name: Retry shard 10
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+          EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+          EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems266/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir maxmems-266-final-shard-10 \
+            --manifest docs/maxmems-266-corpus-manifest.txt --expected-programs 266 \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 300 \
+            --dfs-max-only-fallback \
+            --shard-index 10 --shard-count 12
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-final-shard-10-retry
+          path: maxmems-266-final-shard-10/
