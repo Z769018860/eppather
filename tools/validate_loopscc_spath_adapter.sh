@@ -574,6 +574,11 @@ if [[ "$coupled_overflow_required" != 3 ||
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
+if grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: baseline unexpectedly used legacy scalar shortcut" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
 if grep -q '^\[LOOPSCC COUPLED DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
   echo "coupled_affine: baseline unexpectedly used coupled shortcut" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
