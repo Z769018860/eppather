@@ -140,6 +140,37 @@ Configuration:
 - ordinary DFS first; max-only DFS is used only as a timeout fallback
 - independent 20-case witness gate runs in the same workflow
 
+### Interim snapshot while the 266 rerun is still running
+
+Artifacts currently available from shards 4, 6, 8, and 9 cover **88 / 266**
+programs. This is an interim progress snapshot, not the final corpus result.
+
+- Programs collected so far: **88**
+- GNU C syntax-valid / invalid: **84 / 4**
+- Programs reaching DP/DFS comparison: **82**
+- Programs with DP=DFS: **82 / 82 analyzed (100%)**
+- Functions with DP=DFS: **120 / 120 (100%)**
+- True static mismatch programs: **0**
+- DFS path-limit hits: **0 programs / 0 functions**
+- DP timeouts after retry: **1** (`ludic-numbers.c`)
+- DFS timeouts after fallback: **0**
+- Retry attempted / rescued: **2 / 1**
+- Concrete replay matches: **44 functions**
+- Concrete replay mismatch: **1 function**; this case still has static
+  **DP=DFS** and is therefore tracked as a replay-oracle residual rather than a
+  MaxMEMS static disagreement.
+- Other non-static residuals in this partial snapshot: **4 DP output parse
+  gaps** and **1 post-output process crash (-11)**.
+
+The interrupted original shard 10 job is an infrastructure failure: the GitHub
+runner received a shutdown signal after completing 9/22 programs. A dedicated
+shard-10 retry has been started with the same experimental parameters.
+
+**Paper-safe interim interpretation:** across the first 82 programs for which
+both MaxMEMS DP and the bounded DFS/max-only oracle produced comparable
+results, every static maximum agrees. This number must be replaced by the
+complete 266-program aggregate before submission.
+
 When the run completes, report at least:
 
 1. programs collected / 266,
