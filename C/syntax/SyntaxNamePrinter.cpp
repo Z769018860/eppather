@@ -3633,6 +3633,7 @@ static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
+static std::uint64_t maxMemsStateVisits = 0;
 static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
@@ -3969,6 +3970,28 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     int currentMemsUpper,
     std::vector<PathDecision> decisions
 ) {
+    ++maxMemsStateVisits;
+    const char* progressRaw =
+        std::getenv("EPPATHER_MAXMEMS_PROGRESS_INTERVAL");
+    if (progressRaw && *progressRaw) {
+        char* end = nullptr;
+        const unsigned long long interval =
+            std::strtoull(progressRaw, &end, 10);
+        if (end != progressRaw && *end == '\0' && interval > 0 &&
+            maxMemsStateVisits % interval == 0) {
+            std::cerr
+                << "[DP PROGRESS]: visits=" << maxMemsStateVisits
+                << " leaves=" << maxMemsLeafSolves
+                << " prefix_checks=" << maxMemsPrefixChecks
+                << " prefix_pruned=" << maxMemsPrefixPruned
+                << " incumbent=" << maxMemsFeasibleIncumbent
+                << " bnb_pruned=" << maxMemsBranchBoundPruned
+                << " upper_states=" << maxMemsUpperBoundStates
+                << " path_guard_prunes=" << maxMemsPathLocalGuardPrunes
+                << " depth=" << depth
+                << std::endl;
+        }
+    }
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
     if (!entry)        return PathInfo(0, pathPrefix, true);
 
@@ -4624,6 +4647,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
+        std::cout << "[DP STATE VISITS]: "
+                  << maxMemsStateVisits << std::endl;
         std::cout << "[DP PATH LOCAL GUARD PRUNES]: "
                   << maxMemsPathLocalGuardPrunes << std::endl;
         std::cout << "[DP MEMS UPPER SOUNDNESS CHECKS]: "
