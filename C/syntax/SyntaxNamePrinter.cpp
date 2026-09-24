@@ -4642,21 +4642,26 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             !lateReturnFrontier &&
             falseGuardCanHold;
 
-        // Seed-only ordering: keep doing bounded work while an enclosing loop
-        // still has iterations available, then prefer a direct return at the
-        // final active-loop frontier. The selected leaf is still solver
-        // certified and the exact BnB search space is unchanged.
+        // Seed-only ordering: keep doing high-MEMS work while a literal
+        // while-loop still has budget. In its final bounded iteration, prefer
+        // the false arm of ordinary unknown guards so compare/swap style state
+        // machines can quiesce and reach a direct return. This affects only
+        // lower-bound discovery order; the exact BnB search space is unchanged.
+        const bool finalLiteralWhileQuiescence =
+            maxMemsSeedTerminationAware &&
+            maxMemsInFinalLiteralWhileIteration(loopUnrollMap, maxloop) &&
+            !trueIsDirectReturn && !literalGuard &&
+            falseGuardCanHold;
         if (lateReturnFrontier && trueGuardCanHold) {
             exploreTrue();
             exploreFalse();
         } else if (delayDirectReturn) {
             exploreFalse();
             exploreTrue();
+        } else if (finalLiteralWhileQuiescence) {
+            exploreFalse();
+            exploreTrue();
         } else {
-            // Only the explicit exit-first mode globally prefers an unknown
-            // false arm. Termination-aware seeding is now restricted to
-            // direct-return branches above; ordinary data-dependent branches
-            // (for example compare/swap) keep MEMS-driven ordering.
             const bool seedPreferUnknownFalseIf =
                 maxMemsSeedExitFirst && !literalGuard &&
                 falseGuardCanHold;
@@ -4666,11 +4671,10 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             } else if (!maxMemsSeedExitFirst &&
                        branchOrderEnabled &&
                        fPotential > tPotential) {
-            ++maxMemsBranchOrderSwaps;
-            exploreFalse();
-            exploreTrue();
+                ++maxMemsBranchOrderSwaps;
+                exploreFalse();
+                exploreTrue();
             } else {
-                // Seed discovery otherwise preserves source true-first order.
                 exploreTrue();
                 exploreFalse();
             }
