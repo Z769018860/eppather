@@ -3489,6 +3489,7 @@ std::unordered_map<std::string, bool> feasCache;
 static std::uint64_t maxMemsPrefixChecks = 0;
 static std::uint64_t maxMemsPrefixCacheHits = 0;
 static std::uint64_t maxMemsPrefixPruned = 0;
+static std::uint64_t maxMemsPrefixBudgetSkips = 0;
 static std::uint64_t maxMemsLeafSolves = 0;
 static std::uint64_t maxMemsMemoLookups = 0;
 static std::uint64_t maxMemsMemoHits = 0;
@@ -3501,6 +3502,16 @@ inline bool feasibleWithVartemp(
     return self->isPathFeasible(decisions, rawPath);
 }
 
+inline std::uint64_t maxMemsPrefixQueryBudget() {
+    const char* raw =
+        std::getenv("EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET");
+    if (!raw || !*raw) return 0;
+    char* end = nullptr;
+    const unsigned long long parsed = std::strtoull(raw, &end, 10);
+    if (end == raw || *end != '\0') return 0;
+    return static_cast<std::uint64_t>(parsed);
+}
+
 inline bool isPathFeasibleCached(
     SyntaxNamePrinter* self,
     const std::vector<PathDecision>& decisions,
@@ -3510,6 +3521,12 @@ inline bool isPathFeasibleCached(
     // only when explicitly requested, and always solve complete leaf paths.
     const char* prefixCheck = std::getenv("EPPATHER_PREFIX_FEASIBILITY");
     if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
+        return true;
+    }
+    const std::uint64_t queryBudget = maxMemsPrefixQueryBudget();
+    if (queryBudget > 0 && maxMemsPrefixChecks >= queryBudget) {
+        ++maxMemsPrefixBudgetSkips;
+        // Budget exhaustion is conservative: stop pruning and keep exploring.
         return true;
     }
     ++maxMemsPrefixChecks;
@@ -3832,6 +3849,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsPrefixChecks = 0;
         maxMemsPrefixCacheHits = 0;
         maxMemsPrefixPruned = 0;
+        maxMemsPrefixBudgetSkips = 0;
         maxMemsLeafSolves = 0;
         maxMemsMemoLookups = 0;
         maxMemsMemoHits = 0;
@@ -3909,6 +3927,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[DP PREFIX CHECKS]: " << maxMemsPrefixChecks << std::endl;
         std::cout << "[DP PREFIX CACHE HITS]: " << maxMemsPrefixCacheHits << std::endl;
         std::cout << "[DP PREFIX PRUNED]: " << maxMemsPrefixPruned << std::endl;
+        std::cout << "[DP PREFIX BUDGET SKIPS]: " << maxMemsPrefixBudgetSkips << std::endl;
         std::cout << "[DP LEAF SOLVES]: " << maxMemsLeafSolves << std::endl;
         std::cout << "[DP MEMO LOOKUPS]: " << maxMemsMemoLookups << std::endl;
         std::cout << "[DP MEMO HITS]: " << maxMemsMemoHits << std::endl;
