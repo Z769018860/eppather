@@ -2,7 +2,7 @@ name: MaxMEMS prefix-pruning rescue
 
 concurrency:
   group: maxmems-prefix-pruning-rescue-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 on:
   workflow_dispatch:
