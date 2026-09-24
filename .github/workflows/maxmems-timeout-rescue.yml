@@ -6,15 +6,6 @@ concurrency:
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'C/syntax/SyntaxNamePrinter.cpp'
-      - 'tools/maxmems_corpus_experiment.py'
-      - 'tools/e2e_path_validation.py'
-      - 'tools/aggregate_maxmems_corpus.py'
-      - 'docs/maxmems-historical-timeout-rescue-manifest.txt'
-      - '.github/workflows/maxmems-timeout-rescue.yml'
 
 jobs:
   validate:
