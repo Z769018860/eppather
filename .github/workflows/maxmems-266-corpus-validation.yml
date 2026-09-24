@@ -1,5 +1,9 @@
 name: MaxMEMS 266 corpus validation
 
+concurrency:
+  group: maxmems-266-corpus-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
