@@ -78,6 +78,7 @@ jobs:
               EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
               EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
               EPPATHER_DFS2_MAX_ONLY=1 \
+              EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
               "$CNIP" -q "$SRC" 3 1000 > stdout.log 2> stderr.log
             echo $? > exit_code.txt
           ) || true
@@ -164,6 +165,7 @@ jobs:
           EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
           EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
           python3 tools/maxmems_corpus_experiment.py \
             --cnip "${{ github.workspace }}/build_harness/cnip" \
             --corpus testcase/output_complete2 \
