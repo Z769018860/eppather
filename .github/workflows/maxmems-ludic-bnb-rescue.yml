@@ -1,0 +1,87 @@
+name: MaxMEMS ludic BnB rescue
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - '.github/workflows/maxmems-ludic-bnb-rescue.yml'
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_ludic_gate -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_ludic_gate --target cnip -j2
+      - name: Validate BnB on 20 controlled witnesses
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_ludic_gate/cnip" \
+            --output-dir ludic-bnb-witness
+
+  rescue:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_ludic -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_ludic --target cnip -j2
+      - name: Run ludic BnB rescue
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_ludic/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/ludic-numbers.c"
+          mkdir -p ludic-bnb/120 ludic-bnb/300
+          COMMON=(
+            EPPATHER_PREFIX_FEASIBILITY=1
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
+          )
+          (
+            cd ludic-bnb/120
+            timeout 120s env "${COMMON[@]}" "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+          RC=$(cat ludic-bnb/120/exit_code.txt 2>/dev/null || echo 124)
+          if [ "$RC" != "0" ]; then
+            (
+              cd ludic-bnb/300
+              timeout 300s env "${COMMON[@]}" "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+              echo $? > exit_code.txt
+            ) || true
+          else
+            cp ludic-bnb/120/stdout.log ludic-bnb/300/stdout.log
+            cp ludic-bnb/120/stderr.log ludic-bnb/300/stderr.log
+            echo 0 > ludic-bnb/300/exit_code.txt
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ludic-bnb-rescue
+          path: ludic-bnb/
