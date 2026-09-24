@@ -194,6 +194,11 @@ public:
     // Run epat++ using CFG decisions directly.
     EpatResult solve(const std::vector<PathDecision>& decisions) const;
 
+    // MaxMEMS leaf fast path: same feasibility solver and AST MEMS accounting,
+    // but skips model/SMT2 artifact extraction. If structural LoopSCC analysis
+    // is enabled, this conservatively falls back to the full solve().
+    EpatResult solveMemsOnly(const std::vector<PathDecision>& decisions) const;
+
     // Feasibility-only fast path for prefix pruning. It preserves the same
     // bounded CFG/SSA semantics but deliberately skips MEMS, SMT2 and model
     // extraction, which are unnecessary for an intermediate prefix query.
