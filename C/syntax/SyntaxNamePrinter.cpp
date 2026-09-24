@@ -4950,18 +4950,9 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
-            const int greedyInitialUpper =
-                std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER")
-                    ? std::min<int>(
-                          kMaxMemsUpperInfinity,
-                          static_cast<int>(std::min<std::size_t>(
-                              vartemp.size() * 4ULL + 4ULL,
-                              static_cast<std::size_t>(
-                                  kMaxMemsUpperInfinity))))
-                    : 0;
             PathInfo greedy = MaxMemsDP(
                 funcNode, maxloop, "", 0, seedLoopMap,
-                greedyInitialUpper, {});
+                0, {});
             const int seedFeasibleSeen = maxMemsSeedFeasibleSeen;
             maxMemsStopAfterFirstFeasible = false;
             maxMemsFirstFeasibleFound = false;
@@ -5132,22 +5123,13 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
-        const char* fastUpperRaw =
-            std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER");
-        const bool fastUpper =
-            fastUpperRaw && *fastUpperRaw &&
-            std::string(fastUpperRaw) != "0";
-        const int initialMemsUpper = fastUpper
-            ? std::min<int>(
-                  kMaxMemsUpperInfinity,
-                  static_cast<int>(std::min<std::size_t>(
-                      vartemp.size() * 4ULL + 4ULL,
-                      static_cast<std::size_t>(
-                          kMaxMemsUpperInfinity))))
-            : 0;
+        // MaxMEMS exact leaf scoring excludes vartemp declarations; the
+        // branch-and-bound accumulator therefore starts from zero decision
+        // cost.  Adding a vartemp-derived constant is conservative but makes
+        // the bound too large to prune against the feasible incumbent.
         PathInfo result = MaxMemsDP(
             funcNode, maxloop, "", 0, loopUnrollMap,
-            initialMemsUpper, {}); // raw path
+            0, {}); // raw path
         if (seededWitness &&
             (!result.feasible || seededWitness->mems > result.mems)) {
             result = *seededWitness;
