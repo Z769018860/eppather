@@ -4615,18 +4615,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             exploreFalse();
             exploreTrue();
         } else {
-            const bool seedPreferFalseIf =
-                maxMemsSeedTerminationAware &&
-                maxMemsInFinalLiteralWhileIteration(
-                    loopUnrollMap, maxloop);
-            // Feasibility-first seed discovery deliberately prefers the false
-            // arm of an otherwise unknown if. This affects only the initial
-            // lower bound; the exact pass remains unchanged.
+            // Only the explicit exit-first mode globally prefers an unknown
+            // false arm. Termination-aware seeding is now restricted to
+            // direct-return branches above; ordinary data-dependent branches
+            // (for example compare/swap) keep MEMS-driven ordering.
             const bool seedPreferUnknownFalseIf =
                 maxMemsSeedExitFirst && !literalGuard &&
                 falseGuardCanHold;
-            if ((seedPreferFalseIf || seedPreferUnknownFalseIf) &&
-                falseGuardCanHold) {
+            if (seedPreferUnknownFalseIf && falseGuardCanHold) {
                 exploreFalse();
                 exploreTrue();
             } else if (!maxMemsSeedExitFirst &&
