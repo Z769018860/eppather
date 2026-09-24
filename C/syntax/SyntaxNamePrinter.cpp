@@ -3495,16 +3495,17 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         dpMemo[stateKey] = result;
         return result;
     };
-    auto stepMem = [&](PathDecisionKind kind) {
-        return decisionMemCached(this, entry.get(), kind);
-    };
-
-    // A leaf contributes only the decision rendered for the current node.
-    // All prefix costs are accumulated by callers while unwinding.
+    // Because the memo key includes the complete path prefix, each leaf is
+    // path-specific. Rank candidates with the exact EpatRunner MEMS of the
+    // complete feasible decision sequence instead of summing context-free
+    // per-decision estimates.
+    // A complete leaf is the semantic scoring boundary. EpatRunner already
+    // returns both feasibility and MEMS for the whole decision sequence, so
+    // keep that exact value as the DP objective. This makes DP ranking use the
+    // same complete-path MEMS semantics as DFS2.
     if (entry->isReturn || !(entry->getNextNode())) {
         std::string curPath = pathPrefix;
         auto curDecisions = decisions;
-        int localMem = 0;
         if (!entry->isLoop && !entry->isIf && !entry->isFuncDef &&
             !(entry->isVarDef && entry->nodeLevel == 3)) {
             const std::string code = entry->getCode();
@@ -3512,13 +3513,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curPath += code + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::Code});
-                localMem += stepMem(PathDecisionKind::Code);
             }
         }
-        if (!feasibleWithVartemp(this, curDecisions, curPath)) {
+        EpatRunner runner(vartemp);
+        const auto eval = runner.solve(curDecisions);
+        if (eval.status != result::feasible) {
             return store(PathInfo(0, curPath, false));
         }
-        return store(PathInfo(localMem, curPath, true));
+        return store(PathInfo(std::max(0, eval.mem), curPath, true));
     }
 
     // Function-definition and level-3 local-definition nodes are not rendered
@@ -3543,8 +3545,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             isPathFeasibleCached(this, tDecisions, vartemp + tPath)) {
             tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath,
                               depth + 1, tLoopMap, tDecisions);
-            if (tInfo.feasible)
-                tInfo.mems += stepMem(PathDecisionKind::TrueBranch);
         }
 
         auto fLoopMap = loopUnrollMap;
@@ -3558,8 +3558,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             isPathFeasibleCached(this, fDecisions, vartemp + fPath)) {
             fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath,
                               depth + 1, fLoopMap, fDecisions);
-            if (fInfo.feasible)
-                fInfo.mems += stepMem(PathDecisionKind::FalseBranch);
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
@@ -3575,7 +3573,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const int bound = predictedLoopBound(entry.get(), maxloop);
         std::string curPath = pathPrefix;
         auto curDecisions = decisions;
-        int commonMem = 0;
 
         if (entry->isFor) {
             if (unroll == 0 && !entry->initstmt_str.empty() &&
@@ -3583,7 +3580,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curPath += entry->initstmt_str + "\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopInit});
-                commonMem += stepMem(PathDecisionKind::LoopInit);
                 if (!isPathFeasibleCached(
                         this, curDecisions, vartemp + curPath)) {
                     return store(PathInfo(0, curPath, false));
@@ -3593,7 +3589,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 curPath += entry->expr_str + ";\n";
                 curDecisions.push_back(
                     PathDecision{entry.get(), PathDecisionKind::LoopUpdate});
-                commonMem += stepMem(PathDecisionKind::LoopUpdate);
                 if (!isPathFeasibleCached(
                         this, curDecisions, vartemp + curPath)) {
                     return store(PathInfo(0, curPath, false));
@@ -3616,10 +3611,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 tLoopMap[entry.get()] = unroll + 1;
                 tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath,
                                   depth + 1, tLoopMap, tDecisions);
-                if (tInfo.feasible) {
-                    tInfo.mems += commonMem;
-                    tInfo.mems += stepMem(PathDecisionKind::TrueBranch);
-                }
             }
         }
 
@@ -3634,10 +3625,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 auto fLoopMap = loopUnrollMap;
                 fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath,
                                   depth + 1, fLoopMap, fDecisions);
-                if (fInfo.feasible) {
-                    fInfo.mems += commonMem;
-                    fInfo.mems += stepMem(PathDecisionKind::FalseBranch);
-                }
             }
         }
 
@@ -3652,13 +3639,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     // Ordinary sequential code node.
     std::string curPath = pathPrefix;
     auto nextDecisions = decisions;
-    int localMem = 0;
     const std::string code = entry->getCode();
     if (!code.empty()) {
         curPath += code + "\n";
         nextDecisions.push_back(
             PathDecision{entry.get(), PathDecisionKind::Code});
-        localMem += stepMem(PathDecisionKind::Code);
     }
     if (!isPathFeasibleCached(
             this, nextDecisions, vartemp + curPath)) {
@@ -3668,7 +3653,6 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                            depth + 1, loopUnrollMap, nextDecisions);
     if (!child.feasible)
         return store(PathInfo(0, curPath, false));
-    child.mems += localMem;
     return store(child);
 }
 
