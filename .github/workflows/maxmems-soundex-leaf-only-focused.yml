@@ -1,0 +1,116 @@
+name: MaxMEMS soundex leaf-only focused
+
+concurrency:
+  group: maxmems-soundex-leaf-only-focused-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-soundex-leaf-only-focused
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/dfs_max_only_equivalence.py'
+      - '.github/workflows/maxmems-soundex-leaf-only-focused.yml'
+
+jobs:
+  focused:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build_soundex_focus -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_soundex_focus --target cnip -j2
+
+      - name: Gate leaf-only max-only oracle on 20 subjects
+        run: |
+          EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+          EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+          EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
+          python3 tools/dfs_max_only_equivalence.py \
+            --cnip "${{ github.workspace }}/build_soundex_focus/cnip" \
+            --output-dir soundex-leaf-equivalence
+
+      - name: Run soundex DP and exhaustive max-only oracle
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_soundex_focus/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/soundex.c"
+          mkdir -p soundex-focused/dp soundex-focused/maxonly
+
+          (
+            cd soundex-focused/dp
+            timeout 120s env \
+              EPPATHER_PREFIX_FEASIBILITY=1 \
+              EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+              EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+          (
+            cd soundex-focused/maxonly
+            timeout 180s env \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_DFS2_MAX_ONLY=1 \
+              EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+              EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+              EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
+              "$CNIP" -q "$SRC" 3 0 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+      - name: Compare soundex DP and max-only oracle
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+          root=Path("soundex-focused")
+          def read(name):
+              d=root/name
+              rc=int((d/"exit_code.txt").read_text().strip()) if (d/"exit_code.txt").exists() else 124
+              out=(d/"stdout.log").read_text(errors="replace") if (d/"stdout.log").exists() else ""
+              return rc,out
+          dp_rc,dp=read("dp")
+          mx_rc,mx=read("maxonly")
+          dp_vals=[int(x) for x in re.findall(r"(?m)^MEMS:\s*(-?\d+)\s*$",dp)]
+          mx_vals=[int(x) for x in re.findall(r"(?m)^\[DFS MAX ONLY MEMS\]:\s*(-?\d+)\s*$",mx)]
+          paths=[int(x) for x in re.findall(r"(?m)^\[DFS MAX ONLY FEASIBLE PATHS\]:\s*(\d+)\s*$",mx)]
+          result={
+              "dp_exit":dp_rc,
+              "max_only_exit":mx_rc,
+              "dp_mems":dp_vals[-1] if dp_vals else None,
+              "max_only_mems":mx_vals[-1] if mx_vals else None,
+              "max_only_feasible_paths":paths[-1] if paths else None,
+          }
+          result["equal"]=result["dp_mems"] is not None and result["dp_mems"]==result["max_only_mems"]
+          (root/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("SOUNDEX_LEAF_ONLY_FOCUSED",json.dumps(result,sort_keys=True))
+          if dp_rc!=0 or mx_rc!=0 or not result["equal"]:
+              raise SystemExit("soundex focused oracle did not converge")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soundex-leaf-only-focused-results
+          path: |
+            soundex-focused/
+            soundex-leaf-equivalence/
