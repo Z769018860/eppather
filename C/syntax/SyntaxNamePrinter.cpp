@@ -4195,6 +4195,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                       << " bnb_pruned=" << maxMemsBranchBoundPruned
                       << " prefix_checks=" << maxMemsPrefixChecks
                       << " prefix_pruned=" << maxMemsPrefixPruned
+                      << " loop_exit_checks=" << maxMemsLoopExitChecks
+                      << " loop_exit_pruned=" << maxMemsLoopExitPruned
+                      << " loop_exit_unknown=" << maxMemsLoopExitUnknown
                       << " incumbent=" << maxMemsFeasibleIncumbent
                       << std::endl;
         }
