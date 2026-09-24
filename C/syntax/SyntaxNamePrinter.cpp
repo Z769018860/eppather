@@ -3116,6 +3116,22 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             }
         }
 
+        {
+            auto coupledPrefix = decisions;
+            if (!node->initstmt_str.empty() &&
+                node->initstmt_str != ";") {
+                coupledPrefix.push_back(PathDecision{
+                    node.get(), PathDecisionKind::LoopInit});
+            }
+            if (try_coupled_shortcut(
+                    node, coupledPrefix, snap_cov,
+                    snap_lc, d, "for")) {
+                loopCount = snap_lc;
+                pathCoverage = snap_cov;
+                return;
+            }
+        }
+
         // The same certified LoopSCC shortcut used for while-loops also applies
         // to canonical for-loops once the adapter has proved the total SPath
         // transform and exact trip count. The for initializer is part of the
@@ -3367,6 +3383,14 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                 pathCoverage = snap_cov;
                 return;
             }
+        }
+
+        if (try_coupled_shortcut(
+                node, decisions, snap_cov,
+                snap_lc, d, "while")) {
+            loopCount = snap_lc;
+            pathCoverage = snap_cov;
+            return;
         }
 
         // Experimental certified LoopSCC shortcut. It is deliberately
