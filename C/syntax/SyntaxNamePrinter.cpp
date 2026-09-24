@@ -3823,17 +3823,24 @@ static int syntaxDecisionMemsUpper(
         return it->second;
     }
 
-    EpatRunner runner(self->vartemp);
     const char* fastUpperRaw =
         std::getenv("EPPATHER_MAXMEMS_FAST_TEXT_UPPER");
     const bool fastUpper =
         fastUpperRaw && *fastUpperRaw &&
         std::string(fastUpperRaw) != "0";
-    const auto mem = fastUpper
-        ? runner.estimateMemsUpperOnly(
-              {PathDecision{node, kind}})
-        : runner.countMemsOnly(
-              {PathDecision{node, kind}});
+    const auto mem = [&]() -> std::optional<int> {
+        if (fastUpper) {
+            // The lexical estimator intentionally renders only the incremental
+            // decision and never consults vartemp. Avoid normalizing/sanitizing
+            // the full prefix for every unique CFG decision.
+            EpatRunner rawRunner("");
+            return rawRunner.estimateMemsUpperOnly(
+                {PathDecision{node, kind}});
+        }
+        EpatRunner runner(self->vartemp);
+        return runner.countMemsOnly(
+            {PathDecision{node, kind}});
+    }();
     // Failure must never create an underestimated upper bound.
     const int value = mem
         ? std::max(0, *mem)
