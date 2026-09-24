@@ -1931,6 +1931,10 @@ void SyntaxNamePrinter::printCFG_DFS(int maxloop, int maxpaths) {
 // ===== printCFG_DFS2：可按需把 pathCount 挪到函数内重置 =====
 void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolce, int volceLower, int volceUpper) {
     std::string matrixFileName = "matrix2.txt";
+    const char* maxOnlyRaw = std::getenv("EPPATHER_DFS2_MAX_ONLY");
+    const bool maxOnly =
+        maxOnlyRaw && *maxOnlyRaw &&
+        std::string(maxOnlyRaw) != "0";
 
     for (size_t funcIndex = 0; funcIndex < funcDefStack_.size(); ++funcIndex) {
         auto& funcNode = funcDefStack_[funcIndex];
@@ -1943,8 +1947,10 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
         std::vector<bool> pathCoverage(maxdepth, false);
         std::vector<PathDecision> decisions;
 
-        std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
-        ofs.close();
+        if (!maxOnly) {
+            std::ofstream ofs(matrixFileName, std::ios::out | std::ios::trunc);
+            ofs.close();
+        }
 
         feasiblePaths_.clear();
         totalVolceCount_ = 0;
@@ -1960,6 +1966,16 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
         std::chrono::duration<double> diff = end - start;
 
         std::cout << "[DFS TIME COST]: " << diff.count() << " seconds" << std::endl;
+        if (maxOnly) {
+            std::cout << "[DFS MAX ONLY FUNCTION]: " << functionTag << std::endl;
+            std::cout << "[DFS MAX ONLY MEMS]: " << maxmem << std::endl;
+            std::cout << "[DFS MAX ONLY FEASIBLE PATHS]: " << pathCount << std::endl;
+            std::cout << "[DFS MIN MEMS]: "
+                      << (minmem == std::numeric_limits<int>::max() ? 0 : minmem)
+                      << std::endl;
+            continue;
+        }
+
         printFeasiblePathSummary(enableVolce, volceLower, volceUpper);
         std::cout << "[MATRIX]:" << std::endl;
         printMatrixFileContent(matrixFileName);
@@ -2907,8 +2923,20 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                 pushed = true;
             }
         }
+
+        const char* maxOnlyRaw = std::getenv("EPPATHER_DFS2_MAX_ONLY");
+        const bool maxOnly =
+            maxOnlyRaw && *maxOnlyRaw &&
+            std::string(maxOnlyRaw) != "0";
+
         EpatRunner runner(vartemp);
-        auto eval = runner.solve(decisions);
+        // Max-only is an oracle fast path, not an approximation: it uses the
+        // same bounded path decisions and feasibility solver as DFS2, but skips
+        // SMT/model artifact extraction because the oracle needs only the
+        // feasible-path maximum MEMS.
+        auto eval = maxOnly
+            ? runner.solveMemsOnly(decisions)
+            : runner.solve(decisions);
         const bool feasible = eval.status == result::feasible;
         if (!feasible) {
             if (pushed) decisions.pop_back();
@@ -2916,6 +2944,12 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         }
         if (eval.mem > maxmem) maxmem = eval.mem;
         if (eval.mem < minmem) minmem = eval.mem;
+
+        if (maxOnly) {
+            ++pathCount;
+            if (pushed) decisions.pop_back();
+            return;
+        }
 
         // 关键修复：叶子处将覆盖向量统一补齐到 2*maxdepth 列，保证输出矩阵行对齐
         pad_to_full_cols(pathCoverage);
