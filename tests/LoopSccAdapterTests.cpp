@@ -361,6 +361,10 @@ int main() {
                     buildLoopSccMemoryAccelerationDecisions(
                         {}, loop.get(), graph, 0,
                         "int a[1];\nint a[1];\nint i = 0;\n");
+                const bool ambiguousRejected =
+                    ambiguousShortcut &&
+                    !ambiguousShortcut->preexecutionCertified &&
+                    !ambiguousShortcut->certificateDiagnostics.empty();
                 shortcutPlanOk =
                     shortcut->preexecutionCertified &&
                     !shortcut->certificateDiagnostics.empty() &&
@@ -370,7 +374,7 @@ int main() {
                     sawSyntheticMems &&
                     shortcutEval.status == epat::result::feasible &&
                     shortcutEval.mem == 16 &&
-                    !ambiguousShortcut;
+                    ambiguousRejected;
             }
         }
         const bool ok = graph.complete &&
