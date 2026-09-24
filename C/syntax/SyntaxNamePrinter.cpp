@@ -4272,6 +4272,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     const bool branchBoundEnabled =
         branchBoundRaw && *branchBoundRaw &&
         std::string(branchBoundRaw) != "0";
+    const char* edgeBnbRaw =
+        std::getenv("EPPATHER_MAXMEMS_EDGE_BNB");
+    const bool edgeBnbEnabled =
+        branchBoundEnabled && edgeBnbRaw && *edgeBnbRaw &&
+        std::string(edgeBnbRaw) != "0";
     const char* branchOrderRaw =
         std::getenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
     const char* shallowOrderRaw =
@@ -4283,7 +4288,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         branchBoundEnabled || shallowBranchOrder ||
         (branchOrderRaw && *branchOrderRaw &&
          std::string(branchOrderRaw) != "0");
-    if (branchBoundEnabled &&
+    if (branchBoundEnabled && !edgeBnbEnabled &&
         maxMemsFeasibleIncumbent >= 0 &&
         currentMemsUpper >= 0 &&
         currentMemsUpper < kMaxMemsUpperInfinity) {
@@ -4564,6 +4569,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!trueGuardCanHold) return;
+            if (edgeBnbEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                tPotential >= 0 &&
+                tPotential < kMaxMemsUpperInfinity &&
+                tPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (!isPathFeasibleCached(
                     this, tDecisions,
                     decisionOnlyPath
@@ -4578,6 +4591,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         };
         auto exploreFalse = [&]() {
             if (!falseGuardCanHold) return;
+            if (edgeBnbEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                fPotential >= 0 &&
+                fPotential < kMaxMemsUpperInfinity &&
+                fPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             if (!isPathFeasibleCached(
                     this, fDecisions,
                     decisionOnlyPath
@@ -4738,6 +4759,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreTrue = [&]() {
             if (!trueGuardCanHold) return;
+            if (edgeBnbEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                tPotential >= 0 &&
+                tPotential < kMaxMemsUpperInfinity &&
+                tPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             std::string tPath = curPath;
             if (!decisionOnlyPath)
                 tPath += "@(" + entry->cond_str + ");\n";
@@ -4767,6 +4796,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
         auto exploreFalse = [&]() {
             if (!falseGuardCanHold) return;
+            if (edgeBnbEnabled &&
+                maxMemsFeasibleIncumbent >= 0 &&
+                fPotential >= 0 &&
+                fPotential < kMaxMemsUpperInfinity &&
+                fPotential <= maxMemsFeasibleIncumbent) {
+                ++maxMemsBranchBoundPruned;
+                return;
+            }
             std::string fPath = curPath;
             if (!decisionOnlyPath)
                 fPath += "@(!(" + entry->cond_str + "));\n";
