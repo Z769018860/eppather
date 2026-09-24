@@ -79,6 +79,11 @@ namespace epat {
          *	@retval	true  可行
          */
         virtual result feasible();
+        // Prefix-feasibility queries need only SAT/UNSAT/UNKNOWN.
+        // Full solves keep artifact collection enabled by default.
+        virtual void setCollectArtifacts(bool enabled);
+        // Optional per-query SMT timeout. Zero means no explicit timeout.
+        virtual void setTimeoutMs(unsigned timeout_ms);
         /**
          * @brief 打印可行的初始输入
          * @note 输出为SMT2格式。使用前需要先调用\ref feasible。
