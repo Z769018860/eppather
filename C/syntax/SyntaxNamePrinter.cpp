@@ -3663,6 +3663,7 @@ static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
 static std::uint64_t maxMemsUpperBoundCacheHits = 0;
+static std::uint64_t maxMemsUpperBudgetSkips = 0;
 static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
@@ -3898,6 +3899,26 @@ static int remainingMemsUpperBound(
         ++maxMemsUpperBoundCacheHits;
         return it->second;
     }
+    // Bound the *cost of constructing the bound itself*. Once the configured
+    // number of previously unseen upper states has been reached, return
+    // infinity. Infinity is conservative: it disables BnB pruning for this
+    // suffix but can never remove a feasible MaxMEMS candidate.
+    const char* upperBudgetRaw =
+        std::getenv("EPPATHER_MAXMEMS_UPPER_STATE_BUDGET");
+    std::uint64_t upperBudget = 0;
+    if (upperBudgetRaw && *upperBudgetRaw) {
+        char* end = nullptr;
+        const unsigned long long parsed =
+            std::strtoull(upperBudgetRaw, &end, 10);
+        if (end != upperBudgetRaw && *end == '\0') {
+            upperBudget = static_cast<std::uint64_t>(parsed);
+        }
+    }
+    if (upperBudget > 0 && maxMemsUpperBoundStates >= upperBudget) {
+        ++maxMemsUpperBudgetSkips;
+        return kMaxMemsUpperInfinity;
+    }
+
     // A same-state re-entry means the recursive upper-bound builder has met a
     // CFG cycle before producing a memoized value. Returning infinity is
     // conservative: it disables pruning for that cyclic suffix but can never
@@ -3923,6 +3944,7 @@ static int remainingMemsUpperBound(
             std::cerr << "[DP UPPER PROGRESS]: states="
                       << maxMemsUpperBoundStates
                       << " cache_hits=" << maxMemsUpperBoundCacheHits
+                      << " budget_skips=" << maxMemsUpperBudgetSkips
                       << " node=" << reinterpret_cast<std::uintptr_t>(entry.get())
                       << " depth=" << depth
                       << " loopkey=" << LoopMapKey(loopMap)
@@ -4617,6 +4639,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
         maxMemsUpperBoundCacheHits = 0;
+        maxMemsUpperBudgetSkips = 0;
         maxMemsDecisionUpperQueries = 0;
         maxMemsDecisionUpperCacheHits = 0;
         maxMemsUpperSoundnessChecks = 0;
