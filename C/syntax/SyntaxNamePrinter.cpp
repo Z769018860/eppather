@@ -218,7 +218,14 @@ std::optional<int> exactStableForTripCount(
             current->getCode() + "\n" +
             current->initstmt_str + "\n" +
             current->expr_str;
-        if (current->hasCallExpr ||
+        static const std::regex earlyExit(
+            "\\b(?:break|goto)\\b");
+        // A break/goto/return can leave the loop before the proved header
+        // recurrence reaches its guard-false iteration. Such loops are still
+        // analyzed normally; they are simply ineligible for this pruning.
+        if (current->isReturn ||
+            current->hasCallExpr ||
+            std::regex_search(text, earlyExit) ||
             std::regex_search(text, writeDirect) ||
             std::regex_search(text, writePrefix) ||
             std::regex_search(text, addressTaken) ||
