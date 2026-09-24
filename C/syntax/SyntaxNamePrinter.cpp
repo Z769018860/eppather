@@ -4858,6 +4858,11 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             const std::optional<std::string> oldLoopExit =
                 oldLoopExitRaw ? std::optional<std::string>(oldLoopExitRaw)
                                : std::nullopt;
+            const char* oldLazyLeafRaw =
+                std::getenv("EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY");
+            const std::optional<std::string> oldLazyLeaf =
+                oldLazyLeafRaw ? std::optional<std::string>(oldLazyLeafRaw)
+                               : std::nullopt;
 
             setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
             setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
@@ -4867,6 +4872,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             // dominated runtime. Seed discovery needs only one complete
             // solver-certified leaf, so defer feasibility to the leaf.
             unsetenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
+            // The seed sampler must count a bounded number of feasible leaves,
+            // not only leaves that improve the first incumbent. Otherwise a
+            // target such as 8 can degenerate into near-exhaustive search.
+            unsetenv("EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY");
             const char* seedExitFirstRaw =
                 std::getenv("EPPATHER_MAXMEMS_SEED_EXIT_FIRST");
             const bool seedExitFirst =
@@ -4926,6 +4935,12 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                        oldLoopExit->c_str(), 1);
             } else {
                 unsetenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
+            }
+            if (oldLazyLeaf) {
+                setenv("EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY",
+                       oldLazyLeaf->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY");
             }
 
             // The seed pass is only a lower-bound discovery phase. Clear every
