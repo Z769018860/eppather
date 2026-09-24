@@ -34,6 +34,10 @@ namespace epat {
         smt::Solver smt_;
     public:
         explicit SolverBase(CompoundStmt const& ast) : ast_(ast) {}
+        void setTimeoutMs(unsigned timeout_ms)
+        {
+            if (timeout_ms > 0) smt_.setTimeoutMs(timeout_ms);
+        }
         virtual result feasible()
         {
             try {
