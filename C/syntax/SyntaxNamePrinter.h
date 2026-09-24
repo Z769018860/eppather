@@ -29,6 +29,7 @@
 #include <iomanip>
 #include <optional>
 #include <cstdint>
+#include <cstdlib>
 
 #include "API.h"
 #include "SyntaxDumper.h"
