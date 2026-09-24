@@ -87,6 +87,7 @@ namespace epat {
          * the same feasibility result. Full path solves keep the default true.
          */
         virtual void setCollectArtifacts(bool enabled);
+        virtual void setTimeoutMs(unsigned timeout_ms);
         /**
          * @brief 打印可行的初始输入
          * @note 输出为SMT2格式。使用前需要先调用\ref feasible。
