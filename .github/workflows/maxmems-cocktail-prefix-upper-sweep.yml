@@ -1,0 +1,123 @@
+name: MaxMEMS cocktail prefix-upper sweep
+
+concurrency:
+  group: maxmems-cocktail-prefix-upper-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-cocktail-prefix-upper-sweep.yml'
+
+jobs:
+  correctness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_gate -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_gate --target cnip -j2
+      - name: 20-case guarded search gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=25 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=1024 \
+          EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32 \
+          EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_gate/cnip" \
+            --output-dir prefix-upper-gate
+
+  sweep:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: u32_p256_t25
+            upper: 32
+            prefix: 256
+            ptimeout: 25
+          - name: u32_p1024_t25
+            upper: 32
+            prefix: 1024
+            ptimeout: 25
+          - name: u64_p1024_t25
+            upper: 64
+            prefix: 1024
+            ptimeout: 25
+          - name: u32_p1024_t50
+            upper: 32
+            prefix: 1024
+            ptimeout: 50
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_sweep -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_sweep --target cnip -j2
+      - name: Run cocktail 120s
+        shell: bash
+        run: |
+          mkdir -p out
+          set +e
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=${{ matrix.ptimeout }} \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=${{ matrix.prefix }} \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=${{ matrix.upper }} \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=1000 \
+            "${{ github.workspace }}/build_sweep/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > out/stdout.log 2> out/stderr.log
+          rc=$?
+          set -e
+          echo "$rc" > out/exit_code.txt
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("out")
+          o=(d/"stdout.log").read_text(errors="replace")
+          e=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text())
+          def last(p,s=o):
+              xs=re.findall(p,s,re.M)
+              return xs[-1] if xs else None
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",e)
+          res={
+            "variant":"${{ matrix.name }}",
+            "exit":rc,
+            "mems": int(last(r"^MEMS:\s*(-?\d+)\s*$")) if last(r"^MEMS:\s*(-?\d+)\s*$") else None,
+            "dp_time": float(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds")) if last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds") else None,
+            "last_progress": tuple(map(int,prog[-1])) if prog else None,
+          }
+          (d/"summary.json").write_text(json.dumps(res,indent=2)+"\n")
+          print("PREFIX_UPPER_SWEEP",json.dumps(res,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prefix-upper-${{ matrix.name }}
+          path: out/
