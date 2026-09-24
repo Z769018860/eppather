@@ -1,0 +1,100 @@
+name: MaxMEMS cocktail quick seed-BnB
+
+concurrency:
+  group: maxmems-cocktail-quick-seed-bnb-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-bnb-focused
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-cocktail-quick.yml'
+
+jobs:
+  quick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_quick -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_quick --target cnip -j2
+      - name: 20-case correctness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_SEED_WITH_DFS2=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_quick/cnip" \
+            --output-dir quick-witness
+      - name: Cocktail-sort 120s seed-BnB
+        shell: bash
+        run: |
+          mkdir -p quick-cocktail
+          cd quick-cocktail
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_WITH_DFS2=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            "${{ github.workspace }}/build_quick/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > stdout.log 2> stderr.log
+          echo $? > exit_code.txt
+      - name: Check result
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("quick-cocktail")
+          rc=int((d/"exit_code.txt").read_text().strip()) if (d/"exit_code.txt").exists() else 124
+          out=(d/"stdout.log").read_text(errors="replace") if (d/"stdout.log").exists() else ""
+          def last(p):
+              m=re.findall(p,out,re.M)
+              return m[-1] if m else None
+          result={
+            "exit":rc,
+            "mems":int(last(r"^MEMS:\s*(-?\d+)\s*$")) if last(r"^MEMS:\s*(-?\d+)\s*$") else None,
+            "seeded_incumbent":last(r"^\[DP SEEDED INCUMBENT\]:\s*(\S+)"),
+            "dp_time":float(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds")) if last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds") else None,
+            "branch_bound_pruned":int(last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)")) if last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)") else None,
+            "path_local_guard_prunes":int(last(r"^\[DP PATH LOCAL GUARD PRUNES\]:\s*(\d+)")) if last(r"^\[DP PATH LOCAL GUARD PRUNES\]:\s*(\d+)") else None,
+            "leaf_solves":int(last(r"^\[DP LEAF SOLVES\]:\s*(\d+)")) if last(r"^\[DP LEAF SOLVES\]:\s*(\d+)") else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_QUICK",json.dumps(result,sort_keys=True))
+          if rc != 0:
+              raise SystemExit("cocktail quick seed-BnB did not finish")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-quick-seed-bnb
+          path: |
+            quick-cocktail/
+            quick-witness/
