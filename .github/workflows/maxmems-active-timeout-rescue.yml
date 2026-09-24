@@ -37,6 +37,7 @@ jobs:
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
           EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_active_witness/cnip" \
@@ -69,6 +70,7 @@ jobs:
             export EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
             export EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
             export EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            export EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96
             export EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
           fi
           export EPPATHER_MAXMEMS_CORE_ONLY=1
