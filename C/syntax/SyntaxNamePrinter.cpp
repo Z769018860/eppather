@@ -3923,27 +3923,31 @@ static int remainingMemsUpperBound(
         int best = -1;
         if ((!literalGuard || *literalGuard) &&
             entry->getNextNode()) {
-            best = std::max(
-                best,
-                addMemsUpper(
-                    syntaxDecisionMemsUpper(
-                        self, entry.get(),
-                        PathDecisionKind::TrueBranch),
-                    remainingMemsUpperBound(
-                        self, entry->getNextNode(), maxloop,
-                        depth + 1, loopMap)));
+            const int trueUpper = addMemsUpper(
+                syntaxDecisionMemsUpper(
+                    self, entry.get(),
+                    PathDecisionKind::TrueBranch),
+                remainingMemsUpperBound(
+                    self, entry->getNextNode(), maxloop,
+                    depth + 1, loopMap));
+            if (trueUpper >= kMaxMemsUpperInfinity) {
+                return storeUpper(kMaxMemsUpperInfinity);
+            }
+            best = std::max(best, trueUpper);
         }
         if ((!literalGuard || !*literalGuard) &&
             entry->getNextFalseNode()) {
-            best = std::max(
-                best,
-                addMemsUpper(
-                    syntaxDecisionMemsUpper(
-                        self, entry.get(),
-                        PathDecisionKind::FalseBranch),
-                    remainingMemsUpperBound(
-                        self, entry->getNextFalseNode(), maxloop,
-                        depth + 1, loopMap)));
+            const int falseUpper = addMemsUpper(
+                syntaxDecisionMemsUpper(
+                    self, entry.get(),
+                    PathDecisionKind::FalseBranch),
+                remainingMemsUpperBound(
+                    self, entry->getNextFalseNode(), maxloop,
+                    depth + 1, loopMap));
+            if (falseUpper >= kMaxMemsUpperInfinity) {
+                return storeUpper(kMaxMemsUpperInfinity);
+            }
+            best = std::max(best, falseUpper);
         }
         return storeUpper(best < 0 ? kMaxMemsUpperInfinity : best);
     }
@@ -3977,27 +3981,31 @@ static int remainingMemsUpperBound(
             unroll < bound && entry->getNextNode()) {
             auto trueMap = loopMap;
             trueMap[entry.get()] = unroll + 1;
-            bestBranch = std::max(
-                bestBranch,
-                addMemsUpper(
-                    syntaxDecisionMemsUpper(
-                        self, entry.get(),
-                        PathDecisionKind::TrueBranch),
-                    remainingMemsUpperBound(
-                        self, entry->getNextNode(), maxloop,
-                        depth + 1, std::move(trueMap))));
+            const int trueUpper = addMemsUpper(
+                syntaxDecisionMemsUpper(
+                    self, entry.get(),
+                    PathDecisionKind::TrueBranch),
+                remainingMemsUpperBound(
+                    self, entry->getNextNode(), maxloop,
+                    depth + 1, std::move(trueMap)));
+            if (trueUpper >= kMaxMemsUpperInfinity) {
+                return storeUpper(kMaxMemsUpperInfinity);
+            }
+            bestBranch = std::max(bestBranch, trueUpper);
         }
         if ((!literalGuard || !*literalGuard) &&
             entry->getNextFalseNode()) {
-            bestBranch = std::max(
-                bestBranch,
-                addMemsUpper(
-                    syntaxDecisionMemsUpper(
-                        self, entry.get(),
-                        PathDecisionKind::FalseBranch),
-                    remainingMemsUpperBound(
-                        self, entry->getNextFalseNode(), maxloop,
-                        depth + 1, loopMap)));
+            const int falseUpper = addMemsUpper(
+                syntaxDecisionMemsUpper(
+                    self, entry.get(),
+                    PathDecisionKind::FalseBranch),
+                remainingMemsUpperBound(
+                    self, entry->getNextFalseNode(), maxloop,
+                    depth + 1, loopMap));
+            if (falseUpper >= kMaxMemsUpperInfinity) {
+                return storeUpper(kMaxMemsUpperInfinity);
+            }
+            bestBranch = std::max(bestBranch, falseUpper);
         }
         if (bestBranch < 0) {
             // No semantically possible continuation from this bounded loop
