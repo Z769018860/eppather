@@ -1403,6 +1403,7 @@ epat::result EpatRunner::checkFeasible(
         const std::string script = render(decisions);
         auto root = epat::Root::fromString(script);
         auto solver = epat::Solver::create(std::move(root));
+        solver->setCollectArtifacts(false);
         status = solver->feasible();
     } catch (const std::exception&) {
         status = epat::result::unknown;
