@@ -17,6 +17,7 @@ namespace epat {
             Solver();
             ~Solver();
             result solve();
+            void setTimeoutMs(unsigned timeout_ms);
             std::string getModel();
             std::string getSMT2();
 
