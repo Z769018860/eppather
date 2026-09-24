@@ -1,0 +1,53 @@
+name: MaxMEMS cocktail leaf-status smoke
+
+concurrency:
+  group: maxmems-cocktail-leaf-status-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-leaf-status.yml'
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+
+jobs:
+  leaf-status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_leaf -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_leaf --target cnip -j2
+      - name: Capture first leaf outcomes
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_leaf/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          mkdir -p leaf-status
+          set +e
+          timeout 15s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=0 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            EPPATHER_MAXMEMS_LEAF_DIAGNOSTIC_LIMIT=5 \
+            "$CNIP" -g "$SRC" 3 > leaf-status/stdout.log 2> leaf-status/stderr.log
+          rc=$?
+          set -e
+          echo "$rc" > leaf-status/exit_code.txt
+          grep -E '\[DP LEAF DIAG\]|\[DP LEAF PATH|\[DP PROGRESS\]' leaf-status/stderr.log | head -120 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-leaf-status
+          path: leaf-status/
