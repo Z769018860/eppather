@@ -1,0 +1,106 @@
+name: MaxMEMS cocktail final-only
+
+concurrency:
+  group: maxmems-cocktail-final-only
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-final-only
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-cocktail-final-only.yml'
+
+jobs:
+  final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_final -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_final --target cnip -j2
+
+      - name: 20-case correctness gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+          EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_final/cnip" \
+            --output-dir final-witness
+
+      - name: Run cocktail 120s
+        shell: bash
+        run: |
+          set +e
+          mkdir -p final-cocktail
+          timeout 120s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=100 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            "${{ github.workspace }}/build_final/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > final-cocktail/stdout.log 2> final-cocktail/stderr.log
+          rc=$?
+          echo "$rc" > final-cocktail/exit_code.txt
+          exit 0
+
+      - name: Assert completion
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("final-cocktail")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          def last(p,text):
+              xs=re.findall(p,text,re.M); return xs[-1] if xs else None
+          p=last(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*incumbent=(-?\d+)",err)
+          result={
+            "exit":rc,
+            "mems": int(x) if (x:=last(r"^MEMS:\s*(-?\d+)\s*$",out)) else None,
+            "seed": int(x) if (x:=last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out)) else None,
+            "dp_time": float(x) if (x:=last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds",out)) else None,
+            "bnb_pruned": int(x) if (x:=last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)",out)) else None,
+            "leaf_solves": int(x) if (x:=last(r"^\[DP LEAF SOLVES\]:\s*(\d+)",out)) else None,
+            "path_local_pruned": int(x) if (x:=last(r"^\[DP PATH LOCAL GUARD PRUNES\]:\s*(\d+)",out)) else None,
+            "last_progress": list(map(int,p)) if p else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_FINAL_ONLY",json.dumps(result,sort_keys=True))
+          if rc != 0:
+              raise SystemExit("cocktail-sort still timed out")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-final-only-results
+          path: |
+            final-cocktail/
+            final-witness/
