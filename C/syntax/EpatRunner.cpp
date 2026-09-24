@@ -1500,6 +1500,37 @@ epat::result EpatRunner::checkFeasible(
     return status;
 }
 
+std::optional<int> EpatRunner::countMemsOnly(
+    const std::vector<PathDecision>& decisions) const {
+    // Structural LoopSCC paths may inject checkpoint semantics into solve();
+    // keep this optimization scoped to ordinary MaxMEMS paths.
+    if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
+        return std::nullopt;
+    }
+    try {
+        const std::string script = render(decisions);
+        auto root = epat::Root::fromString(script);
+        auto solver = epat::Solver::create(std::move(root));
+        long long mem = solver->getMem();
+        for (const auto& decision : decisions) {
+            if (decision.kind != PathDecisionKind::SyntheticMems) continue;
+            if (decision.syntheticMems < 0 ||
+                mem > std::numeric_limits<long long>::max() -
+                          decision.syntheticMems) {
+                return std::nullopt;
+            }
+            mem += decision.syntheticMems;
+        }
+        if (mem < std::numeric_limits<int>::min() ||
+            mem > std::numeric_limits<int>::max()) {
+            return std::nullopt;
+        }
+        return static_cast<int>(mem);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
 EpatResult EpatRunner::solveMemsOnly(
     const std::vector<PathDecision>& decisions) const {
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
