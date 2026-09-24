@@ -794,6 +794,20 @@ bool certifyCoupledPreexecutionRanges(
     }
 
     std::unordered_map<std::string, ScalarInterval> intervals;
+    // Function parameters are represented in vartemp as ordinary
+    // uninitialized scalar declarations. Treat every such signed scalar as an
+    // unknown value in the configured finite domain; concrete prefix writes
+    // below overwrite this conservative interval before the loop.
+    for (const auto& declaration : declarations) {
+        if (declaration.initializer) continue;
+        auto bounds = signedScalarTypeBounds(declaration.type);
+        if (!bounds ||
+            !intervalWithin(externalInputRange, *bounds)) {
+            continue;
+        }
+        intervals[declaration.name] = externalInputRange;
+    }
+
     bool progress = true;
     for (std::size_t pass = 0;
          progress && pass <= declarations.size(); ++pass) {
