@@ -45,6 +45,14 @@ struct CoupledAffineValidationResult {
     bool all_rows_entailed{false};
 };
 
+struct CoupledAffineOverflowValidationResult {
+    std::vector<std::string> certified;
+    std::vector<std::string> rejected;
+    std::size_t required_rows{0};
+    std::size_t certified_rows{0};
+    bool all_rows_safe{false};
+};
+
 struct MemoryCellAffineRelationSummary {
     std::string source_name;
     std::int64_t cell_index{0};
@@ -121,6 +129,13 @@ std::optional<CoupledAffineValidationResult>
 validateCoupledAffineRelationsFromSmt2(
     const std::string& smt2,
     const std::vector<CoupledAffineRelationSummary>& summaries);
+
+
+std::optional<CoupledAffineOverflowValidationResult>
+validateCoupledAffineOverflowFromSmt2(
+    const std::string& smt2,
+    const std::vector<CoupledAffineRelationSummary>& summaries,
+    const Range& input_range);
 
 std::optional<MemoryRelationValidationResult>
 validateMemoryCellRelationsFromSmt2(
