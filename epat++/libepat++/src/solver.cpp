@@ -46,6 +46,7 @@ namespace {
         std::string model_, smt2_;
         epat::result result_ = epat::result::unknown;
         bool collect_artifacts_ = true;
+        unsigned timeout_ms_ = 0;
         explicit SolverImpl(epat::Root::ptr ast) : Solver(), ast_(move(ast)) {}
     public:
         using ptr = std::unique_ptr<SolverImpl>;
@@ -66,6 +67,7 @@ namespace {
                 return epat::result::unknown;
             }
             C1Solver<LinearMemoryLv> solver(*ast_);
+            if (timeout_ms_ > 0) solver.setTimeoutMs(timeout_ms_);
             result_ = solver.feasible();
             if (collect_artifacts_) {
                 if (epat::result::feasible == result_)
@@ -110,6 +112,9 @@ namespace {
         virtual void setCollectArtifacts(bool enabled) override {
             collect_artifacts_ = enabled;
         }
+        virtual void setTimeoutMs(unsigned timeout_ms) override {
+            timeout_ms_ = timeout_ms;
+        }
         virtual std::string getModel() const override { return model_; }
         virtual std::string getSMT2() const override { return smt2_; }
         virtual int getMem() const override { return MemVisitor::getMem(*ast_); }
@@ -131,6 +136,10 @@ epat::result epat::Solver::feasible()
 }
 
 void epat::Solver::setCollectArtifacts(bool)
+{
+}
+
+void epat::Solver::setTimeoutMs(unsigned)
 {
 }
 
