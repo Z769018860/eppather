@@ -1,0 +1,122 @@
+name: MaxMEMS 266 final validation
+
+concurrency:
+  group: maxmems-266-final-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/maxmems_witness_experiment.py'
+      - 'tools/aggregate_maxmems_corpus.py'
+      - 'tools/e2e_path_validation.py'
+      - 'docs/maxmems-266-corpus-manifest.txt'
+      - '.github/workflows/maxmems-266-final.yml'
+
+jobs:
+  witness-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py tools/maxmems_corpus_experiment.py
+      - name: Configure
+        run: cmake -S . -B build_witness -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_witness --target cnip -j2
+      - name: Run 20-case independent witness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_witness/cnip" \
+            --output-dir maxmems-266-final-witness
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-final-witness
+          path: maxmems-266-final-witness/
+
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate experiment harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py tools/aggregate_maxmems_corpus.py
+      - name: Configure Eppather
+        run: cmake -S . -B build_maxmems266 -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_maxmems266 --target cnip -j2
+      - name: Validate corpus shard
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY=1 \
+          EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF=1 \
+          EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems266/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir maxmems-266-final-shard-${{ matrix.shard }} \
+            --manifest docs/maxmems-266-corpus-manifest.txt --expected-programs 266 \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 300 \
+            --dfs-max-only-fallback \
+            --shard-index ${{ matrix.shard }} --shard-count 12
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-final-shard-${{ matrix.shard }}
+          path: maxmems-266-final-shard-${{ matrix.shard }}/
+
+  aggregate:
+    needs: [witness-gate, validate]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: maxmems-266-final-shard-*
+          path: collected
+          merge-multiple: true
+      - name: Aggregate all 266 programs
+        run: |
+          python3 tools/aggregate_maxmems_corpus.py \
+            --input collected --output maxmems-266-final-results \
+            --expected-programs 266 || true
+          printf 'Witness gate: %s\n' "${{ needs.witness-gate.result }}" > maxmems-266-final-results/witness-gate.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-266-final-results
+          path: maxmems-266-final-results/
