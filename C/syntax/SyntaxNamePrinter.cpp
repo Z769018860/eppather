@@ -3648,6 +3648,7 @@ static int decisionMemCached(SyntaxNamePrinter* self,
 
 static std::unordered_map<std::string, int> syntaxDecisionMemsCache;
 static std::unordered_map<std::string, int> remainingMemsUpperCache;
+static std::unordered_set<std::string> remainingMemsUpperInProgress;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
@@ -3862,6 +3863,19 @@ static int remainingMemsUpperBound(
         ++maxMemsUpperBoundCacheHits;
         return it->second;
     }
+    // A same-state re-entry means the recursive upper-bound builder has met a
+    // CFG cycle before producing a memoized value. Returning infinity is
+    // conservative: it disables pruning for that cyclic suffix but can never
+    // underestimate the true remaining MEMS.
+    if (!remainingMemsUpperInProgress.insert(key).second) {
+        return kMaxMemsUpperInfinity;
+    }
+    struct UpperProgressGuard {
+        std::unordered_set<std::string>& set;
+        std::string key;
+        ~UpperProgressGuard() { set.erase(key); }
+    } upperProgressGuard{remainingMemsUpperInProgress, key};
+
     ++maxMemsUpperBoundStates;
     const char* upperProgressRaw =
         std::getenv("EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY");
@@ -4535,6 +4549,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         decisionMemCache.clear();
         syntaxDecisionMemsCache.clear();
         remainingMemsUpperCache.clear();
+        remainingMemsUpperInProgress.clear();
         feasCache.clear();
         maxMemsStatesVisited = 0;
         maxMemsPrefixChecks = 0;
