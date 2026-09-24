@@ -4238,6 +4238,48 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                     }
                 }
                 for (const auto& validation :
+                     eval.loopSccCoupledAffineValidations) {
+                    if (!validation.matched ||
+                        validation.compressedSmt.empty()) {
+                        continue;
+                    }
+                    const auto compressedVolce = runVolce(
+                        validation.compressedSmt,
+                        volceLower, volceUpper, {},
+                        inputMemoryRegions_, {});
+                    const auto compressedCount =
+                        parseVolceCount(compressedVolce);
+                    const bool countMatch =
+                        volceCount && compressedCount &&
+                        *volceCount == *compressedCount;
+                    const bool weightedMatch =
+                        countMatch && validation.memMatched;
+
+                    cout << "[LOOPSCC COUPLED COMPRESSED VOLCE]: baseline_count="
+                         << (volceCount
+                                 ? std::to_string(*volceCount)
+                                 : "N/A")
+                         << " compressed_count="
+                         << (compressedCount
+                                 ? std::to_string(*compressedCount)
+                                 : "N/A")
+                         << " count_match=" << (countMatch ? 1 : 0)
+                         << " weighted_match="
+                         << (weightedMatch ? 1 : 0)
+                         << endl;
+                    resultFile
+                        << "[loopscc_coupled_compressed_volce_count_match]:"
+                        << (countMatch ? 1 : 0) << "\n";
+                    resultFile
+                        << "[loopscc_coupled_compressed_weighted_match]:"
+                        << (weightedMatch ? 1 : 0) << "\n";
+                    if (compressedCount) {
+                        resultFile
+                            << "[loopscc_coupled_compressed_volce_count]:"
+                            << *compressedCount << "\n";
+                    }
+                }
+                for (const auto& validation :
                      eval.loopSccMemoryAccelerationValidations) {
                     if (!validation.matched ||
                         validation.compressedSmt.empty()) {
@@ -4567,6 +4609,44 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                        << validation.compressedDecisionCount << "\n";
             resultFile << "[loopscc_compressed_mem_match]:"
                        << (validation.memMatched ? 1 : 0) << "\n";
+        }
+        for (const auto& validation :
+             eval.loopSccCoupledAffineValidations) {
+            cout << "[LOOPSCC COUPLED COMPRESSED VALIDATION]: attempted="
+                 << (validation.attempted ? 1 : 0)
+                 << " matched=" << (validation.matched ? 1 : 0)
+                 << " type_certified="
+                 << (validation.typeCertified ? 1 : 0)
+                 << " snapshot_parallel="
+                 << (validation.snapshotParallelized ? 1 : 0)
+                 << " status_match="
+                 << (validation.statusMatched ? 1 : 0)
+                 << " mem_match="
+                 << (validation.memMatched ? 1 : 0)
+                 << " original_decisions="
+                 << validation.originalDecisionCount
+                 << " compressed_decisions="
+                 << validation.compressedDecisionCount
+                 << " baseline_mem=" << validation.baselineMem
+                 << " compressed_mem=" << validation.compressedMem
+                 << endl;
+            resultFile
+                << "[loopscc_coupled_compressed_validation_matched]:"
+                << (validation.matched ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_coupled_type_certified]:"
+                << (validation.typeCertified ? 1 : 0) << "\n";
+            resultFile
+                << "[loopscc_coupled_snapshot_parallel]:"
+                << (validation.snapshotParallelized ? 1 : 0) << "\n";
+            for (const auto& diagnostic :
+                 validation.certificateDiagnostics) {
+                cout << "[LOOPSCC COUPLED CERTIFICATE]: "
+                     << diagnostic << endl;
+                resultFile
+                    << "[loopscc_coupled_certificate]:"
+                    << diagnostic << "\n";
+            }
         }
         for (const auto& validation :
              eval.loopSccMemoryAccelerationValidations) {

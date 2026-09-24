@@ -872,6 +872,140 @@ int main() {
                 state.offset[yi] == 4 &&
                 state.offset[ii] == 4;
         }
+        const std::string signedPrefix =
+            "int x = 2;\n"
+            "int y = 3;\n"
+            "int i = 0;\n";
+        const auto validationPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      {}, loop.get(), graph, 0, signedPrefix);
+
+        bool snapshotPlanOk =
+            validationPlan &&
+            validationPlan->typeCertified &&
+            validationPlan->snapshotParallelized &&
+            !validationPlan->runtimeShortcutEligible &&
+            validationPlan->snapshotVariables.size() == 3;
+
+        if (snapshotPlanOk) {
+            const auto& state =
+                graph.coupledAffineCandidates.front().closedForm;
+            auto indexOf = [&](const std::string& variable)
+                -> std::size_t {
+                auto it = std::find(
+                    state.variables.begin(),
+                    state.variables.end(), variable);
+                return it == state.variables.end()
+                    ? state.variables.size()
+                    : static_cast<std::size_t>(
+                          std::distance(state.variables.begin(), it));
+            };
+            const std::size_t xi = indexOf("x");
+            const std::size_t yi = indexOf("y");
+            const std::size_t ii = indexOf("i");
+            const auto& snapshots =
+                validationPlan->snapshotVariables;
+            const std::size_t n = snapshots.size();
+
+            std::size_t lastSnapshotDecision = 0;
+            std::size_t firstMatrixDecision =
+                validationPlan->decisions.size();
+            bool sawXRow = false;
+            bool sawYRow = false;
+            bool sawIRow = false;
+            for (std::size_t d = 0;
+                 d < validationPlan->decisions.size(); ++d) {
+                const auto& decision =
+                    validationPlan->decisions[d];
+                if (decision.kind !=
+                    PathDecisionKind::SyntheticCode) {
+                    continue;
+                }
+                bool declaration = false;
+                for (const auto& snapshot : snapshots) {
+                    const std::string prefix =
+                        "int " + snapshot + " = ";
+                    if (decision.syntheticText.rfind(
+                            prefix, 0) == 0) {
+                        declaration = true;
+                        lastSnapshotDecision =
+                            std::max(lastSnapshotDecision, d);
+                    }
+                }
+                if (declaration) continue;
+
+                if (decision.syntheticText.rfind("x = ", 0) == 0) {
+                    firstMatrixDecision =
+                        std::min(firstMatrixDecision, d);
+                    sawXRow =
+                        xi < n && yi < n &&
+                        decision.syntheticText.find(
+                            snapshots[xi]) != std::string::npos &&
+                        decision.syntheticText.find(
+                            "4 * " + snapshots[yi]) !=
+                            std::string::npos &&
+                        decision.syntheticText.find("+ 6") !=
+                            std::string::npos;
+                } else if (
+                    decision.syntheticText.rfind("y = ", 0) == 0) {
+                    firstMatrixDecision =
+                        std::min(firstMatrixDecision, d);
+                    sawYRow =
+                        yi < n &&
+                        decision.syntheticText.find(
+                            snapshots[yi]) != std::string::npos &&
+                        decision.syntheticText.find("+ 4") !=
+                            std::string::npos;
+                } else if (
+                    decision.syntheticText.rfind("i = ", 0) == 0) {
+                    firstMatrixDecision =
+                        std::min(firstMatrixDecision, d);
+                    sawIRow =
+                        ii < n &&
+                        decision.syntheticText.find(
+                            snapshots[ii]) != std::string::npos &&
+                        decision.syntheticText.find("+ 4") !=
+                            std::string::npos;
+                }
+            }
+            snapshotPlanOk =
+                sawXRow && sawYRow && sawIRow &&
+                firstMatrixDecision >
+                    lastSnapshotDecision;
+        }
+
+        const auto unsignedPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      {}, loop.get(), graph, 0,
+                      "unsigned int x = 2;\n"
+                      "int y = 3;\n"
+                      "int i = 0;\n");
+        const auto pointerPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      {}, loop.get(), graph, 0,
+                      "int *x;\n"
+                      "int y = 3;\n"
+                      "int i = 0;\n");
+        const auto ambiguousPlan =
+            graph.coupledAffineCandidates.empty()
+                ? std::optional<psy::C::LoopSccCoupledAffineDecisionPlan>{}
+                : buildLoopSccCoupledAffineValidationDecisions(
+                      {}, loop.get(), graph, 0,
+                      "int x = 2;\n"
+                      "int x = 4;\n"
+                      "int y = 3;\n"
+                      "int i = 0;\n");
+        const bool typeFallbacksOk =
+            unsignedPlan && !unsignedPlan->typeCertified &&
+            pointerPlan && !pointerPlan->typeCertified &&
+            ambiguousPlan && !ambiguousPlan->typeCertified;
+
         const bool ok = graph.complete &&
             graph.provedTripCount == 4 &&
             graph.spaths.size() == 1 &&
@@ -879,6 +1013,12 @@ int main() {
             matrixOk;
         failures += !report(
             "loopscc-coupled-affine-matrix", ok);
+        failures += !report(
+            "loopscc-coupled-affine-snapshot-plan",
+            snapshotPlanOk);
+        failures += !report(
+            "loopscc-coupled-affine-type-fallbacks",
+            typeFallbacksOk);
     }
 
     // Non-linear scalar expressions remain outside the matrix certificate.

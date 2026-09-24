@@ -118,6 +118,22 @@ struct LoopSccAccelerationValidation {
     std::string compressedSmt;
 };
 
+struct LoopSccCoupledAffineValidation {
+    std::string loopCondition;
+    bool attempted{false};
+    bool typeCertified{false};
+    bool snapshotParallelized{false};
+    bool statusMatched{false};
+    bool memMatched{false};
+    bool matched{false};
+    std::size_t originalDecisionCount{0};
+    std::size_t compressedDecisionCount{0};
+    int baselineMem{0};
+    int compressedMem{0};
+    std::string compressedSmt;
+    std::vector<std::string> certificateDiagnostics;
+};
+
 struct EpatResult {
     epat::result status{epat::result::unknown};
     int mem{0};
@@ -138,6 +154,8 @@ struct EpatResult {
         loopSccMemoryCellStateSummaries;
     std::vector<LoopSccAccelerationValidation>
         loopSccAccelerationValidations;
+    std::vector<LoopSccCoupledAffineValidation>
+        loopSccCoupledAffineValidations;
     std::vector<LoopSccMemoryAccelerationValidation>
         loopSccMemoryAccelerationValidations;
 };
@@ -152,6 +170,30 @@ buildLoopSccAccelerationDecisions(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
     std::size_t planIndex);
+
+struct LoopSccCoupledAffineDecisionPlan {
+    std::vector<PathDecision> decisions;
+    std::vector<int> coverageSlots;
+    std::vector<std::string> snapshotVariables;
+    bool typeCertified{false};
+    bool snapshotParallelized{false};
+    // This stage is validation-only. Runtime shortcut eligibility remains
+    // false until bounded overflow and SMT entailment certificates are added.
+    bool runtimeShortcutEligible{false};
+    std::vector<std::string> certificateDiagnostics;
+};
+
+// Build a validation-only compressed decision stream for a coupled integer
+// affine candidate. Every state variable must be a unique signed integer
+// scalar. All entry values are snapshotted before any matrix row is assigned,
+// preserving simultaneous state' = A*state+b semantics.
+std::optional<LoopSccCoupledAffineDecisionPlan>
+buildLoopSccCoupledAffineValidationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t candidateIndex,
+    const std::string& sourcePrefix);
 
 struct LoopSccMemoryAccelerationDecisionPlan {
     std::vector<PathDecision> decisions;

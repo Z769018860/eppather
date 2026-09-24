@@ -509,8 +509,28 @@ if ! grep -Fq '[LOOPSCC COUPLED AFFINE]: cycle=0 entry_phase=0 iterations=4 peri
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
+if ! grep -Eq '^\[LOOPSCC COUPLED COMPRESSED VALIDATION\]: attempted=1 matched=1 type_certified=1 snapshot_parallel=1 status_match=1 mem_match=1 ' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: snapshot-compressed path did not preserve feasibility/MEMS" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Eq '^\[LOOPSCC COUPLED COMPRESSED VOLCE\]: .*count_match=1 weighted_match=1' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: snapshot-compressed path changed solution space/wMEMS" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: unique signed-integer scalar type certificate' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: missing signed-scalar type certificate" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: runtime overflow remains uncertified; validation-only compression' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: runtime-overflow gate was not reported" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
 if grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
-  echo "coupled_affine: structural-only stage must not enable DFS shortcut" >&2
+  echo "coupled_affine: validation-only stage must not enable DFS shortcut" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
@@ -529,3 +549,4 @@ echo "fixed_cell_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_memor
 echo "fixed_cell_frame,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/fixed_cell_frame.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/fixed_cell_frame.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/fixed_cell_frame.log"),0"
 echo "nested_fixed_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_fixed_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_fixed_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_fixed_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_fixed_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_fixed_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_fixed_memory.log"),$nested_fixed_complete,0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/nested_fixed_memory.log"),0"
 echo "nested_memory,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/nested_memory.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/nested_memory.log"),$nested_memory_complete,0,N/A,0"
+echo "coupled_affine,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/coupled_affine.log"),$(metric_max 'LOOPSCC GRAPH COMPLETE' "$OUT_DIR/coupled_affine.log"),0,$(metric_max 'LOOPSCC PROVED TRIP COUNT' "$OUT_DIR/coupled_affine.log"),0"
