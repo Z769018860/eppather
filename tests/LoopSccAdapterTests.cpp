@@ -1025,7 +1025,8 @@ int main() {
             *preexecSafePlan->boundedRangeLower == -8 &&
             preexecSafePlan->boundedRangeUpper &&
             *preexecSafePlan->boundedRangeUpper == 8 &&
-            !preexecSafePlan->runtimeShortcutEligible;
+            preexecSafePlan->structuralSemanticCertified &&
+            preexecSafePlan->runtimeShortcutEligible;
 
         const long long nearIntMax =
             static_cast<long long>(
@@ -1042,8 +1043,10 @@ int main() {
         const bool preexecOverflowRejected =
             preexecOverflowPlan &&
             preexecOverflowPlan->typeCertified &&
+            preexecOverflowPlan->structuralSemanticCertified &&
             preexecOverflowPlan->entryRangeCertified &&
-            !preexecOverflowPlan->preexecutionOverflowCertified;
+            !preexecOverflowPlan->preexecutionOverflowCertified &&
+            !preexecOverflowPlan->runtimeShortcutEligible;
 
         auto unknownWrite = node("x = x / 2;");
         const std::vector<PathDecision> unknownPrefix{
@@ -1059,8 +1062,10 @@ int main() {
         const bool unknownPrefixRejected =
             unknownPrefixPlan &&
             unknownPrefixPlan->typeCertified &&
+            unknownPrefixPlan->structuralSemanticCertified &&
             !unknownPrefixPlan->entryRangeCertified &&
-            !unknownPrefixPlan->preexecutionOverflowCertified;
+            !unknownPrefixPlan->preexecutionOverflowCertified &&
+            !unknownPrefixPlan->runtimeShortcutEligible;
 
         const bool typeFallbacksOk =
             unsignedPlan && !unsignedPlan->typeCertified &&
