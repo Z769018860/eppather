@@ -200,6 +200,14 @@ public:
     epat::result checkFeasible(
         const std::vector<PathDecision>& decisions) const;
 
+    // Feasibility-only fast path using an already-rendered raw decision script.
+    // This avoids rendering the same MaxMEMS prefix twice. The supplied text
+    // must come from EpatRunner("").render(decisions), so call abstraction and
+    // path syntax are identical to the ordinary renderer.
+    epat::result checkFeasible(
+        const std::vector<PathDecision>& decisions,
+        const std::string& renderedRawPath) const;
+
     bool feasible(const std::vector<PathDecision>& decisions) const {
         return solve(decisions).status == epat::result::feasible;
     }
