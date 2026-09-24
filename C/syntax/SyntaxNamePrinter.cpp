@@ -4928,18 +4928,9 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
-            const int greedyInitialUpper =
-                std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER")
-                    ? std::min<int>(
-                          kMaxMemsUpperInfinity,
-                          static_cast<int>(std::min<std::size_t>(
-                              vartemp.size() * 4ULL + 4ULL,
-                              static_cast<std::size_t>(
-                                  kMaxMemsUpperInfinity))))
-                    : 0;
             PathInfo greedy = MaxMemsDP(
                 funcNode, maxloop, "", 0, seedLoopMap,
-                greedyInitialUpper, {});
+                0, {});
             const int seedFeasibleSeen = maxMemsSeedFeasibleSeen;
             maxMemsStopAfterFirstFeasible = false;
             maxMemsFirstFeasibleFound = false;
@@ -5110,22 +5101,14 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
-        const char* fastUpperRaw =
-            std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER");
-        const bool fastUpper =
-            fastUpperRaw && *fastUpperRaw &&
-            std::string(fastUpperRaw) != "0";
-        const int initialMemsUpper = fastUpper
-            ? std::min<int>(
-                  kMaxMemsUpperInfinity,
-                  static_cast<int>(std::min<std::size_t>(
-                      vartemp.size() * 4ULL + 4ULL,
-                      static_cast<std::size_t>(
-                          kMaxMemsUpperInfinity))))
-            : 0;
+        // MaxMEMS leaf scoring counts only rendered PathDecisions.  vartemp
+        // contains declarations/source prefix and is intentionally excluded by
+        // EpatRunner::countMemsOnly()/solveMemsOnly().  The BnB accumulator
+        // must therefore start at zero; adding a vartemp-derived constant is
+        // safe but destroys pruning by inflating every subtree upper bound.
         PathInfo result = MaxMemsDP(
             funcNode, maxloop, "", 0, loopUnrollMap,
-            initialMemsUpper, {}); // raw path
+            0, {}); // raw path
         if (seededWitness &&
             (!result.feasible || seededWitness->mems > result.mems)) {
             result = *seededWitness;
