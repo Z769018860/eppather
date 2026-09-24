@@ -179,10 +179,8 @@ std::optional<int> exactStableForTripCount(
     // additionally require that the induction variable is not modified or
     // address-taken in the body; otherwise an early exit could be real even
     // when init/condition/update look canonical.
-    const std::string escaped =
-        std::regex_replace(
-            prediction.inductionVariable,
-            std::regex(R"([.^$|()\[\]{}*+?\\])"), R"(\$&)");
+    // LoopBoundPredictor only returns a valid C identifier.
+    const std::string escaped = prediction.inductionVariable;
     const std::regex writeDirect(
         "\\b" + escaped +
         "\\b[[:space:]]*(?:=|\\+=|-=|\\*=|/=|%=|\\+\\+|--)");
