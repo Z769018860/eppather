@@ -2680,7 +2680,16 @@ void SyntaxNamePrinter::DFS(
     int& maxMems,
     int& minMems
 ) {
-    if (maxpaths > 0 && pathCount >= maxpaths) return;
+    const char* maxOnlyEntryRaw = std::getenv("EPPATHER_DFS2_MAX_ONLY");
+    const char* unlimitedRaw =
+        std::getenv("EPPATHER_DFS2_MAX_ONLY_IGNORE_PATH_LIMIT");
+    const bool maxOnlyUnlimited =
+        maxOnlyEntryRaw && *maxOnlyEntryRaw &&
+        std::string(maxOnlyEntryRaw) != "0" &&
+        unlimitedRaw && *unlimitedRaw &&
+        std::string(unlimitedRaw) != "0";
+    if (!maxOnlyUnlimited &&
+        maxpaths > 0 && pathCount >= maxpaths) return;
     if (!node) return;
 
     // 标记当前节点已访问
@@ -2946,6 +2955,23 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             std::string(maxOnlyRaw) != "0";
 
         EpatRunner runner(vartemp);
+        // In max-only oracle mode, once a feasible incumbent exists, a
+        // complete leaf whose syntax-only MEMS cannot exceed that incumbent
+        // cannot affect the global maximum. Its feasibility is irrelevant to
+        // the objective, so skip the SMT query exactly (not approximately).
+        const char* lazyRaw =
+            std::getenv("EPPATHER_DFS2_MAX_ONLY_LAZY_LEAF");
+        const bool lazyMaxOnly =
+            maxOnly && lazyRaw && *lazyRaw &&
+            std::string(lazyRaw) != "0";
+        if (lazyMaxOnly && maxmem >= 0) {
+            const auto syntaxMems = runner.countMemsOnly(decisions);
+            if (syntaxMems && *syntaxMems <= maxmem) {
+                if (pushed) decisions.pop_back();
+                return;
+            }
+        }
+
         // Max-only is an oracle fast path, not an approximation: it uses the
         // same bounded path decisions and feasibility solver as DFS2, but skips
         // SMT/model artifact extraction because the oracle needs only the
