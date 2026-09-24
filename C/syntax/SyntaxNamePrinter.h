@@ -258,6 +258,10 @@ public:
         int currentMemsUpper,
         std::vector<PathDecision> decisions
     );
+    PathInfo MaxMemsBestFirst(
+        const std::shared_ptr<CFGNode>& entry,
+        int maxloop
+    );
     //std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp);
 
     void printCFG_BFS();
