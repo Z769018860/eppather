@@ -255,6 +255,7 @@ public:
         std::string pathPrefix,  // raw path 前缀（不含 vartemp）
         int depth,
         std::unordered_map<CFGNode*, int>& loopUnrollMap,
+        int currentMemsUpper,
         std::vector<PathDecision> decisions
     );
     //std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp);
