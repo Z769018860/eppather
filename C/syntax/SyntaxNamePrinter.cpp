@@ -2841,9 +2841,25 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // effects and exact MEMS compensation.
         const char* memoryAccelRaw =
             std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
-        const bool memoryAccelEnabled =
+        const bool memoryAccelRequested =
             memoryAccelRaw && *memoryAccelRaw &&
             std::string(memoryAccelRaw) != "0";
+        // Fixed-memory acceleration is intentionally validation-only for now.
+        // The relation/frame proof is produced from the unfolded path after it
+        // reaches processPathResult2; at this DFS entry there is no independent
+        // semantic certificate yet. Structural exactness, local-array bounds,
+        // and MEMS compensation are necessary but not sufficient to replace
+        // the original memory execution.
+        const bool memoryAccelEnabled = false;
+        if (memoryAccelRequested && snap_lc[d] == 0) {
+            const auto blockedGraph = LoopSccAdapter::analyze(node.get());
+            if (!blockedGraph.memorySummaryCandidates.empty()) {
+                std::cout
+                    << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                    << "requires_preexecution_relation_and_frame_certificate"
+                    << std::endl;
+            }
+        }
         if (memoryAccelEnabled && snap_lc[d] == 0) {
             const auto graph = LoopSccAdapter::analyze(node.get());
             bool usedMemoryShortcut = false;
@@ -3076,9 +3092,25 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // effects cannot construct this plan and therefore fall back.
         const char* memoryAccelRaw =
             std::getenv("EPPATHER_LOOP_SCC_MEMORY_ACCELERATE");
-        const bool memoryAccelEnabled =
+        const bool memoryAccelRequested =
             memoryAccelRaw && *memoryAccelRaw &&
             std::string(memoryAccelRaw) != "0";
+        // Fixed-memory acceleration is intentionally validation-only for now.
+        // The relation/frame proof is produced from the unfolded path after it
+        // reaches processPathResult2; at this DFS entry there is no independent
+        // semantic certificate yet. Structural exactness, local-array bounds,
+        // and MEMS compensation are necessary but not sufficient to replace
+        // the original memory execution.
+        const bool memoryAccelEnabled = false;
+        if (memoryAccelRequested && snap_lc[d] == 0) {
+            const auto blockedGraph = LoopSccAdapter::analyze(node.get());
+            if (!blockedGraph.memorySummaryCandidates.empty()) {
+                std::cout
+                    << "[LOOPSCC MEMORY DFS SHORTCUT BLOCKED]: reason="
+                    << "requires_preexecution_relation_and_frame_certificate"
+                    << std::endl;
+            }
+        }
         if (memoryAccelEnabled && snap_lc[d] == 0) {
             const auto graph = LoopSccAdapter::analyze(node.get());
             bool usedMemoryShortcut = false;
