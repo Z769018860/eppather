@@ -3406,6 +3406,8 @@ static std::uint64_t maxMemsPrefixChecks = 0;
 static std::uint64_t maxMemsPrefixCacheHits = 0;
 static std::uint64_t maxMemsPrefixPruned = 0;
 static std::uint64_t maxMemsLeafSolves = 0;
+static std::uint64_t maxMemsMemoLookups = 0;
+static std::uint64_t maxMemsMemoHits = 0;
 
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
@@ -3503,11 +3505,22 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
-    if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
-        return it->second;
+    const char* noMemoRaw =
+        std::getenv("EPPATHER_MAXMEMS_DISABLE_PATH_MEMO");
+    const bool pathMemoEnabled =
+        !(noMemoRaw && *noMemoRaw &&
+          std::string(noMemoRaw) != "0");
+    if (pathMemoEnabled) {
+        ++maxMemsMemoLookups;
+        if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+            ++maxMemsMemoHits;
+            return it->second;
+        }
     }
     auto store = [&](PathInfo result) {
-        dpMemo[stateKey] = result;
+        if (pathMemoEnabled) {
+            dpMemo[stateKey] = result;
+        }
         return result;
     };
     // Because the memo key includes the complete path prefix, each leaf is
@@ -3686,6 +3699,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsPrefixCacheHits = 0;
         maxMemsPrefixPruned = 0;
         maxMemsLeafSolves = 0;
+        maxMemsMemoLookups = 0;
+        maxMemsMemoHits = 0;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3761,6 +3776,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[DP PREFIX CACHE HITS]: " << maxMemsPrefixCacheHits << std::endl;
         std::cout << "[DP PREFIX PRUNED]: " << maxMemsPrefixPruned << std::endl;
         std::cout << "[DP LEAF SOLVES]: " << maxMemsLeafSolves << std::endl;
+        std::cout << "[DP MEMO LOOKUPS]: " << maxMemsMemoLookups << std::endl;
+        std::cout << "[DP MEMO HITS]: " << maxMemsMemoHits << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
