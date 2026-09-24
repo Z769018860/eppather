@@ -3647,6 +3647,57 @@ static int addMemsUpper(int a, int b) {
     return a + b;
 }
 
+static std::string trimGuardText(std::string s) {
+    auto notSpace = [](unsigned char c) { return !std::isspace(c); };
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), notSpace));
+    s.erase(std::find_if(s.rbegin(), s.rend(), notSpace).base(), s.end());
+    return s;
+}
+
+static bool hasSingleOuterParens(const std::string& s) {
+    if (s.size() < 2 || s.front() != '(' || s.back() != ')') return false;
+    int depth = 0;
+    for (std::size_t i = 0; i < s.size(); ++i) {
+        if (s[i] == '(') ++depth;
+        else if (s[i] == ')') {
+            --depth;
+            if (depth < 0) return false;
+            if (depth == 0 && i + 1 != s.size()) return false;
+        }
+    }
+    return depth == 0;
+}
+
+// A deliberately narrow compile-time guard certificate.  It recognizes only
+// integer literals (optionally parenthesized and/or negated).  Returning
+// nullopt means "unknown", so no branch is removed for ordinary expressions.
+static std::optional<bool> literalConstantGuardTruth(std::string expr) {
+    expr = trimGuardText(std::move(expr));
+    bool negate = false;
+    for (;;) {
+        while (hasSingleOuterParens(expr)) {
+            expr = trimGuardText(expr.substr(1, expr.size() - 2));
+        }
+        if (!expr.empty() && expr.front() == '!') {
+            negate = !negate;
+            expr = trimGuardText(expr.substr(1));
+            continue;
+        }
+        break;
+    }
+    while (hasSingleOuterParens(expr)) {
+        expr = trimGuardText(expr.substr(1, expr.size() - 2));
+    }
+    if (expr.empty()) return std::nullopt;
+
+    char* end = nullptr;
+    const long long value = std::strtoll(expr.c_str(), &end, 0);
+    if (end == expr.c_str() || *end != '\0') return std::nullopt;
+    bool truth = value != 0;
+    if (negate) truth = !truth;
+    return truth;
+}
+
 static int syntaxDecisionMemsUpper(
     SyntaxNamePrinter* self,
     CFGNode* node,
@@ -3723,8 +3774,11 @@ static int remainingMemsUpperBound(
     }
 
     if (entry->isIf) {
-        int best = 0;
-        if (entry->getNextNode()) {
+        const auto literalGuard =
+            literalConstantGuardTruth(entry->cond_str);
+        int best = -1;
+        if ((!literalGuard || *literalGuard) &&
+            entry->getNextNode()) {
             best = std::max(
                 best,
                 addMemsUpper(
@@ -3735,7 +3789,8 @@ static int remainingMemsUpperBound(
                         self, entry->getNextNode(), maxloop,
                         depth + 1, loopMap)));
         }
-        if (entry->getNextFalseNode()) {
+        if ((!literalGuard || !*literalGuard) &&
+            entry->getNextFalseNode()) {
             best = std::max(
                 best,
                 addMemsUpper(
@@ -3746,7 +3801,7 @@ static int remainingMemsUpperBound(
                         self, entry->getNextFalseNode(), maxloop,
                         depth + 1, loopMap)));
         }
-        return storeUpper(best);
+        return storeUpper(best < 0 ? kMaxMemsUpperInfinity : best);
     }
 
     if (entry->isLoop) {
@@ -3771,8 +3826,11 @@ static int remainingMemsUpperBound(
             }
         }
 
-        int bestBranch = 0;
-        if (unroll < bound && entry->getNextNode()) {
+        const auto literalGuard =
+            literalConstantGuardTruth(entry->cond_str);
+        int bestBranch = -1;
+        if ((!literalGuard || *literalGuard) &&
+            unroll < bound && entry->getNextNode()) {
             auto trueMap = loopMap;
             trueMap[entry.get()] = unroll + 1;
             bestBranch = std::max(
@@ -3785,7 +3843,8 @@ static int remainingMemsUpperBound(
                         self, entry->getNextNode(), maxloop,
                         depth + 1, std::move(trueMap))));
         }
-        if (entry->getNextFalseNode()) {
+        if ((!literalGuard || !*literalGuard) &&
+            entry->getNextFalseNode()) {
             bestBranch = std::max(
                 bestBranch,
                 addMemsUpper(
@@ -3795,6 +3854,11 @@ static int remainingMemsUpperBound(
                     remainingMemsUpperBound(
                         self, entry->getNextFalseNode(), maxloop,
                         depth + 1, loopMap)));
+        }
+        if (bestBranch < 0) {
+            // No semantically possible continuation from this bounded loop
+            // header (e.g. while(1) after the configured unroll budget).
+            return storeUpper(-1);
         }
         return storeUpper(addMemsUpper(common, bestBranch));
     }
@@ -4010,6 +4074,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     }
 
     if (entry->isIf) {
+        const auto literalGuard =
+            literalConstantGuardTruth(entry->cond_str);
         std::string curPath = pathPrefix;
 
         auto tLoopMap = loopUnrollMap;
@@ -4024,8 +4090,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             currentMemsUpper,
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::TrueBranch));
+        const bool trueGuardCanHold =
+            (!literalGuard || *literalGuard) &&
+            entry->getNextNode();
+        const bool falseGuardCanHold =
+            (!literalGuard || !*literalGuard) &&
+            entry->getNextFalseNode();
         const int tPotential =
-            branchOrderEnabled && entry->getNextNode()
+            branchOrderEnabled && trueGuardCanHold
                 ? addMemsUpper(
                       tMemsUpper,
                       remainingMemsUpperBound(
@@ -4046,7 +4118,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::FalseBranch));
         const int fPotential =
-            branchOrderEnabled && entry->getNextFalseNode()
+            branchOrderEnabled && falseGuardCanHold
                 ? addMemsUpper(
                       fMemsUpper,
                       remainingMemsUpperBound(
@@ -4055,7 +4127,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 : -1;
 
         auto exploreTrue = [&]() {
-            if (!entry->getNextNode()) return;
+            if (!trueGuardCanHold) return;
             if (!isPathFeasibleCached(
                     this, tDecisions,
                     decisionOnlyPath
@@ -4069,7 +4141,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 tMemsUpper, std::move(tDecisions));
         };
         auto exploreFalse = [&]() {
-            if (!entry->getNextFalseNode()) return;
+            if (!falseGuardCanHold) return;
             if (!isPathFeasibleCached(
                     this, fDecisions,
                     decisionOnlyPath
@@ -4138,11 +4210,15 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         PathInfo tInfo(0, curPath, false);
         PathInfo fInfo(0, curPath, false);
 
+        const auto literalGuard =
+            literalConstantGuardTruth(entry->cond_str);
         const bool trueGuardCanHold =
+            (!literalGuard || *literalGuard) &&
             unroll < bound &&
             (!exactStableTrip || unroll < *exactStableTrip) &&
             entry->getNextNode();
         const bool falseGuardCanHold =
+            (!literalGuard || !*literalGuard) &&
             (!exactStableTrip || unroll >= *exactStableTrip) &&
             entry->getNextFalseNode();
 
