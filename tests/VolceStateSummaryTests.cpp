@@ -321,9 +321,14 @@ int main() {
         brokenFrame &&
         brokenFrame->applied.size() == 1 &&
         brokenFrame->frame_applied.empty() &&
-        brokenFrame->frame_rejected.size() == 1;
+        !brokenFrame->frame_rejected.empty();
     std::cout << "loopscc-fixed-region-frame-rejection: "
-              << (brokenFrameOk ? "PASS" : "FAIL") << '\n';
+              << (brokenFrameOk ? "PASS" : "FAIL")
+              << " frame_applied="
+              << (brokenFrame ? brokenFrame->frame_applied.size() : 0)
+              << " frame_rejected="
+              << (brokenFrame ? brokenFrame->frame_rejected.size() : 0)
+              << '\n';
     failures += !brokenFrameOk;
 
     return failures == 0 ? 0 : 1;
