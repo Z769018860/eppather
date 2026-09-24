@@ -3562,6 +3562,7 @@ static int maxMemsFeasibleIncumbent = -1;
 static bool maxMemsStopAfterFirstFeasible = false;
 static bool maxMemsFirstFeasibleFound = false;
 static bool maxMemsSeedExitFirst = false;
+static bool maxMemsSeedTerminationAware = false;
 
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
@@ -4158,6 +4159,20 @@ static int shallowBranchSuccessorUpper(
     return 0;
 }
 
+
+static bool maxMemsInFinalLiteralWhileIteration(
+    const std::unordered_map<CFGNode*, int>& loopMap,
+    int maxloop) {
+    for (const auto& [loopNode, count] : loopMap) {
+        if (!loopNode || !loopNode->isWhile) continue;
+        const auto literal = literalConstantGuardTruth(loopNode->cond_str);
+        if (!literal || !*literal) continue;
+        const int bound = predictedLoopBound(loopNode, maxloop);
+        if (bound > 0 && count >= bound) return true;
+    }
+    return false;
+}
+
 PathInfo SyntaxNamePrinter::MaxMemsDP(
     const std::shared_ptr<CFGNode>& entry,
     int maxloop,
@@ -4517,14 +4532,20 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 fMemsUpper, std::move(fDecisions));
         };
 
-        if (!maxMemsSeedExitFirst &&
-            branchOrderEnabled &&
-            fPotential > tPotential) {
+        const bool seedPreferFalseIf =
+            maxMemsSeedTerminationAware &&
+            maxMemsInFinalLiteralWhileIteration(loopUnrollMap, maxloop);
+        if (seedPreferFalseIf && falseGuardCanHold) {
+            exploreFalse();
+            exploreTrue();
+        } else if (!maxMemsSeedExitFirst &&
+                   branchOrderEnabled &&
+                   fPotential > tPotential) {
             ++maxMemsBranchOrderSwaps;
             exploreFalse();
             exploreTrue();
         } else {
-            // Seed discovery preserves source true-first order for if nodes.
+            // Seed discovery otherwise preserves source true-first order.
             exploreTrue();
             exploreFalse();
         }
@@ -4813,7 +4834,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
             maxMemsStopAfterFirstFeasible = true;
             maxMemsFirstFeasibleFound = false;
-            maxMemsSeedExitFirst = true;
+            maxMemsSeedExitFirst = false;
+            maxMemsSeedTerminationAware = true;
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
@@ -4822,6 +4844,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsStopAfterFirstFeasible = false;
             maxMemsFirstFeasibleFound = false;
             maxMemsSeedExitFirst = false;
+            maxMemsSeedTerminationAware = false;
 
             if (oldOrder) {
                 setenv("EPPATHER_MAXMEMS_BRANCH_ORDER",
