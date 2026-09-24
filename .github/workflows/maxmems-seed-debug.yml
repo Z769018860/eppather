@@ -1,0 +1,68 @@
+name: MaxMEMS seed debug
+
+concurrency:
+  group: maxmems-seed-debug-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-bnb-focused
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-seed-debug.yml'
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_seed_debug -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_seed_debug --target cnip -j2
+      - name: Materialize mw01 source
+        run: |
+          python3 - <<'PY'
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, "tools")
+          from maxmems_witness_experiment import SUBJECTS
+          s=next(x for x in SUBJECTS if x["id"]=="mw01")
+          Path("mw01.c").write_text(s["source"]+"\n")
+          PY
+      - name: Compare seed off and seed on
+        shell: bash
+        run: |
+          set +e
+          CNIP="${{ github.workspace }}/build_seed_debug/cnip"
+          BASE=(
+            EPPATHER_PREFIX_FEASIBILITY=1
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+          )
+          mkdir -p seed-debug/off seed-debug/on
+          (cd seed-debug/off && env "${BASE[@]}" "$CNIP" -g "${{ github.workspace }}/mw01.c" 3 >stdout.log 2>stderr.log; echo $? >exit.txt)
+          (cd seed-debug/on && env "${BASE[@]}" EPPATHER_MAXMEMS_SEED_WITH_DFS2=1 "$CNIP" -g "${{ github.workspace }}/mw01.c" 3 >stdout.log 2>stderr.log; echo $? >exit.txt)
+          echo "=== OFF RC ==="; cat seed-debug/off/exit.txt
+          echo "=== OFF STDOUT ==="; cat seed-debug/off/stdout.log
+          echo "=== OFF STDERR ==="; cat seed-debug/off/stderr.log
+          echo "=== ON RC ==="; cat seed-debug/on/exit.txt
+          echo "=== ON STDOUT ==="; cat seed-debug/on/stdout.log
+          echo "=== ON STDERR ==="; cat seed-debug/on/stderr.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-seed-debug
+          path: seed-debug/
