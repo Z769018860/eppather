@@ -2850,7 +2850,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // and untouched-frame proofs remain independent A/B oracles.
         const bool memoryAccelEnabled = memoryAccelRequested;
         if (memoryAccelEnabled && snap_lc[d] == 0) {
-            const auto graph = LoopSccAdapter::analyze(node.get());
+            const auto graph =
+                LoopSccAdapter::analyzeWithConstantPointerAliases(
+                    node.get(), vartemp);
             bool usedMemoryShortcut = false;
             for (std::size_t candidateIndex = 0;
                  candidateIndex < graph.memorySummaryCandidates.size();
@@ -3107,7 +3109,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         // and untouched-frame proofs remain independent A/B oracles.
         const bool memoryAccelEnabled = memoryAccelRequested;
         if (memoryAccelEnabled && snap_lc[d] == 0) {
-            const auto graph = LoopSccAdapter::analyze(node.get());
+            const auto graph =
+                LoopSccAdapter::analyzeWithConstantPointerAliases(
+                    node.get(), vartemp);
             bool usedMemoryShortcut = false;
             for (std::size_t candidateIndex = 0;
                  candidateIndex < graph.memorySummaryCandidates.size();
