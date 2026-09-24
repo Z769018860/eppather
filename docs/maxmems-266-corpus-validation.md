@@ -125,3 +125,27 @@ affine forms and the same default 64-iteration autolift ceiling. Unsupported or
 data-dependent loops continue to use the requested safety bound. This change
 affects only the independent concrete oracle; it does not alter Eppather's
 static DP or DFS2 analysis.
+
+
+## 2026-09-24 validation-quality update
+
+The frozen denominator remains 266 programs.  The experiment now separates
+normalization/front-end quality from MaxMEMS correctness instead of treating
+every unsuccessful case as a DP mismatch.  Each source first receives a GNU C
+syntax preflight, but Eppather is still attempted so malformed normalization
+outputs remain visible in the corpus.  Timeout cases are retried once with a
+300-second budget while preserving `maxloop=3` and `maxpaths=1000`.
+
+The aggregate report now distinguishes: syntax-invalid normalized programs,
+DP/DFS timeouts, DP parse failures, true static DP/DFS mismatches, replay-only
+mismatches, unsupported concrete replay, path-limit hits, and non-zero
+`[DP SCORE DELTA]` diagnostics.  Concrete replay additionally records the
+witness input and expected/actual ordered branch traces.  `switch/case`
+subjects are explicitly marked replay-unsupported because the current concrete
+tracer instruments `if`, `for`, and `while` decisions, not switch cases.
+
+For reference, the saved 2026-05-09 all-stage result on the same 266-file
+`output_complete2` corpus reported 202 DFS successes, 206 DP successes, and
+145 files with DP=DFS MaxMEMS (54.5%).  New results should be compared against
+that 145/266 static-agreement baseline, not against the 391-row multi-stage
+summary that concatenated the 5/20/100/266 runs.
