@@ -77,3 +77,19 @@ The aggregate artifact preserves three residual worklists:
 `failures.csv`, `path-limit-functions.csv`, and
 `replay-residual-functions.csv`. These files support targeted follow-up while
 keeping every failed or timed-out subject in the frozen 266-program denominator.
+
+
+## MaxMEMS loop-branch maximization fix
+
+During the 266-program follow-up, the DP implementation was found to differ
+from DFS2 at loop headers: DFS2 enumerated both continuing and exiting a loop,
+whereas MaxMemsDP returned the continuing branch as soon as it was feasible.
+That policy is not a valid global maximization rule because an additional loop
+iteration can change program state and steer execution away from a more
+expensive post-loop branch.
+
+MaxMemsDP now evaluates both bounded successors at each `for` and `while`
+header and selects the feasible result with larger whole-path MEMS. Conditional
+branches also use independent loop-state snapshots so exploration of one branch
+cannot contaminate its sibling. The controlled MaxMEMS witness workflow and the
+frozen 266-program workflow are both triggered by this change.
