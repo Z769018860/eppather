@@ -188,6 +188,9 @@ std::optional<int> exactStableForTripCount(
         "(?:\\+\\+|--)[[:space:]]*\\b" + escaped + "\\b");
     const std::regex addressTaken(
         "&[[:space:]]*\\b" + escaped + "\\b");
+    const std::regex pointerWrite(
+        "\\*[[:space:]]*[A-Za-z_][A-Za-z0-9_]*"
+        "[[:space:]]*(?:=|\\+=|-=|\\*=|/=|%=)");
 
     const auto afterLoop = node->getNextFalseNode();
     std::vector<std::shared_ptr<psy::C::CFGNode>> work;
@@ -210,9 +213,11 @@ std::optional<int> exactStableForTripCount(
             current->getCode() + "\n" +
             current->initstmt_str + "\n" +
             current->expr_str;
-        if (std::regex_search(text, writeDirect) ||
+        if (current->hasCallExpr ||
+            std::regex_search(text, writeDirect) ||
             std::regex_search(text, writePrefix) ||
-            std::regex_search(text, addressTaken)) {
+            std::regex_search(text, addressTaken) ||
+            std::regex_search(text, pointerWrite)) {
             return std::nullopt;
         }
 
