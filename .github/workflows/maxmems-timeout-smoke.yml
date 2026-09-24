@@ -1,0 +1,62 @@
+name: MaxMEMS timeout smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-prefix-pruning-rescue
+    paths:
+      - '.github/workflows/maxmems-timeout-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py tools/maxmems_corpus_experiment.py
+      - name: Configure
+        run: cmake -S . -B build_timeout_smoke -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_timeout_smoke --target cnip -j2
+      - name: Run lazy-leaf 20-case witness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_timeout_smoke/cnip" \
+            --output-dir timeout-smoke-witness
+      - name: Run optimized active timeout set
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_timeout_smoke/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-active-timeout-manifest.txt \
+            --expected-programs 6 \
+            --output-dir timeout-smoke-active \
+            --max-loop 3 --max-paths 1000 --timeout 60 --retry-timeout 120
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-timeout-smoke-results
+          path: |
+            timeout-smoke-witness/
+            timeout-smoke-active/
