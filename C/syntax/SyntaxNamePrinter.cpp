@@ -3580,23 +3580,30 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
     }
 
-    const auto stateKey = std::make_tuple(
-        entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
     const char* noMemoRaw =
         std::getenv("EPPATHER_MAXMEMS_DISABLE_PATH_MEMO");
     const bool pathMemoEnabled =
         !(noMemoRaw && *noMemoRaw &&
           std::string(noMemoRaw) != "0");
+
+    using MaxMemsStateKey =
+        std::tuple<CFGNode*, std::string, std::string>;
+    std::optional<MaxMemsStateKey> stateKey;
     if (pathMemoEnabled) {
+        // Building LoopMapKey and hashing/copying pathPrefix is itself
+        // expensive on deep path trees. Do not pay that cost when this
+        // path-specific memo is explicitly disabled.
+        stateKey.emplace(
+            entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
         ++maxMemsMemoLookups;
-        if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+        if (auto it = dpMemo.find(*stateKey); it != dpMemo.end()) {
             ++maxMemsMemoHits;
             return it->second;
         }
     }
     auto store = [&](PathInfo result) {
-        if (pathMemoEnabled) {
-            dpMemo[stateKey] = result;
+        if (stateKey) {
+            dpMemo[*stateKey] = result;
         }
         return result;
     };
