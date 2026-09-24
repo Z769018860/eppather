@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "stmt.h"
 #include "writer.h"
+#include <cstdlib>
 #include <ostream>
 #include <sstream>
 
@@ -86,8 +87,11 @@ bool epat::Context::addDecl(Decl::ptr decl)
     // XXX: 下面的写法是因为名称可能为空。但也许我们能做得更好:)
     if (!name.empty())
         if (auto it = decls_.find(name); it != decls_.end()) {
-            cout << "warning: a declaration with the name \"" << name
-                 << "\" already exists!" << endl;
+            const char* quiet = std::getenv("EPPATHER_SUPPRESS_REDECL_WARNINGS");
+            if (!quiet || !*quiet || std::string(quiet) == "0") {
+                cout << "warning: a declaration with the name \"" << name
+                     << "\" already exists!" << endl;
+            }
             return false;
         }
     if (auto ctx = dynamic_cast<Context*>(decl.get()))
