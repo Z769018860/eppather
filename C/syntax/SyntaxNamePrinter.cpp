@@ -3720,7 +3720,12 @@ constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
 static int addMemsUpper(int a, int b) {
-    if (a < 0 || b < 0) return kMaxMemsUpperInfinity;
+    // Negative is a distinct sentinel for a bounded suffix that cannot reach a
+    // completing leaf.  It is NOT an unknown upper bound.  Keeping dead and
+    // unknown separate is essential for loops such as while(1): after the
+    // configured unroll budget, the non-terminating continuation is dead and
+    // must not poison a sibling return path into infinity.
+    if (a < 0 || b < 0) return -1;
     if (a >= kMaxMemsUpperInfinity || b >= kMaxMemsUpperInfinity)
         return kMaxMemsUpperInfinity;
     if (a > kMaxMemsUpperInfinity - b)
@@ -4058,7 +4063,10 @@ static int remainingMemsUpperBound(
             }
             best = std::max(best, falseUpper);
         }
-        return storeUpper(best < 0 ? kMaxMemsUpperInfinity : best);
+        // If every semantically possible arm is dead under the bounded
+        // search semantics, propagate the dead-suffix sentinel.  Unknown
+        // branches are represented separately by kMaxMemsUpperInfinity.
+        return storeUpper(best);
     }
 
     if (entry->isLoop) {
