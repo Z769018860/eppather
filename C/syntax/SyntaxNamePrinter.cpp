@@ -3716,10 +3716,19 @@ static std::uint64_t maxMemsUpperLocalMemsMisses = 0;
 static std::uint64_t maxMemsUpperLocalMemsMicros = 0;
 static std::uint64_t maxMemsUpperKeyMicros = 0;
 static std::uint64_t maxMemsUpperLoopBoundMicros = 0;
+constexpr int kMaxMemsUpperUnreachable = -1;
 constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
 static int addMemsUpper(int a, int b) {
+    // -1 is the lattice bottom: this bounded suffix has no semantically
+    // possible complete continuation.  Propagating it as +infinity made every
+    // ancestor of a bounded literal while(1) look unbounded and disabled BnB.
+    if (a == kMaxMemsUpperUnreachable ||
+        b == kMaxMemsUpperUnreachable) {
+        return kMaxMemsUpperUnreachable;
+    }
+    // Any other negative value is unexpected/unknown; stay conservative.
     if (a < 0 || b < 0) return kMaxMemsUpperInfinity;
     if (a >= kMaxMemsUpperInfinity || b >= kMaxMemsUpperInfinity)
         return kMaxMemsUpperInfinity;
@@ -4172,7 +4181,7 @@ static int remainingMemsUpperBound(
         if (bestBranch < 0) {
             // No semantically possible continuation from this bounded loop
             // header (e.g. while(1) after the configured unroll budget).
-            return storeUpper(-1);
+            return storeUpper(kMaxMemsUpperUnreachable);
         }
         return storeUpper(addMemsUpper(common, bestBranch));
     }
