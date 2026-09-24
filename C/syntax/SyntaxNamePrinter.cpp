@@ -3817,8 +3817,16 @@ static int syntaxDecisionMemsUpper(
     }
 
     EpatRunner runner(self->vartemp);
-    const auto mem = runner.countMemsOnly(
-        {PathDecision{node, kind}});
+    const char* fastUpperRaw =
+        std::getenv("EPPATHER_MAXMEMS_FAST_TEXT_UPPER");
+    const bool fastUpper =
+        fastUpperRaw && *fastUpperRaw &&
+        std::string(fastUpperRaw) != "0";
+    const auto mem = fastUpper
+        ? runner.estimateMemsUpperOnly(
+              {PathDecision{node, kind}})
+        : runner.countMemsOnly(
+              {PathDecision{node, kind}});
     // Failure must never create an underestimated upper bound.
     const int value = mem
         ? std::max(0, *mem)
