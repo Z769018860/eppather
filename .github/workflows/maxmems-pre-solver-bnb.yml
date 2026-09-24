@@ -1,0 +1,98 @@
+name: MaxMEMS pre-solver BnB cocktail gate
+
+concurrency:
+  group: maxmems-pre-solver-bnb-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-pre-solver-bnb
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - '.github/workflows/maxmems-pre-solver-bnb.yml'
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_pre_bnb -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_pre_bnb --target cnip -j2
+
+      - name: Run 20-case correctness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_pre_bnb/cnip" \
+            --output-dir pre-bnb-witness
+
+      - name: Run upper-bound soundness gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_pre_bnb/cnip" \
+            --output-dir pre-bnb-upper
+
+      - name: Run cocktail-sort rescue
+        shell: bash
+        run: |
+          mkdir -p pre-bnb-cocktail
+          set +e
+          timeout 120s env \
+            EPPATHER_PREFIX_FEASIBILITY=1 \
+            EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            "${{ github.workspace }}/build_pre_bnb/cnip" \
+              -g "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+              > pre-bnb-cocktail/stdout.log \
+              2> pre-bnb-cocktail/stderr.log
+          rc=$?
+          echo "$rc" > pre-bnb-cocktail/exit_code.txt
+          set -e
+          if [ "$rc" -ne 0 ]; then
+            echo "cocktail-sort still failed rc=$rc"
+            exit 1
+          fi
+          grep -E '^MEMS:|^\[DP TIME COST\]|^\[DP BRANCH BOUND PRUNED\]|^\[DP BRANCH ORDER SWAPS\]|^\[DP PREFIX CHECKS\]|^\[DP PREFIX PRUNED\]' pre-bnb-cocktail/stdout.log || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-pre-solver-bnb-results
+          path: |
+            pre-bnb-witness/
+            pre-bnb-upper/
+            pre-bnb-cocktail/
