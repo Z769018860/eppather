@@ -189,8 +189,14 @@ struct LoopSccCoupledAffineDecisionPlan {
     std::vector<std::string> snapshotVariables;
     bool typeCertified{false};
     bool snapshotParallelized{false};
-    // This stage is validation-only. Runtime shortcut eligibility remains
-    // false until bounded overflow and SMT entailment certificates are added.
+    // Pre-execution interval proof derived only from declaration initializers
+    // and the concrete PathDecision prefix before this loop.
+    bool entryRangeCertified{false};
+    bool preexecutionOverflowCertified{false};
+    std::optional<long long> boundedRangeLower;
+    std::optional<long long> boundedRangeUpper;
+    // Still false in this stage: SMT row entailment is a post-hoc oracle and
+    // has not yet been converted into a reusable pre-execution semantic cert.
     bool runtimeShortcutEligible{false};
     std::vector<std::string> certificateDiagnostics;
 };
@@ -205,7 +211,9 @@ buildLoopSccCoupledAffineValidationDecisions(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
     std::size_t candidateIndex,
-    const std::string& sourcePrefix);
+    const std::string& sourcePrefix,
+    std::optional<long long> boundedLower = std::nullopt,
+    std::optional<long long> boundedUpper = std::nullopt);
 
 struct LoopSccMemoryAccelerationDecisionPlan {
     std::vector<PathDecision> decisions;
