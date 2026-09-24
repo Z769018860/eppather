@@ -4435,6 +4435,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             literalConstantGuardTruth(entry->cond_str);
         const char* pathLocalRaw =
             std::getenv("EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE");
+        // Backward-compatible alias used by early timeout workflows.
+        if (!pathLocalRaw || !*pathLocalRaw) {
+            pathLocalRaw =
+                std::getenv("EPPATHER_MAXMEMS_PATH_LOCAL_GUARD");
+        }
         const bool pathLocalEnabled =
             pathLocalRaw && *pathLocalRaw &&
             std::string(pathLocalRaw) != "0";
