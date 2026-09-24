@@ -16,7 +16,7 @@ on:
       - 'C/syntax/EpatRunner.h'
       - 'tools/maxmems_corpus_experiment.py'
       - 'tools/maxmems_witness_experiment.py'
-      - 'docs/maxmems-hard-timeout4-manifest.txt'
+      - 'docs/maxmems-hard-timeout2-manifest.txt'
       - '.github/workflows/maxmems-bnb-order-sharded.yml'
 
 jobs:
@@ -81,7 +81,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [0, 1, 2, 3]
+        shard: [0, 1]
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -90,7 +90,7 @@ jobs:
         run: cmake -S . -B build_hard -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_hard --target cnip -j2
-      - name: Run one hard timeout subject
+      - name: Run one remaining hard timeout subject
         run: |
           EPPATHER_PREFIX_FEASIBILITY=1 \
           EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
@@ -106,11 +106,11 @@ jobs:
           python3 tools/maxmems_corpus_experiment.py \
             --cnip "${{ github.workspace }}/build_hard/cnip" \
             --corpus testcase/output_complete2 \
-            --manifest docs/maxmems-hard-timeout4-manifest.txt \
-            --expected-programs 4 \
+            --manifest docs/maxmems-hard-timeout2-manifest.txt \
+            --expected-programs 2 \
             --output-dir "bnb-order-hard-${{ matrix.shard }}" \
             --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
-            --shard-index ${{ matrix.shard }} --shard-count 4
+            --shard-index ${{ matrix.shard }} --shard-count 2
       - uses: actions/upload-artifact@v4
         if: always()
         with:
