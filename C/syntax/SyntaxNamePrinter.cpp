@@ -3633,6 +3633,8 @@ static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
+static std::uint64_t maxMemsAdditiveChecks = 0;
+static std::uint64_t maxMemsAdditiveMismatches = 0;
 constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
@@ -3913,6 +3915,40 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
         ++maxMemsLeafSolves;
         EpatRunner runner(vartemp);
+
+        // Safety gate for branch-and-bound: MEMS must be additive over the
+        // PathDecision sequence. Solver::getMem() is MemVisitor::getMem(ast),
+        // so this validates the implementation assumption on complete paths
+        // without enabling any branch-and-bound pruning.
+        const char* validateAdditiveRaw =
+            std::getenv("EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS");
+        const bool validateAdditive =
+            validateAdditiveRaw && *validateAdditiveRaw &&
+            std::string(validateAdditiveRaw) != "0";
+        if (validateAdditive &&
+            currentMemsUpper >= 0 &&
+            currentMemsUpper < kMaxMemsUpperInfinity) {
+            ++maxMemsAdditiveChecks;
+            const auto fullSyntaxMems = runner.countMemsOnly(curDecisions);
+            if (!fullSyntaxMems || *fullSyntaxMems != currentMemsUpper) {
+                ++maxMemsAdditiveMismatches;
+                std::cerr << "[DP ADDITIVE MEMS MISMATCH]: accumulated="
+                          << currentMemsUpper
+                          << " full="
+                          << (fullSyntaxMems
+                                  ? std::to_string(*fullSyntaxMems)
+                                  : std::string("N/A"))
+                          << std::endl;
+                const char* strictRaw =
+                    std::getenv("EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS_STRICT");
+                if (strictRaw && *strictRaw &&
+                    std::string(strictRaw) != "0") {
+                    throw std::runtime_error(
+                        "MaxMEMS additive MEMS validation failed");
+                }
+            }
+        }
+
         const char* lightLeafRaw =
             std::getenv("EPPATHER_MAXMEMS_LIGHT_LEAF");
         const bool lightLeaf =
@@ -4267,6 +4303,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsBranchBoundPruned = 0;
         maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
+        maxMemsAdditiveChecks = 0;
+        maxMemsAdditiveMismatches = 0;
         maxMemsFeasibleIncumbent = -1;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
@@ -4357,6 +4395,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
+        std::cout << "[DP ADDITIVE MEMS CHECKS]: "
+                  << maxMemsAdditiveChecks << std::endl;
+        std::cout << "[DP ADDITIVE MEMS MISMATCHES]: "
+                  << maxMemsAdditiveMismatches << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
