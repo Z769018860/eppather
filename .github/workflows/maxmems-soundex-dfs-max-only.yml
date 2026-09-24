@@ -13,6 +13,8 @@ on:
       - 'C/syntax/SyntaxNamePrinter.cpp'
       - 'C/syntax/EpatRunner.cpp'
       - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'docs/maxmems-soundex-manifest.txt'
       - '.github/workflows/maxmems-soundex-dfs-max-only.yml'
 
 jobs:
@@ -131,3 +133,66 @@ jobs:
         with:
           name: soundex-dfs-max-only-ab
           path: soundex-ab/
+
+
+  harness-fallback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate harness
+        run: python3 -m py_compile tools/maxmems_corpus_experiment.py tools/e2e_path_validation.py
+
+      - name: Configure
+        run: cmake -S . -B build_harness -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_harness --target cnip -j2
+
+      - name: Run soundex through 266-style fallback harness
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_harness/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-soundex-manifest.txt \
+            --expected-programs 1 \
+            --output-dir soundex-harness-fallback \
+            --max-loop 3 --max-paths 1000 \
+            --timeout 120 --retry-timeout 120 \
+            --dfs-max-only-fallback
+
+      - name: Assert fallback classification
+        run: |
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+          p = list(Path("soundex-harness-fallback").glob("programs-*.csv"))[0]
+          f = list(Path("soundex-harness-fallback").glob("functions-*.csv"))[0]
+          prog = next(csv.DictReader(p.open()))
+          fn = next(csv.DictReader(f.open()))
+          print("PROGRAM", prog)
+          print("FUNCTION", fn)
+          assert prog["dfs_max_only_fallback"] == "1", prog
+          assert prog["status"] == "pass_static_only", prog
+          assert prog["static_mismatch_functions"] == "0", prog
+          assert fn["static_equal"] == "1", fn
+          assert fn["replay_status"] == "max_only_oracle", fn
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soundex-harness-fallback
+          path: soundex-harness-fallback/
