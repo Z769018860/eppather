@@ -12,9 +12,23 @@ import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-FUNC_RE = re.compile(r"\b(?:int|long|short|unsigned|void)\s+(?P<name>[A-Za-z_]\w*)\s*\((?P<params>[^()]*)\)\s*\{", re.M)
-PARAM_RE = re.compile(r"^\s*(?:signed\s+)?int\s+(?P<name>[A-Za-z_]\w*)\s*$")
-MODEL_RE = re.compile(r"\bint\s+(?P<name>[A-Za-z_]\w*)\s*=\s*(?P<value>-?\d+)\s*;?")
+SCALAR_INT_TYPE = (
+    r"(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?"
+    r"|signed(?:\\s+(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?))?"
+    r"|unsigned(?:\\s+(?:char|short(?:\\s+int)?|int|long(?:\\s+long)?(?:\\s+int)?))?)"
+)
+QUAL = r"(?:(?:const|volatile)\\s+)*"
+FUNC_RE = re.compile(
+    rf"\\b(?:{SCALAR_INT_TYPE}|void)\\s+(?P<name>[A-Za-z_]\\w*)"
+    rf"\\s*\\((?P<params>[^()]*)\\)\\s*\\{{", re.M
+)
+PARAM_RE = re.compile(
+    rf"^\\s*{QUAL}(?:{SCALAR_INT_TYPE})\\s+{QUAL}(?P<name>[A-Za-z_]\\w*)\\s*$"
+)
+MODEL_RE = re.compile(
+    rf"\\b(?:{SCALAR_INT_TYPE})\\s+(?P<name>[A-Za-z_]\\w*)"
+    rf"\\s*=\\s*(?P<value>-?\\d+)\\s*;?"
+)
 COND_RE = re.compile(r"@\((.*?)\);", re.S)
 
 
@@ -51,7 +65,7 @@ def parse_signature(source: str, requested: str | None) -> tuple[str, list[str]]
         for item in raw.split(","):
             pm = PARAM_RE.match(item)
             if not pm:
-                raise ValueError(f"unsupported parameter {item!r}; normalize pointers/arrays first")
+                raise ValueError(f"unsupported non-scalar integer parameter {item!r}; normalize pointers/arrays first")
             params.append(pm.group("name"))
     return match.group("name"), params
 

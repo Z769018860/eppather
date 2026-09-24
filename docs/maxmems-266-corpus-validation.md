@@ -61,3 +61,19 @@ For the SANER paper, do not describe unsupported concrete replays as failures of
 the MaxMEMS algorithm. Report separately: corpus size, DP/DFS agreement,
 replay-eligible functions/programs, branch-trace matches, undefined executions,
 unsupported signatures, timeouts/errors, and any true mismatches.
+
+
+## 2026-09-24 corpus-hardening update
+
+To improve the 266-program result without changing the evaluated denominator or
+the MaxMEMS semantics, the batch experiment now reads the frozen
+`docs/maxmems-266-corpus-manifest.txt` and rejects corpus drift. The workflow
+uses 12 shards instead of six so isolated expensive subjects do not prevent
+unrelated programs from completing. Concrete witness replay also accepts common
+scalar integer C signatures while continuing to reject pointer/array parameters
+that require ownership or extent assumptions.
+
+The aggregate artifact preserves three residual worklists:
+`failures.csv`, `path-limit-functions.csv`, and
+`replay-residual-functions.csv`. These files support targeted follow-up while
+keeping every failed or timed-out subject in the frozen 266-program denominator.

@@ -74,10 +74,22 @@ def main():
         if rows:
             with (out/name).open("w",newline="",encoding="utf-8") as fh:
                 w=csv.DictWriter(fh,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
+    failures=[r for r in programs if r.get("hard_failure")=="1" or r.get("status")=="mismatch"]
+    path_limited=[r for r in functions if r.get("path_limit_hit")=="1"]
+    replay_residual=[r for r in functions if r.get("replay_status") in
+                     ("error","mismatch","witness_not_found")]
+    for name, rows in (
+        ("failures.csv", failures),
+        ("path-limit-functions.csv", path_limited),
+        ("replay-residual-functions.csv", replay_residual),
+    ):
+        if rows:
+            with (out/name).open("w",newline="",encoding="utf-8") as fh:
+                w=csv.DictWriter(fh,fieldnames=list(rows[0].keys())); w.writeheader(); w.writerows(rows)
     (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n",encoding="utf-8")
     md=["# MaxMEMS 266-program corpus validation","",
         f"- Programs collected: **{summary['programs_collected']} / {args.expected_programs}**",
-        f"- Programs with complete static DP/DFS agreement: **{summary['static_equal_programs']}**",
+        f"- Programs with DP/DFS equality (including capped DFS where applicable): **{summary['static_equal_programs']}**",
         f"- Hard-failure programs: **{summary['hard_failure_programs']}**",
         f"- Full concrete-replay programs: **{summary['full_replay_programs']}**",
         f"- Partial concrete-replay programs: **{summary['partial_replay_programs']}**",

@@ -73,6 +73,33 @@ def rename_function_definition(source: str, old: str, new: str) -> str:
     raise ValueError(f"cannot find function definition {old!r}")
 
 
+def load_manifest(manifest: Path, corpus: Path) -> list[Path]:
+    """Load the frozen SANER corpus and reject drift or duplicate entries."""
+    repo_root = Path(__file__).resolve().parents[1]
+    files: list[Path] = []
+    seen: set[Path] = set()
+    for raw in manifest.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        candidate = Path(line)
+        if not candidate.is_absolute():
+            candidate = (repo_root / candidate).resolve()
+        else:
+            candidate = candidate.resolve()
+        if candidate in seen:
+            raise ValueError(f"duplicate manifest entry: {line}")
+        if not candidate.is_file():
+            raise FileNotFoundError(f"manifest entry does not exist: {line}")
+        if candidate.suffix != ".c":
+            raise ValueError(f"non-C manifest entry: {line}")
+        if candidate.parent != corpus.resolve():
+            raise ValueError(f"manifest entry outside corpus: {line}")
+        seen.add(candidate)
+        files.append(candidate)
+    return files
+
+
 def dfs_rows(work: Path, function: str) -> list[dict]:
     rows = []
     for rf in sorted(work.glob(f"result_{function}_*.txt")):
@@ -262,6 +289,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--cnip", type=Path, default=Path("./cnip"))
     ap.add_argument("--corpus", type=Path, default=Path("testcase/output_complete2"))
+    ap.add_argument("--manifest", type=Path, default=Path("docs/maxmems-266-corpus-manifest.txt"))
+    ap.add_argument("--expected-programs", type=int, default=266)
     ap.add_argument("--output-dir", type=Path, default=Path("maxmems-266-results"))
     ap.add_argument("--max-loop", type=int, default=3)
     ap.add_argument("--max-paths", type=int, default=1000)
@@ -271,7 +300,12 @@ def main() -> int:
     args = ap.parse_args()
 
     cnip, corpus = args.cnip.resolve(), args.corpus.resolve()
-    files = sorted(corpus.glob("*.c"))
+    manifest = args.manifest.resolve()
+    files = load_manifest(manifest, corpus)
+    if len(files) != args.expected_programs:
+        raise RuntimeError(
+            f"frozen corpus size mismatch: {len(files)} != {args.expected_programs}"
+        )
     selected = [p for i, p in enumerate(files) if i % args.shard_count == args.shard_index]
     out = args.output_dir.resolve(); out.mkdir(parents=True, exist_ok=True)
     programs, functions = [], []
