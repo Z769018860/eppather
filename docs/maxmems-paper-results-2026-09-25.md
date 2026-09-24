@@ -171,6 +171,29 @@ both MaxMEMS DP and the bounded DFS/max-only oracle produced comparable
 results, every static maximum agrees. This number must be replaced by the
 complete 266-program aggregate before submission.
 
+### Interim residual classification
+
+The current non-comparable residuals should not be merged into the MaxMEMS
+correctness count without qualification:
+
+- `call-an-object-method.c`: recursion plus function-pointer invocation; the
+  process exits with `-11` after already printing MaxMEMS diagnostics.
+- `cut-a-rectangle-1.c`: recursive helper plus two-dimensional arrays and
+  wider integer types.
+- `first-class-functions-2.c`: two-dimensional arrays and a normalized
+  first-class-function encoding outside the supported scalar/fixed-array
+  subset.
+- `sutherland-hodgman-polygon-clipping.c`: heavy two-dimensional-array
+  interface and indexing.
+- `inverted-index-1.c`: recursion, callback/function pointer, and
+  two-dimensional arrays.
+
+These are front-end / supported-subset coverage residuals. They remain in the
+frozen **266-program denominator**, but they should be reported separately from
+`true_static_mismatch_programs`. The only confirmed search timeout in the
+current 88-program snapshot is `ludic-numbers.c`; a separate BnB rescue run is
+tracking it.
+
 When the run completes, report at least:
 
 1. programs collected / 266,
