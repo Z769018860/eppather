@@ -131,6 +131,8 @@ struct LoopSccCoupledAffineValidation {
     bool attempted{false};
     bool typeCertified{false};
     bool snapshotParallelized{false};
+    bool entryRangeCertified{false};
+    bool preexecutionOverflowCertified{false};
     bool statusMatched{false};
     bool memMatched{false};
     bool matched{false};
