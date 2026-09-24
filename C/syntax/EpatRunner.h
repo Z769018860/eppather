@@ -157,12 +157,13 @@ struct LoopSccMemoryAccelerationDecisionPlan {
     std::size_t compensationMems{0};
 };
 
-// Build a directly executable fixed-cell memory shortcut. This is stricter
-// than the validation-only memory builder: every summarized region must be a
-// one-dimensional fixed local array visible in the original source prefix,
-// every cell index must be in bounds, and the structural memory candidate must
-// already be exact. The returned SyntheticMems step restores the skipped MEMS
-// cost without adding any SMT constraint.
+// Build a validation-only fixed-cell memory summary path. Every summarized
+// region must be a one-dimensional fixed local array visible in the original
+// source prefix, every cell index must be in bounds, and the structural memory
+// candidate must already be exact. SyntheticMems restores the skipped MEMS
+// cost for A/B comparison without adding SMT/source semantics. This builder
+// does not authorize DFS replacement; runtime use additionally needs an
+// independent pre-execution memory-relation + untouched-frame certificate.
 std::optional<LoopSccMemoryAccelerationDecisionPlan>
 buildLoopSccMemoryAccelerationDecisions(
     const std::vector<PathDecision>& prefix,
