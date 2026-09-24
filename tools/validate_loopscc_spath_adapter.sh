@@ -303,6 +303,14 @@ if [[ -z "$pointer_memory_spaths" || "$pointer_memory_spaths" -lt 1 ||
   exit 1
 fi
 
+run_case pointer_memory_request testcase/loop_hybrid/17_pointer_walk.c 1 100 0 0 0 1
+if grep -q '^\[LOOPSCC MEMORY PREEXEC CERTIFICATE\]: certified=1' "$OUT_DIR/pointer_memory_request.log" ||
+   grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/pointer_memory_request.log"; then
+  echo "pointer_memory_request: pointer loop must not receive fixed-array preexecution certificate" >&2
+  cat "$OUT_DIR/pointer_memory_request.log" >&2
+  exit 1
+fi
+
 # 8. Fixed-cell local-array writes first pass the unfolded semantic proof:
 # relation + frame + compensated MEMS + VolCE count/wMEMS. Then exercise the
 # independently opt-in structural memory shortcut and compare it A/B.
@@ -337,13 +345,13 @@ if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_ma
 fi
 
 run_case fixed_cell_memory_accel testcase/loop_hybrid/27_spath_fixed_cell_memory.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate$' "$OUT_DIR/fixed_cell_memory_accel.log"; then
-  echo "fixed_cell_memory_accel: memory shortcut request was not conservatively blocked" >&2
+if ! grep -q '^\[LOOPSCC MEMORY PREEXEC CERTIFICATE\]: certified=1 ' "$OUT_DIR/fixed_cell_memory_accel.log"; then
+  echo "fixed_cell_memory_accel: missing fixed-local-array preexecution certificate" >&2
   cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
   exit 1
 fi
-if grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_memory_accel.log"; then
-  echo "fixed_cell_memory_accel: uncertified memory shortcut executed" >&2
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_memory_accel.log"; then
+  echo "fixed_cell_memory_accel: certified memory shortcut was not used" >&2
   cat "$OUT_DIR/fixed_cell_memory_accel.log" >&2
   exit 1
 fi
@@ -371,13 +379,13 @@ if ! grep -Eq '^\[LOOPSCC MEMORY COMPRESSED VOLCE\]: .*count_match=1 weighted_ma
 fi
 
 run_case fixed_cell_frame_accel testcase/loop_hybrid/28_spath_fixed_cell_frame.c 1 100 1 0 0 1
-if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT BLOCKED\]: reason=requires_preexecution_relation_and_frame_certificate$' "$OUT_DIR/fixed_cell_frame_accel.log"; then
-  echo "fixed_cell_frame_accel: frame-sensitive memory shortcut request was not blocked" >&2
+if ! grep -q '^\[LOOPSCC MEMORY PREEXEC CERTIFICATE\]: certified=1 ' "$OUT_DIR/fixed_cell_frame_accel.log"; then
+  echo "fixed_cell_frame_accel: missing structural untouched-frame certificate" >&2
   cat "$OUT_DIR/fixed_cell_frame_accel.log" >&2
   exit 1
 fi
-if grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_frame_accel.log"; then
-  echo "fixed_cell_frame_accel: uncertified frame-sensitive shortcut executed" >&2
+if ! grep -q '^\[LOOPSCC MEMORY DFS SHORTCUT USED\]:' "$OUT_DIR/fixed_cell_frame_accel.log"; then
+  echo "fixed_cell_frame_accel: certified frame-sensitive shortcut was not used" >&2
   cat "$OUT_DIR/fixed_cell_frame_accel.log" >&2
   exit 1
 fi
