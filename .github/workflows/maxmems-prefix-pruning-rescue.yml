@@ -39,7 +39,6 @@ jobs:
           EPPATHER_MAXMEMS_CORE_ONLY=1 \
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
           EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
-          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_prefix_witness/cnip" \
             --output-dir maxmems-prefix-witness-results
@@ -92,6 +91,7 @@ jobs:
           EPPATHER_PREFIX_FEASIBILITY=1 \
           EPPATHER_MAXMEMS_CORE_ONLY=1 \
           EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
           python3 tools/maxmems_corpus_experiment.py \
             --cnip "${{ github.workspace }}/build_optimized_rescue/cnip" \
             --corpus testcase/output_complete2 \
