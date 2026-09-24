@@ -1,0 +1,74 @@
+name: MaxMEMS cocktail zero-upper fastdiag
+
+concurrency:
+  group: maxmems-cocktail-zero-upper-fastdiag-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - '.github/workflows/maxmems-cocktail-zero-upper-fastdiag.yml'
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_zero -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_zero --target cnip -j2
+      - name: Run 20s zero-upper combo
+        shell: bash
+        run: |
+          set +e
+          mkdir -p zero-diag
+          timeout 20s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=100 \
+            "${{ github.workspace }}/build_zero/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > zero-diag/stdout.log 2> zero-diag/stderr.log
+          echo $? > zero-diag/exit_code.txt
+          exit 0
+
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("zero-diag")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          def last(p,t):
+              xs=re.findall(p,t,re.M)
+              return xs[-1] if xs else None
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*?incumbent=(-?\d+)",err)
+          result={
+            "exit":rc,
+            "mems":(lambda x:int(x) if x else None)(last(r"^MEMS:\s*(-?\d+)\s*$",out)),
+            "seed":(lambda x:int(x) if x else None)(last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out)),
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("ZERO_UPPER_FASTDIAG",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zero-upper-fastdiag-results
+          path: zero-diag/
