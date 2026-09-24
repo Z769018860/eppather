@@ -45,6 +45,7 @@ namespace {
         epat::Root::ptr ast_;
         std::string model_, smt2_;
         epat::result result_ = epat::result::unknown;
+        bool collect_artifacts_ = true;
         explicit SolverImpl(epat::Root::ptr ast) : Solver(), ast_(move(ast)) {}
     public:
         using ptr = std::unique_ptr<SolverImpl>;
@@ -66,11 +67,17 @@ namespace {
             }
             C1Solver<LinearMemoryLv> solver(*ast_);
             result_ = solver.feasible();
-            if (epat::result::feasible == result_)
-                model_ = solver.getModel();
-            else
-                model_ = "; no model available.";
-            smt2_ = solver.getSMT2();
+            if (collect_artifacts_) {
+                if (epat::result::feasible == result_)
+                    model_ = solver.getModel();
+                else
+                    model_ = "; no model available.";
+                smt2_ = solver.getSMT2();
+            }
+            else {
+                model_.clear();
+                smt2_.clear();
+            }
             return result_;
 
             // return _feasible();
@@ -100,6 +107,9 @@ namespace {
             // solver_ = std::make_unique<C1Solver>(*ast_);
             // return solver_->feasible();
         }
+        virtual void setCollectArtifacts(bool enabled) override {
+            collect_artifacts_ = enabled;
+        }
         virtual std::string getModel() const override { return model_; }
         virtual std::string getSMT2() const override { return smt2_; }
         virtual int getMem() const override { return MemVisitor::getMem(*ast_); }
@@ -118,6 +128,10 @@ epat::Solver::ptr epat::Solver::create(epat::Root::ptr Ast)
 epat::result epat::Solver::feasible()
 {
     return result::feasible;
+}
+
+void epat::Solver::setCollectArtifacts(bool)
+{
 }
 
 void epat::Solver::printModel(std::ostream& os) const
