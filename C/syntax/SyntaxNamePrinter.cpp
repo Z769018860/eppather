@@ -4543,7 +4543,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const bool seedPreferFalseIf =
             maxMemsSeedTerminationAware &&
             maxMemsInFinalLiteralWhileIteration(loopUnrollMap, maxloop);
-        if (seedPreferFalseIf && falseGuardCanHold) {
+        // Feasibility-first seed discovery deliberately prefers the false arm
+        // of an otherwise unknown if. This affects only which solver-certified
+        // lower-bound witness is found first; the exact BnB pass still explores
+        // every subtree whose sound upper bound can beat the incumbent.
+        const bool seedPreferUnknownFalseIf =
+            maxMemsSeedExitFirst && !literalGuard && falseGuardCanHold;
+        if ((seedPreferFalseIf || seedPreferUnknownFalseIf) &&
+            falseGuardCanHold) {
             exploreFalse();
             exploreTrue();
         } else if (!maxMemsSeedExitFirst &&
