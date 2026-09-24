@@ -165,3 +165,15 @@ Core-only mode reports the decision-level DP score directly and skips the
 post-pass.  Correctness is still checked independently by bounded DFS2 and, for
 replay-eligible functions, concrete branch-trace execution.  The corpus,
 `maxloop=3`, `maxpaths=1000`, and all mismatch criteria remain unchanged.
+
+
+## Timeout rescue integration
+
+The historical 32-case exact-ranking regression reduced the remaining failures to
+nine DP timeouts and produced no new static DP/DFS mismatches.  The full
+266-program workflow therefore performs a targeted second-chance run only for
+subjects that exceed the normal 120-second DP/DFS budget.  The retry budget is
+900 seconds, with the same normalized source, `maxloop=3`, `maxpaths=1000`,
+exact complete-path ranking, and core-only reporting.  This is a resource-budget
+change only; it does not alter the analyzed bounded program or the MaxMEMS
+objective.
