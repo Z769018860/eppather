@@ -592,6 +592,131 @@ int main() {
         failures += !report("loopscc-unsupported-guard-fallback", ok);
     }
 
+    // A unique constant pointer alias may reuse the fixed-cell memory
+    // summary pipeline. Four iterations of *p=*p+1 through p=&a[1] produce
+    // a[1]'=a[1]+4 and exactly two MEMS per iteration.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto memory = node("*p = *p + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(memory);
+        loop->setNextFalseNode(exit);
+        memory->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const std::string prefix =
+            "int a[2];\nint *p = &a[1];\nint i = 0;\n";
+        const auto aliases =
+            LoopSccAdapter::parseConstantPointerAliases(prefix);
+        const auto graph =
+            LoopSccAdapter::analyzeWithConstantPointerAliases(
+                loop.get(), prefix);
+
+        bool relation = false;
+        if (graph.memorySummaryCandidates.size() == 1) {
+            const auto& candidate = graph.memorySummaryCandidates[0];
+            relation = candidate.exact &&
+                candidate.totalIterations == 4 &&
+                candidate.observedMems == 8 &&
+                candidate.closedFormTransforms.size() == 1 &&
+                candidate.closedFormTransforms[0].region == "a" &&
+                candidate.closedFormTransforms[0].index == 1 &&
+                candidate.closedFormTransforms[0].scale == 1 &&
+                candidate.closedFormTransforms[0].offset == 4;
+        }
+        auto memoryPlan =
+            graph.memorySummaryCandidates.empty()
+                ? std::optional<psy::C::LoopSccMemoryAccelerationDecisionPlan>{}
+                : psy::C::buildLoopSccMemoryAccelerationDecisions(
+                      {}, loop.get(), graph, 0, prefix);
+        const bool certificate =
+            memoryPlan &&
+            memoryPlan->preexecutionCertified &&
+            memoryPlan->unfoldedMems == 8 &&
+            memoryPlan->compressedSummaryMems == 2 &&
+            memoryPlan->compensationMems == 6;
+
+        const bool ok = aliases.size() == 1 &&
+            aliases[0].pointer == "p" &&
+            aliases[0].region == "a" &&
+            aliases[0].index == 1 &&
+            graph.complete &&
+            graph.provedTripCount == 4 &&
+            relation &&
+            certificate;
+        failures += !report(
+            "loopscc-constant-pointer-fixed-cell", ok);
+    }
+
+    // Array-decay initialization is the index-zero form of the same narrow
+    // certificate. Keep this as a positive test so a moving-pointer fallback
+    // cannot pass merely because "p = a" failed to parse.
+    {
+        auto loop = loopNode("i < 3");
+        loop->initstmt_str = "i = 0;";
+        auto memory = node("*p += 2;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(memory);
+        loop->setNextFalseNode(exit);
+        memory->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const std::string prefix =
+            "int a[2];\nint *p = a;\nint i = 0;\n";
+        const auto aliases =
+            LoopSccAdapter::parseConstantPointerAliases(prefix);
+        const auto graph =
+            LoopSccAdapter::analyzeWithConstantPointerAliases(
+                loop.get(), prefix);
+        bool relation = false;
+        if (graph.memorySummaryCandidates.size() == 1) {
+            const auto& candidate = graph.memorySummaryCandidates[0];
+            relation = candidate.exact &&
+                candidate.observedMems == 6 &&
+                candidate.closedFormTransforms.size() == 1 &&
+                candidate.closedFormTransforms[0].region == "a" &&
+                candidate.closedFormTransforms[0].index == 0 &&
+                candidate.closedFormTransforms[0].scale == 1 &&
+                candidate.closedFormTransforms[0].offset == 6;
+        }
+        const bool ok = aliases.size() == 1 &&
+            aliases[0].pointer == "p" &&
+            aliases[0].region == "a" &&
+            aliases[0].index == 0 &&
+            relation;
+        failures += !report(
+            "loopscc-array-decay-pointer-alias", ok);
+    }
+
+    // The same declaration is not a certificate after p is moved/reassigned
+    // in the loop. Alias invalidation must prevent a fixed-cell candidate.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto memory = node("*p = *p + 1;");
+        auto movePointer = node("p = p + 1;");
+        auto increment = node("i = i + 1;");
+        auto exit = node("return i;");
+        loop->setNextNode(memory);
+        loop->setNextFalseNode(exit);
+        memory->setNextNode(movePointer);
+        movePointer->setNextNode(increment);
+        increment->setNextNode(loop);
+
+        const std::string prefix =
+            "int a[8];\nint *p = a;\nint i = 0;\n";
+        const auto graph =
+            LoopSccAdapter::analyzeWithConstantPointerAliases(
+                loop.get(), prefix);
+        const bool ok = graph.complete &&
+            graph.memorySummaryCandidates.empty();
+        failures += !report(
+            "loopscc-moving-pointer-alias-fallback", ok);
+    }
+
     // Plain multiplication is arithmetic, not pointer dereference. It remains
     // outside the restricted affine shortcut model, but the memory observer
     // must neither count MEMS nor throw a std::regex range exception.
