@@ -1,0 +1,107 @@
+name: MaxMEMS cocktail final isolated
+
+concurrency:
+  group: maxmems-cocktail-final-isolated-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-final-isolated
+    paths:
+      - '.github/workflows/maxmems-cocktail-final-isolated.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_iso -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_iso --target cnip -j2
+
+      - name: Run cocktail-sort 120s final isolated
+        shell: bash
+        run: |
+          set +e
+          mkdir -p isolated
+          timeout 120s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=1000 \
+            "${{ github.workspace }}/build_iso/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > isolated/stdout.log 2> isolated/stderr.log
+          rc=$?
+          echo "$rc" > isolated/exit_code.txt
+          exit 0
+
+      - name: Summarize cocktail
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("isolated")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          def last(p,t):
+              xs=re.findall(p,t,re.M)
+              return xs[-1] if xs else None
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*?incumbent=(-?\d+)",err)
+          result={
+            "exit":rc,
+            "mems":(lambda x:int(x) if x is not None else None)(last(r"^MEMS:\s*(-?\d+)\s*$",out)),
+            "dp_time":(lambda x:float(x) if x is not None else None)(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds",out)),
+            "seed":(lambda x:int(x) if x is not None else None)(last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out)),
+            "path_local_pruned":(lambda x:int(x) if x is not None else None)(last(r"^\[DP PATH LOCAL GUARD PRUNES\]:\s*(\d+)",out)),
+            "bnb_pruned":(lambda x:int(x) if x is not None else None)(last(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)",out)),
+            "leaf_solves":(lambda x:int(x) if x is not None else None)(last(r"^\[DP LEAF SOLVES\]:\s*(\d+)",out)),
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_FINAL_ISOLATED",json.dumps(result,sort_keys=True))
+          if rc != 0 or result["mems"] is None:
+              raise SystemExit("cocktail final isolated timed out")
+          PY
+
+      - name: 20-case correctness and upper-bound gate
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1 \
+          EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128 \
+          EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_iso/cnip" \
+            --output-dir isolated-witness
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-cocktail-final-isolated-results
+          path: |
+            isolated/
+            isolated-witness/
