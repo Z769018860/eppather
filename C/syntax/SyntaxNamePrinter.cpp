@@ -3868,47 +3868,73 @@ static int syntaxDecisionMemsUpper(
     CFGNode* node,
     PathDecisionKind kind) {
     if (!node) return 0;
-    // This cache is cleared at every function entry, so vartemp is already
-    // implicit in its lifetime. Hashing the full normalized source prefix on
-    // every upper-bound cache lookup dominated cocktail-sort before the actual
-    // DP search even began.
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(node)) + ":" +
-        std::to_string(static_cast<int>(kind));
+        std::to_string(static_cast<int>(kind)) + ":" +
+        std::to_string(std::hash<std::string>{}(self->vartemp));
     if (auto it = syntaxDecisionMemsCache.find(key);
         it != syntaxDecisionMemsCache.end()) {
         return it->second;
     }
 
-    ++maxMemsUpperLocalMemsMisses;
-    const auto localMemsStart = std::chrono::steady_clock::now();
-
-    const char* fastUpperRaw =
-        std::getenv("EPPATHER_MAXMEMS_FAST_TEXT_UPPER");
+    const char* fastRaw =
+        std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER");
     const bool fastUpper =
-        fastUpperRaw && *fastUpperRaw &&
-        std::string(fastUpperRaw) != "0";
-    const auto mem = [&]() -> std::optional<int> {
-        if (fastUpper) {
-            // The lexical estimator intentionally renders only the incremental
-            // decision and never consults vartemp. Avoid normalizing/sanitizing
-            // the full prefix for every unique CFG decision.
-            EpatRunner rawRunner("");
-            return rawRunner.estimateMemsUpperOnly(
-                {PathDecision{node, kind}});
+        fastRaw && *fastRaw && std::string(fastRaw) != "0";
+    if (fastUpper) {
+        // This is deliberately an over-approximation used only for BnB/order.
+        // Every directly counted source-level memory access is represented by
+        // at least one source character.  Therefore source-text length is a
+        // conservative local upper bound. Calls may contribute callee MEMS
+        // that is not present in the call-site text, so refuse to bound them.
+        if (!node->calleeNames.empty()) {
+            syntaxDecisionMemsCache.emplace(
+                key, kMaxMemsUpperInfinity);
+            return kMaxMemsUpperInfinity;
         }
-        EpatRunner runner(self->vartemp);
-        return runner.countMemsOnly(
-            {PathDecision{node, kind}});
-    }();
+
+        std::string text;
+        switch (kind) {
+        case PathDecisionKind::LoopInit:
+            text = node->initstmt_str;
+            break;
+        case PathDecisionKind::LoopUpdate:
+            text = node->expr_str;
+            break;
+        case PathDecisionKind::TrueBranch:
+        case PathDecisionKind::FalseBranch:
+            text = node->cond_str;
+            break;
+        case PathDecisionKind::Code:
+            text = node->getCode();
+            break;
+        }
+        int chars = 0;
+        for (unsigned char ch : text) {
+            if (!std::isspace(ch)) ++chars;
+        }
+        // One decision cannot contribute more memory events than a generous
+        // 4x expansion of its non-space source characters.  The factor covers
+        // read+write effects such as ++ / compound assignments while remaining
+        // cheap and intentionally loose. The full-path soundness gate remains
+        // authoritative before this mode can be promoted.
+        const long long widened =
+            static_cast<long long>(chars) * 4LL + 4LL;
+        const int value =
+            widened >= kMaxMemsUpperInfinity
+                ? kMaxMemsUpperInfinity
+                : static_cast<int>(widened);
+        syntaxDecisionMemsCache.emplace(key, value);
+        return value;
+    }
+
+    EpatRunner runner(self->vartemp);
+    const auto mem = runner.countMemsOnly(
+        {PathDecision{node, kind}});
     // Failure must never create an underestimated upper bound.
     const int value = mem
         ? std::max(0, *mem)
         : kMaxMemsUpperInfinity;
-    maxMemsUpperLocalMemsMicros +=
-        static_cast<std::uint64_t>(
-            std::chrono::duration_cast<std::chrono::microseconds>(
-                std::chrono::steady_clock::now() - localMemsStart).count());
     syntaxDecisionMemsCache.emplace(key, value);
     return value;
 }
@@ -4902,8 +4928,18 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsFeasibleIncumbent = -1;
 
             std::unordered_map<CFGNode*, int> seedLoopMap;
+            const int greedyInitialUpper =
+                std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER")
+                    ? std::min<int>(
+                          kMaxMemsUpperInfinity,
+                          static_cast<int>(std::min<std::size_t>(
+                              vartemp.size() * 4ULL + 4ULL,
+                              static_cast<std::size_t>(
+                                  kMaxMemsUpperInfinity))))
+                    : 0;
             PathInfo greedy = MaxMemsDP(
-                funcNode, maxloop, "", 0, seedLoopMap, 0, {});
+                funcNode, maxloop, "", 0, seedLoopMap,
+                greedyInitialUpper, {});
             const int seedFeasibleSeen = maxMemsSeedFeasibleSeen;
             maxMemsStopAfterFirstFeasible = false;
             maxMemsFirstFeasibleFound = false;
@@ -5074,8 +5110,22 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
         auto start = std::chrono::high_resolution_clock::now();
+        const char* fastUpperRaw =
+            std::getenv("EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER");
+        const bool fastUpper =
+            fastUpperRaw && *fastUpperRaw &&
+            std::string(fastUpperRaw) != "0";
+        const int initialMemsUpper = fastUpper
+            ? std::min<int>(
+                  kMaxMemsUpperInfinity,
+                  static_cast<int>(std::min<std::size_t>(
+                      vartemp.size() * 4ULL + 4ULL,
+                      static_cast<std::size_t>(
+                          kMaxMemsUpperInfinity))))
+            : 0;
         PathInfo result = MaxMemsDP(
-            funcNode, maxloop, "", 0, loopUnrollMap, 0, {}); // raw path
+            funcNode, maxloop, "", 0, loopUnrollMap,
+            initialMemsUpper, {}); // raw path
         if (seededWitness &&
             (!result.feasible || seededWitness->mems > result.mems)) {
             result = *seededWitness;
