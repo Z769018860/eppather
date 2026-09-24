@@ -1,0 +1,69 @@
+name: MaxMEMS historical 32 regression
+
+concurrency:
+  group: maxmems-historical32-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches:
+      - feature/maxmems-exact-path-ranking
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/e2e_path_validation.py'
+      - 'tools/aggregate_maxmems_historical32.py'
+      - 'docs/maxmems-historical-32-manifest.txt'
+      - '.github/workflows/maxmems-historical32-regression.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py tools/aggregate_maxmems_historical32.py
+      - name: Configure
+        run: cmake -S . -B build_hist32 -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_hist32 --target cnip -j2
+      - name: Run shard
+        run: |
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_hist32/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-historical-32-manifest.txt \
+            --expected-programs 32 \
+            --output-dir historical32-shard-${{ matrix.shard }} \
+            --max-loop 3 --max-paths 0 --timeout 300 --retry-timeout 300 \
+            --shard-index ${{ matrix.shard }} --shard-count 8
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical32-shard-${{ matrix.shard }}
+          path: historical32-shard-${{ matrix.shard }}/
+
+  aggregate:
+    needs: validate
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: historical32-shard-*
+          path: collected
+          merge-multiple: true
+      - name: Aggregate
+        run: python3 tools/aggregate_maxmems_historical32.py --input collected --output historical32-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: historical32-results
+          path: historical32-results/
