@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [bnb, bnb_fastupper, order, greedy_bnb_fastupper]
+        variant: [plain, bnb, bnb_fastupper, order, greedy_bnb_fastupper]
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -49,6 +49,9 @@ jobs:
           )
 
           case "${{ matrix.variant }}" in
+            plain)
+              EXTRA=()
+              ;;
             bnb)
               EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1)
               ;;
