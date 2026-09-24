@@ -531,8 +531,8 @@ if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: unique signed-integer scalar type 
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
-if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: runtime overflow remains uncertified; validation-only compression' "$OUT_DIR/coupled_affine.log"; then
-  echo "coupled_affine: post-hoc/runtime-overflow separation was not reported" >&2
+if ! grep -Fq '[LOOPSCC COUPLED CERTIFICATE]: signed-scalar type certificate alone does not prove overflow safety' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: type/overflow certificate separation was not reported" >&2
   cat "$OUT_DIR/coupled_affine.log" >&2
   exit 1
 fi
