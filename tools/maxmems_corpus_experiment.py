@@ -21,7 +21,13 @@ from e2e_path_validation import (
 )
 
 MEM_RE = re.compile(r"\[mem\]:(-?\d+)")
-DP_PATH_RE = re.compile(r"\[MAX MEMS PATH\]:\s*\n(.*?)\nMEMS:\s*(-?\d+)", re.S)
+DP_PATH_RE = re.compile(
+    r"\\[MAX MEMS PATH\\]:\\s*\\n(.*?)(?=\\n(?:\\[DP INTERNAL MEMS\\]|\\[DP SCORE DELTA\\]|MEMS:))",
+    re.S,
+)
+DP_MEM_RE = re.compile(r"(?m)^MEMS:\\s*(-?\\d+)")
+DP_INTERNAL_RE = re.compile(r"(?m)^\\[DP INTERNAL MEMS\\]:\\s*(-?\\d+)")
+DP_DELTA_RE = re.compile(r"(?m)^\\[DP SCORE DELTA\\]:\\s*(-?\\d+)")
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -56,11 +62,21 @@ def parse_dp_blocks(text: str) -> list[dict]:
     for part in parts[1:]:
         first, _, rest = part.partition("\n")
         tag = first.strip()
-        m = DP_PATH_RE.search(rest)
-        if not tag or not m:
+        path_m = DP_PATH_RE.search(rest)
+        mem_m = DP_MEM_RE.search(rest)
+        if not tag or not path_m or not mem_m:
             continue
-        blocks.append({"function": tag, "path": m.group(1), "mems": int(m.group(2)),
-                       "branches": expected_outcomes(m.group(1))})
+        path = path_m.group(1).rstrip()
+        internal_m = DP_INTERNAL_RE.search(rest)
+        delta_m = DP_DELTA_RE.search(rest)
+        blocks.append({
+            "function": tag,
+            "path": path,
+            "mems": int(mem_m.group(1)),
+            "internal_mems": int(internal_m.group(1)) if internal_m else "",
+            "score_delta": int(delta_m.group(1)) if delta_m else "",
+            "branches": expected_outcomes(path),
+        })
     return blocks
 
 
@@ -166,8 +182,11 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
             tag = block["function"]
             row = {
                 "source": str(src), "function": tag, "dp_mems": block["mems"],
+                "dp_internal_mems": block.get("internal_mems", ""),
+                "dp_score_delta": block.get("score_delta", ""),
                 "dfs_max_mems": "", "feasible_paths": 0, "paths_enumerated": 0,
                 "path_limit_hit": 0, "static_equal": 0, "witness_found": 0,
+                "witness_inputs": "", "expected_branches": "", "actual_branches": "",
                 "replay_status": "not_attempted", "detail": "",
             }
             rows = dfs_rows(dfw, tag)
@@ -232,6 +251,13 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                     prog["replay_unsupported_functions"] += 1
                     functions.append(row)
                     continue
+            if re.search(r"\\bswitch\\s*\\(", replay_source):
+                row["replay_status"] = "unsupported_switch"
+                row["detail"] = (row["detail"] + "; " if row["detail"] else "") + \
+                    "concrete replay does not instrument switch/case decisions"
+                prog["replay_unsupported_functions"] += 1
+                functions.append(row)
+                continue
             try:
                 selected, params = parse_signature(replay_source, replay_tag)
             except Exception as exc:
@@ -243,22 +269,31 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
 
             witness = candidates[0]
             inputs = parse_model(witness["result_text"], params, source)
+            row["witness_inputs"] = json.dumps(inputs, sort_keys=True)
+            row["expected_branches"] = json.dumps(block["branches"])
             try:
                 actual = concrete_trace(replay_source, selected, params, inputs, rpw, max_loop)
+                row["actual_branches"] = json.dumps(actual)
                 if actual == block["branches"]:
                     row["replay_status"] = "match"
                     prog["replay_match_functions"] += 1
                 else:
                     row["replay_status"] = "mismatch"
-                    row["detail"] = (row["detail"] + "; " if row["detail"] else "") +                                     "ordered concrete branch trace differs from DP witness"
+                    row["detail"] = (row["detail"] + "; " if row["detail"] else "") + \
+                        "ordered concrete branch trace differs from DP witness"
             except UndefinedBehaviorError as exc:
                 row["replay_status"] = "undefined"
                 row["detail"] = (row["detail"] + "; " if row["detail"] else "") + str(exc)
                 prog["replay_undefined_functions"] += 1
             except Exception as exc:
-                row["replay_status"] = "error"
-                row["detail"] = (row["detail"] + "; " if row["detail"] else "") + str(exc)
-                prog["replay_error_functions"] += 1
+                msg = str(exc)
+                if "compile failed:" in msg:
+                    row["replay_status"] = "unsupported_compile"
+                    prog["replay_unsupported_functions"] += 1
+                else:
+                    row["replay_status"] = "error"
+                    prog["replay_error_functions"] += 1
+                row["detail"] = (row["detail"] + "; " if row["detail"] else "") + msg
             functions.append(row)
 
         prog["functions_checked"] = len(functions)
@@ -314,9 +349,10 @@ def main() -> int:
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
                       "replay_unsupported_functions","replay_undefined_functions",
                       "replay_error_functions","path_limit_functions","hard_failure","detail"]
-    function_fields = ["source","function","dp_mems","dfs_max_mems","feasible_paths",
-                       "paths_enumerated","path_limit_hit","static_equal",
-                       "witness_found","replay_status","detail"]
+    function_fields = ["source","function","dp_mems","dp_internal_mems","dp_score_delta",
+                       "dfs_max_mems","feasible_paths","paths_enumerated","path_limit_hit",
+                       "static_equal","witness_found","witness_inputs","expected_branches",
+                       "actual_branches","replay_status","detail"]
 
     for pos, src in enumerate(selected, 1):
         try:
