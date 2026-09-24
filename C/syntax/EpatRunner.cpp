@@ -2778,6 +2778,10 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                             compressed->typeCertified;
                         validation.snapshotParallelized =
                             compressed->snapshotParallelized;
+                        validation.entryRangeCertified =
+                            compressed->entryRangeCertified;
+                        validation.preexecutionOverflowCertified =
+                            compressed->preexecutionOverflowCertified;
                         validation.certificateDiagnostics =
                             compressed->certificateDiagnostics;
 
