@@ -2840,6 +2840,123 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         const std::string rawPath = rawRunner.render(nextDecisions);
         return isPathFeasible(nextDecisions, rawPath);
     };
+
+    auto try_coupled_shortcut =
+        [&](const std::shared_ptr<CFGNode>& loopNode,
+            const std::vector<PathDecision>& prefix,
+            const std::vector<bool>& snapCov,
+            const std::vector<int>& snapLoopCount,
+            int loopDepth,
+            const char* kind) {
+            const char* raw =
+                std::getenv("EPPATHER_LOOP_SCC_COUPLED_ACCELERATE");
+            const bool requested =
+                raw && *raw && std::string(raw) != "0";
+            if (!requested || !loopNode || loopDepth < 0 ||
+                loopDepth >= static_cast<int>(snapLoopCount.size()) ||
+                snapLoopCount[loopDepth] != 0) {
+                return false;
+            }
+
+            const auto graph =
+                LoopSccAdapter::analyze(loopNode.get());
+            bool used = false;
+            for (std::size_t candidateIndex = 0;
+                 candidateIndex <
+                     graph.coupledAffineCandidates.size();
+                 ++candidateIndex) {
+                auto plan =
+                    buildLoopSccCoupledAffineValidationDecisions(
+                        prefix, loopNode.get(), graph,
+                        candidateIndex, vartemp);
+                if (!plan) continue;
+
+                if (!plan->runtimeShortcutEligible) {
+                    std::cout
+                        << "[LOOPSCC COUPLED DFS SHORTCUT BLOCKED]:"
+                        << " structural="
+                        << (plan->structuralSemanticCertified ? 1 : 0)
+                        << " type="
+                        << (plan->typeCertified ? 1 : 0)
+                        << " entry_range="
+                        << (plan->entryRangeCertified ? 1 : 0)
+                        << " overflow="
+                        << (plan->preexecutionOverflowCertified ? 1 : 0)
+                        << " snapshot="
+                        << (plan->snapshotParallelized ? 1 : 0)
+                        << std::endl;
+                    for (const auto& diagnostic :
+                         plan->certificateDiagnostics) {
+                        std::cout
+                            << "[LOOPSCC COUPLED PREEXEC DIAGNOSTIC]: "
+                            << diagnostic << std::endl;
+                    }
+                    continue;
+                }
+
+                std::cout
+                    << "[LOOPSCC COUPLED PREEXEC CERTIFICATE]:"
+                    << " certified=1"
+                    << " structural=1 type=1 entry_range=1"
+                    << " overflow=1 snapshot=1"
+                    << std::endl;
+
+                auto coverage = snapCov;
+                ensure_cov_vec(coverage, loopDepth);
+                coverage[2 * loopDepth] = true;
+                coverage[2 * loopDepth + 1] = true;
+                for (int slot : plan->coverageSlots) {
+                    if (slot < 0) continue;
+                    if (slot >=
+                        static_cast<int>(coverage.size())) {
+                        coverage.resize(
+                            static_cast<std::size_t>(slot + 1),
+                            false);
+                    }
+                    coverage[
+                        static_cast<std::size_t>(slot)] = true;
+                }
+
+                auto savedLoopCount = loopCount;
+                loopCount = snapLoopCount;
+                if (static_cast<int>(loopCount.size()) <=
+                    loopDepth) {
+                    loopCount.resize(loopDepth + 1, 0);
+                }
+                loopCount[loopDepth] = 0;
+
+                EpatRunner shortcutRunner(vartemp);
+                const auto shortcutEval =
+                    shortcutRunner.solve(plan->decisions);
+                if (shortcutEval.status == result::feasible) {
+                    const auto& candidate =
+                        graph.coupledAffineCandidates[
+                            candidateIndex];
+                    std::cout
+                        << "[LOOPSCC COUPLED DFS SHORTCUT USED]:"
+                        << " kind=" << kind
+                        << " period=" << candidate.period
+                        << " iterations="
+                        << candidate.totalIterations
+                        << " entry_phase="
+                        << candidate.entryPhase
+                        << " decisions="
+                        << plan->decisions.size()
+                        << std::endl;
+
+                    currentPathCallees_ = baseCallees;
+                    DFS2(
+                        loopNode->getNextFalseNode(),
+                        coverage, plan->decisions,
+                        depth + 1, pathCount,
+                        maxloop, maxpaths, enableVolce,
+                        volceLower, volceUpper, functionTag);
+                    used = true;
+                }
+                loopCount = savedLoopCount;
+            }
+            return used;
+        };
     // 非条件普通语句：同时打 T/F 覆盖位
     if (node->depth >= 0 && !node->isCondition) {
         ensure_cov(node->depth);
