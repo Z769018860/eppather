@@ -1,0 +1,73 @@
+name: MaxMEMS cocktail dead-upper smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-dead-upper-smoke
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - '.github/workflows/maxmems-cocktail-dead-upper-smoke.yml'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_smoke -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_smoke --target cnip -j2
+      - name: Run cocktail 60s
+        shell: bash
+        run: |
+          set +e
+          mkdir -p smoke
+          timeout 60s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
+            EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=1024 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=100 \
+            "${{ github.workspace }}/build_smoke/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > smoke/stdout.log 2> smoke/stderr.log
+          echo $? > smoke/exit_code.txt
+          exit 0
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          d=Path("smoke")
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          def last(p,s):
+              xs=re.findall(p,s,re.M)
+              return xs[-1] if xs else None
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*incumbent=(-?\d+)",err)
+          up=re.findall(r"\[DP UPPER PROGRESS\]: states=(\d+).*budget_skips=(\d+)",err)
+          result={
+            "exit":rc,
+            "mems":(lambda x:int(x) if x is not None else None)(last(r"^MEMS:\s*(-?\d+)\s*$",out)),
+            "seed":(lambda x:int(x) if x is not None else None)(last(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$",out)),
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+            "last_upper":list(map(int,up[-1])) if up else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_DEAD_UPPER_SMOKE",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-dead-upper-smoke-results
+          path: smoke/
