@@ -3546,6 +3546,8 @@ static std::uint64_t maxMemsMemoHits = 0;
 static std::uint64_t maxMemsLazyLeafSkipped = 0;
 static std::uint64_t maxMemsCertifiedGuardSolverSkips = 0;
 static int maxMemsFeasibleIncumbent = -1;
+static bool maxMemsStopAfterFirstFeasible = false;
+static bool maxMemsFirstFeasibleFound = false;
 
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
@@ -3984,6 +3986,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     int currentMemsUpper,
     std::vector<PathDecision> decisions
 ) {
+    if (maxMemsStopAfterFirstFeasible && maxMemsFirstFeasibleFound)
+        return PathInfo(0, pathPrefix, false);
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
     if (!entry)        return PathInfo(0, pathPrefix, true);
 
@@ -4163,7 +4167,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             static const EpatRunner rawRunner("");
             curPath = rawRunner.render(curDecisions);
         }
-        return store(PathInfo(std::max(0, eval.mem), curPath, true));
+        PathInfo leafResult(std::max(0, eval.mem), curPath, true);
+        if (maxMemsStopAfterFirstFeasible) {
+            maxMemsFirstFeasibleFound = true;
+        }
+        return store(std::move(leafResult));
     }
 
     // Function-definition and level-3 local-definition nodes are not rendered
@@ -4500,6 +4508,85 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsFeasibleIncumbent = -1;
 
         std::optional<PathInfo> seededWitness;
+
+        const char* greedySeedRaw =
+            std::getenv("EPPATHER_MAXMEMS_SEED_GREEDY");
+        const bool greedySeed =
+            greedySeedRaw && *greedySeedRaw &&
+            std::string(greedySeedRaw) != "0";
+        if (greedySeed) {
+            const char* oldOrderRaw =
+                std::getenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+            const std::optional<std::string> oldOrder =
+                oldOrderRaw ? std::optional<std::string>(oldOrderRaw)
+                            : std::nullopt;
+            const char* oldBoundRaw =
+                std::getenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+            const std::optional<std::string> oldBound =
+                oldBoundRaw ? std::optional<std::string>(oldBoundRaw)
+                            : std::nullopt;
+
+            setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
+            unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+            maxMemsStopAfterFirstFeasible = true;
+            maxMemsFirstFeasibleFound = false;
+            maxMemsFeasibleIncumbent = -1;
+
+            std::unordered_map<CFGNode*, int> seedLoopMap;
+            PathInfo greedy = MaxMemsDP(
+                funcNode, maxloop, "", 0, seedLoopMap, 0, {});
+            maxMemsStopAfterFirstFeasible = false;
+            maxMemsFirstFeasibleFound = false;
+
+            if (oldOrder) {
+                setenv("EPPATHER_MAXMEMS_BRANCH_ORDER",
+                       oldOrder->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_BRANCH_ORDER");
+            }
+            if (oldBound) {
+                setenv("EPPATHER_MAXMEMS_BRANCH_BOUND",
+                       oldBound->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+            }
+
+            // The seed pass is only a lower-bound discovery phase. Clear every
+            // search cache/counter before the exact BnB pass so diagnostics and
+            // memoization remain attributable to the main search.
+            dpMemo.clear();
+            decisionMemCache.clear();
+            syntaxDecisionMemsCache.clear();
+            remainingMemsUpperCache.clear();
+            feasCache.clear();
+            maxMemsPrefixChecks = 0;
+            maxMemsPrefixCacheHits = 0;
+            maxMemsPrefixPruned = 0;
+            maxMemsPrefixBudgetSkips = 0;
+            maxMemsLeafSolves = 0;
+            maxMemsMemoLookups = 0;
+            maxMemsMemoHits = 0;
+            maxMemsLazyLeafSkipped = 0;
+            maxMemsCertifiedGuardSolverSkips = 0;
+            maxMemsBranchBoundPruned = 0;
+            maxMemsBranchOrderSwaps = 0;
+            maxMemsUpperBoundStates = 0;
+            maxMemsUpperSoundnessChecks = 0;
+            maxMemsUpperUnderestimates = 0;
+            maxMemsPathLocalGuardPrunes = 0;
+
+            if (greedy.feasible) {
+                seededWitness = greedy;
+                maxMemsFeasibleIncumbent = greedy.mems;
+                std::cout << "[DP GREEDY SEEDED INCUMBENT]: "
+                          << greedy.mems << std::endl;
+            } else {
+                maxMemsFeasibleIncumbent = -1;
+                std::cout << "[DP GREEDY SEEDED INCUMBENT]: N/A"
+                          << std::endl;
+            }
+        }
+
         const char* seedRaw =
             std::getenv("EPPATHER_MAXMEMS_SEED_WITH_DFS2");
         const bool seedWithDfs2 =
