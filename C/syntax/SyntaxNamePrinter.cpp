@@ -4004,7 +4004,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const int totalUpper =
             addMemsUpper(currentMemsUpper, remaining);
         if (totalUpper < kMaxMemsUpperInfinity &&
-            totalUpper <= maxMemsFeasibleIncumbent) {
+            totalUpper < maxMemsFeasibleIncumbent) {
+            // Strict inequality is required while the incumbent stores only a
+            // value.  If totalUpper == incumbent, this subtree may contain the
+            // only witness that realizes the seeded maximum, so keep at least
+            // one equal-valued candidate for final path reconstruction.
             ++maxMemsBranchBoundPruned;
             return PathInfo(0, pathPrefix, false);
         }
