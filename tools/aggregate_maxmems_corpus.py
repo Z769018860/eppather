@@ -36,7 +36,19 @@ def main():
     replay_undefined=sum(r.get("replay_status")=="undefined" for r in functions)
     replay_error=sum(r.get("replay_status")=="error" for r in functions)
     replay_mismatch=sum(r.get("replay_status")=="mismatch" for r in functions)
+    path_limit_functions=sum(r.get("path_limit_hit")=="1" for r in functions)
+    path_limit_programs=sum(int(r.get("path_limit_functions") or 0)>0 for r in programs)
     static_fn_equal=sum(r.get("static_equal")=="1" for r in functions)
+    uncapped_static_fn_equal=sum(
+        r.get("static_equal")=="1" and r.get("path_limit_hit")!="1" for r in functions
+    )
+    uncapped_static_equal_programs=sum(
+        int(r.get("functions_checked") or 0)>0
+        and int(r.get("static_mismatch_functions") or 0)==0
+        and int(r.get("path_limit_functions") or 0)==0
+        and r.get("status") not in ("dp_failed","dfs_failed","dp_parse_error")
+        for r in programs
+    )
     summary={
         "expected_programs":args.expected_programs,
         "programs_collected":len(programs),
@@ -48,6 +60,10 @@ def main():
         "static_only_programs":len(static_only),
         "functions_checked":len(functions),
         "static_equal_functions":static_fn_equal,
+        "uncapped_static_equal_functions":uncapped_static_fn_equal,
+        "uncapped_static_equal_programs":uncapped_static_equal_programs,
+        "path_limit_functions":path_limit_functions,
+        "path_limit_programs":path_limit_programs,
         "replay_match_functions":replay_match,
         "replay_unsupported_functions":replay_unsupported,
         "replay_undefined_functions":replay_undefined,
@@ -68,6 +84,10 @@ def main():
         f"- Static-only programs: **{summary['static_only_programs']}**",
         f"- Functions checked: **{summary['functions_checked']}**",
         f"- Static-equal functions: **{summary['static_equal_functions']}**",
+        f"- Static-equal functions without a DFS path-limit hit: **{summary['uncapped_static_equal_functions']}**",
+        f"- Programs with no DFS path-limit hit and complete static agreement: **{summary['uncapped_static_equal_programs']}**",
+        f"- Functions hitting maxpaths: **{summary['path_limit_functions']}**",
+        f"- Programs containing a maxpaths hit: **{summary['path_limit_programs']}**",
         f"- Concrete witness branch matches: **{summary['replay_match_functions']}**",
         f"- Replay unsupported: **{summary['replay_unsupported_functions']}**",
         f"- Replay undefined: **{summary['replay_undefined_functions']}**",
