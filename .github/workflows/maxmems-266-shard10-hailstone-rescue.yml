@@ -1,0 +1,43 @@
+name: MaxMEMS shard10 hailstone rescue
+
+concurrency:
+  group: maxmems-shard10-hailstone-rescue-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - '.github/workflows/maxmems-266-shard10-hailstone-rescue.yml'
+
+jobs:
+  hailstone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_hailstone -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_hailstone --target cnip -j2
+      - name: Run hailstone
+        continue-on-error: true
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_hailstone/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir maxmems-shard10-hailstone \
+            --manifest docs/maxmems-266-shard10-manifest.txt \
+            --expected-programs 22 \
+            --max-loop 3 --max-paths 1000 \
+            --timeout 120 --retry-timeout 300 \
+            --shard-index 9 --shard-count 22
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-shard10-hailstone
+          path: maxmems-shard10-hailstone/
+          if-no-files-found: warn
