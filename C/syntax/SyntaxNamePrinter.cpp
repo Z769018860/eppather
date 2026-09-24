@@ -3651,7 +3651,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         }
         ++maxMemsLeafSolves;
         EpatRunner runner(vartemp);
-        const auto eval = runner.solve(curDecisions);
+        const char* lightLeafRaw =
+            std::getenv("EPPATHER_MAXMEMS_LIGHT_LEAF");
+        const bool lightLeaf =
+            lightLeafRaw && *lightLeafRaw &&
+            std::string(lightLeafRaw) != "0";
+        const auto eval = lightLeaf
+            ? runner.solveMemsOnly(curDecisions)
+            : runner.solve(curDecisions);
         if (eval.status != result::feasible) {
             return store(PathInfo(0, decisionOnlyPath ? std::string{} : curPath, false));
         }
