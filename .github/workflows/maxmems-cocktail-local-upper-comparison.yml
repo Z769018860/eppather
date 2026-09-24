@@ -1,0 +1,82 @@
+name: MaxMEMS cocktail local-upper comparison
+
+concurrency:
+  group: maxmems-cocktail-local-upper-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-lexical-upper
+    paths:
+      - '.github/workflows/maxmems-cocktail-local-upper-comparison.yml'
+
+jobs:
+  compare:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [exactlocal, lexical, chars]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_localupper -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_localupper --target cnip -j2
+      - name: Run 30s comparison
+        shell: bash
+        run: |
+          mkdir -p "upper-${{ matrix.variant }}"
+          EXTRA=()
+          case "${{ matrix.variant }}" in
+            exactlocal) ;;
+            lexical) EXTRA+=(EPPATHER_MAXMEMS_LEXICAL_UPPER=1) ;;
+            chars) EXTRA+=(EPPATHER_MAXMEMS_FAST_SYNTAX_UPPER=1) ;;
+          esac
+          set +e
+          timeout 30s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=512 \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            "${EXTRA[@]}" \
+            "${{ github.workspace }}/build_localupper/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > "upper-${{ matrix.variant }}/stdout.log" \
+            2> "upper-${{ matrix.variant }}/stderr.log"
+          echo $? > "upper-${{ matrix.variant }}/exit_code.txt"
+          exit 0
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          v="${{ matrix.variant }}"
+          d=Path("upper-"+v)
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*?incumbent=(-?\d+)",err)
+          seed=re.findall(r"\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)",out)
+          mems=re.findall(r"(?m)^MEMS:\s*(-?\d+)\s*$",out)
+          result={"variant":v,"exit":rc,
+                  "last_progress":list(map(int,prog[-1])) if prog else None,
+                  "seed":int(seed[-1]) if seed else None,
+                  "mems":int(mems[-1]) if mems else None}
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("LOCAL_UPPER_COMPARE",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: local-upper-${{ matrix.variant }}
+          path: upper-${{ matrix.variant }}/
