@@ -791,6 +791,7 @@ bool certifyFixedMemoryPreexecution(
     const LoopSccMemorySummaryCandidate& candidate,
     const LoopSccCycleInfo& cycle,
     const std::unordered_map<std::string, std::size_t>& extents,
+    const std::vector<LoopSccConstantPointerAlias>& pointerAliases,
     std::vector<std::string>& diagnostics) {
     auto reject = [&](const std::string& reason) {
         diagnostics.push_back(reason);
@@ -858,6 +859,52 @@ bool certifyFixedMemoryPreexecution(
     static const std::regex compoundMemoryAssign(
         R"((\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=))");
 
+    std::unordered_map<
+        std::string, std::pair<std::string, long long>> aliasMap;
+    for (const auto& alias : pointerAliases) {
+        aliasMap.emplace(
+            alias.pointer,
+            std::make_pair(alias.region, alias.index));
+    }
+    static const std::regex pointerSelfAdd(
+        R"(^[[:space:]]*\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*\*[[:space:]]*\1[[:space:]]*([+-])[[:space:]]*([0-9]+)[[:space:]]*;?[[:space:]]*$)");
+    static const std::regex pointerCompound(
+        R"(^[[:space:]]*\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*(\+=|-=)[[:space:]]*(-?[0-9]+)[[:space:]]*;?[[:space:]]*$)");
+    static const std::regex pointerConstant(
+        R"(^[[:space:]]*\*[[:space:]]*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;?[[:space:]]*$)");
+
+    auto certifiedPointerAccess =
+        [&](const LoopSccMemoryAccessInfo& access) -> bool {
+            std::smatch match;
+            std::string pointer;
+            std::size_t expectedPointerMems = 0;
+            if (std::regex_match(
+                    access.sourceText, match, pointerSelfAdd)) {
+                pointer = match[1].str();
+                expectedPointerMems = 2;
+            } else if (std::regex_match(
+                           access.sourceText, match,
+                           pointerCompound)) {
+                pointer = match[1].str();
+                expectedPointerMems = 2;
+            } else if (std::regex_match(
+                           access.sourceText, match,
+                           pointerConstant)) {
+                pointer = match[1].str();
+                expectedPointerMems = 1;
+            } else {
+                return false;
+            }
+            auto alias = aliasMap.find(pointer);
+            if (alias == aliasMap.end() ||
+                access.pointerDereferences != expectedPointerMems ||
+                access.arraySubscripts != 0) {
+                return false;
+            }
+            return candidateCells.find(alias->second) !=
+                   candidateCells.end();
+        };
+
     __int128 expectedMems = 0;
     auto addPathMems = [&](std::size_t pathId, long long multiplier) -> bool {
         if (pathId >= graph.spaths.size() || multiplier < 0) return false;
@@ -911,7 +958,13 @@ bool certifyFixedMemoryPreexecution(
                 return reject("memory access MEMS observation is imprecise");
             }
             if (access.pointerDereferences != 0) {
-                return reject("pointer dereference is not eligible for fixed-array certificate");
+                if (!certifiedPointerAccess(access)) {
+                    return reject(
+                        "pointer dereference is not a unique constant fixed-array alias");
+                }
+                // This dereference has been fully localized to a candidate
+                // fixed cell and its lexical/implicit MEMS count is exact.
+                continue;
             }
 
             std::size_t lexicalArrayAccesses = 0;
@@ -1064,11 +1117,13 @@ buildLoopSccMemoryAccelerationDecisions(
 
     const auto extents =
         parseFixedOneDimensionalArrayExtents(sourcePrefix);
+    const auto pointerAliases =
+        LoopSccAdapter::parseConstantPointerAliases(sourcePrefix);
 
     LoopSccMemoryAccelerationDecisionPlan plan;
     plan.preexecutionCertified =
         certifyFixedMemoryPreexecution(
-            graph, candidate, cycle, extents,
+            graph, candidate, cycle, extents, pointerAliases,
             plan.certificateDiagnostics);
     plan.unfoldedMems = candidate.observedMems;
     plan.decisions = prefix;
@@ -1315,7 +1370,9 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     std::size_t memorySummaryLoopCount = 0;
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
         for (CFGNode* loop : provenanceLoops) {
-            auto graph = LoopSccAdapter::analyze(loop);
+            auto graph =
+                LoopSccAdapter::analyzeWithConstantPointerAliases(
+                    loop, sourcePrefix_);
             for (const auto& cycle : graph.cycles) {
                 if (!cycle.guardedClosedFormCandidate) continue;
                 for (const auto& relation : cycle.periodAffineTransforms) {
