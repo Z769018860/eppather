@@ -3868,13 +3868,35 @@ static int syntaxDecisionMemsUpper(
     CFGNode* node,
     PathDecisionKind kind) {
     if (!node) return 0;
+    // Function-scoped cache: printCFG_greedyDFS() clears this map at
+    // every function entry, so node+decision uniquely identifies the local
+    // contribution without repeatedly hashing the complete source prefix.
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(node)) + ":" +
-        std::to_string(static_cast<int>(kind)) + ":" +
-        std::to_string(std::hash<std::string>{}(self->vartemp));
+        std::to_string(static_cast<int>(kind));
     if (auto it = syntaxDecisionMemsCache.find(key);
         it != syntaxDecisionMemsCache.end()) {
         return it->second;
+    }
+
+    const char* lexicalRaw =
+        std::getenv("EPPATHER_MAXMEMS_LEXICAL_UPPER");
+    const bool lexicalUpper =
+        lexicalRaw && *lexicalRaw && std::string(lexicalRaw) != "0";
+    if (lexicalUpper) {
+        // Solver-free but much tighter than the character-count fallback.
+        // estimateMemsUpperOnly() renders only this incremental decision and
+        // uses a conservative lexical MEMS estimator. Any unsupported call or
+        // parse case returns nullopt, which becomes infinity and therefore
+        // disables pruning rather than risking an underestimate.
+        EpatRunner rawRunner("");
+        const auto mem = rawRunner.estimateMemsUpperOnly(
+            {PathDecision{node, kind}});
+        const int value = mem
+            ? std::max(0, *mem)
+            : kMaxMemsUpperInfinity;
+        syntaxDecisionMemsCache.emplace(key, value);
+        return value;
     }
 
     const char* fastRaw =
