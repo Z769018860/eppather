@@ -1,0 +1,107 @@
+name: MaxMEMS cocktail parameter sweep
+
+concurrency:
+  group: maxmems-cocktail-parameter-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-greedy-seed
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - '.github/workflows/maxmems-cocktail-parameter-sweep.yml'
+
+jobs:
+  sweep:
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [bnb_noprefix, bnb_prefix16, bnb_prefix96, greedy_noprefix]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_sweep -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_sweep --target cnip -j2
+      - name: Run cocktail variant
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_sweep/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          OUT="sweep-${{ matrix.variant }}"
+          mkdir -p "$OUT"
+
+          COMMON=(
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+          )
+
+          case "${{ matrix.variant }}" in
+            bnb_noprefix)
+              EXTRA=()
+              ;;
+            bnb_prefix16)
+              EXTRA=(EPPATHER_PREFIX_FEASIBILITY=1 EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=16)
+              ;;
+            bnb_prefix96)
+              EXTRA=(EPPATHER_PREFIX_FEASIBILITY=1 EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96)
+              ;;
+            greedy_noprefix)
+              EXTRA=(EPPATHER_MAXMEMS_SEED_GREEDY=1)
+              ;;
+          esac
+
+          (
+            cd "$OUT"
+            timeout 120s env "${COMMON[@]}" "${EXTRA[@]}" \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+      - name: Summarize
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+          d=Path("sweep-${{ matrix.variant }}")
+          out=(d/"stdout.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          def one(pat, cast=int):
+              vals=re.findall(pat,out,re.M)
+              return cast(vals[-1]) if vals else None
+          result={
+            "variant":"${{ matrix.variant }}",
+            "exit":rc,
+            "mems":one(r"^MEMS:\s*(-?\d+)\s*$"),
+            "dp_time":one(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds",float),
+            "greedy_seed":one(r"^\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)\s*$"),
+            "bnb_pruned":one(r"^\[DP BRANCH BOUND PRUNED\]:\s*(\d+)"),
+            "leaf_solves":one(r"^\[DP LEAF SOLVES\]:\s*(\d+)"),
+            "prefix_checks":one(r"^\[DP PREFIX CHECKS\]:\s*(\d+)"),
+            "prefix_pruned":one(r"^\[DP PREFIX PRUNED\]:\s*(\d+)"),
+            "prefix_budget_skips":one(r"^\[DP PREFIX BUDGET SKIPS\]:\s*(\d+)"),
+            "path_local_prunes":one(r"^\[DP PATH LOCAL GUARD PRUNES\]:\s*(\d+)"),
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_SWEEP",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-sweep-${{ matrix.variant }}
+          path: sweep-${{ matrix.variant }}/
