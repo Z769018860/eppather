@@ -2888,6 +2888,22 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         if ((int)vec.size() < want) vec.resize(want, false);
     };
     auto is_decision_feasible = [&](const std::vector<PathDecision>& nextDecisions) {
+        // Max-only DFS is used only as an independent oracle for the maximum
+        // MEMS value. In leaf-only mode it enumerates the same bounded CFG
+        // decision tree but defers feasibility to the complete-path
+        // solveMemsOnly() call at the leaf. This removes repeated SMT solves on
+        // prefixes without changing the set or order of feasible leaf paths.
+        const char* maxOnlyRaw = std::getenv("EPPATHER_DFS2_MAX_ONLY");
+        const char* leafOnlyRaw =
+            std::getenv("EPPATHER_DFS2_LEAF_ONLY_FEASIBILITY");
+        const bool leafOnlyMax =
+            maxOnlyRaw && *maxOnlyRaw && std::string(maxOnlyRaw) != "0" &&
+            leafOnlyRaw && *leafOnlyRaw &&
+            std::string(leafOnlyRaw) != "0";
+        if (leafOnlyMax) {
+            return true;
+        }
+
         // Prefix scripts are not complete C paths.  In particular, a prefix
         // ending at a negated loop guard can underflow epat++'s expression
         // stack.  Solve complete leaf paths by default; keep prefix pruning as
