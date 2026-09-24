@@ -199,6 +199,12 @@ public:
     // is enabled, this conservatively falls back to the full solve().
     EpatResult solveMemsOnly(const std::vector<PathDecision>& decisions) const;
 
+    // Syntax-only MEMS counter for lazy MaxMEMS leaf validation. This does not
+    // invoke the SMT solver; it parses the rendered path and runs MemVisitor.
+    // nullopt means the lightweight count could not be established safely.
+    std::optional<int> countMemsOnly(
+        const std::vector<PathDecision>& decisions) const;
+
     // Feasibility-only fast path for prefix pruning. It preserves the same
     // bounded CFG/SSA semantics but deliberately skips MEMS, SMT2 and model
     // extraction, which are unnecessary for an intermediate prefix query.
