@@ -1,0 +1,121 @@
+name: MaxMEMS cocktail cache freeze
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-cache-freeze
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-cocktail-cache-freeze.yml'
+
+concurrency:
+  group: maxmems-cocktail-cache-freeze
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_freeze -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_freeze --target cnip -j2
+
+      - name: Gate fast upper soundness and BnB correctness
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND=1 \
+          EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_freeze/cnip" \
+            --output-dir freeze-witness
+
+      - name: Run 60s plain and fast-BnB cocktail A-B
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_freeze/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c"
+          mkdir -p cocktail-freeze/plain cocktail-freeze/fastbnb
+
+          (
+            cd cocktail-freeze/plain
+            timeout 60s env \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_PROGRESS_EVERY=500 \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+          (
+            cd cocktail-freeze/fastbnb
+            timeout 60s env \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 \
+              EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_PROGRESS_EVERY=500 \
+              EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=100 \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+      - name: Summarize A-B
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          root=Path("cocktail-freeze")
+          def read(name):
+              d=root/name
+              out=(d/"stdout.log").read_text(errors="replace")
+              err=(d/"stderr.log").read_text(errors="replace")
+              rc=int((d/"exit_code.txt").read_text().strip())
+              def last(p,s):
+                  xs=re.findall(p,s,re.M)
+                  return xs[-1] if xs else None
+              progress=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+) incumbent=(-?\d+)",err)
+              upper=re.findall(r"\[DP UPPER PROGRESS\]: states=(\d+) cache_hits=(\d+)",err)
+              return {
+                  "exit":rc,
+                  "mems": (lambda x:int(x) if x is not None else None)(last(r"^MEMS:\s*(-?\d+)\s*$",out)),
+                  "dp_time": (lambda x:float(x) if x is not None else None)(last(r"^\[DP TIME COST\]:\s*([0-9.eE+-]+)\s+seconds",out)),
+                  "last_dp_progress": list(map(int,progress[-1])) if progress else None,
+                  "last_upper_progress": list(map(int,upper[-1])) if upper else None,
+                  "decision_upper_queries": (lambda x:int(x) if x else None)(last(r"^\[DP DECISION UPPER QUERIES\]:\s*(\d+)",out)),
+                  "decision_upper_cache_hits": (lambda x:int(x) if x else None)(last(r"^\[DP DECISION UPPER CACHE HITS\]:\s*(\d+)",out)),
+              }
+          result={"plain":read("plain"),"fastbnb":read("fastbnb")}
+          Path("cocktail-freeze/summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("COCKTAIL_CACHE_FREEZE",json.dumps(result,sort_keys=True))
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cocktail-cache-freeze-results
+          path: |
+            cocktail-freeze/
+            freeze-witness/
