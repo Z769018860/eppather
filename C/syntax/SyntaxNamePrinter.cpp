@@ -3653,6 +3653,8 @@ static int decisionMemCached(SyntaxNamePrinter* self,
 
 
 static std::unordered_map<std::string, int> syntaxDecisionMemsCache;
+static std::uint64_t maxMemsDecisionUpperQueries = 0;
+static std::uint64_t maxMemsDecisionUpperCacheHits = 0;
 static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::unordered_set<std::string> remainingMemsUpperInProgress;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
@@ -4586,6 +4588,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
         maxMemsUpperBoundCacheHits = 0;
+        maxMemsDecisionUpperQueries = 0;
+        maxMemsDecisionUpperCacheHits = 0;
         maxMemsUpperSoundnessChecks = 0;
         maxMemsUpperUnderestimates = 0;
         maxMemsFeasibleIncumbent = -1;
@@ -4850,6 +4854,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsUpperBoundStates << std::endl;
         std::cout << "[DP UPPER BOUND CACHE HITS]: "
                   << maxMemsUpperBoundCacheHits << std::endl;
+        std::cout << "[DP DECISION UPPER QUERIES]: "
+                  << maxMemsDecisionUpperQueries << std::endl;
+        std::cout << "[DP DECISION UPPER CACHE HITS]: "
+                  << maxMemsDecisionUpperCacheHits << std::endl;
         std::cout << "[DP PATH LOCAL GUARD PRUNES]: "
                   << maxMemsPathLocalGuardPrunes << std::endl;
         std::cout << "[DP MEMS UPPER SOUNDNESS CHECKS]: "
