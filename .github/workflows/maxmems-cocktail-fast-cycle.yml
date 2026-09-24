@@ -49,6 +49,7 @@ jobs:
               EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
               EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
               EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY=1 \
               EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
               EPPATHER_MAXMEMS_PROGRESS_EVERY=500 \
               "$CNIP" -g "$SRC" 3 > "$d/stdout.log" 2> "$d/stderr.log"
