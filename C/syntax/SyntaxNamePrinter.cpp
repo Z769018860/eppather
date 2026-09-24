@@ -2807,11 +2807,64 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             !inputScalarVariables_.empty();
 
         if (domainPrune) {
+            auto decisionWritesVariable =
+                [](const PathDecision& decision,
+                   const std::string& variable) {
+                    std::string text;
+                    switch (decision.kind) {
+                        case PathDecisionKind::Code:
+                            if (decision.node) {
+                                text = decision.node->getCode();
+                            }
+                            break;
+                        case PathDecisionKind::LoopInit:
+                            if (decision.node) {
+                                text = decision.node->initstmt_str;
+                            }
+                            break;
+                        case PathDecisionKind::LoopUpdate:
+                            if (decision.node) {
+                                text = decision.node->expr_str;
+                            }
+                            break;
+                        case PathDecisionKind::SyntheticCode:
+                            text = decision.syntheticText;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (text.empty()) return false;
+                    const std::string escaped = variable;
+                    const std::regex postfixOrAssign(
+                        "\\b" + escaped +
+                        R"(\b[[:space:]]*(?:\+\+|--|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|=(?!=)))");
+                    const std::regex prefixUpdate(
+                        R"((?:\+\+|--)[[:space:]]*\b)" +
+                        escaped + R"(\b)");
+                    return std::regex_search(text, postfixOrAssign) ||
+                           std::regex_search(text, prefixUpdate);
+                };
+
+            std::vector<std::string> boundedInputs;
+            for (const auto& variable : inputScalarVariables_) {
+                bool written = false;
+                for (const auto& decision : nextDecisions) {
+                    if (decisionWritesVariable(decision, variable)) {
+                        written = true;
+                        break;
+                    }
+                }
+                if (!written) boundedInputs.push_back(variable);
+            }
+            if (boundedInputs.empty()) {
+                return true;
+            }
+
             ++volceDomainPrefixChecks_;
             EpatRunner boundedRunner(vartemp);
             std::string boundedScript =
                 boundedRunner.render(nextDecisions);
-            for (const auto& variable : inputScalarVariables_) {
+            for (const auto& variable : boundedInputs) {
                 boundedScript += "@((" + variable + " >= " +
                     std::to_string(volceLower) + ") && (" +
                     variable + " <= " +
