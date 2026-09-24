@@ -25,7 +25,11 @@ from e2e_path_validation import (
 )
 
 MEM_RE = re.compile(r"\[mem\]:(-?\d+)")
-DP_RE = re.compile(r"\[MAX MEMS PATH\]:\s*(.*?)\nMEMS:\s*(-?\d+)", re.S)
+DP_PATH_RE = re.compile(
+    r"\[MAX MEMS PATH\]:\s*\n(.*?)(?=\n(?:\[DP INTERNAL MEMS\]|\[DP SCORE DELTA\]|MEMS:))",
+    re.S,
+)
+DP_MEM_RE = re.compile(r"(?m)^MEMS:\s*(-?\d+)")
 MARK = "/*EPP_MEM*/"
 
 @dataclass
@@ -83,10 +87,12 @@ def analyze(cnip: Path, src: Path, max_loop: int, work: Path, flag: str):
     return run([str(cnip), flag, str(src), str(max_loop)], work, env_for(cnip))
 
 def parse_dp(text: str):
-    m = DP_RE.search(text)
-    if not m:
+    path_m = DP_PATH_RE.search(text)
+    mem_m = DP_MEM_RE.search(text)
+    if not path_m or not mem_m:
         raise RuntimeError("cannot parse -g MaxMEMS output")
-    return int(m.group(2)), expected_outcomes(m.group(1))
+    path = path_m.group(1).rstrip()
+    return int(mem_m.group(1)), expected_outcomes(path)
 
 def dfs_cases(work: Path, function: str, params: list[str], source: str):
     rows = []
