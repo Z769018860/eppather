@@ -3634,10 +3634,12 @@ static int decisionMemCached(SyntaxNamePrinter* self,
                              CFGNode* node,
                              PathDecisionKind kind) {
     if (!node) return 0;
+    // syntaxDecisionMemsCache is cleared at every function entry, so the
+    // current function's vartemp is already implicit in the cache lifetime.
+    // Avoid hashing the potentially large normalized prefix on every lookup.
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(node)) + ":" +
-        std::to_string(static_cast<int>(kind)) + ":" +
-        std::to_string(std::hash<std::string>{}(self->vartemp));
+        std::to_string(static_cast<int>(kind));
     auto it = decisionMemCache.find(key);
     if (it != decisionMemCache.end()) return it->second;
 
@@ -3881,10 +3883,12 @@ static int remainingMemsUpperBound(
     }
 
     const auto keyStart = std::chrono::steady_clock::now();
+    // remainingMemsUpperCache is also function-scoped by explicit clearing
+    // in printCFG_greedyDFS(). The source prefix therefore need not be hashed
+    // into every recursive upper-bound state key.
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(entry.get())) + "|" +
-        LoopMapKey(loopMap) + "|" + std::to_string(maxloop) + "|" +
-        std::to_string(std::hash<std::string>{}(self->vartemp));
+        LoopMapKey(loopMap) + "|" + std::to_string(maxloop);
     maxMemsUpperKeyMicros +=
         static_cast<std::uint64_t>(
             std::chrono::duration_cast<std::chrono::microseconds>(
