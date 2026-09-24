@@ -4206,6 +4206,21 @@ static bool maxMemsInFinalLiteralWhileIteration(
     return false;
 }
 
+static bool maxMemsSeedAtFinalActiveLoopFrontier(
+    const std::unordered_map<CFGNode*, int>& loopMap,
+    int maxloop) {
+    bool sawActiveLoop = false;
+    for (const auto& [loopNode, count] : loopMap) {
+        if (!loopNode || count <= 0) continue;
+        const int bound = predictedLoopBound(loopNode, maxloop);
+        if (bound <= 0) continue;
+        sawActiveLoop = true;
+        if (count < bound) return false;
+    }
+    return sawActiveLoop;
+}
+
+
 PathInfo SyntaxNamePrinter::MaxMemsDP(
     const std::shared_ptr<CFGNode>& entry,
     int maxloop,
@@ -4576,29 +4591,55 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                 fMemsUpper, std::move(fDecisions));
         };
 
-        const bool seedPreferFalseIf =
+        const bool trueIsDirectReturn =
+            entry->getNextNode() && entry->getNextNode()->isReturn;
+        const bool lateReturnFrontier =
             maxMemsSeedTerminationAware &&
-            maxMemsInFinalLiteralWhileIteration(loopUnrollMap, maxloop);
-        // Feasibility-first seed discovery deliberately prefers the false arm
-        // of an otherwise unknown if. This affects only which solver-certified
-        // lower-bound witness is found first; the exact BnB pass still explores
-        // every subtree whose sound upper bound can beat the incumbent.
-        const bool seedPreferUnknownFalseIf =
-            maxMemsSeedExitFirst && !literalGuard && falseGuardCanHold;
-        if ((seedPreferFalseIf || seedPreferUnknownFalseIf) &&
-            falseGuardCanHold) {
-            exploreFalse();
+            trueIsDirectReturn &&
+            maxMemsSeedAtFinalActiveLoopFrontier(
+                loopUnrollMap, maxloop);
+        const bool delayDirectReturn =
+            maxMemsSeedTerminationAware &&
+            trueIsDirectReturn &&
+            !lateReturnFrontier &&
+            falseGuardCanHold;
+
+        // Seed-only ordering: keep doing bounded work while an enclosing loop
+        // still has iterations available, then prefer a direct return at the
+        // final active-loop frontier. The selected leaf is still solver
+        // certified and the exact BnB search space is unchanged.
+        if (lateReturnFrontier && trueGuardCanHold) {
             exploreTrue();
-        } else if (!maxMemsSeedExitFirst &&
-                   branchOrderEnabled &&
-                   fPotential > tPotential) {
-            ++maxMemsBranchOrderSwaps;
+            exploreFalse();
+        } else if (delayDirectReturn) {
             exploreFalse();
             exploreTrue();
         } else {
-            // Seed discovery otherwise preserves source true-first order.
-            exploreTrue();
+            const bool seedPreferFalseIf =
+                maxMemsSeedTerminationAware &&
+                maxMemsInFinalLiteralWhileIteration(
+                    loopUnrollMap, maxloop);
+            // Feasibility-first seed discovery deliberately prefers the false
+            // arm of an otherwise unknown if. This affects only the initial
+            // lower bound; the exact pass remains unchanged.
+            const bool seedPreferUnknownFalseIf =
+                maxMemsSeedExitFirst && !literalGuard &&
+                falseGuardCanHold;
+            if ((seedPreferFalseIf || seedPreferUnknownFalseIf) &&
+                falseGuardCanHold) {
+                exploreFalse();
+                exploreTrue();
+            } else if (!maxMemsSeedExitFirst &&
+                       branchOrderEnabled &&
+                       fPotential > tPotential) {
+            ++maxMemsBranchOrderSwaps;
             exploreFalse();
+            exploreTrue();
+            } else {
+                // Seed discovery otherwise preserves source true-first order.
+                exploreTrue();
+                exploreFalse();
+            }
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
