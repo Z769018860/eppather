@@ -47,7 +47,8 @@ jobs:
           EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
           EPPATHER_MAXMEMS_EDGE_BNB=1 \
           EPPATHER_MAXMEMS_SEED_GREEDY=1 \
-          EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=1 \
+          EPPATHER_MAXMEMS_SEED_SOURCE_ORDER=1 \
+          EPPATHER_MAXMEMS_SEED_FEASIBLE_PATHS=5 \
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_edge/cnip" \
             --output-dir edge-bnb-witness
