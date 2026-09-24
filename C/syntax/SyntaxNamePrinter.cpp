@@ -4317,11 +4317,25 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             }
         }
 
-        const auto eval = lightLeaf
+        auto eval = lightLeaf
             ? runner.solveMemsOnly(curDecisions)
             : runner.solve(curDecisions);
+        const char* fullFallbackRaw =
+            std::getenv("EPPATHER_MAXMEMS_LIGHT_LEAF_FALLBACK_FULL");
+        const bool fullFallback =
+            fullFallbackRaw && *fullFallbackRaw &&
+            std::string(fullFallbackRaw) != "0";
+        if (lightLeaf && fullFallback &&
+            eval.status == result::unknown) {
+            // solveMemsOnly intentionally skips expensive artifact/provenance
+            // handling and can conservatively return unknown on complex
+            // pointer/indexed paths. Unknown is not an infeasibility proof:
+            // fall back to the ordinary solver before discarding the leaf.
+            eval = runner.solve(curDecisions);
+        }
         if (eval.status != result::feasible) {
-            return store(PathInfo(0, decisionOnlyPath ? std::string{} : curPath, false));
+            return store(PathInfo(
+                0, decisionOnlyPath ? std::string{} : curPath, false));
         }
         maxMemsFeasibleIncumbent =
             std::max(maxMemsFeasibleIncumbent, eval.mem);
