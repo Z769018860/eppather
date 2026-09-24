@@ -142,31 +142,36 @@ Configuration:
 
 ### Interim snapshot while the 266 rerun is still running
 
-Artifacts currently available from shards 4, 6, 8, and 9 cover **88 / 266**
+Artifacts currently available from shards 2, 4, 6, 7, 8, and 9 cover **132 / 266**
 programs. This is an interim progress snapshot, not the final corpus result.
 
-- Programs collected so far: **88**
-- GNU C syntax-valid / invalid: **84 / 4**
-- Programs reaching DP/DFS comparison: **82**
-- Programs with DP=DFS: **82 / 82 analyzed (100%)**
-- Functions with DP=DFS: **120 / 120 (100%)**
+- Programs collected so far: **132**
+- GNU C syntax-valid / invalid: **127 / 5**
+- Programs reaching DP/DFS comparison: **121**
+- Programs with DP=DFS: **121 / 121 analyzed (100%)**
+- Functions with DP=DFS: **167 / 167 (100%)**
 - True static mismatch programs: **0**
 - DFS path-limit hits: **0 programs / 0 functions**
-- DP timeouts after retry: **1** (`ludic-numbers.c`)
+- DP timeouts after retry: **4**
 - DFS timeouts after fallback: **0**
-- Retry attempted / rescued: **2 / 1**
-- Concrete replay matches: **44 functions**
+- Retry attempted / rescued: **6 / 2**
+- Concrete replay matches: **67 functions**
 - Concrete replay mismatch: **1 function**; this case still has static
   **DP=DFS** and is therefore tracked as a replay-oracle residual rather than a
   MaxMEMS static disagreement.
-- Other non-static residuals in this partial snapshot: **4 DP output parse
-  gaps** and **1 post-output process crash (-11)**.
+
+Of the four current DP-timeout rows, two are dominated by repeated
+`unsupported type: int[5]` diagnostics from epat++ (`amb.c` and
+`walk-a-directory-recursively-2.c`), so they are solver/subset-coverage
+residuals rather than observed DP-vs-DFS disagreements. The two main search
+timeouts in the current snapshot are `arithmetic-geometric-mean-1.c` and
+`ludic-numbers.c`.
 
 The interrupted original shard 10 job is an infrastructure failure: the GitHub
 runner received a shutdown signal after completing 9/22 programs. A dedicated
-shard-10 retry has been started with the same experimental parameters.
+shard-10 retry is running with the same experimental parameters.
 
-**Paper-safe interim interpretation:** across the first 82 programs for which
+**Paper-safe interim interpretation:** across the first 121 programs for which
 both MaxMEMS DP and the bounded DFS/max-only oracle produced comparable
 results, every static maximum agrees. This number must be replaced by the
 complete 266-program aggregate before submission.
