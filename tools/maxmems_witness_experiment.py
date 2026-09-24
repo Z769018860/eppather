@@ -124,7 +124,7 @@ def compile_replay(source: str, function: str, params: list[str], work: Path, ma
         "static int *epp_mem_ref(int *p){++epp_mem_count;return p;}\n"
         "static int epp_trace(int id,int v){printf(\"EPP_BRANCH %d %d\\n\",id,!!v);return v;}\n"
         "#define EPP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(expr)) : (expr))\n"
-        f"#define EPP_LOOP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(epp_loop_count[(id)]++ < {max_loop}) && !!(expr)) : (expr))\n"
+        "#define EPP_LOOP_TRACE(id,bound,expr) (epp_trace_enabled ? epp_trace((id),(epp_loop_count[(id)]++ < (bound)) && !!(expr)) : (expr))\n"
         + traced +
         f"\nint main(int argc,char **argv){{if(argc!={len(params)+1})return 2;{decls}"
         f"(void){function}({args});printf(\"EPP_MEMS %lld\\n\",epp_mem_count);return 0;}}\n"

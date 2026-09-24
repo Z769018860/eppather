@@ -109,3 +109,19 @@ MaxMemsDP now accumulates cached MEMS costs per `PathDecisionKind`:
 the same decision sequence rendered by DFS2. The `-g` output additionally
 reports `[DP INTERNAL MEMS]` and `[DP SCORE DELTA]`; a non-zero delta is
 retained as a diagnostic rather than silently hiding a scoring discrepancy.
+
+
+## Replay loop-bound synchronization
+
+Concrete replay previously applied the raw `--max-loop` value to every loop.
+That no longer matches Eppather: canonical constant affine `for` loops can be
+auto-lifted to their proved trip count, and simple constant-bound `while`
+loops can receive a larger conservative budget. A fixed loop such as
+`for(i=0;i<5;i++)` could therefore be analyzed for five iterations but
+replayed for only three, creating a false branch-trace mismatch.
+
+The replay instrumenter now computes a per-loop bound using the same supported
+affine forms and the same default 64-iteration autolift ceiling. Unsupported or
+data-dependent loops continue to use the requested safety bound. This change
+affects only the independent concrete oracle; it does not alter Eppather's
+static DP or DFS2 analysis.

@@ -89,6 +89,85 @@ def expected_outcomes(path: str) -> list[int]:
     return outcomes
 
 
+def _canonical_for_bound(init: str, cond: str, update: str, requested: int) -> int:
+    """Mirror Eppather's exact affine-for autolift for replayable canonical loops."""
+    requested = max(0, requested)
+    autolift_cap = max(requested, 64)
+
+    im = re.fullmatch(
+        r"\s*(?:int\s+)?([A-Za-z_]\w*)\s*=\s*(-?\d+)\s*", init
+    )
+    if not im:
+        return requested
+    var, raw_initial = im.group(1), im.group(2)
+    initial = int(raw_initial)
+
+    cm = re.fullmatch(
+        rf"\s*{re.escape(var)}\s*(<=|<|>=|>)\s*(-?\d+)\s*", cond
+    )
+    if not cm:
+        return requested
+    op, raw_limit = cm.group(1), cm.group(2)
+    limit = int(raw_limit)
+
+    compact = re.sub(r"\s+", "", update)
+    step = None
+    if compact in (f"{var}++", f"++{var}"):
+        step = 1
+    elif compact in (f"{var}--", f"--{var}"):
+        step = -1
+    else:
+        m = re.fullmatch(
+            rf"{re.escape(var)}([+-])=(-?\d+)", compact
+        )
+        if m:
+            amount = int(m.group(2))
+            step = amount if m.group(1) == "+" else -amount
+        else:
+            m = re.fullmatch(
+                rf"{re.escape(var)}={re.escape(var)}([+-])(-?\d+)", compact
+            )
+            if m:
+                amount = int(m.group(2))
+                step = amount if m.group(1) == "+" else -amount
+    if not step:
+        return requested
+
+    def holds(value: int) -> bool:
+        if op == "<":
+            return value < limit
+        if op == "<=":
+            return value <= limit
+        if op == ">":
+            return value > limit
+        return value >= limit
+
+    value = initial
+    for iterations in range(autolift_cap + 1):
+        if not holds(value):
+            return iterations
+        value += step
+    # Eppather treats a trip count beyond the autolift cap as non-exact and
+    # falls back to the user-requested safety bound.
+    return requested
+
+
+def _while_replay_bound(cond: str, requested: int) -> int:
+    """Mirror predictedLoopBound()'s constant-condition while budget."""
+    requested = max(0, requested)
+    direct = re.search(
+        r"\b[A-Za-z_]\w*\b\s*(?:<=|<|>=|>)\s*(-?\d+)", cond
+    )
+    reversed_ = re.search(
+        r"(-?\d+)\s*(?:<=|<|>=|>)\s*\b[A-Za-z_]\w*\b", cond
+    )
+    match = direct or reversed_
+    if not match:
+        return requested
+    limit = int(match.group(1))
+    return min(max(requested, 64), max(requested, 2 * abs(limit) + 2))
+
+
 def instrument_conditions(source: str, max_loop: int, function: str) -> str:
     counter = 0
     pattern = re.compile(r"\b(if|while)\s*\(([^{};]*)\)|\bfor\s*\(([^;]*);([^;]*);([^)]*)\)")
@@ -99,12 +178,21 @@ def instrument_conditions(source: str, max_loop: int, function: str) -> str:
         counter += 1
         if match.group(1):
             keyword = match.group(1)
-            tracer = "EPP_LOOP_TRACE" if keyword == "while" else "EPP_TRACE"
-            prefix = f"epp_loop_count[{idx}] = 0; " if keyword == "while" else ""
-            return f"{prefix}{keyword} ({tracer}({idx}, ({match.group(2)})))"
+            if keyword == "while":
+                bound = _while_replay_bound(match.group(2), max_loop)
+                return (
+                    f"epp_loop_count[{idx}] = 0; while "
+                    f"(EPP_LOOP_TRACE({idx}, {bound}, ({match.group(2)})))"
+                )
+            return f"if (EPP_TRACE({idx}, ({match.group(2)})))"
+        init = match.group(3)
         condition = match.group(4).strip() or "1"
-        return (f"epp_loop_count[{idx}] = 0; for ({match.group(3)}; "
-                f"EPP_LOOP_TRACE({idx}, ({condition})); {match.group(5)})")
+        update = match.group(5)
+        bound = _canonical_for_bound(init, condition, update, max_loop)
+        return (
+            f"epp_loop_count[{idx}] = 0; for ({init}; "
+            f"EPP_LOOP_TRACE({idx}, {bound}, ({condition})); {update})"
+        )
 
     match = next((m for m in FUNC_RE.finditer(source) if m.group("name") == function), None)
     if not match:
@@ -125,7 +213,6 @@ def instrument_conditions(source: str, max_loop: int, function: str) -> str:
     guard = "\nint epp_trace_enabled = !epp_in_entry; epp_in_entry = 1;\n"
     return source[:opening + 1] + guard + body + source[closing:]
 
-
 def run(cmd: list[str], cwd: Path, env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, cwd=cwd, env=env, text=True, capture_output=True, timeout=120)
 
@@ -138,7 +225,7 @@ def concrete_trace(source: str, function: str, params: list[str], inputs: dict[s
         'static int epp_in_entry;\n'
         'static int epp_trace(int id,int v){printf("EPP_BRANCH %d %d\\n",id,!!v);return v;}\n'
         '#define EPP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(expr)) : (expr))\n'
-        f'#define EPP_LOOP_TRACE(id,expr) (epp_trace_enabled ? epp_trace((id),(epp_loop_count[(id)]++ < {max_loop}) && !!(expr)) : (expr))\n'
+        '#define EPP_LOOP_TRACE(id,bound,expr) (epp_trace_enabled ? epp_trace((id),(epp_loop_count[(id)]++ < (bound)) && !!(expr)) : (expr))\n'
         + instrument_conditions(source, max_loop, function)
         + f"\nint main(void){{(void){function}({arguments});return 0;}}\n"
     )
