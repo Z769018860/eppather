@@ -165,6 +165,11 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
 
 std::optional<int> exactStableForTripCount(
     psy::C::CFGNode* node, int safetyCap) {
+    const char* raw =
+        std::getenv("EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE");
+    if (!raw || !*raw || std::string(raw) == "0") {
+        return std::nullopt;
+    }
     if (!node || !node->isFor) return std::nullopt;
 
     const auto prediction = psy::C::LoopBoundPredictor::predict(
