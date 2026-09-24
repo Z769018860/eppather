@@ -20,6 +20,10 @@ jobs:
       - run: cmake -S . -B build_ci_array_pointer -DANALYSIS_BACKEND=epat++
       - run: cmake --build build_ci_array_pointer --target cnip volce-summary-tests -j2
       - run: ./build_ci_array_pointer/volce-summary-tests
+      - name: Validate finite-domain pruning on branch-heavy memory loops
+        env:
+          CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip
+        run: bash tools/validate_volce_domain_prune.sh
       - name: Run 20 array pointer and VLA subjects
         env:
           CNIP: ${{ github.workspace }}/build_ci_array_pointer/cnip
@@ -43,3 +47,4 @@ jobs:
           path: |
             array-pointer-projection-results/
             array-pointer-sensitivity-results/
+            volce-domain-prune-results/
