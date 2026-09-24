@@ -2821,6 +2821,9 @@ void SyntaxNamePrinter::printBranchMatrix() {
         std::cout << '\n';
     }
 }
+static int maxMemsCapturedSeedMems = -1;
+static std::string maxMemsCapturedSeedPath;
+
 void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                              std::vector<bool>& pathCoverage,
                              std::vector<PathDecision>& decisions,
@@ -2914,7 +2917,19 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
             if (pushed) decisions.pop_back();
             return;
         }
-        if (eval.mem > maxmem) maxmem = eval.mem;
+        if (eval.mem > maxmem) {
+            maxmem = eval.mem;
+            const char* captureSeedRaw =
+                std::getenv("EPPATHER_MAXMEMS_CAPTURE_SEED_WITNESS");
+            const bool captureSeed =
+                captureSeedRaw && *captureSeedRaw &&
+                std::string(captureSeedRaw) != "0";
+            if (captureSeed) {
+                static const EpatRunner rawRunner("");
+                maxMemsCapturedSeedMems = eval.mem;
+                maxMemsCapturedSeedPath = rawRunner.render(decisions);
+            }
+        }
         if (eval.mem < minmem) minmem = eval.mem;
 
         // 关键修复：叶子处将覆盖向量统一补齐到 2*maxdepth 列，保证输出矩阵行对齐
@@ -4004,11 +4019,11 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         const int totalUpper =
             addMemsUpper(currentMemsUpper, remaining);
         if (totalUpper < kMaxMemsUpperInfinity &&
-            totalUpper < maxMemsFeasibleIncumbent) {
-            // Strict inequality is required while the incumbent stores only a
-            // value.  If totalUpper == incumbent, this subtree may contain the
-            // only witness that realizes the seeded maximum, so keep at least
-            // one equal-valued candidate for final path reconstruction.
+            totalUpper <= maxMemsFeasibleIncumbent) {
+            // The incumbent always has a retained feasible witness (either the
+            // DFS2 seed or a previously returned DP leaf). Therefore a subtree
+            // whose optimistic upper bound cannot exceed it cannot improve the
+            // MaxMEMS result and can be pruned, including equality.
             ++maxMemsBranchBoundPruned;
             return PathInfo(0, pathPrefix, false);
         }
@@ -4484,6 +4499,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsUpperUnderestimates = 0;
         maxMemsFeasibleIncumbent = -1;
 
+        std::optional<PathInfo> seededWitness;
         const char* seedRaw =
             std::getenv("EPPATHER_MAXMEMS_SEED_WITH_DFS2");
         const bool seedWithDfs2 =
@@ -4501,6 +4517,16 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             // pass to the first feasible path affects only seed quality, never
             // the final MaxMEMS result.
             setenv("EPPATHER_DFS2_MAX_ONLY", "1", 1);
+            const char* oldCaptureRaw =
+                std::getenv("EPPATHER_MAXMEMS_CAPTURE_SEED_WITNESS");
+            const std::optional<std::string> oldCapture =
+                oldCaptureRaw
+                    ? std::optional<std::string>(oldCaptureRaw)
+                    : std::nullopt;
+            setenv("EPPATHER_MAXMEMS_CAPTURE_SEED_WITNESS", "1", 1);
+            maxMemsCapturedSeedMems = -1;
+            maxMemsCapturedSeedPath.clear();
+
             const int savedMaxmem = maxmem;
             const int savedMinmem = minmem;
             const auto savedLoopCount = loopCount;
@@ -4517,10 +4543,21 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             DFS2(funcNode, seedCoverage, seedDecisions, 0,
                  seedPathCount, maxloop, 1, false, -8, 8,
                  functionTag);
-            if (maxmem >= 0) {
+            if (maxmem >= 0 &&
+                maxMemsCapturedSeedMems == maxmem &&
+                !maxMemsCapturedSeedPath.empty()) {
                 maxMemsFeasibleIncumbent = maxmem;
+                seededWitness = PathInfo(
+                    maxmem, maxMemsCapturedSeedPath, true);
                 std::cout << "[DP SEEDED INCUMBENT]: "
                           << maxMemsFeasibleIncumbent << std::endl;
+                std::cout << "[DP SEEDED WITNESS]: captured" << std::endl;
+            } else if (maxmem >= 0) {
+                // A seed value without its exact witness must not participate
+                // in equality pruning because the final result needs a path.
+                maxMemsFeasibleIncumbent = -1;
+                std::cout << "[DP SEEDED INCUMBENT]: N/A"
+                          << " (witness capture failed)" << std::endl;
             } else {
                 std::cout << "[DP SEEDED INCUMBENT]: N/A" << std::endl;
             }
@@ -4535,6 +4572,12 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             } else {
                 unsetenv("EPPATHER_DFS2_MAX_ONLY");
             }
+            if (oldCapture) {
+                setenv("EPPATHER_MAXMEMS_CAPTURE_SEED_WITNESS",
+                       oldCapture->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_CAPTURE_SEED_WITNESS");
+            }
             // Do not let seed prefix-feasibility answers bias diagnostics or
             // the main search cache.
             feasCache.clear();
@@ -4545,6 +4588,13 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         auto start = std::chrono::high_resolution_clock::now();
         PathInfo result = MaxMemsDP(
             funcNode, maxloop, "", 0, loopUnrollMap, 0, {}); // raw path
+        if (seededWitness &&
+            (!result.feasible || seededWitness->mems > result.mems)) {
+            result = *seededWitness;
+            std::cout << "[DP RESULT FROM SEED WITNESS]: 1" << std::endl;
+        } else {
+            std::cout << "[DP RESULT FROM SEED WITNESS]: 0" << std::endl;
+        }
         auto end = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> diff = end - start;
 
