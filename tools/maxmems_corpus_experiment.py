@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Eppather MaxMEMS witnesses across the 266-program normalized corpus."""
+"""Validate Eppather MaxMEMS witnesses across a frozen normalized-C corpus."""
 from __future__ import annotations
 
 import argparse
@@ -150,7 +150,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         "hard_failure": 0, "detail": "",
     }
     functions = []
-    with tempfile.TemporaryDirectory(prefix="eppather-maxmems266-") as td:
+    with tempfile.TemporaryDirectory(prefix="eppather-maxmems-corpus-") as td:
         root = Path(td)
         dpw, dfw, rpw = root / "dp", root / "dfs", root / "replay"
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
@@ -355,8 +355,8 @@ def main() -> int:
     ap.add_argument("--cnip", type=Path, default=Path("./cnip"))
     ap.add_argument("--corpus", type=Path, default=Path("testcase/output_complete2"))
     ap.add_argument("--manifest", type=Path, default=Path("docs/maxmems-266-corpus-manifest.txt"))
-    ap.add_argument("--expected-programs", type=int, default=266)
-    ap.add_argument("--output-dir", type=Path, default=Path("maxmems-266-results"))
+    ap.add_argument("--expected-programs", type=int, default=0, help="optional manifest-size integrity check; 0 derives the size from the manifest")
+    ap.add_argument("--output-dir", type=Path, default=Path("maxmems-corpus-results"))
     ap.add_argument("--max-loop", type=int, default=3)
     ap.add_argument("--max-paths", type=int, default=1000)
     ap.add_argument("--timeout", type=int, default=120)
@@ -369,7 +369,7 @@ def main() -> int:
     cnip, corpus = args.cnip.resolve(), args.corpus.resolve()
     manifest = args.manifest.resolve()
     files = load_manifest(manifest, corpus)
-    if len(files) != args.expected_programs:
+    if args.expected_programs > 0 and len(files) != args.expected_programs:
         raise RuntimeError(
             f"frozen corpus size mismatch: {len(files)} != {args.expected_programs}"
         )
@@ -422,7 +422,7 @@ def main() -> int:
     }
     (out / f"summary-{suffix}.json").write_text(json.dumps(summary, indent=2) + "\n",
                                                 encoding="utf-8")
-    print("MAXMEMS266_SHARD " + json.dumps(summary, sort_keys=True))
+    print("MAXMEMS_CORPUS_SHARD " + json.dumps(summary, sort_keys=True))
     return 0
 
 
