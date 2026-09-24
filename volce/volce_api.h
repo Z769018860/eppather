@@ -28,6 +28,23 @@ struct AffineRelationSummary {
     std::int64_t offset{0};
 };
 
+struct CoupledAffineRelationSummary {
+    // Row/column order for matrix. Each row proves:
+    // variables[row]_exit = sum_j matrix[row,j] *
+    //                       variables[j]_entry + offset[row].
+    std::vector<std::string> variables;
+    std::vector<std::int64_t> matrix;
+    std::vector<std::int64_t> offset;
+};
+
+struct CoupledAffineValidationResult {
+    std::vector<std::string> applied;
+    std::vector<std::string> rejected;
+    std::size_t required_rows{0};
+    std::size_t applied_rows{0};
+    bool all_rows_entailed{false};
+};
+
 struct MemoryCellAffineRelationSummary {
     std::string source_name;
     std::int64_t cell_index{0};
@@ -98,6 +115,12 @@ std::optional<CountResult> countModelsFromSmt2WithSummaries(
     const std::vector<MemoryRegionProjection>& memory_regions = {},
     bool apply_entailed_summaries = true,
     const std::vector<AffineRelationSummary>& affine_relations = {});
+
+
+std::optional<CoupledAffineValidationResult>
+validateCoupledAffineRelationsFromSmt2(
+    const std::string& smt2,
+    const std::vector<CoupledAffineRelationSummary>& summaries);
 
 std::optional<MemoryRelationValidationResult>
 validateMemoryCellRelationsFromSmt2(
