@@ -952,6 +952,152 @@ int main() {
             "loopscc-inside-out-predeclared-for-index", ok);
     }
 
+    // A fixed-cell inner loop can be folded into one exact outer SPath.
+    // Three outer iterations x four inner iterations produce a[1]+=12 while
+    // preserving all 24 unfolded memory MEMS for SyntheticMems compensation.
+    {
+        auto outer = forLoopNode("int i = 0;", "i < 3", "i = i + 1");
+        auto inner = forLoopNode("j = 0;", "j < 4", "j = j + 1");
+        auto memory = node("a[1] = a[1] + 1;");
+        auto exit = node("return a[1];");
+
+        outer->setNextNode(inner);
+        outer->setNextFalseNode(exit);
+        inner->setNextNode(memory);
+        inner->setNextFalseNode(outer);
+        memory->setNextNode(inner);
+
+        const auto graph = LoopSccAdapter::analyze(outer.get());
+        bool sawCell = false;
+        bool sawI = false;
+        bool sawJ4 = false;
+        if (graph.memorySummaryCandidates.size() == 1) {
+            const auto& candidate =
+                graph.memorySummaryCandidates.front();
+            for (const auto& transform :
+                 candidate.closedFormTransforms) {
+                if (transform.region == "a" &&
+                    transform.index == 1) {
+                    sawCell = transform.scale == 1 &&
+                              transform.offset == 12;
+                }
+            }
+            for (const auto& transform :
+                 candidate.scalarClosedFormTransforms) {
+                if (transform.variable == "i") {
+                    sawI = transform.scale == 1 &&
+                           transform.offset == 3;
+                } else if (transform.variable == "j") {
+                    sawJ4 = transform.scale == 0 &&
+                            transform.offset == 4;
+                }
+            }
+        }
+
+        const auto plan =
+            graph.memorySummaryCandidates.empty()
+                ? std::optional<psy::C::LoopSccMemoryAccelerationDecisionPlan>{}
+                : buildLoopSccMemoryAccelerationDecisions(
+                      {}, outer.get(), graph, 0, "int a[2];\n");
+        const bool ok = graph.complete &&
+            graph.insideOutNestedSummaryCount == 1 &&
+            graph.insideOutNestedMemorySummaryCount == 1 &&
+            graph.provedTripCount == 3 &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].observedMems == 8 &&
+            graph.spaths[0].certifiedNestedMemoryMems == 8 &&
+            graph.spaths[0].memoryAccesses.empty() &&
+            graph.accelerationPlans.empty() &&
+            graph.memorySummaryCandidates.size() == 1 &&
+            graph.memorySummaryCandidates[0].exact &&
+            graph.memorySummaryCandidates[0].observedMems == 24 &&
+            sawCell && sawI && sawJ4 &&
+            plan && plan->preexecutionCertified &&
+            plan->unfoldedMems == 24 &&
+            plan->compressedSummaryMems == 2 &&
+            plan->compensationMems == 22;
+        failures += !report(
+            "loopscc-inside-out-nested-fixed-memory", ok);
+    }
+
+    // Even exact fixed-cell inner summaries are not exportable when the
+    // externally visible transform depends on the cycle entry phase. With
+    // five inner iterations, the two alternating phases would add 7 vs 8.
+    {
+        auto outer = forLoopNode("int i = 0;", "i < 2", "i = i + 1");
+        auto inner = loopNode("j < 5");
+        inner->initstmt_str = "j = 0;";
+        auto branch = ifNode("x >= 0");
+        auto memoryA = node("a[1] = a[1] + 1;");
+        auto flipA = node("x = 0 - x - 1;");
+        auto memoryB = node("a[1] = a[1] + 2;");
+        auto flipB = node("x = 0 - x - 1;");
+        auto incJ = node("j = j + 1;");
+        auto exit = node("return a[1];");
+
+        outer->setNextNode(inner);
+        outer->setNextFalseNode(exit);
+        inner->setNextNode(branch);
+        inner->setNextFalseNode(outer);
+        branch->setNextNode(memoryA);
+        branch->setNextFalseNode(memoryB);
+        memoryA->setNextNode(flipA);
+        flipA->setNextNode(incJ);
+        memoryB->setNextNode(flipB);
+        flipB->setNextNode(incJ);
+        incJ->setNextNode(inner);
+
+        const auto innerGraph = LoopSccAdapter::analyze(inner.get());
+        bool sawDifferentPhases =
+            innerGraph.memorySummaryCandidates.size() == 2;
+        if (sawDifferentPhases) {
+            const auto& first =
+                innerGraph.memorySummaryCandidates[0];
+            const auto& second =
+                innerGraph.memorySummaryCandidates[1];
+            sawDifferentPhases =
+                first.closedFormTransforms.size() == 1 &&
+                second.closedFormTransforms.size() == 1 &&
+                first.closedFormTransforms[0].offset !=
+                    second.closedFormTransforms[0].offset;
+        }
+
+        const auto outerGraph = LoopSccAdapter::analyze(outer.get());
+        const bool ok = innerGraph.complete &&
+            innerGraph.provedTripCount == 5 &&
+            innerGraph.cycles.size() == 1 &&
+            innerGraph.cycles[0].period == 2 &&
+            sawDifferentPhases &&
+            !outerGraph.complete &&
+            outerGraph.insideOutNestedMemorySummaryCount == 0 &&
+            outerGraph.memorySummaryCandidates.empty();
+        failures += !report(
+            "loopscc-inside-out-phase-dependent-memory-fallback", ok);
+    }
+
+    // Symbolic-index memory remains outside the fixed-cell proof. The inner
+    // loop therefore has no exact memory candidate and the outer graph must
+    // stay incomplete instead of treating it as an inside-out summary.
+    {
+        auto outer = forLoopNode("int i = 0;", "i < 2", "i = i + 1");
+        auto inner = forLoopNode("int j = 0;", "j < 2", "j = j + 1");
+        auto memory = node("a[k] = a[k] + 1;");
+        auto exit = node("return i;");
+
+        outer->setNextNode(inner);
+        outer->setNextFalseNode(exit);
+        inner->setNextNode(memory);
+        inner->setNextFalseNode(outer);
+        memory->setNextNode(inner);
+
+        const auto graph = LoopSccAdapter::analyze(outer.get());
+        const bool ok = !graph.complete &&
+            graph.insideOutNestedMemorySummaryCount == 0 &&
+            graph.memorySummaryCandidates.empty();
+        failures += !report(
+            "loopscc-inside-out-symbolic-memory-fallback", ok);
+    }
+
     // Nested loops require inside-out summaries. The first adapter stage must
     // diagnose and fall back instead of pretending the outer graph is exact.
     {

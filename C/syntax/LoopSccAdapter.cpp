@@ -1337,6 +1337,225 @@ uniformInsideOutPlan(const LoopSccGraphInfo& nested, CFGNode* nestedLoop) {
     return folded;
 }
 
+struct InsideOutMemorySummary {
+    std::vector<LoopSccMemoryCellTransform> memoryTransforms;
+    std::vector<LoopSccAffineTransform> scalarTransforms;
+    std::vector<int> coverageSlots;
+    std::size_t observedMems{0};
+};
+
+std::optional<InsideOutMemorySummary>
+uniformInsideOutMemorySummary(
+    const LoopSccGraphInfo& nested, CFGNode* nestedLoop) {
+    if (!nested.complete || nested.provedTripCount <= 0 ||
+        nested.cycles.size() != 1 ||
+        nested.memorySummaryCandidates.empty()) {
+        return std::nullopt;
+    }
+
+    const auto& cycle = nested.cycles.front();
+    if (!cycle.determinate || !cycle.phaseGuardsProved ||
+        cycle.period == 0 ||
+        cycle.spathOrder.size() != cycle.period ||
+        nested.memorySummaryCandidates.size() != cycle.period) {
+        return std::nullopt;
+    }
+
+    // The inner candidate is allowed to become an outer structural fact only
+    // when every participating SPath already has exact memory observation,
+    // transition and non-memory effect models.
+    for (std::size_t pathId : cycle.spathOrder) {
+        if (pathId >= nested.spaths.size()) return std::nullopt;
+        const auto& path = nested.spaths[pathId];
+        if (!path.returnsToHeader || path.exitsLoop ||
+            !path.guardModelComplete ||
+            !path.memoryAccessModelComplete ||
+            !path.memoryTransitionModelComplete ||
+            !path.memorySummaryEffectSafe ||
+            (path.writesMemory && path.memoryCellTransforms.empty())) {
+            return std::nullopt;
+        }
+
+        __int128 explainedMems =
+            static_cast<__int128>(
+                path.certifiedNestedMemoryMems);
+        for (const auto& access : path.memoryAccesses) {
+            if (!access.precise) return std::nullopt;
+            explainedMems += access.mems();
+        }
+        if (explainedMems < 0 ||
+            explainedMems >
+                static_cast<__int128>(
+                    std::numeric_limits<std::size_t>::max()) ||
+            static_cast<std::size_t>(explainedMems) !=
+                path.observedMems) {
+            return std::nullopt;
+        }
+    }
+
+    using CellKey = std::pair<std::string, long long>;
+    using TransformValue = std::pair<long long, long long>;
+    auto normalizeMemory =
+        [](const LoopSccMemorySummaryCandidate& candidate) {
+            std::map<CellKey, TransformValue> out;
+            for (const auto& transform :
+                 candidate.closedFormTransforms) {
+                out[{transform.region, transform.index}] =
+                    {transform.scale, transform.offset};
+            }
+            return out;
+        };
+    auto normalizeScalar =
+        [](const LoopSccMemorySummaryCandidate& candidate) {
+            std::map<std::string, TransformValue> out;
+            for (const auto& transform :
+                 candidate.scalarClosedFormTransforms) {
+                out[transform.variable] =
+                    {transform.scale, transform.offset};
+            }
+            return out;
+        };
+    auto coverageFor =
+        [&](const LoopSccMemorySummaryCandidate& candidate)
+            -> std::optional<std::vector<int>> {
+            if (candidate.cycleIndex != 0 ||
+                candidate.entryPhase >= cycle.period ||
+                candidate.totalIterations != nested.provedTripCount) {
+                return std::nullopt;
+            }
+
+            const long long fullPeriods =
+                candidate.totalIterations /
+                static_cast<long long>(cycle.period);
+            const std::size_t residual =
+                static_cast<std::size_t>(
+                    candidate.totalIterations %
+                    static_cast<long long>(cycle.period));
+            std::set<int> coverage;
+            if (fullPeriods > 0) {
+                for (std::size_t pathId : cycle.spathOrder) {
+                    if (pathId >= nested.spaths.size()) {
+                        return std::nullopt;
+                    }
+                    coverage.insert(
+                        nested.spaths[pathId].coverageSlots.begin(),
+                        nested.spaths[pathId].coverageSlots.end());
+                }
+            }
+            for (std::size_t r = 0; r < residual; ++r) {
+                const std::size_t pathId =
+                    cycle.spathOrder[
+                        (candidate.entryPhase + r) % cycle.period];
+                if (pathId >= nested.spaths.size()) {
+                    return std::nullopt;
+                }
+                coverage.insert(
+                    nested.spaths[pathId].coverageSlots.begin(),
+                    nested.spaths[pathId].coverageSlots.end());
+            }
+            if (nestedLoop && nestedLoop->depth >= 0) {
+                coverage.insert(2 * nestedLoop->depth + 1);
+            }
+            return std::vector<int>(
+                coverage.begin(), coverage.end());
+        };
+
+    const LoopSccMemorySummaryCandidate* representative = nullptr;
+    std::map<CellKey, TransformValue> referenceMemory;
+    std::map<std::string, TransformValue> referenceScalar;
+    std::vector<int> referenceCoverage;
+    std::size_t referenceMems = 0;
+
+    for (const auto& candidate :
+         nested.memorySummaryCandidates) {
+        if (!candidate.exact ||
+            candidate.totalIterations != nested.provedTripCount ||
+            candidate.closedFormTransforms.empty()) {
+            return std::nullopt;
+        }
+        const auto coverage = coverageFor(candidate);
+        if (!coverage) return std::nullopt;
+
+        auto memory = normalizeMemory(candidate);
+        auto scalar = normalizeScalar(candidate);
+        if (!representative) {
+            representative = &candidate;
+            referenceMemory = std::move(memory);
+            referenceScalar = std::move(scalar);
+            referenceCoverage = *coverage;
+            referenceMems = candidate.observedMems;
+            continue;
+        }
+        if (memory != referenceMemory ||
+            scalar != referenceScalar ||
+            *coverage != referenceCoverage ||
+            candidate.observedMems != referenceMems) {
+            return std::nullopt;
+        }
+    }
+    if (!representative || referenceMemory.empty()) {
+        return std::nullopt;
+    }
+
+    InsideOutMemorySummary folded;
+    folded.memoryTransforms =
+        representative->closedFormTransforms;
+    folded.scalarTransforms =
+        representative->scalarClosedFormTransforms;
+    folded.coverageSlots = std::move(referenceCoverage);
+    folded.observedMems = referenceMems;
+
+    // Match scalar inside-out semantics for a nested for initializer. A C99
+    // declaration is scoped to the inner loop and must not leak into the outer
+    // SPath. A predeclared induction variable remains externally visible as a
+    // constant final value after the initializer is folded.
+    if (nestedLoop && nestedLoop->isFor &&
+        !nestedLoop->initstmt_str.empty()) {
+        std::smatch initMatch;
+        static const std::regex initRe(
+            R"((?:^|[;[:space:]])(?:[A-Za-z_][A-Za-z0-9_]*[[:space:]]+)*([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*=[[:space:]]*(-?[0-9]+)[[:space:]]*;?$)");
+        if (!std::regex_search(
+                nestedLoop->initstmt_str, initMatch, initRe)) {
+            return std::nullopt;
+        }
+        const std::string initVar = initMatch[1].str();
+        const long long initValue =
+            std::strtoll(initMatch[2].str().c_str(), nullptr, 10);
+        bool sawInitVar = false;
+        for (auto& transform : folded.scalarTransforms) {
+            if (transform.variable != initVar) continue;
+            const __int128 value =
+                static_cast<__int128>(transform.scale) * initValue +
+                transform.offset;
+            if (value < std::numeric_limits<long long>::min() ||
+                value > std::numeric_limits<long long>::max()) {
+                return std::nullopt;
+            }
+            transform.scale = 0;
+            transform.offset = static_cast<long long>(value);
+            sawInitVar = true;
+            break;
+        }
+        if (!sawInitVar) return std::nullopt;
+
+        static const std::regex declaredInitRe(
+            R"(^[[:space:]]*(?:const[[:space:]]+|volatile[[:space:]]+|signed[[:space:]]+|unsigned[[:space:]]+)*(?:char|short|int|long|float|double|_Bool|size_t)[[:space:]]+)");
+        if (std::regex_search(
+                nestedLoop->initstmt_str, declaredInitRe)) {
+            folded.scalarTransforms.erase(
+                std::remove_if(
+                    folded.scalarTransforms.begin(),
+                    folded.scalarTransforms.end(),
+                    [&](const LoopSccAffineTransform& transform) {
+                        return transform.variable == initVar;
+                    }),
+                folded.scalarTransforms.end());
+        }
+    }
+
+    return folded;
+}
+
 void deriveUniformTripCount(CFGNode* loop,
                             const std::vector<BuiltPath>& built,
                             LoopSccGraphInfo& result) {
@@ -1470,28 +1689,82 @@ LoopSccGraphInfo LoopSccAdapter::analyze(CFGNode* loop,
                 current.get(), maxPaths, maxNodesPerPath);
             const auto nestedPlan =
                 uniformInsideOutPlan(nested, current.get());
-            if (!nestedPlan) {
+            const auto nestedMemory =
+                nestedPlan
+                    ? std::optional<InsideOutMemorySummary>{}
+                    : uniformInsideOutMemorySummary(
+                          nested, current.get());
+            if (!nestedPlan && !nestedMemory) {
                 unsupported = true;
                 result.diagnostics.push_back(
                     "nested loop requires inside-out LoopSCC summary");
                 return;
             }
 
-            for (const auto& transform :
-                 nestedPlan->closedFormTransforms) {
-                composeUpdate(
-                    path, transform.variable,
-                    transform.scale, transform.offset,
-                    "inside-out nested LoopSCC summary");
-            }
-            for (int slot : nestedPlan->coverageSlots) {
-                recordCoverageSlot(path, slot);
+            if (nestedPlan) {
+                for (const auto& transform :
+                     nestedPlan->closedFormTransforms) {
+                    composeUpdate(
+                        path, transform.variable,
+                        transform.scale, transform.offset,
+                        "inside-out nested LoopSCC summary");
+                }
+                for (int slot : nestedPlan->coverageSlots) {
+                    recordCoverageSlot(path, slot);
+                }
+            } else {
+                if (nestedMemory->observedMems >
+                    std::numeric_limits<std::size_t>::max() -
+                        path.info.observedMems) {
+                    unsupported = true;
+                    result.diagnostics.push_back(
+                        "inside-out nested memory MEMS overflow");
+                    return;
+                }
+                for (const auto& transform :
+                     nestedMemory->scalarTransforms) {
+                    composeUpdate(
+                        path, transform.variable,
+                        transform.scale, transform.offset,
+                        "inside-out nested fixed-memory summary");
+                }
+                for (const auto& transform :
+                     nestedMemory->memoryTransforms) {
+                    if (!composeMemoryCellUpdate(
+                            path, transform.region,
+                            transform.index,
+                            transform.scale,
+                            transform.offset)) {
+                        unsupported = true;
+                        result.diagnostics.push_back(
+                            "inside-out nested memory transform overflow");
+                        return;
+                    }
+                }
+                path.info.observedMems +=
+                    nestedMemory->observedMems;
+                path.info.certifiedNestedMemoryMems +=
+                    nestedMemory->observedMems;
+                path.info.writesMemory = true;
+                path.info.accelerationEffectSafe = false;
+                recordWrite(path, "*memory*");
+                path.unknownWrites.insert("*memory*");
+                for (int slot : nestedMemory->coverageSlots) {
+                    recordCoverageSlot(path, slot);
+                }
             }
             if (summarizedNestedLoops.insert(current.get()).second) {
                 ++result.insideOutNestedSummaryCount;
-                result.diagnostics.push_back(
-                    "inside-out summarized nested loop: " +
-                    current->cond_str);
+                if (nestedMemory) {
+                    ++result.insideOutNestedMemorySummaryCount;
+                    result.diagnostics.push_back(
+                        "inside-out summarized nested fixed-memory loop: " +
+                        current->cond_str);
+                } else {
+                    result.diagnostics.push_back(
+                        "inside-out summarized nested loop: " +
+                        current->cond_str);
+                }
             }
 
             auto afterNested = current->getNextFalseNode();

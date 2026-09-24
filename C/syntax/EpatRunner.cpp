@@ -953,6 +953,9 @@ bool certifyFixedMemoryPreexecution(
             return reject("memory write lacks fixed-cell transition");
         }
 
+        __int128 explainedPathMems =
+            static_cast<__int128>(
+                path.certifiedNestedMemoryMems);
         for (const auto& access : path.memoryAccesses) {
             if (!access.precise) {
                 return reject("memory access MEMS observation is imprecise");
@@ -964,6 +967,7 @@ bool certifyFixedMemoryPreexecution(
                 }
                 // This dereference has been fully localized to a candidate
                 // fixed cell and its lexical/implicit MEMS count is exact.
+                explainedPathMems += access.mems();
                 continue;
             }
 
@@ -1007,6 +1011,16 @@ bool certifyFixedMemoryPreexecution(
                 lexicalArrayAccesses == 0) {
                 return reject("array access could not be structurally localized");
             }
+            explainedPathMems += access.mems();
+        }
+        if (explainedPathMems < 0 ||
+            explainedPathMems >
+                static_cast<__int128>(
+                    std::numeric_limits<std::size_t>::max()) ||
+            static_cast<std::size_t>(explainedPathMems) !=
+                path.observedMems) {
+            return reject(
+                "SPath MEMS are not fully explained by lexical accesses and certified nested summaries");
         }
 
         for (const auto& transform : path.memoryCellTransforms) {
@@ -1367,7 +1381,10 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     std::unordered_map<CFGNode*, LoopSccGraphInfo> loopSccAnalysis;
     bool memoryProvenanceNeeded = false;
     CFGNode* memoryCheckpointLoop = nullptr;
+    CFGNode* onlyMemorySummaryLoop = nullptr;
+    CFGNode* onlyComposedMemorySummaryLoop = nullptr;
     std::size_t memorySummaryLoopCount = 0;
+    std::size_t composedMemorySummaryLoopCount = 0;
     if (envEnabled("EPPATHER_LOOP_SCC_ANALYZE")) {
         for (CFGNode* loop : provenanceLoops) {
             auto graph =
@@ -1392,11 +1409,29 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             }
             if (!graph.memorySummaryCandidates.empty()) {
                 ++memorySummaryLoopCount;
-                memoryCheckpointLoop =
+                onlyMemorySummaryLoop =
                     memorySummaryLoopCount == 1 ? loop : nullptr;
+                if (graph.insideOutNestedMemorySummaryCount > 0) {
+                    ++composedMemorySummaryLoopCount;
+                    onlyComposedMemorySummaryLoop =
+                        composedMemorySummaryLoopCount == 1
+                            ? loop
+                            : nullptr;
+                }
             }
             loopSccAnalysis.emplace(loop, std::move(graph));
         }
+    }
+
+    // A nested fixed-memory outer loop intentionally coexists with the
+    // inner loop's own candidate. Prefer the unique composed outer candidate:
+    // it represents the complete inside-out effect and is the correct loop
+    // entry for whole-memory provenance. If there is no unique composed
+    // candidate, retain the legacy single-memory-loop requirement.
+    if (composedMemorySummaryLoopCount == 1) {
+        memoryCheckpointLoop = onlyComposedMemorySummaryLoop;
+    } else if (memorySummaryLoopCount == 1) {
+        memoryCheckpointLoop = onlyMemorySummaryLoop;
     }
 
     // Array-indexed paths with multiple loops can create a large chain of
@@ -1417,7 +1452,6 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
     }
     auto solverDecisions = decisions;
     if (memoryProvenanceNeeded &&
-        memorySummaryLoopCount == 1 &&
         memoryCheckpointLoop) {
         bool alreadyCheckpointed = false;
         for (const auto& decision : solverDecisions) {
@@ -1519,7 +1553,6 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
             }
 
             if (trace.complete && trace.matchedDeterminateCycle &&
-                memorySummaryLoopCount == 1 &&
                 memoryCheckpointLoop == loop) {
                 const auto fixedArrayExtents =
                     parseFixedOneDimensionalArrayExtents(sourcePrefix_);
