@@ -274,7 +274,7 @@ bool certifyCoupledAffineTypes(
     diagnostics.push_back(
         "unique signed-integer scalar type certificate");
     diagnostics.push_back(
-        "runtime overflow remains uncertified; validation-only compression");
+        "signed-scalar type certificate alone does not prove overflow safety");
     return true;
 }
 
@@ -703,10 +703,19 @@ bool applyIntervalAssignment(
                 current = intervals.end();
             }
             if (current != intervals.end()) {
-                if (match[2].str() == "-=") delta = -delta;
-                value = addIntervals(
-                    current->second,
-                    ScalarInterval{delta, delta});
+                if (match[2].str() == "-=") {
+                    if (delta ==
+                        std::numeric_limits<long long>::min()) {
+                        current = intervals.end();
+                    } else {
+                        delta = -delta;
+                    }
+                }
+                if (current != intervals.end()) {
+                    value = addIntervals(
+                        current->second,
+                        ScalarInterval{delta, delta});
+                }
             }
         }
     } else if (std::regex_match(text, match, assign)) {
@@ -799,7 +808,11 @@ bool certifyCoupledPreexecutionRanges(
     // unknown value in the configured finite domain; concrete prefix writes
     // below overwrite this conservative interval before the loop.
     for (const auto& declaration : declarations) {
-        if (declaration.initializer) continue;
+        if (declaration.initializer ||
+            ambiguousNames.find(declaration.name) !=
+                ambiguousNames.end()) {
+            continue;
+        }
         auto bounds = signedScalarTypeBounds(declaration.type);
         if (!bounds ||
             !intervalWithin(externalInputRange, *bounds)) {
@@ -814,6 +827,8 @@ bool certifyCoupledPreexecutionRanges(
         progress = false;
         for (const auto& declaration : declarations) {
             if (!declaration.initializer ||
+                ambiguousNames.find(declaration.name) !=
+                    ambiguousNames.end() ||
                 intervals.find(declaration.name) != intervals.end()) {
                 continue;
             }
