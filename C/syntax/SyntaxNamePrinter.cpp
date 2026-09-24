@@ -3121,6 +3121,18 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     //     while 的 False 直接走 getNextFalseNode()（end/join），True 走体首 getNextNode()
     //     for   的 False 直接走 getNextFalseNode()（end/join），True 走体首 getNextNode()，每轮末尾追加 expr_str
     if (entry->isLoop) {
+        // A lexical inner loop starts a fresh dynamic invocation each time an
+        // enclosing loop begins another iteration.  DFS2 explicitly clears
+        // deeper loop counters at the enclosing header; mirror that behavior
+        // here so a completed inner loop is not mistaken for already exhausted
+        // on the next outer iteration.
+        for (auto& [loopNode, count] : loopUnrollMap) {
+            if (loopNode && loopNode != entry.get() &&
+                loopNode->depth > entry->depth) {
+                count = 0;
+            }
+        }
+
         auto& unroll = loopUnrollMap[entry.get()];
         std::string curPath = pathPrefix;
         auto curDecisions   = decisions;
