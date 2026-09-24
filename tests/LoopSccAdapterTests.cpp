@@ -820,6 +820,115 @@ int main() {
         failures += !report("loopscc-contracted-csg", ok);
     }
 
+    // Coupled integer-affine state is represented as one matrix instead of
+    // independent x'=a*x+b rows. Four iterations of:
+    //   x=x+y; y=y+1
+    // yield x'=x+4*y+6 and y'=y+4.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto updateX = node("x = x + y;");
+        auto updateY = node("y = y + 1;");
+        auto updateI = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(updateX);
+        loop->setNextFalseNode(exit);
+        updateX->setNextNode(updateY);
+        updateY->setNextNode(updateI);
+        updateI->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        bool matrixOk = graph.coupledAffineCandidates.size() == 1;
+        if (matrixOk) {
+            const auto& candidate =
+                graph.coupledAffineCandidates.front();
+            const auto& state = candidate.closedForm;
+            auto indexOf = [&](const std::string& variable)
+                -> std::size_t {
+                auto it = std::find(
+                    state.variables.begin(),
+                    state.variables.end(), variable);
+                return it == state.variables.end()
+                    ? state.variables.size()
+                    : static_cast<std::size_t>(
+                          std::distance(state.variables.begin(), it));
+            };
+            const std::size_t ii = indexOf("i");
+            const std::size_t xi = indexOf("x");
+            const std::size_t yi = indexOf("y");
+            const std::size_t n = state.variables.size();
+            matrixOk = candidate.exact &&
+                candidate.totalIterations == 4 &&
+                candidate.period == 1 &&
+                n == 3 &&
+                ii < n && xi < n && yi < n &&
+                state.matrix.size() == n * n &&
+                state.offset.size() == n &&
+                state.matrix[xi * n + xi] == 1 &&
+                state.matrix[xi * n + yi] == 4 &&
+                state.matrix[yi * n + yi] == 1 &&
+                state.matrix[ii * n + ii] == 1 &&
+                state.offset[xi] == 6 &&
+                state.offset[yi] == 4 &&
+                state.offset[ii] == 4;
+        }
+        const bool ok = graph.complete &&
+            graph.provedTripCount == 4 &&
+            graph.spaths.size() == 1 &&
+            graph.spaths[0].coupledAffineEffectSafe &&
+            matrixOk;
+        failures += !report(
+            "loopscc-coupled-affine-matrix", ok);
+    }
+
+    // Non-linear scalar expressions remain outside the matrix certificate.
+    {
+        auto loop = loopNode("i < 4");
+        loop->initstmt_str = "i = 0;";
+        auto nonlinear = node("x = x * y;");
+        auto updateY = node("y = y + 1;");
+        auto updateI = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(nonlinear);
+        loop->setNextFalseNode(exit);
+        nonlinear->setNextNode(updateY);
+        updateY->setNextNode(updateI);
+        updateI->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.provedTripCount == 4 &&
+            graph.coupledAffineCandidates.empty() &&
+            !graph.spaths.empty() &&
+            !graph.spaths[0].coupledAffineEffectSafe;
+        failures += !report(
+            "loopscc-coupled-affine-nonlinear-fallback", ok);
+    }
+
+    // Matrix exponentiation is overflow-checked. This transform grows the
+    // y coefficient exponentially, so a 63-iteration closed form must be
+    // rejected rather than wrapping a signed 64-bit coefficient.
+    {
+        auto loop = loopNode("i < 63");
+        loop->initstmt_str = "i = 0;";
+        auto updateX = node("x = x + y;");
+        auto updateY = node("y = 2 * y;");
+        auto updateI = node("i = i + 1;");
+        auto exit = node("return x;");
+        loop->setNextNode(updateX);
+        loop->setNextFalseNode(exit);
+        updateX->setNextNode(updateY);
+        updateY->setNextNode(updateI);
+        updateI->setNextNode(loop);
+
+        const auto graph = LoopSccAdapter::analyze(loop.get());
+        const bool ok = graph.complete &&
+            graph.provedTripCount == 63 &&
+            graph.coupledAffineCandidates.empty();
+        failures += !report(
+            "loopscc-coupled-affine-overflow-fallback", ok);
+    }
+
     // Safe scalar nesting is summarized inside-out. The inner j-loop adds
     // two to x; the outer i-loop repeats that exact summary three times.
     {

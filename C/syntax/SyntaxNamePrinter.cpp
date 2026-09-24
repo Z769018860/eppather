@@ -4306,6 +4306,7 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
             std::size_t memorySummaryCandidates = 0;
             std::size_t accelerationPlans = 0;
             std::size_t exactAccelerationPlans = 0;
+            std::size_t coupledAffineCandidates = 0;
             std::size_t maxPeriod = 0;
             long long maxProvedTripCount = -1;
             std::string provedTripVariable;
@@ -4341,6 +4342,35 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                 memorySummaryCandidates +=
                     graph.memorySummaryCandidates.size();
                 accelerationPlans += graph.accelerationPlans.size();
+                coupledAffineCandidates +=
+                    graph.coupledAffineCandidates.size();
+                for (const auto& candidate :
+                     graph.coupledAffineCandidates) {
+                    cout << "[LOOPSCC COUPLED AFFINE]: cycle="
+                         << candidate.cycleIndex
+                         << " entry_phase=" << candidate.entryPhase
+                         << " iterations=" << candidate.totalIterations
+                         << " period=" << candidate.period
+                         << " variables=";
+                    for (std::size_t i = 0;
+                         i < candidate.closedForm.variables.size(); ++i) {
+                        if (i != 0) cout << ",";
+                        cout << candidate.closedForm.variables[i];
+                    }
+                    cout << " matrix=";
+                    for (std::size_t i = 0;
+                         i < candidate.closedForm.matrix.size(); ++i) {
+                        if (i != 0) cout << ",";
+                        cout << candidate.closedForm.matrix[i];
+                    }
+                    cout << " offset=";
+                    for (std::size_t i = 0;
+                         i < candidate.closedForm.offset.size(); ++i) {
+                        if (i != 0) cout << ",";
+                        cout << candidate.closedForm.offset[i];
+                    }
+                    cout << endl;
+                }
                 for (const auto& plan : graph.accelerationPlans) {
                     if (plan.exact) ++exactAccelerationPlans;
                     cout << "[LOOPSCC ACCELERATION PLAN]: cycle="
@@ -4423,6 +4453,8 @@ void SyntaxNamePrinter::processPathResult2(const EpatResult& eval,
                  << accelerationPlans << endl;
             cout << "[LOOPSCC EXACT ACCELERATION PLANS]: "
                  << exactAccelerationPlans << endl;
+            cout << "[LOOPSCC COUPLED AFFINE CANDIDATES]: "
+                 << coupledAffineCandidates << endl;
             cout << "[LOOPSCC MAX PERIOD]: " << maxPeriod << endl;
             if (maxProvedTripCount >= 0) {
                 cout << "[LOOPSCC PROVED TRIP COUNT]: "

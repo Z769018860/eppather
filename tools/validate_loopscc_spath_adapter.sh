@@ -494,6 +494,27 @@ if ! grep -q '^\[LOOPSCC DIAGNOSTIC\]: nested loop requires inside-out LoopSCC s
   exit 1
 fi
 
+# 13. Coupled multi-variable affine analysis is structural-only in this
+# stage. The unfolded execution remains unchanged, but the adapter must derive
+# the exact matrix for x=x+y; y=y+1 across four iterations.
+run_case coupled_affine testcase/loop_hybrid/31_spath_coupled_affine.c 4 100 1
+coupled_candidates="$(metric_max 'LOOPSCC COUPLED AFFINE CANDIDATES' "$OUT_DIR/coupled_affine.log")"
+if [[ -z "$coupled_candidates" || "$coupled_candidates" -lt 1 ]]; then
+  echo "coupled_affine: expected one structural matrix candidate" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if ! grep -Fq '[LOOPSCC COUPLED AFFINE]: cycle=0 entry_phase=0 iterations=4 period=1 variables=i,x,y matrix=1,0,0,0,1,4,0,0,1 offset=4,6,4' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: matrix closed form differs from expected x'=x+4y+6, y'=y+4" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+if grep -q '^\[LOOPSCC DFS SHORTCUT USED\]:' "$OUT_DIR/coupled_affine.log"; then
+  echo "coupled_affine: structural-only stage must not enable DFS shortcut" >&2
+  cat "$OUT_DIR/coupled_affine.log" >&2
+  exit 1
+fi
+
 echo "case,spaths,multi_node_sccs,determinate_cycles,oscillating_cycles,closed_form_candidates,max_period,complete,entailed_affine_relations,proved_trip_count,exact_acceleration_plans"
 echo "oscillation,$osc_spaths,$osc_multi,$(metric_max 'LOOPSCC DETERMINATE CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC OSCILLATING CYCLES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC CLOSED FORM CANDIDATES' "$OUT_DIR/oscillation.log"),$(metric_max 'LOOPSCC MAX PERIOD' "$OUT_DIR/oscillation.log"),$osc_complete,0,N/A,0"
 echo "periodic,$(metric_max 'LOOPSCC SPATHS' "$OUT_DIR/periodic.log"),$(metric_max 'LOOPSCC MULTI-NODE SCCS' "$OUT_DIR/periodic.log"),$periodic_cycles,$periodic_osc,$periodic_candidates,$periodic_max,$periodic_complete,$periodic_relations,$periodic_trip_count,$periodic_accel_plans"

@@ -18,6 +18,27 @@ struct LoopSccAffineTransform {
     long long offset{0};
 };
 
+struct LoopSccCoupledAffineTransform {
+    // Row-major A and b for state' = A * state + b.
+    // variables fixes the row/column order.
+    std::vector<std::string> variables;
+    std::vector<long long> matrix;
+    std::vector<long long> offset;
+};
+
+struct LoopSccCoupledAffineCandidate {
+    std::size_t cycleIndex{0};
+    std::size_t entryPhase{0};
+    std::size_t period{0};
+    long long totalIterations{0};
+    long long completePeriods{0};
+    std::size_t residualPhases{0};
+    LoopSccCoupledAffineTransform closedForm;
+    std::vector<int> coverageSlots;
+    bool exact{false};
+    std::vector<std::string> diagnostics;
+};
+
 struct LoopSccConstantPointerAlias {
     std::string pointer;
     std::string region;
@@ -92,6 +113,10 @@ struct LoopSccSPathInfo {
     // by the restricted scalar-affine model and no array/dereference access or
     // opaque call/effect was observed.
     bool accelerationEffectSafe{true};
+    // Structural-only safety bit for coupled integer-affine analysis. This may
+    // remain true when the legacy per-variable affine model cannot represent a
+    // cross-variable assignment such as x=x+y.
+    bool coupledAffineEffectSafe{true};
     // False when any branch guard on the SPath is outside the interval model.
     bool guardModelComplete{true};
     // Coverage-matrix slots touched by this concrete one-iteration SPath.
@@ -175,6 +200,9 @@ struct LoopSccGraphInfo {
     // Symbolic acceleration plans derived from proved trip count + cycle
     // structure. One plan is emitted per possible cycle entry phase.
     std::vector<LoopSccAccelerationPlan> accelerationPlans;
+    // Structural-only coupled integer-affine candidates. They are not used by
+    // DFS until type/snapshot rendering and SMT entailment gates are added.
+    std::vector<LoopSccCoupledAffineCandidate> coupledAffineCandidates;
     // Validation-only memory summaries. These never authorize DFS skipping
     // until VolCE entailment and alias/frame proofs are added.
     std::vector<LoopSccMemorySummaryCandidate> memorySummaryCandidates;
