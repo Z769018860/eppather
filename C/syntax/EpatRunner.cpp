@@ -30,6 +30,29 @@ bool envEnabled(const char* name) {
     return v && *v && std::string(v) != "0";
 }
 
+unsigned prefixSolverTimeoutMs() {
+    const char* raw = std::getenv("EPPATHER_PREFIX_SOLVER_TIMEOUT_MS");
+    if (raw && *raw) {
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(raw, &end, 10);
+        if (end != raw && *end == '\0' && parsed > 0) {
+            return static_cast<unsigned>(std::min<unsigned long>(
+                parsed, std::numeric_limits<unsigned>::max()));
+        }
+    }
+    // Prefix pruning itself is opt-in. Bound each individual solver query so
+    // one hard prefix cannot consume the whole program budget. Z3 timeout is
+    // reported as unknown; callers conservatively keep exploring unknown.
+    return envEnabled("EPPATHER_PREFIX_FEASIBILITY") ? 250u : 0u;
+}
+
+void configurePrefixSolver(epat::Solver* solver) {
+    if (!solver) return;
+    solver->setCollectArtifacts(false);
+    const unsigned timeoutMs = prefixSolverTimeoutMs();
+    if (timeoutMs > 0) solver->setTimeoutMs(timeoutMs);
+}
+
 bool containsAny(const std::string& s, std::initializer_list<const char*> needles) {
     for (const char* needle : needles) {
         if (s.find(needle) != std::string::npos) {
@@ -1403,6 +1426,7 @@ epat::result EpatRunner::checkFeasible(
         const std::string script = render(decisions);
         auto root = epat::Root::fromString(script);
         auto solver = epat::Solver::create(std::move(root));
+        configurePrefixSolver(solver.get());
         status = solver->feasible();
     } catch (const std::exception&) {
         status = epat::result::unknown;
@@ -1464,6 +1488,7 @@ epat::result EpatRunner::checkFeasible(
         script += renderedRawPath;
         auto root = epat::Root::fromString(script);
         auto solver = epat::Solver::create(std::move(root));
+        configurePrefixSolver(solver.get());
         status = solver->feasible();
     } catch (const std::exception&) {
         status = epat::result::unknown;
