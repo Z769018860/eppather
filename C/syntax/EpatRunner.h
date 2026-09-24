@@ -155,15 +155,20 @@ struct LoopSccMemoryAccelerationDecisionPlan {
     std::size_t unfoldedMems{0};
     std::size_t compressedSummaryMems{0};
     std::size_t compensationMems{0};
+    // Structural certificate established before DFS replacement. It is
+    // deliberately narrower than the later VolCE oracle: only unique
+    // one-dimensional fixed local arrays, constant indices, complete fixed-cell
+    // transitions, precise MEMS accounting, and no pointer/opaque effects.
+    bool preexecutionCertified{false};
+    std::vector<std::string> certificateDiagnostics;
 };
 
-// Build a validation-only fixed-cell memory summary path. Every summarized
-// region must be a one-dimensional fixed local array visible in the original
-// source prefix, every cell index must be in bounds, and the structural memory
-// candidate must already be exact. SyntheticMems restores the skipped MEMS
-// cost for A/B comparison without adding SMT/source semantics. This builder
-// does not authorize DFS replacement; runtime use additionally needs an
-// independent pre-execution memory-relation + untouched-frame certificate.
+// Build a fixed-cell memory summary path and its pre-execution structural
+// certificate. Every summarized/accessed region must be a unique
+// one-dimensional fixed local array, every access must use a constant in-bounds
+// index, every write must be covered by a fixed-cell transition, and no
+// pointer/opaque effect may occur. SyntheticMems restores the skipped MEMS
+// cost. VolCE relation/frame validation remains an independent A/B oracle.
 std::optional<LoopSccMemoryAccelerationDecisionPlan>
 buildLoopSccMemoryAccelerationDecisions(
     const std::vector<PathDecision>& prefix,
