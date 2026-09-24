@@ -362,6 +362,8 @@ int main() {
                         {}, loop.get(), graph, 0,
                         "int a[1];\nint a[1];\nint i = 0;\n");
                 shortcutPlanOk =
+                    shortcut->preexecutionCertified &&
+                    !shortcut->certificateDiagnostics.empty() &&
                     shortcut->unfoldedMems == 16 &&
                     shortcut->compressedSummaryMems == 2 &&
                     shortcut->compensationMems == 14 &&
