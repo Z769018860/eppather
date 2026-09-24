@@ -137,7 +137,7 @@ def dfs_rows(work: Path, function: str) -> list[dict]:
 
 
 def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
-                    timeout: int) -> tuple[dict, list[dict]]:
+                    timeout: int, retry_timeout: int) -> tuple[dict, list[dict]]:
     source = src.read_text(encoding="utf-8-sig", errors="replace")
     prog = {
         "source": str(src), "status": "", "dp_status": "", "dfs_status": "",
@@ -145,6 +145,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         "static_mismatch_functions": 0, "replay_match_functions": 0,
         "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
         "replay_error_functions": 0, "path_limit_functions": 0,
+        "dp_retried": 0, "dfs_retried": 0,
         "hard_failure": 0, "detail": "",
     }
     functions = []
@@ -154,6 +155,10 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
         env = env_for(cnip)
         dp = run_cmd([str(cnip), "-g", str(src), str(max_loop)], dpw, timeout, env)
+        if dp["status"] == "timeout" and retry_timeout > timeout:
+            prog["dp_retried"] = 1
+            dp = run_cmd([str(cnip), "-g", str(src), str(max_loop)],
+                         dpw, retry_timeout, env)
         prog["dp_status"] = dp["status"] if dp["status"] != "ok" else str(dp["returncode"])
         if dp["status"] != "ok" or dp["returncode"] != 0:
             prog.update(status="dp_failed", hard_failure=1,
@@ -171,6 +176,15 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         # produce a usable MaxMEMS result.
         dfs = run_cmd([str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
                       dfw, timeout, env)
+        if dfs["status"] == "timeout" and retry_timeout > timeout:
+            prog["dfs_retried"] = 1
+            # Retry in a fresh directory so partial artifacts from the first
+            # timed-out enumeration cannot contaminate the second result.
+            for p in dfw.iterdir():
+                if p.is_file():
+                    p.unlink()
+            dfs = run_cmd([str(cnip), "-q", str(src), str(max_loop), str(max_paths)],
+                          dfw, retry_timeout, env)
         prog["dfs_status"] = dfs["status"] if dfs["status"] != "ok" else str(dfs["returncode"])
         if dfs["status"] != "ok" or dfs["returncode"] != 0:
             prog.update(status="dfs_failed", hard_failure=1,
@@ -330,6 +344,8 @@ def main() -> int:
     ap.add_argument("--max-loop", type=int, default=3)
     ap.add_argument("--max-paths", type=int, default=1000)
     ap.add_argument("--timeout", type=int, default=120)
+    ap.add_argument("--retry-timeout", type=int, default=300,
+                    help="second-chance timeout used only after a timeout; <= --timeout disables retry")
     ap.add_argument("--shard-index", type=int, default=0)
     ap.add_argument("--shard-count", type=int, default=1)
     args = ap.parse_args()
@@ -348,7 +364,8 @@ def main() -> int:
     program_fields = ["source","status","dp_status","dfs_status","dp_blocks","functions_checked",
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
                       "replay_unsupported_functions","replay_undefined_functions",
-                      "replay_error_functions","path_limit_functions","hard_failure","detail"]
+                      "replay_error_functions","path_limit_functions","dp_retried","dfs_retried",
+                      "hard_failure","detail"]
     function_fields = ["source","function","dp_mems","dp_internal_mems","dp_score_delta",
                        "dfs_max_mems","feasible_paths","paths_enumerated","path_limit_hit",
                        "static_equal","witness_found","witness_inputs","expected_branches",
@@ -356,7 +373,9 @@ def main() -> int:
 
     for pos, src in enumerate(selected, 1):
         try:
-            prog, funcs = analyze_program(src, cnip, args.max_loop, args.max_paths, args.timeout)
+            prog, funcs = analyze_program(
+                src, cnip, args.max_loop, args.max_paths, args.timeout, args.retry_timeout
+            )
         except Exception as exc:
             prog = {
                 "source": str(src), "status": "harness_error", "dp_status": "", "dfs_status": "",
@@ -364,6 +383,7 @@ def main() -> int:
                 "static_mismatch_functions": 0, "replay_match_functions": 0,
                 "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
                 "replay_error_functions": 0, "path_limit_functions": 0,
+                "dp_retried": 0, "dfs_retried": 0,
                 "hard_failure": 1, "detail": repr(exc),
             }
             funcs = []
