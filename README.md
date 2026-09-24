@@ -250,7 +250,7 @@ bash tools/test_loop_bound_predictor.sh
 
 ---
 
-### 最新实验结果汇总（2026-08）
+### 最新实验结果汇总（2026-09）
 
 以下数字均来自仓库中已经保存的实验记录。需要注意：这些实验在自适应循环预测模块加入
 之前完成，分别显式使用固定的 `maxloop=1/2/3`；因此它们验证的是路径、DP 和函数摘要
@@ -258,6 +258,7 @@ bash tools/test_loop_bound_predictor.sh
 
 | 实验 | 对象与配置 | 主要结果 | 记录 |
 |---|---|---|---|
+| 独立 MaxMEMS witness 验证 | 20 个受控 C 程序，有限域 concrete oracle | 20/20 同时满足 DP MaxMEMS = DFS 最大值 = concrete witness MEMS = 动态穷举最大值；210 次有定义 concrete 执行，0 不一致；实验同时发现并修复 for 更新顺序与嵌套循环状态两个 DP 缺陷 | [`docs/maxmems-witness-validation-2026-09-24.md`](docs/maxmems-witness-validation-2026-09-24.md) |
 | 端到端路径回放 | 20 个规范化 C 程序，`max_loop=3` | 224 条路径中 212 条为有定义执行，212/212 路径完全吻合；12 条为源程序未定义行为；0 路径不匹配、0 执行错误 | [`docs/e2e-path-validation-experiment-2026-08-14.md`](docs/e2e-path-validation-experiment-2026-08-14.md) |
 | 小型项目函数摘要 | clibs/list、inih、SDS，共 66 个入口，`maxloop=2`、`maxpaths=80` | 摘要生成 66/66；DFS2 成功 66/66；同一最终 slice 上 DP 成功且 MEMS 一致 64/66（97.0%），其余 2 项为 DP 超时 | [`docs/small-project-summary-iteration-validation-2026-08-14.md`](docs/small-project-summary-iteration-validation-2026-08-14.md) |
 | 大型项目代表函数摘要 | cJSON、Lua、tinyexpr，`maxloop=1`、`maxpaths=40` | 3/3 编译、DFS2、DP 全部通过；DFS2/DP MEMS 分别为 15/15、21/21、20/20 | [`docs/deepseek-large-summary-validation-2026-08-14.md`](docs/deepseek-large-summary-validation-2026-08-14.md) |
