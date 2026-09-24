@@ -12,6 +12,7 @@ import tempfile
 from pathlib import Path
 
 from e2e_path_validation import (
+    FUNC_RE,
     UndefinedBehaviorError,
     concrete_trace,
     expected_outcomes,
@@ -63,6 +64,15 @@ def parse_dp_blocks(text: str) -> list[dict]:
     return blocks
 
 
+def rename_function_definition(source: str, old: str, new: str) -> str:
+    """Rename one function definition without rewriting unrelated identifiers."""
+    for match in FUNC_RE.finditer(source):
+        if match.group("name") == old:
+            start, end = match.span("name")
+            return source[:start] + new + source[end:]
+    raise ValueError(f"cannot find function definition {old!r}")
+
+
 def dfs_rows(work: Path, function: str) -> list[dict]:
     rows = []
     for rf in sorted(work.glob(f"result_{function}_*.txt")):
@@ -91,7 +101,8 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         "dp_blocks": 0, "functions_checked": 0, "static_equal_functions": 0,
         "static_mismatch_functions": 0, "replay_match_functions": 0,
         "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
-        "replay_error_functions": 0, "hard_failure": 0, "detail": "",
+        "replay_error_functions": 0, "path_limit_functions": 0,
+        "hard_failure": 0, "detail": "",
     }
     functions = []
     with tempfile.TemporaryDirectory(prefix="eppather-maxmems266-") as td:
@@ -128,11 +139,17 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
             tag = block["function"]
             row = {
                 "source": str(src), "function": tag, "dp_mems": block["mems"],
-                "dfs_max_mems": "", "feasible_paths": 0, "static_equal": 0,
-                "witness_found": 0, "replay_status": "not_attempted", "detail": "",
+                "dfs_max_mems": "", "feasible_paths": 0, "paths_enumerated": 0,
+                "path_limit_hit": 0, "static_equal": 0, "witness_found": 0,
+                "replay_status": "not_attempted", "detail": "",
             }
             rows = dfs_rows(dfw, tag)
             row["feasible_paths"] = len(rows)
+            row["paths_enumerated"] = len(list(dfw.glob(f"result_{tag}_*.txt")))
+            row["path_limit_hit"] = int(
+                max_paths > 0 and row["paths_enumerated"] >= max_paths
+            )
+            prog["path_limit_functions"] += row["path_limit_hit"]
             if block["mems"] < 0:
                 if not rows:
                     row["static_equal"] = 1
@@ -169,13 +186,27 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                 continue
             row["witness_found"] = 1
 
-            if has_main or tag == "main":
-                row["replay_status"] = "unsupported_main"
-                prog["replay_unsupported_functions"] += 1
-                functions.append(row)
-                continue
+            replay_source = source
+            replay_tag = tag
+            if has_main:
+                try:
+                    if tag == "main":
+                        replay_tag = "epp_target_main"
+                        replay_source = rename_function_definition(
+                            source, "main", replay_tag
+                        )
+                    else:
+                        replay_source = rename_function_definition(
+                            source, "main", "epp_original_main"
+                        )
+                except Exception as exc:
+                    row["replay_status"] = "unsupported_main"
+                    row["detail"] = (row["detail"] + "; " if row["detail"] else "") + str(exc)
+                    prog["replay_unsupported_functions"] += 1
+                    functions.append(row)
+                    continue
             try:
-                selected, params = parse_signature(source, tag)
+                selected, params = parse_signature(replay_source, replay_tag)
             except Exception as exc:
                 row["replay_status"] = "unsupported_signature"
                 row["detail"] = (row["detail"] + "; " if row["detail"] else "") + str(exc)
@@ -186,7 +217,7 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
             witness = candidates[0]
             inputs = parse_model(witness["result_text"], params, source)
             try:
-                actual = concrete_trace(source, selected, params, inputs, rpw, max_loop)
+                actual = concrete_trace(replay_source, selected, params, inputs, rpw, max_loop)
                 if actual == block["branches"]:
                     row["replay_status"] = "match"
                     prog["replay_match_functions"] += 1
@@ -248,8 +279,9 @@ def main() -> int:
     program_fields = ["source","status","dp_status","dfs_status","dp_blocks","functions_checked",
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
                       "replay_unsupported_functions","replay_undefined_functions",
-                      "replay_error_functions","hard_failure","detail"]
-    function_fields = ["source","function","dp_mems","dfs_max_mems","feasible_paths","static_equal",
+                      "replay_error_functions","path_limit_functions","hard_failure","detail"]
+    function_fields = ["source","function","dp_mems","dfs_max_mems","feasible_paths",
+                       "paths_enumerated","path_limit_hit","static_equal",
                        "witness_found","replay_status","detail"]
 
     for pos, src in enumerate(selected, 1):
@@ -261,7 +293,8 @@ def main() -> int:
                 "dp_blocks": 0, "functions_checked": 0, "static_equal_functions": 0,
                 "static_mismatch_functions": 0, "replay_match_functions": 0,
                 "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
-                "replay_error_functions": 0, "hard_failure": 1, "detail": repr(exc),
+                "replay_error_functions": 0, "path_limit_functions": 0,
+                "hard_failure": 1, "detail": repr(exc),
             }
             funcs = []
         programs.append(prog); functions.extend(funcs)
