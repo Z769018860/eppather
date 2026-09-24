@@ -691,6 +691,23 @@ int main() {
             "loopscc-array-decay-pointer-alias", ok);
     }
 
+    // An address literal outside the certificate's signed 64-bit index
+    // domain must conservatively fall back rather than throwing from stoll.
+    {
+        bool threw = false;
+        std::vector<psy::C::LoopSccConstantPointerAlias> aliases;
+        try {
+            aliases = LoopSccAdapter::parseConstantPointerAliases(
+                "int a[2];\n"
+                "int *p = &a[999999999999999999999999999999999999];\n");
+        } catch (...) {
+            threw = true;
+        }
+        const bool ok = !threw && aliases.empty();
+        failures += !report(
+            "loopscc-oversized-pointer-alias-fallback", ok);
+    }
+
     // The same declaration is not a certificate after p is moved/reassigned
     // in the loop. Alias invalidation must prevent a fixed-cell candidate.
     {
