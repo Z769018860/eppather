@@ -1,0 +1,81 @@
+name: MaxMEMS cocktail lexical budget sweep
+
+concurrency:
+  group: maxmems-cocktail-lexical-budget-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-cocktail-lexical-upper
+    paths:
+      - '.github/workflows/maxmems-cocktail-lexical-budget-sweep.yml'
+
+jobs:
+  sweep:
+    strategy:
+      fail-fast: false
+      matrix:
+        budget: [128, 512, 2048, 0]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_budget -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_budget --target cnip -j2
+      - name: Run 25s budget diagnostic
+        shell: bash
+        run: |
+          mkdir -p "budget-${{ matrix.budget }}"
+          set +e
+          timeout 25s env \
+            EPPATHER_MAXMEMS_CORE_ONLY=1 \
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+            EPPATHER_MAXMEMS_LEXICAL_UPPER=1 \
+            EPPATHER_MAXMEMS_UPPER_STATE_BUDGET="${{ matrix.budget }}" \
+            EPPATHER_MAXMEMS_PATH_LOCAL_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+            EPPATHER_MAXMEMS_SEED_GREEDY=1 \
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+            EPPATHER_MAXMEMS_PROGRESS_EVERY=50 \
+            EPPATHER_MAXMEMS_UPPER_PROGRESS_EVERY=100 \
+            "${{ github.workspace }}/build_budget/cnip" -g \
+            "${{ github.workspace }}/testcase/output_complete2/sorting-algorithms-cocktail-sort-1.c" 3 \
+            > "budget-${{ matrix.budget }}/stdout.log" \
+            2> "budget-${{ matrix.budget }}/stderr.log"
+          echo $? > "budget-${{ matrix.budget }}/exit_code.txt"
+          exit 0
+      - name: Summarize
+        run: |
+          python3 - <<'PY'
+          import json,re
+          from pathlib import Path
+          b="${{ matrix.budget }}"
+          d=Path("budget-"+b)
+          out=(d/"stdout.log").read_text(errors="replace")
+          err=(d/"stderr.log").read_text(errors="replace")
+          rc=int((d/"exit_code.txt").read_text().strip())
+          prog=re.findall(r"\[DP PROGRESS\]: states=(\d+) leaves=(\d+) bnb_pruned=(\d+) prefix_checks=(\d+) prefix_pruned=(\d+).*?incumbent=(-?\d+)",err)
+          upper=re.findall(r"\[DP UPPER PROGRESS\]: states=(\d+) cache_hits=(\d+) budget_skips=(\d+)",err)
+          seed=re.findall(r"\[DP GREEDY SEEDED INCUMBENT\]:\s*(\d+)",out)
+          mems=re.findall(r"(?m)^MEMS:\s*(-?\d+)\s*$",out)
+          result={
+            "budget":int(b),"exit":rc,
+            "last_progress":list(map(int,prog[-1])) if prog else None,
+            "last_upper":list(map(int,upper[-1])) if upper else None,
+            "seed":int(seed[-1]) if seed else None,
+            "mems":int(mems[-1]) if mems else None,
+          }
+          (d/"summary.json").write_text(json.dumps(result,indent=2)+"\n")
+          print("LEXICAL_BUDGET",json.dumps(result,sort_keys=True))
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lexical-budget-${{ matrix.budget }}
+          path: budget-${{ matrix.budget }}/
