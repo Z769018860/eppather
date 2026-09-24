@@ -2,7 +2,7 @@ name: MaxMEMS cocktail seed smoke
 
 concurrency:
   group: maxmems-cocktail-seed-smoke-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 on:
   workflow_dispatch:
