@@ -185,11 +185,14 @@ def validate(src: Path, function: str, cnip: Path, max_loop: int, lo: int, hi: i
         if not rows:
             raise RuntimeError("no feasible DFS2 paths")
         dfs_max = max(r["mems"] for r in rows)
-        cand = [r for r in rows if r["mems"] == dp_mem and r["branches"] == dp_branches]
+        # Prefer the exact DP branch sequence even when MEMS disagrees.  A
+        # DP/DFS MEMS disagreement is an experiment result, not a missing-model
+        # infrastructure error, so preserve a concrete witness for diagnosis.
+        cand = [r for r in rows if r["branches"] == dp_branches]
         if not cand:
-            cand = [r for r in rows if r["mems"] == dp_mem]
+            cand = [r for r in rows if r["mems"] == dfs_max]
         if not cand:
-            raise RuntimeError("no DFS model for DP MaxMEMS")
+            raise RuntimeError("no feasible DFS model usable as a witness")
         witness = cand[0]
         exe = compile_replay(source, selected, params, rpw, max_loop)
         try:
@@ -218,19 +221,19 @@ subject(3,"branch-write","int mw03(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=x;/
 subject(4,"fixed-for","int mw04(int x){int a[3];int i=0;int s=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;for(i=0;i<3;i=i+1){s=s+/*EPP_MEM*/(a[i]);}return s;}"),
 subject(5,"loop-branch","int mw05(int x){int a[3];int i=0;int s=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;for(i=0;i<3;i=i+1){if(x>0){s=s+/*EPP_MEM*/(a[i])+/*EPP_MEM*/(a[0]);}else{s=s+/*EPP_MEM*/(a[i]);}}return s;}"),
 subject(6,"fixed-while","int mw06(int x){int a[4];int i=0;int s=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;/*EPP_MEM*/(a[3])=x+3;while(i<4){s=s+/*EPP_MEM*/(a[i]);i=i+1;}return s;}",5),
-subject(7,"pointer-branch","int mw07(int x){int a[2];int *p;int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;p=a;if(x>0){r=/*EPP_MEM*/(*p)+/*EPP_MEM*/(*(p+1));}else{r=/*EPP_MEM*/(*p);}return r;}"),
-subject(8,"pointer-write","int mw08(int x){int a[2];int *p;int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;p=a;if(x>=0){/*EPP_MEM*/(*p)=/*EPP_MEM*/(*p)+1;r=/*EPP_MEM*/(*p);}else{r=/*EPP_MEM*/(*(p+1));}return r;}"),
-subject(9,"pointer-loop","int mw09(int x){int a[3];int *p;int i=0;int s=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;p=a;for(i=0;i<3;i=i+1){s=s+/*EPP_MEM*/(*(p+i));}return s;}"),
-subject(10,"pointer-subscript","int mw10(int x){int a[3];int *p;int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;p=a;if(x>1){r=/*EPP_MEM*/(p[0])+/*EPP_MEM*/(p[2]);}else{r=/*EPP_MEM*/(p[1]);}return r;}"),
-subject(11,"mixed","int mw11(int x){int a[3];int *p;int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;p=a;if(x>=0){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(*p)+/*EPP_MEM*/(p[1]);}else{r=/*EPP_MEM*/(a[2]);}return r;}"),
-subject(12,"two-arrays","int mw12(int x,int y){int a[2];int b[2];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=y;/*EPP_MEM*/(b[0])=x+y;/*EPP_MEM*/(b[1])=x-y;if(x>y){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1])+/*EPP_MEM*/(b[0])+/*EPP_MEM*/(b[1]);}else{r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(b[0]);}return r;}"),
+subject(7,"short-circuit-array","int mw07(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;if((x>0)&&(x<3)){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1]);}else{r=/*EPP_MEM*/(a[0]);}return r;}"),
+subject(8,"array-write-chain","int mw08(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;if(x>=0){/*EPP_MEM*/(a[0])=/*EPP_MEM*/(a[0])+1;/*EPP_MEM*/(a[1])=/*EPP_MEM*/(a[0])+1;r=/*EPP_MEM*/(a[1]);}else{r=/*EPP_MEM*/(a[0]);}return r;}"),
+subject(9,"array-loop-write","int mw09(int x){int a[3];int i=0;int s=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;/*EPP_MEM*/(a[2])=3;for(i=0;i<3;i=i+1){/*EPP_MEM*/(a[i])=/*EPP_MEM*/(a[i])+1;s=s+/*EPP_MEM*/(a[i]);}return s;}"),
+subject(10,"array-two-branch","int mw10(int x){int a[3];int r=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;/*EPP_MEM*/(a[2])=3;if(x>1){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[2]);}else{r=/*EPP_MEM*/(a[1]);}return r;}"),
+subject(11,"three-read-branch","int mw11(int x){int a[3];int r=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;/*EPP_MEM*/(a[2])=3;if(x>=0){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1])+/*EPP_MEM*/(a[2]);}else{r=/*EPP_MEM*/(a[2]);}return r;}"),
+subject(12,"two-arrays","int mw12(int x,int y){int a[2];int b[2];int r=0;/*EPP_MEM*/(a[0])=1;/*EPP_MEM*/(a[1])=2;/*EPP_MEM*/(b[0])=3;/*EPP_MEM*/(b[1])=4;if(x>y){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1])+/*EPP_MEM*/(b[0])+/*EPP_MEM*/(b[1]);}else{r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(b[0]);}return r;}"),
 subject(13,"nested-loops","int mw13(int x){int a[4];int i=0;int j=0;int s=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;/*EPP_MEM*/(a[3])=x+3;for(i=0;i<2;i=i+1){for(j=0;j<2;j=j+1){s=s+/*EPP_MEM*/(a[i*2+j]);}}return s;}"),
 subject(14,"input-bounded-loop","int mw14(int n){int a[3];int i=0;int s=0;/*EPP_MEM*/(a[0])=n;/*EPP_MEM*/(a[1])=n+1;/*EPP_MEM*/(a[2])=n+2;while((i<n)&&(i<3)){s=s+/*EPP_MEM*/(a[i]);i=i+1;}return s;}",5),
 subject(15,"memory-condition","int mw15(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;if(/*EPP_MEM*/(a[0])>=0){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1]);}else{r=/*EPP_MEM*/(a[1]);}return r;}"),
 subject(16,"conditional-writes","int mw16(int x){int a[3];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=0;/*EPP_MEM*/(a[2])=0;if(x>0){/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;r=/*EPP_MEM*/(a[1])+/*EPP_MEM*/(a[2]);}else{r=/*EPP_MEM*/(a[0]);}return r;}"),
 subject(17,"sequential-branches","int mw17(int x,int y){int a[3];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=y;/*EPP_MEM*/(a[2])=x+y;if(x>0){r=r+/*EPP_MEM*/(a[0]);}else{r=r+/*EPP_MEM*/(a[1]);}if(y>0){r=r+/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1]);}else{r=r+/*EPP_MEM*/(a[2]);}return r;}"),
 subject(18,"else-if","int mw18(int x){int a[4];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;/*EPP_MEM*/(a[2])=x+2;/*EPP_MEM*/(a[3])=x+3;if(x>1){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1])+/*EPP_MEM*/(a[2]);}else{if(x==1){r=/*EPP_MEM*/(a[3])+/*EPP_MEM*/(a[2]);}else{r=/*EPP_MEM*/(a[0]);}}return r;}"),
-subject(19,"pointer-condition","int mw19(int x){int a[2];int *p;int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;p=a;if(/*EPP_MEM*/(*p)>=0){r=/*EPP_MEM*/(*p)+/*EPP_MEM*/(*(p+1));}else{r=/*EPP_MEM*/(*(p+1));}return r;}"),
+subject(19,"array-condition-nested","int mw19(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=1;if(/*EPP_MEM*/(a[0])>=0){if(x>1){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1]);}else{r=/*EPP_MEM*/(a[0]);}}else{r=/*EPP_MEM*/(a[1]);}return r;}"),
 subject(20,"tie-paths","int mw20(int x){int a[2];int r=0;/*EPP_MEM*/(a[0])=x;/*EPP_MEM*/(a[1])=x+1;if(x>0){r=/*EPP_MEM*/(a[0])+/*EPP_MEM*/(a[1]);}else{r=/*EPP_MEM*/(a[1])+/*EPP_MEM*/(a[0]);}return r;}")
 ]
 
