@@ -217,6 +217,10 @@ bool certifyCoupledAffineTypes(
         return reject("coupled affine trip/phase certificate is incomplete");
     }
 
+    entryRangesCertified = true;
+    diagnostics.push_back(
+        "loop-entry ranges reconstructed from declarations and path prefix");
+
     const auto& state = candidate.closedForm;
     const std::size_t n = state.variables.size();
     if (n < 2 || n > 4 ||
@@ -742,7 +746,9 @@ bool certifyCoupledPreexecutionRanges(
     const std::string& sourcePrefix,
     long long boundedLower,
     long long boundedUpper,
+    bool& entryRangesCertified,
     std::vector<std::string>& diagnostics) {
+    entryRangesCertified = false;
     auto reject = [&](const std::string& reason) {
         diagnostics.push_back(reason);
         return false;
@@ -919,8 +925,6 @@ bool certifyCoupledPreexecutionRanges(
         }
     }
 
-    diagnostics.push_back(
-        "loop-entry ranges reconstructed from declarations and path prefix");
     diagnostics.push_back(
         "compressed coupled arithmetic preexecution overflow certificate");
     return true;
@@ -1964,7 +1968,9 @@ buildLoopSccCoupledAffineValidationDecisions(
     CFGNode* loop,
     const LoopSccGraphInfo& graph,
     std::size_t candidateIndex,
-    const std::string& sourcePrefix) {
+    const std::string& sourcePrefix,
+    std::optional<long long> boundedLower,
+    std::optional<long long> boundedUpper) {
     if (!loop ||
         candidateIndex >= graph.coupledAffineCandidates.size()) {
         return std::nullopt;
@@ -1987,6 +1993,26 @@ buildLoopSccCoupledAffineValidationDecisions(
             certifiedTypes, plan.certificateDiagnostics);
     if (!plan.typeCertified) {
         return plan;
+    }
+
+    if (const auto boundedRange =
+            readCoupledBoundedRange(
+                boundedLower, boundedUpper)) {
+        plan.boundedRangeLower = boundedRange->first;
+        plan.boundedRangeUpper = boundedRange->second;
+        bool entryRangesCertified = false;
+        plan.preexecutionOverflowCertified =
+            certifyCoupledPreexecutionRanges(
+                prefix, loop, candidate, certifiedTypes,
+                sourcePrefix, boundedRange->first,
+                boundedRange->second,
+                entryRangesCertified,
+                plan.certificateDiagnostics);
+        plan.entryRangeCertified =
+            entryRangesCertified;
+    } else {
+        plan.certificateDiagnostics.push_back(
+            "bounded input domain unavailable for preexecution range proof");
     }
 
     const std::string stem =
