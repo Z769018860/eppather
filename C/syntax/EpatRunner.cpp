@@ -1,6 +1,7 @@
 // Implementation of CFG-aware epat++ invocation utilities.
 #include "EpatRunner.h"
 #include <unordered_set>
+#include <unordered_map>
 #include <algorithm>
 #include <stdexcept>
 #include <sstream>
@@ -9,6 +10,7 @@
 #include <optional>
 
 #include <cctype>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <limits>
@@ -123,6 +125,226 @@ parseFixedOneDimensionalArrayExtents(const std::string& prefix) {
         }
     }
     return out;
+}
+
+
+struct SignedScalarDeclarations {
+    std::unordered_map<std::string, std::string> types;
+    std::unordered_set<std::string> ambiguous;
+};
+
+std::string normalizeTypeSpelling(const std::string& raw) {
+    std::stringstream in(raw);
+    std::string word;
+    std::string out;
+    while (in >> word) {
+        if (!out.empty()) out += " ";
+        out += word;
+    }
+    return out;
+}
+
+void recordSignedScalarDeclaration(
+    const std::string& raw,
+    SignedScalarDeclarations& declarations) {
+    // Deliberately exclude unsigned, char, _Bool, size_t, pointers, arrays,
+    // multiple declarators and floating point. Runtime acceleration will later
+    // need a separate no-overflow proof even for these signed integer types.
+    static const std::regex scalar(
+        "^[ \\t]*(?:(?:const|volatile)[ \\t]+)*"
+        "((?:signed[ \\t]+)?"
+        "(?:short(?:[ \\t]+int)?|int|"
+        "long(?:[ \\t]+long)?(?:[ \\t]+int)?))"
+        "[ \\t]+([A-Za-z_][A-Za-z0-9_]*)"
+        "[ \\t]*(?:=[^,;]*)?[ \\t]*;?[ \\t]*$");
+
+    std::smatch match;
+    if (!std::regex_match(raw, match, scalar)) return;
+    const std::string name = match[2].str();
+    if (declarations.ambiguous.find(name) !=
+        declarations.ambiguous.end()) {
+        return;
+    }
+    const std::string type =
+        normalizeTypeSpelling(match[1].str());
+    auto inserted = declarations.types.emplace(name, type);
+    if (!inserted.second) {
+        declarations.types.erase(name);
+        declarations.ambiguous.insert(name);
+    }
+}
+
+SignedScalarDeclarations parseSignedScalarDeclarations(
+    const std::string& sourcePrefix,
+    CFGNode* loop) {
+    SignedScalarDeclarations out;
+    std::stringstream input(sourcePrefix);
+    std::string line;
+    while (std::getline(input, line)) {
+        recordSignedScalarDeclaration(line, out);
+    }
+    if (loop && loop->isFor &&
+        !loop->initstmt_str.empty()) {
+        recordSignedScalarDeclaration(loop->initstmt_str, out);
+    }
+    return out;
+}
+
+bool certifyCoupledAffineTypes(
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    const LoopSccCoupledAffineCandidate& candidate,
+    const std::string& sourcePrefix,
+    std::unordered_map<std::string, std::string>& certifiedTypes,
+    std::vector<std::string>& diagnostics) {
+    auto reject = [&](const std::string& reason) {
+        diagnostics.push_back(reason);
+        return false;
+    };
+
+    if (!loop || !graph.complete ||
+        candidate.cycleIndex >= graph.cycles.size()) {
+        return reject("coupled affine graph/cycle is incomplete");
+    }
+    const auto& cycle = graph.cycles[candidate.cycleIndex];
+    if (!candidate.exact ||
+        candidate.totalIterations <= 0 ||
+        graph.provedTripCount != candidate.totalIterations ||
+        !cycle.determinate || !cycle.phaseGuardsProved ||
+        cycle.period == 0 ||
+        candidate.period != cycle.period ||
+        candidate.entryPhase >= cycle.spathOrder.size()) {
+        return reject("coupled affine trip/phase certificate is incomplete");
+    }
+
+    const auto& state = candidate.closedForm;
+    const std::size_t n = state.variables.size();
+    if (n < 2 || n > 4 ||
+        state.matrix.size() != n * n ||
+        state.offset.size() != n) {
+        return reject("coupled affine matrix dimensions are invalid");
+    }
+    for (long long coefficient : state.matrix) {
+        if (coefficient == std::numeric_limits<long long>::min()) {
+            return reject("matrix coefficient cannot be rendered safely");
+        }
+    }
+    for (long long offset : state.offset) {
+        if (offset == std::numeric_limits<long long>::min()) {
+            return reject("matrix offset cannot be rendered safely");
+        }
+    }
+
+    for (std::size_t pathId : cycle.spathOrder) {
+        if (pathId >= graph.spaths.size()) {
+            return reject("cycle references an absent SPath");
+        }
+        const auto& path = graph.spaths[pathId];
+        if (!path.returnsToHeader || path.exitsLoop ||
+            !path.guardModelComplete ||
+            !path.coupledAffineEffectSafe ||
+            path.writesMemory || path.observedMems != 0) {
+            return reject(
+                "SPath has memory/opaque/nonlinear effect outside coupled scalar certificate");
+        }
+    }
+
+    const auto declarations =
+        parseSignedScalarDeclarations(sourcePrefix, loop);
+    for (const auto& variable : state.variables) {
+        if (declarations.ambiguous.find(variable) !=
+            declarations.ambiguous.end()) {
+            return reject(
+                "ambiguous signed integer scalar declaration for " +
+                variable);
+        }
+        auto found = declarations.types.find(variable);
+        if (found == declarations.types.end()) {
+            return reject(
+                "missing unique signed integer scalar declaration for " +
+                variable);
+        }
+        certifiedTypes.emplace(variable, found->second);
+    }
+
+    diagnostics.push_back(
+        "unique signed-integer scalar type certificate");
+    diagnostics.push_back(
+        "runtime overflow remains uncertified; validation-only compression");
+    return true;
+}
+
+std::string coupledSnapshotStem(
+    CFGNode* loop,
+    std::size_t candidateIndex,
+    const std::string& sourcePrefix) {
+    const auto address =
+        static_cast<unsigned long long>(
+            reinterpret_cast<std::uintptr_t>(loop));
+    const std::string base =
+        "__eppather_loopscc_affine_" +
+        std::to_string(address) + "_" +
+        std::to_string(candidateIndex) + "_";
+    if (sourcePrefix.find(base) == std::string::npos) {
+        return base;
+    }
+    for (std::size_t salt = 1; salt <= 16; ++salt) {
+        const std::string salted =
+            base + std::to_string(salt) + "_";
+        if (sourcePrefix.find(salted) == std::string::npos) {
+            return salted;
+        }
+    }
+    return {};
+}
+
+std::string renderCoupledAffineRow(
+    const LoopSccCoupledAffineTransform& state,
+    std::size_t row,
+    const std::vector<std::string>& snapshots) {
+    const std::size_t n = state.variables.size();
+    if (row >= n || snapshots.size() != n ||
+        state.matrix.size() != n * n ||
+        state.offset.size() != n) {
+        return {};
+    }
+
+    std::ostringstream os;
+    os << state.variables[row] << " = 0";
+    for (std::size_t col = 0; col < n; ++col) {
+        const long long coefficient =
+            state.matrix[row * n + col];
+        if (coefficient == 0) continue;
+        const long long magnitude =
+            coefficient < 0 ? -coefficient : coefficient;
+        os << (coefficient < 0 ? " - " : " + ");
+        if (magnitude != 1) {
+            os << magnitude << " * ";
+        }
+        os << snapshots[col];
+    }
+    const long long offset = state.offset[row];
+    if (offset > 0) os << " + " << offset;
+    else if (offset < 0) os << " - " << -offset;
+    os << ";";
+    return os.str();
+}
+
+bool isIdentityCoupledRow(
+    const LoopSccCoupledAffineTransform& state,
+    std::size_t row) {
+    const std::size_t n = state.variables.size();
+    if (row >= n || state.matrix.size() != n * n ||
+        state.offset.size() != n || state.offset[row] != 0) {
+        return false;
+    }
+    for (std::size_t col = 0; col < n; ++col) {
+        const long long expected = row == col ? 1 : 0;
+        if (state.matrix[row * n + col] != expected) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool probablyUnsafeForEpat(const std::string& line) {
@@ -666,6 +888,58 @@ buildAccelerationValidationDecisions(
     return compressed;
 }
 
+
+std::optional<LoopSccCoupledAffineDecisionPlan>
+buildCoupledAffineValidationDecisions(
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t candidateIndex,
+    const std::vector<PathDecision>& decisions,
+    const std::string& sourcePrefix) {
+    if (!loop ||
+        candidateIndex >= graph.coupledAffineCandidates.size()) {
+        return std::nullopt;
+    }
+
+    std::size_t firstTrue = decisions.size();
+    std::size_t finalFalse = decisions.size();
+    for (std::size_t i = 0; i < decisions.size(); ++i) {
+        if (decisions[i].node != loop) continue;
+        if (decisions[i].kind == PathDecisionKind::TrueBranch &&
+            firstTrue == decisions.size()) {
+            firstTrue = i;
+        } else if (firstTrue != decisions.size() &&
+                   decisions[i].kind == PathDecisionKind::FalseBranch) {
+            finalFalse = i;
+        }
+    }
+    if (firstTrue == decisions.size() ||
+        finalFalse == decisions.size() ||
+        finalFalse <= firstTrue) {
+        return std::nullopt;
+    }
+
+    std::vector<PathDecision> prefix(
+        decisions.begin(),
+        decisions.begin() +
+            static_cast<std::ptrdiff_t>(firstTrue));
+    auto plan =
+        buildLoopSccCoupledAffineValidationDecisions(
+            prefix, loop, graph, candidateIndex, sourcePrefix);
+    if (!plan) return std::nullopt;
+    if (!plan->typeCertified ||
+        !plan->snapshotParallelized) {
+        return plan;
+    }
+
+    plan->decisions.insert(
+        plan->decisions.end(),
+        decisions.begin() +
+            static_cast<std::ptrdiff_t>(finalFalse + 1),
+        decisions.end());
+    return plan;
+}
+
 std::string renderMemoryCellAssignment(
     const LoopSccMemoryCellTransform& transform) {
     std::ostringstream os;
@@ -1104,6 +1378,123 @@ buildLoopSccAccelerationDecisions(
 }
 
 
+
+std::optional<LoopSccCoupledAffineDecisionPlan>
+buildLoopSccCoupledAffineValidationDecisions(
+    const std::vector<PathDecision>& prefix,
+    CFGNode* loop,
+    const LoopSccGraphInfo& graph,
+    std::size_t candidateIndex,
+    const std::string& sourcePrefix) {
+    if (!loop ||
+        candidateIndex >= graph.coupledAffineCandidates.size()) {
+        return std::nullopt;
+    }
+    const auto& candidate =
+        graph.coupledAffineCandidates[candidateIndex];
+    if (!candidate.exact ||
+        candidate.cycleIndex >= graph.cycles.size()) {
+        return std::nullopt;
+    }
+    const auto& cycle = graph.cycles[candidate.cycleIndex];
+
+    LoopSccCoupledAffineDecisionPlan plan;
+    plan.coverageSlots = candidate.coverageSlots;
+
+    std::unordered_map<std::string, std::string> certifiedTypes;
+    plan.typeCertified =
+        certifyCoupledAffineTypes(
+            loop, graph, candidate, sourcePrefix,
+            certifiedTypes, plan.certificateDiagnostics);
+    if (!plan.typeCertified) {
+        return plan;
+    }
+
+    const std::string stem =
+        coupledSnapshotStem(loop, candidateIndex, sourcePrefix);
+    if (stem.empty()) {
+        plan.certificateDiagnostics.push_back(
+            "unable to allocate collision-free snapshot namespace");
+        return plan;
+    }
+
+    const auto& state = candidate.closedForm;
+    std::vector<std::string> snapshots;
+    snapshots.reserve(state.variables.size());
+
+    plan.decisions = prefix;
+    plan.decisions.push_back(PathDecision{
+        loop, PathDecisionKind::TrueBranch, {}});
+
+    const std::size_t entryPathId =
+        cycle.spathOrder[candidate.entryPhase];
+    if (entryPathId >= graph.spaths.size()) {
+        plan.certificateDiagnostics.push_back(
+            "entry phase references an absent SPath");
+        return plan;
+    }
+    const auto& entryPath = graph.spaths[entryPathId];
+    const std::string loopTrue = "T: " + loop->cond_str;
+    for (const auto& guard : entryPath.guards) {
+        if (guard == loopTrue) continue;
+        if (guard.rfind("T: ", 0) == 0) {
+            plan.decisions.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                guard.substr(3), 0});
+        } else if (guard.rfind("F: ", 0) == 0) {
+            plan.decisions.push_back(PathDecision{
+                loop, PathDecisionKind::SyntheticAssume,
+                "!(" + guard.substr(3) + ")", 0});
+        } else {
+            plan.certificateDiagnostics.push_back(
+                "entry phase guard cannot be rendered");
+            return plan;
+        }
+    }
+
+    for (std::size_t i = 0; i < state.variables.size(); ++i) {
+        const std::string& variable = state.variables[i];
+        auto type = certifiedTypes.find(variable);
+        if (type == certifiedTypes.end()) {
+            plan.certificateDiagnostics.push_back(
+                "missing certified snapshot type for " + variable);
+            return plan;
+        }
+        const std::string snapshot =
+            stem + std::to_string(i);
+        snapshots.push_back(snapshot);
+        plan.snapshotVariables.push_back(snapshot);
+        plan.decisions.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode,
+            type->second + " " + snapshot + " = " +
+                variable + ";", 0});
+    }
+
+    for (std::size_t row = 0;
+         row < state.variables.size(); ++row) {
+        if (isIdentityCoupledRow(state, row)) continue;
+        const std::string assignment =
+            renderCoupledAffineRow(state, row, snapshots);
+        if (assignment.empty()) {
+            plan.certificateDiagnostics.push_back(
+                "coupled affine matrix row cannot be rendered");
+            return plan;
+        }
+        plan.decisions.push_back(PathDecision{
+            loop, PathDecisionKind::SyntheticCode,
+            assignment, 0});
+    }
+
+    plan.decisions.push_back(PathDecision{
+        loop, PathDecisionKind::FalseBranch, {}, 0});
+    plan.snapshotParallelized = true;
+    plan.runtimeShortcutEligible = false;
+    plan.certificateDiagnostics.push_back(
+        "entry state snapshotted before parallel matrix assignment");
+    return plan;
+}
+
+
 std::optional<LoopSccMemoryAccelerationDecisionPlan>
 buildLoopSccMemoryAccelerationDecisions(
     const std::vector<PathDecision>& prefix,
@@ -1401,6 +1792,19 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                     }
                 }
             }
+            for (const auto& candidate :
+                 graph.coupledAffineCandidates) {
+                if (!candidate.exact) continue;
+                for (const auto& variable :
+                     candidate.closedForm.variables) {
+                    if (std::find(
+                            provenanceVariables.begin(),
+                            provenanceVariables.end(),
+                            variable) == provenanceVariables.end()) {
+                        provenanceVariables.push_back(variable);
+                    }
+                }
+            }
             for (const auto& spath : graph.spaths) {
                 if (!spath.memoryCellTransforms.empty()) {
                     memoryProvenanceNeeded = true;
@@ -1683,6 +2087,87 @@ EpatResult EpatRunner::solve(const std::vector<PathDecision>& decisions) const {
                         result.loopSccMemoryAccelerationValidations.push_back(
                             std::move(validation));
                     }
+                }
+            }
+
+            if (envEnabled("EPPATHER_LOOP_SCC_ACCEL_VALIDATE") &&
+                trace.complete && trace.matchedDeterminateCycle) {
+                for (std::size_t candidateIndex = 0;
+                     candidateIndex <
+                         graph.coupledAffineCandidates.size();
+                     ++candidateIndex) {
+                    const auto& candidate =
+                        graph.coupledAffineCandidates[candidateIndex];
+                    if (!candidate.exact ||
+                        candidate.cycleIndex != trace.cycleIndex ||
+                        candidate.entryPhase != trace.entryPhase ||
+                        candidate.totalIterations !=
+                            static_cast<long long>(
+                                trace.observedIterations)) {
+                        continue;
+                    }
+
+                    LoopSccCoupledAffineValidation validation;
+                    validation.loopCondition = loop->cond_str;
+                    validation.attempted = true;
+                    validation.originalDecisionCount =
+                        decisions.size();
+                    validation.baselineMem = result.mem;
+
+                    auto compressed =
+                        buildCoupledAffineValidationDecisions(
+                            loop, graph, candidateIndex,
+                            decisions, sourcePrefix_);
+                    if (compressed) {
+                        validation.typeCertified =
+                            compressed->typeCertified;
+                        validation.snapshotParallelized =
+                            compressed->snapshotParallelized;
+                        validation.certificateDiagnostics =
+                            compressed->certificateDiagnostics;
+
+                        if (validation.typeCertified &&
+                            validation.snapshotParallelized) {
+                            validation.compressedDecisionCount =
+                                compressed->decisions.size();
+
+                            epat::setSsaProvenanceVariables(
+                                provenanceVariables);
+                            EpatResult compressedResult =
+                                solveScript(
+                                    render(compressed->decisions));
+                            epat::clearSsaProvenanceVariables();
+
+                            validation.compressedMem =
+                                compressedResult.mem;
+                            validation.compressedSmt =
+                                compressedResult.smt;
+                            validation.statusMatched =
+                                compressedResult.status ==
+                                result.status;
+                            validation.memMatched =
+                                compressedResult.mem ==
+                                result.mem;
+                            validation.matched =
+                                validation.statusMatched &&
+                                validation.memMatched &&
+                                validation.compressedDecisionCount <
+                                    validation.originalDecisionCount;
+
+                            result.loopStateSummaryDiagnostics.push_back(
+                                validation.matched
+                                    ? "loopscc: coupled affine compressed validation matched"
+                                    : "loopscc: coupled affine compressed validation mismatch");
+                        } else {
+                            result.loopStateSummaryDiagnostics.push_back(
+                                "loopscc: coupled affine validation rejected by type/snapshot certificate");
+                        }
+                    } else {
+                        result.loopStateSummaryDiagnostics.push_back(
+                            "loopscc: failed to construct coupled affine validation path");
+                    }
+                    result.loopSccCoupledAffineValidations.push_back(
+                        std::move(validation));
                 }
             }
 
