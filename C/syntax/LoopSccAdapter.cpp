@@ -10,6 +10,7 @@
 #include <regex>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -1688,8 +1689,18 @@ LoopSccAdapter::parseConstantPointerAliases(
     for (std::sregex_iterator it(
              sourcePrefix.begin(), sourcePrefix.end(), addressDecl), end;
          it != end; ++it) {
-        add((*it)[1].str(), (*it)[2].str(),
-            std::stoll((*it)[3].str()));
+        const std::string pointer = (*it)[1].str();
+        try {
+            add(pointer, (*it)[2].str(),
+                std::stoll((*it)[3].str()));
+        } catch (const std::out_of_range&) {
+            // An index that cannot be represented by the certificate's
+            // signed 64-bit cell index is not a constant alias we can prove.
+            // Treat it exactly like any other ambiguous/unsupported alias
+            // instead of aborting loop analysis.
+            unique.erase(pointer);
+            ambiguous.insert(pointer);
+        }
     }
     for (std::sregex_iterator it(
              sourcePrefix.begin(), sourcePrefix.end(), decayDecl), end;
