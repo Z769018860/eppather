@@ -4205,7 +4205,12 @@ static bool maxMemsInFinalLiteralWhileIteration(
         // one iteration before the bounded while budget is exhausted.  This
         // finds realistic "work, then quiesce and return" witnesses (e.g.
         // cocktail sort) without changing the exact search space or result.
-        const int terminationWindow = std::max(1, bound - 1);
+        // Delay quiescence until the final allowed bounded iteration.
+        // Earlier versions used bound-1, which found a feasible witness too
+        // early (MEMS=72 on cocktail-sort) and left BnB with a weak lower
+        // bound.  Waiting until count==bound preserves more high-MEMS work
+        // before steering the seed toward a terminating no-update path.
+        const int terminationWindow = std::max(1, bound);
         if (bound > 0 && count >= terminationWindow) return true;
     }
     return false;
