@@ -3986,7 +3986,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::TrueBranch));
         const int tPotential =
-            entry->getNextNode()
+            branchBoundEnabled && entry->getNextNode()
                 ? addMemsUpper(
                       tMemsUpper,
                       remainingMemsUpperBound(
@@ -4007,7 +4007,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             syntaxDecisionMemsUpper(
                 this, entry.get(), PathDecisionKind::FalseBranch));
         const int fPotential =
-            entry->getNextFalseNode()
+            branchBoundEnabled && entry->getNextFalseNode()
                 ? addMemsUpper(
                       fMemsUpper,
                       remainingMemsUpperBound(
@@ -4125,14 +4125,16 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                       this, entry.get(),
                       PathDecisionKind::FalseBranch))
             : -1;
-        const int tPotential = trueGuardCanHold
+        const int tPotential =
+            branchBoundEnabled && trueGuardCanHold
             ? addMemsUpper(
                   tMemsUpper,
                   remainingMemsUpperBound(
                       this, entry->getNextNode(), maxloop,
                       depth + 1, tLoopMap))
             : -1;
-        const int fPotential = falseGuardCanHold
+        const int fPotential =
+            branchBoundEnabled && falseGuardCanHold
             ? addMemsUpper(
                   fMemsUpper,
                   remainingMemsUpperBound(
