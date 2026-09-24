@@ -140,7 +140,8 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                     timeout: int, retry_timeout: int) -> tuple[dict, list[dict]]:
     source = src.read_text(encoding="utf-8-sig", errors="replace")
     prog = {
-        "source": str(src), "status": "", "dp_status": "", "dfs_status": "",
+        "source": str(src), "status": "", "c_syntax_status": "", "c_syntax_detail": "",
+        "dp_status": "", "dfs_status": "",
         "dp_blocks": 0, "functions_checked": 0, "static_equal_functions": 0,
         "static_mismatch_functions": 0, "replay_match_functions": 0,
         "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
@@ -154,6 +155,21 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
         dpw, dfw, rpw = root / "dp", root / "dfs", root / "replay"
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
         env = env_for(cnip)
+
+        # Keep normalization/front-end quality separate from MaxMEMS correctness.
+        # Do not skip Eppather on a compiler failure: record it, then continue so
+        # the corpus denominator remains frozen and diagnostics stay complete.
+        ccheck = run_cmd(["cc", "-std=gnu11", "-fsyntax-only", str(src)],
+                         root, min(timeout, 30))
+        if ccheck["status"] == "ok" and ccheck["returncode"] == 0:
+            prog["c_syntax_status"] = "valid"
+        elif ccheck["status"] == "timeout":
+            prog["c_syntax_status"] = "timeout"
+            prog["c_syntax_detail"] = "GNU C syntax preflight timed out"
+        else:
+            prog["c_syntax_status"] = "invalid"
+            prog["c_syntax_detail"] = (ccheck["stderr"] or ccheck["stdout"])[-500:].replace("\n", " ")
+
         dp = run_cmd([str(cnip), "-g", str(src), str(max_loop)], dpw, timeout, env)
         if dp["status"] == "timeout" and retry_timeout > timeout:
             prog["dp_retried"] = 1
@@ -361,7 +377,8 @@ def main() -> int:
     out = args.output_dir.resolve(); out.mkdir(parents=True, exist_ok=True)
     programs, functions = [], []
     suffix = f"shard{args.shard_index}"
-    program_fields = ["source","status","dp_status","dfs_status","dp_blocks","functions_checked",
+    program_fields = ["source","status","c_syntax_status","c_syntax_detail",
+                      "dp_status","dfs_status","dp_blocks","functions_checked",
                       "static_equal_functions","static_mismatch_functions","replay_match_functions",
                       "replay_unsupported_functions","replay_undefined_functions",
                       "replay_error_functions","path_limit_functions","dp_retried","dfs_retried",
@@ -378,7 +395,9 @@ def main() -> int:
             )
         except Exception as exc:
             prog = {
-                "source": str(src), "status": "harness_error", "dp_status": "", "dfs_status": "",
+                "source": str(src), "status": "harness_error",
+                "c_syntax_status": "", "c_syntax_detail": "",
+                "dp_status": "", "dfs_status": "",
                 "dp_blocks": 0, "functions_checked": 0, "static_equal_functions": 0,
                 "static_mismatch_functions": 0, "replay_match_functions": 0,
                 "replay_unsupported_functions": 0, "replay_undefined_functions": 0,
