@@ -182,8 +182,21 @@ def validate(src: Path, function: str, cnip: Path, max_loop: int, lo: int, hi: i
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
         dp = analyze(cnip, src, max_loop, dpw, "-g")
         if dp.returncode:
-            raise RuntimeError("cnip -g failed: " + (dp.stderr or dp.stdout)[-1200:])
-        dp_mem, dp_branches = parse_dp(dp.stdout)
+            (src.parent / f"{src.stem}-dp-failed.stdout.log").write_text(
+                dp.stdout or "", encoding="utf-8")
+            (src.parent / f"{src.stem}-dp-failed.stderr.log").write_text(
+                dp.stderr or "", encoding="utf-8")
+            raise RuntimeError(
+                f"cnip -g exited {dp.returncode}: "
+                + (dp.stderr or dp.stdout)[-1200:])
+        try:
+            dp_mem, dp_branches = parse_dp(dp.stdout)
+        except Exception:
+            (src.parent / f"{src.stem}-dp-parse.stdout.log").write_text(
+                dp.stdout or "", encoding="utf-8")
+            (src.parent / f"{src.stem}-dp-parse.stderr.log").write_text(
+                dp.stderr or "", encoding="utf-8")
+            raise
         dfs = analyze(cnip, src, max_loop, dfw, "-q")
         if dfs.returncode:
             raise RuntimeError("cnip -q failed: " + (dfs.stderr or dfs.stdout)[-1200:])
