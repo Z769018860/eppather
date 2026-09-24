@@ -3633,8 +3633,8 @@ static std::unordered_map<std::string, int> remainingMemsUpperCache;
 static std::uint64_t maxMemsBranchBoundPruned = 0;
 static std::uint64_t maxMemsBranchOrderSwaps = 0;
 static std::uint64_t maxMemsUpperBoundStates = 0;
-static std::uint64_t maxMemsAdditiveChecks = 0;
-static std::uint64_t maxMemsAdditiveMismatches = 0;
+static std::uint64_t maxMemsUpperSoundnessChecks = 0;
+static std::uint64_t maxMemsUpperUnderestimates = 0;
 constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
@@ -3916,35 +3916,32 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         ++maxMemsLeafSolves;
         EpatRunner runner(vartemp);
 
-        // Safety gate for branch-and-bound: MEMS must be additive over the
-        // PathDecision sequence. Solver::getMem() is MemVisitor::getMem(ast),
-        // so this validates the implementation assumption on complete paths
-        // without enabling any branch-and-bound pruning.
-        const char* validateAdditiveRaw =
-            std::getenv("EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS");
-        const bool validateAdditive =
-            validateAdditiveRaw && *validateAdditiveRaw &&
-            std::string(validateAdditiveRaw) != "0";
-        if (validateAdditive &&
+        // Safety gate for branch-and-bound: the accumulated per-decision
+        // syntax cost must never UNDERestimate the complete-path syntax MEMS.
+        // Overestimation is conservative and only weakens pruning. This is the
+        // exact condition required for a sound upper bound.
+        const char* validateUpperRaw =
+            std::getenv("EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND");
+        const bool validateUpper =
+            validateUpperRaw && *validateUpperRaw &&
+            std::string(validateUpperRaw) != "0";
+        if (validateUpper &&
             currentMemsUpper >= 0 &&
             currentMemsUpper < kMaxMemsUpperInfinity) {
-            ++maxMemsAdditiveChecks;
+            ++maxMemsUpperSoundnessChecks;
             const auto fullSyntaxMems = runner.countMemsOnly(curDecisions);
-            if (!fullSyntaxMems || *fullSyntaxMems != currentMemsUpper) {
-                ++maxMemsAdditiveMismatches;
-                std::cerr << "[DP ADDITIVE MEMS MISMATCH]: accumulated="
+            if (fullSyntaxMems && currentMemsUpper < *fullSyntaxMems) {
+                ++maxMemsUpperUnderestimates;
+                std::cerr << "[DP MEMS UPPER UNDERESTIMATE]: accumulated="
                           << currentMemsUpper
-                          << " full="
-                          << (fullSyntaxMems
-                                  ? std::to_string(*fullSyntaxMems)
-                                  : std::string("N/A"))
+                          << " full=" << *fullSyntaxMems
                           << std::endl;
                 const char* strictRaw =
-                    std::getenv("EPPATHER_MAXMEMS_VALIDATE_ADDITIVE_MEMS_STRICT");
+                    std::getenv("EPPATHER_MAXMEMS_VALIDATE_UPPER_BOUND_STRICT");
                 if (strictRaw && *strictRaw &&
                     std::string(strictRaw) != "0") {
                     throw std::runtime_error(
-                        "MaxMEMS additive MEMS validation failed");
+                        "MaxMEMS MEMS upper-bound validation failed");
                 }
             }
         }
@@ -4303,8 +4300,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsBranchBoundPruned = 0;
         maxMemsBranchOrderSwaps = 0;
         maxMemsUpperBoundStates = 0;
-        maxMemsAdditiveChecks = 0;
-        maxMemsAdditiveMismatches = 0;
+        maxMemsUpperSoundnessChecks = 0;
+        maxMemsUpperUnderestimates = 0;
         maxMemsFeasibleIncumbent = -1;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
@@ -4395,10 +4392,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                   << maxMemsBranchOrderSwaps << std::endl;
         std::cout << "[DP UPPER BOUND STATES]: "
                   << maxMemsUpperBoundStates << std::endl;
-        std::cout << "[DP ADDITIVE MEMS CHECKS]: "
-                  << maxMemsAdditiveChecks << std::endl;
-        std::cout << "[DP ADDITIVE MEMS MISMATCHES]: "
-                  << maxMemsAdditiveMismatches << std::endl;
+        std::cout << "[DP MEMS UPPER SOUNDNESS CHECKS]: "
+                  << maxMemsUpperSoundnessChecks << std::endl;
+        std::cout << "[DP MEMS UPPER UNDERESTIMATES]: "
+                  << maxMemsUpperUnderestimates << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
