@@ -3664,6 +3664,10 @@ static std::uint64_t maxMemsUpperBoundCacheHits = 0;
 static std::uint64_t maxMemsPathLocalGuardPrunes = 0;
 static std::uint64_t maxMemsUpperSoundnessChecks = 0;
 static std::uint64_t maxMemsUpperUnderestimates = 0;
+static std::uint64_t maxMemsUpperLocalMemsMisses = 0;
+static std::uint64_t maxMemsUpperLocalMemsMicros = 0;
+static std::uint64_t maxMemsUpperKeyMicros = 0;
+static std::uint64_t maxMemsUpperLoopBoundMicros = 0;
 constexpr int kMaxMemsUpperInfinity =
     std::numeric_limits<int>::max() / 4;
 
@@ -3825,6 +3829,9 @@ static int syntaxDecisionMemsUpper(
         return it->second;
     }
 
+    ++maxMemsUpperLocalMemsMisses;
+    const auto localMemsStart = std::chrono::steady_clock::now();
+
     const char* fastUpperRaw =
         std::getenv("EPPATHER_MAXMEMS_FAST_TEXT_UPPER");
     const bool fastUpper =
@@ -3847,6 +3854,10 @@ static int syntaxDecisionMemsUpper(
     const int value = mem
         ? std::max(0, *mem)
         : kMaxMemsUpperInfinity;
+    maxMemsUpperLocalMemsMicros +=
+        static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - localMemsStart).count());
     syntaxDecisionMemsCache.emplace(key, value);
     return value;
 }
@@ -3869,10 +3880,15 @@ static int remainingMemsUpperBound(
         }
     }
 
+    const auto keyStart = std::chrono::steady_clock::now();
     const std::string key =
         std::to_string(reinterpret_cast<std::uintptr_t>(entry.get())) + "|" +
         LoopMapKey(loopMap) + "|" + std::to_string(maxloop) + "|" +
         std::to_string(std::hash<std::string>{}(self->vartemp));
+    maxMemsUpperKeyMicros +=
+        static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - keyStart).count());
     if (auto it = remainingMemsUpperCache.find(key);
         it != remainingMemsUpperCache.end()) {
         ++maxMemsUpperBoundCacheHits;
@@ -3906,6 +3922,10 @@ static int remainingMemsUpperBound(
                       << " node=" << reinterpret_cast<std::uintptr_t>(entry.get())
                       << " depth=" << depth
                       << " loopkey=" << LoopMapKey(loopMap)
+                      << " local_misses=" << maxMemsUpperLocalMemsMisses
+                      << " local_us=" << maxMemsUpperLocalMemsMicros
+                      << " key_us=" << maxMemsUpperKeyMicros
+                      << " loopbound_us=" << maxMemsUpperLoopBoundMicros
                       << std::endl;
         }
     }
@@ -3969,7 +3989,12 @@ static int remainingMemsUpperBound(
 
     if (entry->isLoop) {
         const int unroll = loopMap[entry.get()];
+        const auto loopBoundStart = std::chrono::steady_clock::now();
         const int bound = predictedLoopBound(entry.get(), maxloop);
+        maxMemsUpperLoopBoundMicros +=
+            static_cast<std::uint64_t>(
+                std::chrono::duration_cast<std::chrono::microseconds>(
+                    std::chrono::steady_clock::now() - loopBoundStart).count());
         int common = 0;
         if (entry->isFor) {
             if (unroll == 0 && !entry->initstmt_str.empty() &&
@@ -4592,6 +4617,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsDecisionUpperCacheHits = 0;
         maxMemsUpperSoundnessChecks = 0;
         maxMemsUpperUnderestimates = 0;
+        maxMemsUpperLocalMemsMisses = 0;
+        maxMemsUpperLocalMemsMicros = 0;
+        maxMemsUpperKeyMicros = 0;
+        maxMemsUpperLoopBoundMicros = 0;
         maxMemsFeasibleIncumbent = -1;
 
         std::optional<PathInfo> seededWitness;
