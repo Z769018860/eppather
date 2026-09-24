@@ -16,6 +16,18 @@ epat::smt::Solver::Solver() : impl_(std::make_unique<smt::SolverImpl>()) {}
 
 epat::smt::Solver::~Solver() = default;
 
+void epat::smt::Solver::setTimeoutMs(unsigned timeout_ms)
+{
+    try {
+        z3::params params(gc);
+        params.set("timeout", timeout_ms);
+        impl_->z3solver.set(params);
+    }
+    catch (const z3::exception& e) {
+        std::cout << "[solver timeout z3 exception] " << e << std::endl;
+    }
+}
+
 epat::smt::result epat::smt::Solver::solve()
 {
     try {
