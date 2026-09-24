@@ -28,6 +28,12 @@ DP_PATH_RE = re.compile(
 DP_MEM_RE = re.compile(r"(?m)^MEMS:\s*(-?\d+)")
 DP_INTERNAL_RE = re.compile(r"(?m)^\[DP INTERNAL MEMS\]:\s*(-?\d+)")
 DP_DELTA_RE = re.compile(r"(?m)^\[DP SCORE DELTA\]:\s*(-?\d+)")
+DP_PREFIX_CHECKS_RE = re.compile(r"(?m)^\[DP PREFIX CHECKS\]:\s*(\d+)")
+DP_PREFIX_CACHE_HITS_RE = re.compile(r"(?m)^\[DP PREFIX CACHE HITS\]:\s*(\d+)")
+DP_PREFIX_PRUNED_RE = re.compile(r"(?m)^\[DP PREFIX PRUNED\]:\s*(\d+)")
+DP_LEAF_SOLVES_RE = re.compile(r"(?m)^\[DP LEAF SOLVES\]:\s*(\d+)")
+DP_MEMO_LOOKUPS_RE = re.compile(r"(?m)^\[DP MEMO LOOKUPS\]:\s*(\d+)")
+DP_MEMO_HITS_RE = re.compile(r"(?m)^\[DP MEMO HITS\]:\s*(\d+)")
 
 
 def env_for(cnip: Path) -> dict[str, str]:
@@ -69,12 +75,24 @@ def parse_dp_blocks(text: str) -> list[dict]:
         path = path_m.group(1).rstrip()
         internal_m = DP_INTERNAL_RE.search(rest)
         delta_m = DP_DELTA_RE.search(rest)
+        prefix_checks_m = DP_PREFIX_CHECKS_RE.search(rest)
+        prefix_cache_hits_m = DP_PREFIX_CACHE_HITS_RE.search(rest)
+        prefix_pruned_m = DP_PREFIX_PRUNED_RE.search(rest)
+        leaf_solves_m = DP_LEAF_SOLVES_RE.search(rest)
+        memo_lookups_m = DP_MEMO_LOOKUPS_RE.search(rest)
+        memo_hits_m = DP_MEMO_HITS_RE.search(rest)
         blocks.append({
             "function": tag,
             "path": path,
             "mems": int(mem_m.group(1)),
             "internal_mems": int(internal_m.group(1)) if internal_m else "",
             "score_delta": int(delta_m.group(1)) if delta_m else "",
+            "prefix_checks": int(prefix_checks_m.group(1)) if prefix_checks_m else "",
+            "prefix_cache_hits": int(prefix_cache_hits_m.group(1)) if prefix_cache_hits_m else "",
+            "prefix_pruned": int(prefix_pruned_m.group(1)) if prefix_pruned_m else "",
+            "leaf_solves": int(leaf_solves_m.group(1)) if leaf_solves_m else "",
+            "memo_lookups": int(memo_lookups_m.group(1)) if memo_lookups_m else "",
+            "memo_hits": int(memo_hits_m.group(1)) if memo_hits_m else "",
             "branches": expected_outcomes(path),
         })
     return blocks
@@ -214,6 +232,12 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                 "source": str(src), "function": tag, "dp_mems": block["mems"],
                 "dp_internal_mems": block.get("internal_mems", ""),
                 "dp_score_delta": block.get("score_delta", ""),
+                "dp_prefix_checks": block.get("prefix_checks", ""),
+                "dp_prefix_cache_hits": block.get("prefix_cache_hits", ""),
+                "dp_prefix_pruned": block.get("prefix_pruned", ""),
+                "dp_leaf_solves": block.get("leaf_solves", ""),
+                "dp_memo_lookups": block.get("memo_lookups", ""),
+                "dp_memo_hits": block.get("memo_hits", ""),
                 "dfs_max_mems": "", "feasible_paths": 0, "paths_enumerated": 0,
                 "path_limit_hit": 0, "static_equal": 0, "witness_found": 0,
                 "witness_inputs": "", "expected_branches": "", "actual_branches": "",
