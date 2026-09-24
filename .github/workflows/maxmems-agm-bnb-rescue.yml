@@ -1,0 +1,87 @@
+name: MaxMEMS AGM BnB rescue
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - '.github/workflows/maxmems-agm-bnb-rescue.yml'
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_agm_gate -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_agm_gate --target cnip -j2
+      - name: Validate BnB on 20 controlled witnesses
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_agm_gate/cnip" \
+            --output-dir agm-bnb-witness
+
+  rescue:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_agm -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_agm --target cnip -j2
+      - name: Run AGM BnB rescue
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_agm/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/arithmetic-geometric-mean-1.c"
+          mkdir -p agm-bnb/120 agm-bnb/300
+          COMMON=(
+            EPPATHER_PREFIX_FEASIBILITY=1
+            EPPATHER_MAXMEMS_CORE_ONLY=1
+            EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+            EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+            EPPATHER_MAXMEMS_LIGHT_LEAF=1
+            EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+            EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96
+            EPPATHER_SUPPRESS_REDECL_WARNINGS=1
+            EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+            EPPATHER_MAXMEMS_BRANCH_BOUND=1
+          )
+          (
+            cd agm-bnb/120
+            timeout 120s env "${COMMON[@]}" "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+          RC=$(cat agm-bnb/120/exit_code.txt 2>/dev/null || echo 124)
+          if [ "$RC" != "0" ]; then
+            (
+              cd agm-bnb/300
+              timeout 300s env "${COMMON[@]}" "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+              echo $? > exit_code.txt
+            ) || true
+          else
+            cp agm-bnb/120/stdout.log agm-bnb/300/stdout.log
+            cp agm-bnb/120/stderr.log agm-bnb/300/stderr.log
+            echo 0 > agm-bnb/300/exit_code.txt
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: agm-bnb-rescue
+          path: agm-bnb/
