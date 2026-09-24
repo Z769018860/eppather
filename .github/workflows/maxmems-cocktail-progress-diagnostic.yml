@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        variant: [plain, bnb, bnb_fastupper, order, greedy_bnb_fastupper]
+        variant: [plain, bnb_budget32, bnb_budget64, bnb_budget128, bnb_budget256, greedy_budget128]
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -52,17 +52,20 @@ jobs:
             plain)
               EXTRA=()
               ;;
-            bnb)
-              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1)
+            bnb_budget32)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=32)
               ;;
-            bnb_fastupper)
-              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1)
+            bnb_budget64)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=64)
               ;;
-            order)
-              EXTRA=(EPPATHER_MAXMEMS_BRANCH_ORDER=1)
+            bnb_budget128)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128)
               ;;
-            greedy_bnb_fastupper)
-              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_SEED_GREEDY=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1)
+            bnb_budget256)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=256)
+              ;;
+            greedy_budget128)
+              EXTRA=(EPPATHER_MAXMEMS_BRANCH_BOUND=1 EPPATHER_MAXMEMS_SEED_GREEDY=1 EPPATHER_MAXMEMS_FAST_TEXT_UPPER=1 EPPATHER_MAXMEMS_UPPER_STATE_BUDGET=128)
               ;;
           esac
 
