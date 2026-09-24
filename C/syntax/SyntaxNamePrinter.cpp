@@ -3441,6 +3441,25 @@ inline bool isPathFeasibleCached(
 
 static std::unordered_map<std::string, int> decisionMemCache;
 
+// Optional profiling for targeted MaxMEMS timeout diagnosis. Disabled by
+// default so normal tool output and SANER measurements are unchanged.
+static unsigned long long maxMemsProfileStates = 0;
+static unsigned long long maxMemsProfileMemoHits = 0;
+static unsigned long long maxMemsProfileLeafSolves = 0;
+static unsigned long long maxMemsProfileLeafSolveMicros = 0;
+
+static bool maxMemsProfileEnabled() {
+    const char* raw = std::getenv("EPPATHER_MAXMEMS_PROFILE");
+    return raw && *raw && std::string(raw) != "0";
+}
+
+static void resetMaxMemsProfile() {
+    maxMemsProfileStates = 0;
+    maxMemsProfileMemoHits = 0;
+    maxMemsProfileLeafSolves = 0;
+    maxMemsProfileLeafSolveMicros = 0;
+}
+
 static int decisionMemCached(SyntaxNamePrinter* self,
                              CFGNode* node,
                              PathDecisionKind kind) {
@@ -3474,6 +3493,16 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
     if (!entry)        return PathInfo(0, pathPrefix, true);
 
+    ++maxMemsProfileStates;
+    if (maxMemsProfileEnabled() && maxMemsProfileStates % 10000ULL == 0ULL) {
+        std::cerr << "[MAXMEMS PROFILE STATE] states=" << maxMemsProfileStates
+                  << " memo_hits=" << maxMemsProfileMemoHits
+                  << " leaf_solves=" << maxMemsProfileLeafSolves
+                  << " leaf_solver_ms="
+                  << (maxMemsProfileLeafSolveMicros / 1000ULL)
+                  << std::endl;
+    }
+
     // Match DFS2's lexical-loop backtracking before constructing the DP key.
     // A deeper loop is a fresh dynamic invocation after an enclosing loop
     // starts another iteration.
@@ -3489,6 +3518,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
     if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+        ++maxMemsProfileMemoHits;
         return it->second;
     }
     auto store = [&](PathInfo result) {
@@ -3515,8 +3545,35 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     PathDecision{entry.get(), PathDecisionKind::Code});
             }
         }
+        ++maxMemsProfileLeafSolves;
+        if (maxMemsProfileEnabled() &&
+            (maxMemsProfileLeafSolves <= 5ULL ||
+             maxMemsProfileLeafSolves % 100ULL == 0ULL)) {
+            std::cerr << "[MAXMEMS PROFILE LEAF BEGIN] leaf="
+                      << maxMemsProfileLeafSolves
+                      << " states=" << maxMemsProfileStates
+                      << " decisions=" << curDecisions.size()
+                      << " path_chars=" << curPath.size()
+                      << std::endl;
+        }
         EpatRunner runner(vartemp);
+        const auto leafStart = std::chrono::high_resolution_clock::now();
         const auto eval = runner.solve(curDecisions);
+        const auto leafEnd = std::chrono::high_resolution_clock::now();
+        maxMemsProfileLeafSolveMicros += static_cast<unsigned long long>(
+            std::chrono::duration_cast<std::chrono::microseconds>(
+                leafEnd - leafStart).count());
+        if (maxMemsProfileEnabled() &&
+            (maxMemsProfileLeafSolves <= 5ULL ||
+             maxMemsProfileLeafSolves % 100ULL == 0ULL)) {
+            std::cerr << "[MAXMEMS PROFILE LEAF END] leaf="
+                      << maxMemsProfileLeafSolves
+                      << " status=" << static_cast<int>(eval.status)
+                      << " mem=" << eval.mem
+                      << " total_leaf_solver_ms="
+                      << (maxMemsProfileLeafSolveMicros / 1000ULL)
+                      << std::endl;
+        }
         if (eval.status != result::feasible) {
             return store(PathInfo(0, curPath, false));
         }
@@ -3667,6 +3724,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         dpMemo.clear();  // 每个函数入口前清空 memo
         decisionMemCache.clear();
         feasCache.clear();
+        resetMaxMemsProfile();
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3739,6 +3797,14 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             }
         }
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
+        if (maxMemsProfileEnabled()) {
+            std::cout << "[MAXMEMS PROFILE] states=" << maxMemsProfileStates
+                      << " memo_hits=" << maxMemsProfileMemoHits
+                      << " leaf_solves=" << maxMemsProfileLeafSolves
+                      << " leaf_solver_ms="
+                      << (maxMemsProfileLeafSolveMicros / 1000ULL)
+                      << std::endl;
+        }
     }
 }
 
