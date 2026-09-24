@@ -1,0 +1,91 @@
+name: MaxMEMS order-only hard2
+
+concurrency:
+  group: maxmems-order-only-hard2-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-timeout-bnb-order-sharded
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/maxmems_witness_experiment.py'
+      - 'docs/maxmems-hard-timeout2-manifest.txt'
+      - '.github/workflows/maxmems-order-only-hard2.yml'
+
+jobs:
+  witness-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_witness -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_witness --target cnip -j2
+      - name: Run 20-case order-only correctness gate
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_witness_experiment.py \
+            --cnip "${{ github.workspace }}/build_witness/cnip" \
+            --output-dir order-only-witness
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: order-only-witness
+          path: order-only-witness/
+
+  hard-timeout:
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_hard -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_hard --target cnip -j2
+      - name: Run one remaining hard timeout subject with ordering only
+        run: |
+          EPPATHER_PREFIX_FEASIBILITY=1 \
+          EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+          EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+          EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+          EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+          EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+          EPPATHER_MAXMEMS_BRANCH_ORDER=1 \
+          EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+          EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_hard/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-hard-timeout2-manifest.txt \
+            --expected-programs 2 \
+            --output-dir "order-only-hard-${{ matrix.shard }}" \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
+            --shard-index ${{ matrix.shard }} --shard-count 2
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: order-only-hard-${{ matrix.shard }}
+          path: order-only-hard-${{ matrix.shard }}/
