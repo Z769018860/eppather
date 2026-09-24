@@ -20,7 +20,7 @@ SCALAR_INT_TYPE = (
 QUAL = r"(?:(?:const|volatile)\s+)*"
 FUNC_RE = re.compile(
     rf"\b(?:{SCALAR_INT_TYPE}|void)\s+(?P<name>[A-Za-z_]\w*)" +
-    r"\s*\((?P<params>[^()]*)\)\s*\{", re.M
+    r"\s*\((?P<params>[^()]*)\)\s*\{{", re.M
 )
 PARAM_RE = re.compile(
     rf"^\s*{QUAL}(?:{SCALAR_INT_TYPE})\s+{QUAL}(?P<name>[A-Za-z_]\w*)\s*$"
