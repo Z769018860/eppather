@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string_view>
 #include <unordered_map>
 #include <unordered_set>
