@@ -1,0 +1,133 @@
+name: MaxMEMS soundex DFS max-only A-B
+
+concurrency:
+  group: maxmems-soundex-dfs-max-only-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-dfs-max-only
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - '.github/workflows/maxmems-soundex-dfs-max-only.yml'
+
+jobs:
+  soundex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build_soundex -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_soundex --target cnip -j2
+
+      - name: Run DP, ordinary DFS, and max-only DFS
+        shell: bash
+        run: |
+          set -u
+          CNIP="${{ github.workspace }}/build_soundex/cnip"
+          SRC="${{ github.workspace }}/testcase/output_complete2/soundex.c"
+          mkdir -p soundex-ab/dp soundex-ab/ordinary soundex-ab/maxonly
+
+          (
+            cd soundex-ab/dp
+            timeout 120s env \
+              EPPATHER_PREFIX_FEASIBILITY=1 \
+              EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+              EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+              EPPATHER_MAXMEMS_CORE_ONLY=1 \
+              EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1 \
+              EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1 \
+              EPPATHER_MAXMEMS_LIGHT_LEAF=1 \
+              EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1 \
+              EPPATHER_MAXMEMS_BRANCH_BOUND=1 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              "$CNIP" -g "$SRC" 3 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+          (
+            cd soundex-ab/ordinary
+            timeout 120s env \
+              EPPATHER_PREFIX_FEASIBILITY=1 \
+              EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+              EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              "$CNIP" -q "$SRC" 3 1000 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+          (
+            cd soundex-ab/maxonly
+            timeout 120s env \
+              EPPATHER_PREFIX_FEASIBILITY=1 \
+              EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100 \
+              EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=96 \
+              EPPATHER_SUPPRESS_REDECL_WARNINGS=1 \
+              EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1 \
+              EPPATHER_DFS2_MAX_ONLY=1 \
+              "$CNIP" -q "$SRC" 3 1000 > stdout.log 2> stderr.log
+            echo $? > exit_code.txt
+          ) || true
+
+      - name: Compare results
+        run: |
+          python3 - <<'PY'
+          import json, re
+          from pathlib import Path
+
+          root = Path("soundex-ab")
+          def read(name):
+              d = root / name
+              out = (d / "stdout.log").read_text(errors="replace") if (d/"stdout.log").exists() else ""
+              err = (d / "stderr.log").read_text(errors="replace") if (d/"stderr.log").exists() else ""
+              rc = int((d/"exit_code.txt").read_text().strip()) if (d/"exit_code.txt").exists() else 124
+              return rc, out, err
+
+          dp_rc, dp_out, _ = read("dp")
+          ordinary_rc, ordinary_out, _ = read("ordinary")
+          max_rc, max_out, _ = read("maxonly")
+
+          dp_vals = [int(x) for x in re.findall(r"(?m)^MEMS:\s*(-?\d+)\s*$", dp_out)]
+          max_vals = [int(x) for x in re.findall(r"(?m)^\[DFS MAX ONLY MEMS\]:\s*(-?\d+)\s*$", max_out)]
+          paths = [int(x) for x in re.findall(r"(?m)^\[DFS MAX ONLY FEASIBLE PATHS\]:\s*(\d+)\s*$", max_out)]
+
+          result = {
+              "dp_exit": dp_rc,
+              "ordinary_dfs_exit": ordinary_rc,
+              "max_only_dfs_exit": max_rc,
+              "dp_mems": dp_vals[-1] if dp_vals else None,
+              "dfs_max_only_mems": max_vals[-1] if max_vals else None,
+              "dfs_max_only_feasible_paths": paths[-1] if paths else None,
+              "ordinary_timed_out": ordinary_rc == 124,
+              "max_only_timed_out": max_rc == 124,
+          }
+          result["dp_equals_max_only"] = (
+              result["dp_mems"] is not None and
+              result["dp_mems"] == result["dfs_max_only_mems"]
+          )
+          Path("soundex-ab/summary.json").write_text(json.dumps(result, indent=2) + "\n")
+          print("SOUNDEX_DFS_MAX_ONLY_AB", json.dumps(result, sort_keys=True))
+
+          if dp_rc != 0:
+              raise SystemExit("DP did not finish")
+          if max_rc != 0:
+              raise SystemExit("DFS max-only did not finish")
+          if not result["dp_equals_max_only"]:
+              raise SystemExit("DP and DFS max-only disagree")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: soundex-dfs-max-only-ab
+          path: soundex-ab/
