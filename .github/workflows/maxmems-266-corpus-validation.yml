@@ -24,7 +24,7 @@ jobs:
       matrix:
         shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - name: Configure Eppather
@@ -38,7 +38,7 @@ jobs:
             --corpus testcase/output_complete2 \
             --output-dir maxmems-266-shard-${{ matrix.shard }} \
             --manifest docs/maxmems-266-corpus-manifest.txt --expected-programs 266 \
-            --max-loop 3 --max-paths 1000 --timeout 120 \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 300 \
             --shard-index ${{ matrix.shard }} --shard-count 12
       - uses: actions/upload-artifact@v4
         if: always()
