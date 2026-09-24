@@ -90,49 +90,79 @@ Implemented details include:
 End-to-end A/B fixtures exist for both nested scalar while and nested scalar
 for. The existing array-writing nested benchmark remains a required fallback.
 
-## Array/pointer memory certificate substrate
+## Array/pointer and fixed-memory acceleration stage
 
-The newest stage deliberately does **not** accelerate memory-dependent loops
-yet. Instead each SPath records:
+The memory work is now split into three explicitly different classes.
 
-- source fragments containing memory accesses;
-- array-subscript count;
-- pointer-dereference count;
-- whether memory is written;
-- whether the restricted memory-access recognizer is complete;
-- observed MEMS, using the same metric as epat++:
-  one per ArraySubscript AST node and one per pointer dereference.
+### 1. Fixed local-array cells: opt-in shortcut implemented
 
-CI probes use the existing `16_array_scan.c` and `17_pointer_walk.c`
-subjects. They must expose non-zero memory/MEMS certificates while producing
-zero exact acceleration plans.
+For a restricted class of one-dimensional fixed local arrays, PR #98 now
+constructs full-loop fixed-cell memory summaries and an independently guarded
+DFS shortcut.
 
-This separates two questions that were previously conflated:
+The admitted case requires all of the following before replacement:
 
-1. can the skipped memory cost be accounted for exactly?
-2. can the memory **state transition** be summarized without violating alias
-   semantics?
+- complete SPath graph and exact trip count;
+- determinate cycle with proved phase guards;
+- a unique fixed local-array declaration with a statically known extent;
+- constant, in-bounds array indices only;
+- every memory write represented by an exact fixed-cell affine transition;
+- every memory access lexically accounted for with the same MEMS convention
+  as epat++ MemVisitor;
+- no pointer dereference, symbolic index, VLA/unknown extent, opaque call or
+  unresolved memory effect;
+- exact coverage union for skipped SPaths.
 
-Only (1) is now instrumented. Memory-dependent shortcuts remain disabled until
-(2) has an alias-aware proof.
+The compressed decision stream contains a loop-entry whole-memory checkpoint,
+the scalar closed form, fixed-cell assignments and a cost-only
+`SyntheticMems` decision. `SyntheticMems` emits no source/SMT semantics; it
+restores the exact MEMS skipped by compression after epat++ solves the
+compressed path.
+
+VolCE remains an independent oracle. On the unfolded path it proves:
+
+- the summarized fixed-cell entry-to-exit affine relation;
+- the untouched frame for every other cell in the declared fixed region;
+- model-count and weighted-MEMS equivalence between unfolded and compressed
+  paths.
+
+Runtime replacement is separately opt-in through
+`EPPATHER_LOOP_SCC_MEMORY_ACCELERATE=1`. Positive A/B fixtures cover a single
+updated cell and a two-cell frame where the untouched second cell remains
+symbolic.
+
+### 2. General array accesses: certificate/observation only
+
+SPaths record source memory fragments, array-subscript counts, write status,
+observer completeness and observed MEMS. Symbolic-index or otherwise
+unresolved array transitions are still fallback cases and are never promoted
+to the fixed-cell shortcut.
+
+### 3. Pointer dereferences: fallback
+
+Pointer reads/writes are counted for MEMS diagnostics, but the fixed-memory
+pre-execution certificate deliberately rejects pointer dereferences. The next
+pointer milestone is a narrow alias proof for pointers that can be bound
+statically to a unique fixed local-array cell/range. General pointer arithmetic
+and ambiguous aliasing remain out of scope for shortcut admission.
 
 ## What remains
 
 The next LoopSCC work is:
 
-1. finish CI validation of inside-out nested scalar shortcuts;
-2. define canonical memory-region transitions for fixed cells/ranges;
-3. connect those transitions to the existing VolCE canonical memory
-   projections and alias checks;
-4. prove read/write MEMS compensation against epat++ MemVisitor;
-5. admit only alias-safe memory summaries into the DFS shortcut;
-6. extend from independent scalar transforms to coupled multi-variable affine
+1. finish the current CI rerun after the memory-observer regex fix and record
+   the exact green run IDs;
+2. add a conservative constant pointer-alias certificate
+   (`p = a`, `p = &a[k]`) before admitting any dereference shortcut;
+3. retain fallback for pointer arithmetic, symbolic aliases, symbolic array
+   indices, VLA/unknown extents and cross-region ambiguity;
+4. compose safe fixed-memory summaries inside-out for nested loops only after
+   the flat fixed-cell A/B gate is stable;
+5. extend independent scalar relations to coupled multi-variable affine
    transforms;
-7. evaluate the final implementation across the 20 loop cases plus the
-   array/pointer/VLA suite at several `maxloop` settings.
+6. re-run the 20 loop subjects plus the 20 array/pointer/VLA subjects at
+   multiple requested maxloop values and report path/MEMS/count/runtime deltas.
 
-Until memory-transition proofs are implemented, array/pointer loops remain
-fallback cases even when their MEMS observations are precise.
 
 ### Fixed-memory shortcut safety gate (2026-09-24)
 
