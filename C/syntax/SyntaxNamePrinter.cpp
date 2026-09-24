@@ -152,15 +152,26 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
     }
     // A small user-supplied maxloop used to make a provably finite loop end in
     // an infeasible synthetic exit (for example, i < 4 with --maxloop 2).
-    // Lift only canonical affine loops, and only to a modest configurable hard
-    // cap. Data-dependent/unsupported loops still honor maxloop exactly.
+    // Loop metadata is immutable during one analysis, so cache the predictor
+    // result per CFG node/cap instead of reparsing init/guard/update on every
+    // dynamic visit to the loop header.
+    static std::unordered_map<
+        const psy::C::CFGNode*, std::unordered_map<int, int>>
+        forBoundCache;
+    auto& byCap = forBoundCache[node];
+    if (auto it = byCap.find(safetyCap); it != byCap.end()) {
+        return it->second;
+    }
     const auto lifted = psy::C::LoopBoundPredictor::predict(
         node->initstmt_str, node->cond_str, node->expr_str,
         exactLoopAutoliftCap(std::max(0, safetyCap)));
-    if (lifted.exact()) return lifted.iterations;
-    return psy::C::LoopBoundPredictor::predict(
-        node->initstmt_str, node->cond_str, node->expr_str,
-        safetyCap).iterations;
+    const int result = lifted.exact()
+        ? lifted.iterations
+        : psy::C::LoopBoundPredictor::predict(
+              node->initstmt_str, node->cond_str, node->expr_str,
+              safetyCap).iterations;
+    byCap.emplace(safetyCap, result);
+    return result;
 }
 
 std::optional<int> exactStableForTripCount(
@@ -172,11 +183,21 @@ std::optional<int> exactStableForTripCount(
     }
     if (!node || !node->isFor) return std::nullopt;
 
+    static std::unordered_map<
+        const psy::C::CFGNode*,
+        std::unordered_map<int, std::optional<int>>>
+        exactTripCache;
+    auto& byCap = exactTripCache[node];
+    if (auto it = byCap.find(safetyCap); it != byCap.end()) {
+        return it->second;
+    }
+
     const auto prediction = psy::C::LoopBoundPredictor::predict(
         node->initstmt_str, node->cond_str, node->expr_str,
         exactLoopAutoliftCap(std::max(0, safetyCap)));
     if (!prediction.exact() ||
         prediction.inductionVariable.empty()) {
+        byCap.emplace(safetyCap, std::nullopt);
         return std::nullopt;
     }
 
@@ -212,7 +233,10 @@ std::optional<int> exactStableForTripCount(
             continue;
         }
         if (!visited.insert(current.get()).second) continue;
-        if (++inspected > kMaxBodyNodes) return std::nullopt;
+        if (++inspected > kMaxBodyNodes) {
+            byCap.emplace(safetyCap, std::nullopt);
+            return std::nullopt;
+        }
 
         const std::string text =
             current->getCode() + "\n" +
@@ -230,6 +254,7 @@ std::optional<int> exactStableForTripCount(
             std::regex_search(text, writePrefix) ||
             std::regex_search(text, addressTaken) ||
             std::regex_search(text, pointerWrite)) {
+            byCap.emplace(safetyCap, std::nullopt);
             return std::nullopt;
         }
 
@@ -238,6 +263,7 @@ std::optional<int> exactStableForTripCount(
         if (current->getNextFalseNode())
             work.push_back(current->getNextFalseNode());
     }
+    byCap.emplace(safetyCap, prediction.iterations);
     return prediction.iterations;
 }
 
