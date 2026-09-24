@@ -287,7 +287,7 @@ std::optional<std::string> parseScalarInputParameter(
     // scalar parameters only. Structs, floating point, pointers, arrays and
     // declarators with unsupported syntax conservatively remain unbounded.
     static const std::regex scalarPattern(
-        R"(^[[:space:]]*(?:const[[:space:]]+|volatile[[:space:]]+)*(?:(?:signed|unsigned)[[:space:]]+)?(?:char|short|int|long|_Bool)[[:space:]]+([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*$)");
+        R"(^[[:space:]]*(?:const[[:space:]]+|volatile[[:space:]]+)*(?:(?:signed|unsigned)[[:space:]]+)?(?:char|short|int|long|_Bool)[[:space:]]+([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*;?[[:space:]]*$)");
     if (!std::regex_match(declaration, match, scalarPattern)) {
         return std::nullopt;
     }
