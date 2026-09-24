@@ -2023,6 +2023,12 @@ buildLoopSccCoupledAffineValidationDecisions(
     if (!plan.typeCertified) {
         return plan;
     }
+    // certifyCoupledAffineTypes also establishes the complete structural
+    // semantic gate: exact graph/trip/phase, complete coupled effects,
+    // complete guards, and absence of memory/opaque side effects.
+    plan.structuralSemanticCertified = true;
+    plan.certificateDiagnostics.push_back(
+        "complete coupled affine structural semantic certificate");
 
     if (const auto boundedRange =
             readCoupledBoundedRange(
@@ -2122,9 +2128,18 @@ buildLoopSccCoupledAffineValidationDecisions(
     plan.decisions.push_back(PathDecision{
         loop, PathDecisionKind::FalseBranch, {}, 0});
     plan.snapshotParallelized = true;
-    plan.runtimeShortcutEligible = false;
+    plan.runtimeShortcutEligible =
+        plan.typeCertified &&
+        plan.structuralSemanticCertified &&
+        plan.entryRangeCertified &&
+        plan.preexecutionOverflowCertified &&
+        plan.snapshotParallelized;
     plan.certificateDiagnostics.push_back(
         "entry state snapshotted before parallel matrix assignment");
+    if (plan.runtimeShortcutEligible) {
+        plan.certificateDiagnostics.push_back(
+            "coupled affine preexecution shortcut certificate complete");
+    }
     return plan;
 }
 
