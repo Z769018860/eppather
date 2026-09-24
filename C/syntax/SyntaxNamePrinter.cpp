@@ -3123,7 +3123,10 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         }
 
         // True：@(cond) → 体（顺着 CFG 的 next 走）
-        if (loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
+        const bool certifiedTrueGuardCanHold =
+            !exactStableTrip || snap_lc[d] < *exactStableTrip;
+        if (certifiedTrueGuardCanHold &&
+            loopCount[d] < predictedLoopBound(node.get(), maxloop)) {
             auto        cov_t = snap_cov;
             auto        lc_t  = snap_lc;
 
@@ -3146,7 +3149,11 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
             }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::TrueBranch});
-            if (is_decision_feasible(decisions)) {
+            // exactStableTrip proves this guard true at this iteration. Any
+            // earlier path inconsistency is still caught at later control
+            // points or the complete leaf solve, so an extra SMT query here
+            // cannot improve soundness.
+            if (exactStableTrip || is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
                 DFS2(node->getNextNode(), cov_t, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
             }
@@ -3177,7 +3184,9 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
                 decisions.push_back(PathDecision{node.get(), PathDecisionKind::LoopUpdate});
             }
             decisions.push_back(PathDecision{node.get(), PathDecisionKind::FalseBranch});
-            if (is_decision_feasible(decisions)) {
+            // At the certified trip count the guard is provably false; avoid
+            // re-solving the same affine guard with SMT.
+            if (exactStableTrip || is_decision_feasible(decisions)) {
                 currentPathCallees_ = baseCallees;
                 DFS2(node->getNextFalseNode(), cov_f, decisions, depth + 1, pathCount, maxloop, maxpaths, enableVolce, volceLower, volceUpper, functionTag);
             }
@@ -3520,6 +3529,7 @@ static std::uint64_t maxMemsLeafSolves = 0;
 static std::uint64_t maxMemsMemoLookups = 0;
 static std::uint64_t maxMemsMemoHits = 0;
 static std::uint64_t maxMemsLazyLeafSkipped = 0;
+static std::uint64_t maxMemsCertifiedGuardSolverSkips = 0;
 static int maxMemsFeasibleIncumbent = -1;
 
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
@@ -3828,7 +3838,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             auto tDecisions = curDecisions;
             tDecisions.push_back(
                 PathDecision{entry.get(), PathDecisionKind::TrueBranch});
-            if (isPathFeasibleCached(
+            const bool certifiedTrue =
+                exactStableTrip && unroll < *exactStableTrip;
+            if (certifiedTrue) {
+                ++maxMemsCertifiedGuardSolverSkips;
+            }
+            if (certifiedTrue ||
+                isPathFeasibleCached(
                     this, tDecisions,
                     decisionOnlyPath ? std::string{} : vartemp + tPath)) {
                 auto tLoopMap = loopUnrollMap;
@@ -3848,7 +3864,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             auto fDecisions = curDecisions;
             fDecisions.push_back(
                 PathDecision{entry.get(), PathDecisionKind::FalseBranch});
-            if (isPathFeasibleCached(
+            const bool certifiedFalse =
+                exactStableTrip && unroll >= *exactStableTrip;
+            if (certifiedFalse) {
+                ++maxMemsCertifiedGuardSolverSkips;
+            }
+            if (certifiedFalse ||
+                isPathFeasibleCached(
                     this, fDecisions,
                     decisionOnlyPath ? std::string{} : vartemp + fPath)) {
                 auto fLoopMap = loopUnrollMap;
@@ -3905,6 +3927,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         maxMemsMemoLookups = 0;
         maxMemsMemoHits = 0;
         maxMemsLazyLeafSkipped = 0;
+        maxMemsCertifiedGuardSolverSkips = 0;
         maxMemsFeasibleIncumbent = -1;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
@@ -3986,6 +4009,8 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::cout << "[DP MEMO HITS]: " << maxMemsMemoHits << std::endl;
         std::cout << "[DP LAZY LEAF SKIPPED]: "
                   << maxMemsLazyLeafSkipped << std::endl;
+        std::cout << "[DP CERTIFIED GUARD SOLVER SKIPS]: "
+                  << maxMemsCertifiedGuardSolverSkips << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
