@@ -3515,7 +3515,13 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
 static std::string LoopMapKey(const std::unordered_map<CFGNode*, int>& mp) {
     std::vector<std::pair<uintptr_t,int>> v;
     v.reserve(mp.size());
-    for (const auto& kv : mp) v.push_back({reinterpret_cast<uintptr_t>(kv.first), kv.second});
+    for (const auto& kv : mp) {
+        // Absent loop state and an explicitly reset zero counter are
+        // semantically identical. Canonicalize both to omission so nested-loop
+        // reset bookkeeping does not fragment DP/upper-bound memo keys.
+        if (kv.second == 0) continue;
+        v.push_back({reinterpret_cast<uintptr_t>(kv.first), kv.second});
+    }
     std::sort(v.begin(), v.end());
     std::string res;
     for (auto &p : v) {
