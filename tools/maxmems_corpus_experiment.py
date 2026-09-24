@@ -177,8 +177,11 @@ def analyze_program(src: Path, cnip: Path, max_loop: int, max_paths: int,
                          dpw, retry_timeout, env)
         prog["dp_status"] = dp["status"] if dp["status"] != "ok" else str(dp["returncode"])
         if dp["status"] != "ok" or dp["returncode"] != 0:
+            diagnostic = dp["stderr"] or dp["stdout"]
+            if os.environ.get("EPPATHER_MAXMEMS_PROFILE"):
+                print("[MAXMEMS266 DP DIAGNOSTIC] " + diagnostic[-5000:], flush=True)
             prog.update(status="dp_failed", hard_failure=1,
-                        detail=(dp["stderr"] or dp["stdout"])[-500:].replace("\n", " "))
+                        detail=diagnostic[-1000:].replace("\n", " "))
             return prog, functions
 
         blocks = parse_dp_blocks(dp["stdout"])
