@@ -1,0 +1,59 @@
+name: MaxMEMS prefix budget sweep
+
+concurrency:
+  group: maxmems-prefix-budget-sweep-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-prefix-pruning-rescue
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'docs/maxmems-hard-timeout4-manifest.txt'
+      - '.github/workflows/maxmems-prefix-budget-sweep.yml'
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        budget: [64, 128, 256]
+        shard: [0, 1, 2, 3]
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build_budget -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_budget --target cnip -j2
+      - name: Run hard timeout subject
+        shell: bash
+        run: |
+          export EPPATHER_PREFIX_FEASIBILITY=1
+          export EPPATHER_PREFIX_SOLVER_TIMEOUT_MS=100
+          export EPPATHER_MAXMEMS_PREFIX_QUERY_BUDGET=${{ matrix.budget }}
+          export EPPATHER_MAXMEMS_CORE_ONLY=1
+          export EPPATHER_MAXMEMS_DISABLE_PATH_MEMO=1
+          export EPPATHER_MAXMEMS_DECISION_ONLY_PATH=1
+          export EPPATHER_MAXMEMS_EXACT_GUARD_PRUNE=1
+          export EPPATHER_MAXMEMS_LIGHT_LEAF=1
+          export EPPATHER_MAXMEMS_LAZY_LEAF_FEASIBILITY=1
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_budget/cnip" \
+            --corpus testcase/output_complete2 \
+            --manifest docs/maxmems-hard-timeout4-manifest.txt \
+            --expected-programs 4 \
+            --output-dir "budget-${{ matrix.budget }}-${{ matrix.shard }}" \
+            --max-loop 3 --max-paths 1000 --timeout 120 --retry-timeout 120 \
+            --shard-index ${{ matrix.shard }} --shard-count 4
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: budget-${{ matrix.budget }}-${{ matrix.shard }}
+          path: budget-${{ matrix.budget }}-${{ matrix.shard }}/
