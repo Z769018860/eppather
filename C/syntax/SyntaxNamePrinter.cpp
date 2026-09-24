@@ -4843,10 +4843,20 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             const std::optional<std::string> oldBound =
                 oldBoundRaw ? std::optional<std::string>(oldBoundRaw)
                             : std::nullopt;
+            const char* oldLoopExitRaw =
+                std::getenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
+            const std::optional<std::string> oldLoopExit =
+                oldLoopExitRaw ? std::optional<std::string>(oldLoopExitRaw)
+                               : std::nullopt;
 
             setenv("EPPATHER_MAXMEMS_BRANCH_ORDER", "1", 1);
             setenv("EPPATHER_MAXMEMS_SHALLOW_BRANCH_ORDER", "1", 1);
             unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
+            // Loop-exit prefix solving is useful in the exact search, but on
+            // cocktail-sort these seed-time queries all returned unknown and
+            // dominated runtime. Seed discovery needs only one complete
+            // solver-certified leaf, so defer feasibility to the leaf.
+            unsetenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
             const char* seedExitFirstRaw =
                 std::getenv("EPPATHER_MAXMEMS_SEED_EXIT_FIRST");
             const bool seedExitFirst =
@@ -4884,6 +4894,12 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             } else {
                 unsetenv("EPPATHER_MAXMEMS_BRANCH_BOUND");
             }
+            if (oldLoopExit) {
+                setenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY",
+                       oldLoopExit->c_str(), 1);
+            } else {
+                unsetenv("EPPATHER_MAXMEMS_LOOP_EXIT_FEASIBILITY");
+            }
 
             // The seed pass is only a lower-bound discovery phase. Clear every
             // search cache/counter before the exact BnB pass so diagnostics and
@@ -4897,6 +4913,11 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
             maxMemsPrefixCacheHits = 0;
             maxMemsPrefixPruned = 0;
             maxMemsPrefixBudgetSkips = 0;
+            maxMemsLoopExitChecks = 0;
+            maxMemsLoopExitCacheHits = 0;
+            maxMemsLoopExitPruned = 0;
+            maxMemsLoopExitUnknown = 0;
+            maxMemsLoopExitFeasCache.clear();
             maxMemsLeafSolves = 0;
             maxMemsMemoLookups = 0;
             maxMemsMemoHits = 0;
