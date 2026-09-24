@@ -315,7 +315,14 @@ public:
         if (it != feasCache.end()) return it->second;
 
         EpatRunner runner(vartemp);
-        const auto status = runner.checkFeasible(decisions);
+        const char* decisionOnlyRaw =
+            std::getenv("EPPATHER_MAXMEMS_DECISION_ONLY_PATH");
+        const bool decisionOnlyPath =
+            decisionOnlyRaw && *decisionOnlyRaw &&
+            std::string(decisionOnlyRaw) != "0";
+        const auto status = decisionOnlyPath
+            ? runner.checkFeasible(decisions, pathExpr)
+            : runner.checkFeasible(decisions);
         // Safe prefix pruning is three-valued: prune only a prefix that the
         // solver proves infeasible.  Unknown must remain explorable; treating
         // it as false can silently discard the true MaxMEMS witness.
