@@ -120,6 +120,71 @@ int main() {
               << (negativeScaleOk ? "PASS" : "FAIL") << '\n';
     failures += !negativeScaleOk;
 
+    // Coupled LoopSCC summaries are proved row-by-row against the unfolded
+    // SSA formula. For four iterations of x=x+y; y=y+1; i=i+1:
+    //   i' = i + 4
+    //   x' = x + 4*y + 6
+    //   y' = y + 4
+    const std::string coupledRelationSmt =
+        "(declare-const |i@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |i@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |x@0#ssa1| (_ BitVec 32))\n"
+        "(declare-const |y@0#ssa0| (_ BitVec 32))\n"
+        "(declare-const |y@0#ssa1| (_ BitVec 32))\n"
+        "(assert (= |i@0#ssa1| "
+        "(bvadd |i@0#ssa0| (_ bv4 32))))\n"
+        "(assert (= |y@0#ssa1| "
+        "(bvadd |y@0#ssa0| (_ bv4 32))))\n"
+        "(assert (= |x@0#ssa1| "
+        "(bvadd (bvadd |x@0#ssa0| "
+        "(bvmul (_ bv4 32) |y@0#ssa0|)) "
+        "(_ bv6 32))))\n";
+
+    const volce::CoupledAffineRelationSummary coupledCorrect{
+        {"i", "x", "y"},
+        {
+            1, 0, 0,
+            0, 1, 4,
+            0, 0, 1
+        },
+        {4, 6, 4}
+    };
+    auto coupledWrong = coupledCorrect;
+    coupledWrong.offset[1] = 7;
+
+    const auto coupledAccepted =
+        volce::validateCoupledAffineRelationsFromSmt2(
+            coupledRelationSmt, {coupledCorrect});
+    const auto coupledRejected =
+        volce::validateCoupledAffineRelationsFromSmt2(
+            coupledRelationSmt, {coupledWrong});
+
+    const bool coupledRelationOk =
+        coupledAccepted && coupledRejected &&
+        coupledAccepted->required_rows == 3 &&
+        coupledAccepted->applied_rows == 3 &&
+        coupledAccepted->applied.size() == 3 &&
+        coupledAccepted->rejected.empty() &&
+        coupledAccepted->all_rows_entailed &&
+        coupledRejected->required_rows == 3 &&
+        coupledRejected->applied_rows == 2 &&
+        coupledRejected->applied.size() == 2 &&
+        coupledRejected->rejected.size() == 1 &&
+        !coupledRejected->all_rows_entailed;
+    std::cout << "loopscc-coupled-affine-row-entailment: "
+              << (coupledRelationOk ? "PASS" : "FAIL")
+              << " applied="
+              << (coupledAccepted
+                      ? std::to_string(coupledAccepted->applied_rows)
+                      : "N/A")
+              << "/"
+              << (coupledAccepted
+                      ? std::to_string(coupledAccepted->required_rows)
+                      : "N/A")
+              << '\n';
+    failures += !coupledRelationOk;
+
     const std::string memorySmt =
         "(declare-const x (_ BitVec 32))\n"
         "(declare-const mem (Array (_ BitVec 32) (_ BitVec 32)))\n"
