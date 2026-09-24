@@ -162,6 +162,70 @@ int predictedLoopBound(const psy::C::CFGNode* node, int safetyCap) {
         node->initstmt_str, node->cond_str, node->expr_str,
         safetyCap).iterations;
 }
+
+std::optional<int> exactStableForTripCount(
+    const psy::C::CFGNode* node, int safetyCap) {
+    if (!node || !node->isFor) return std::nullopt;
+
+    const auto prediction = psy::C::LoopBoundPredictor::predict(
+        node->initstmt_str, node->cond_str, node->expr_str,
+        exactLoopAutoliftCap(std::max(0, safetyCap)));
+    if (!prediction.exact() ||
+        prediction.inductionVariable.empty()) {
+        return std::nullopt;
+    }
+
+    // LoopBoundPredictor proves the header recurrence. For guard pruning we
+    // additionally require that the induction variable is not modified or
+    // address-taken in the body; otherwise an early exit could be real even
+    // when init/condition/update look canonical.
+    const std::string escaped =
+        std::regex_replace(
+            prediction.inductionVariable,
+            std::regex(R"([.^$|()\[\]{}*+?\\])"), R"(\$&)");
+    const std::regex writeDirect(
+        "\\b" + escaped +
+        "\\b[[:space:]]*(?:=|\\+=|-=|\\*=|/=|%=|\\+\\+|--)");
+    const std::regex writePrefix(
+        "(?:\\+\\+|--)[[:space:]]*\\b" + escaped + "\\b");
+    const std::regex addressTaken(
+        "&[[:space:]]*\\b" + escaped + "\\b");
+
+    const auto afterLoop = node->getNextFalseNode();
+    std::vector<std::shared_ptr<psy::C::CFGNode>> work;
+    if (node->getNextNode()) work.push_back(node->getNextNode());
+    std::unordered_set<const psy::C::CFGNode*> visited;
+    std::size_t inspected = 0;
+    constexpr std::size_t kMaxBodyNodes = 512;
+
+    while (!work.empty()) {
+        auto current = work.back();
+        work.pop_back();
+        if (!current || current.get() == node ||
+            current == afterLoop) {
+            continue;
+        }
+        if (!visited.insert(current.get()).second) continue;
+        if (++inspected > kMaxBodyNodes) return std::nullopt;
+
+        const std::string text =
+            current->getCode() + "\n" +
+            current->initstmt_str + "\n" +
+            current->expr_str;
+        if (std::regex_search(text, writeDirect) ||
+            std::regex_search(text, writePrefix) ||
+            std::regex_search(text, addressTaken)) {
+            return std::nullopt;
+        }
+
+        if (current->getNextNode())
+            work.push_back(current->getNextNode());
+        if (current->getNextFalseNode())
+            work.push_back(current->getNextFalseNode());
+    }
+    return prediction.iterations;
+}
+
 }
 
 
@@ -3603,6 +3667,8 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     if (entry->isLoop) {
         const int unroll = loopUnrollMap[entry.get()];
         const int bound = predictedLoopBound(entry.get(), maxloop);
+        const auto exactStableTrip =
+            exactStableForTripCount(entry.get(), maxloop);
         std::string curPath = pathPrefix;
         auto curDecisions = decisions;
 
@@ -3641,7 +3707,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             }
         }
 
-        if (entry->getNextFalseNode()) {
+        const bool falseGuardCanHold =
+            !exactStableTrip || unroll >= *exactStableTrip;
+        if (falseGuardCanHold && entry->getNextFalseNode()) {
             std::string fPath =
                 curPath + "@(!(" + entry->cond_str + "));\n";
             auto fDecisions = curDecisions;
