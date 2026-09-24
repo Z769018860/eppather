@@ -1,0 +1,105 @@
+name: MaxMEMS 266 shard10 complete
+
+concurrency:
+  group: maxmems-266-shard10-complete-${{ github.ref }}
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - experiment/maxmems-266-final-20260925
+    paths:
+      - 'docs/maxmems-266-shard10-manifest.txt'
+      - '.github/workflows/maxmems-266-shard10-complete.yml'
+      - 'tools/maxmems_corpus_experiment.py'
+      - 'tools/aggregate_maxmems_corpus.py'
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'C/syntax/EpatRunner.cpp'
+      - 'C/syntax/EpatRunner.h'
+
+jobs:
+  program:
+    strategy:
+      fail-fast: false
+      max-parallel: 22
+      matrix:
+        index: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate harness
+        run: |
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_corpus_experiment.py tools/aggregate_maxmems_corpus.py
+
+      - name: Configure Eppather
+        run: cmake -S . -B build_shard10 -DANALYSIS_BACKEND=epat++
+
+      - name: Build cnip
+        run: cmake --build build_shard10 --target cnip -j2
+
+      - name: Run one shard10 program
+        continue-on-error: true
+        run: |
+          EPPATHER_MAXMEMS_CORE_ONLY=1 \
+          python3 tools/maxmems_corpus_experiment.py \
+            --cnip "${{ github.workspace }}/build_shard10/cnip" \
+            --corpus testcase/output_complete2 \
+            --output-dir "maxmems-shard10-${{ matrix.index }}" \
+            --manifest docs/maxmems-266-shard10-manifest.txt \
+            --expected-programs 22 \
+            --max-loop 3 --max-paths 1000 \
+            --timeout 120 --retry-timeout 300 \
+            --shard-index ${{ matrix.index }} --shard-count 22
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-shard10-${{ matrix.index }}
+          path: maxmems-shard10-${{ matrix.index }}/
+          if-no-files-found: warn
+
+  aggregate:
+    needs: program
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: maxmems-shard10-*
+          path: collected
+          merge-multiple: true
+
+      - name: Aggregate shard10
+        run: |
+          python3 tools/aggregate_maxmems_corpus.py \
+            --input collected \
+            --output maxmems-shard10-results \
+            --expected-programs 22
+
+      - name: Require all 22 program rows
+        run: |
+          python3 - <<'PY'
+          import csv
+          from pathlib import Path
+          p = Path("maxmems-shard10-results/programs.csv")
+          rows = list(csv.DictReader(p.open(encoding="utf-8")))
+          print("SHARD10_PROGRAM_ROWS", len(rows))
+          for r in rows:
+              print(r.get("source",""), r.get("status",""),
+                    r.get("static_equal_functions",""),
+                    r.get("functions_checked",""))
+          if len(rows) != 22:
+              raise SystemExit(f"expected 22 shard10 program rows, got {len(rows)}")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-shard10-results
+          path: maxmems-shard10-results/
