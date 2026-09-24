@@ -3543,8 +3543,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     // by DFS2 and therefore contribute no path MEMS decision here.
     if (entry->isFuncDef ||
         (entry->isVarDef && entry->nodeLevel == 3)) {
-        auto child = MaxMemsDP(entry->getNextNode(), maxloop, pathPrefix,
-                               depth + 1, loopUnrollMap, decisions);
+        auto child = MaxMemsDP(entry->getNextNode(), maxloop,
+                               std::move(pathPrefix), depth + 1,
+                               loopUnrollMap, std::move(decisions));
         return store(child);
     }
 
@@ -3559,8 +3560,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         PathInfo tInfo(0, tPath, false);
         if (entry->getNextNode() &&
             isPathFeasibleCached(this, tDecisions, vartemp + tPath)) {
-            tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath,
-                              depth + 1, tLoopMap, tDecisions);
+            tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
+                              std::move(tPath), depth + 1, tLoopMap,
+                              std::move(tDecisions));
         }
 
         auto fLoopMap = loopUnrollMap;
@@ -3572,8 +3574,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
         PathInfo fInfo(0, fPath, false);
         if (entry->getNextFalseNode() &&
             isPathFeasibleCached(this, fDecisions, vartemp + fPath)) {
-            fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath,
-                              depth + 1, fLoopMap, fDecisions);
+            fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
+                              std::move(fPath), depth + 1, fLoopMap,
+                              std::move(fDecisions));
         }
 
         if (!tInfo.feasible && !fInfo.feasible)
@@ -3619,8 +3622,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     this, tDecisions, vartemp + tPath)) {
                 auto tLoopMap = loopUnrollMap;
                 tLoopMap[entry.get()] = unroll + 1;
-                tInfo = MaxMemsDP(entry->getNextNode(), maxloop, tPath,
-                                  depth + 1, tLoopMap, tDecisions);
+                tInfo = MaxMemsDP(entry->getNextNode(), maxloop,
+                                  std::move(tPath), depth + 1, tLoopMap,
+                                  std::move(tDecisions));
             }
         }
 
@@ -3633,8 +3637,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             if (isPathFeasibleCached(
                     this, fDecisions, vartemp + fPath)) {
                 auto fLoopMap = loopUnrollMap;
-                fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop, fPath,
-                                  depth + 1, fLoopMap, fDecisions);
+                fInfo = MaxMemsDP(entry->getNextFalseNode(), maxloop,
+                                  std::move(fPath), depth + 1, fLoopMap,
+                                  std::move(fDecisions));
             }
         }
 
@@ -3658,8 +3663,9 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     // Sequential code introduces state updates but no alternative control-flow
     // choice. Defer prefix solving until the next branch/loop guard so one SMT
     // query can absorb the whole straight-line segment.
-    auto child = MaxMemsDP(entry->getNextNode(), maxloop, curPath,
-                           depth + 1, loopUnrollMap, nextDecisions);
+    auto child = MaxMemsDP(entry->getNextNode(), maxloop,
+                           std::move(curPath), depth + 1,
+                           loopUnrollMap, std::move(nextDecisions));
     if (!child.feasible)
         return store(PathInfo(0, curPath, false));
     return store(child);
