@@ -3536,6 +3536,7 @@ std::unordered_map<std::string, bool> feasCache;
 // MaxMEMS search diagnostics. These counters are reset per function by
 // printCFG_greedyDFS() and let timeout experiments distinguish path explosion
 // from solver overhead without changing the search result.
+static std::uint64_t maxMemsStatesVisited = 0;
 static std::uint64_t maxMemsPrefixChecks = 0;
 static std::uint64_t maxMemsPrefixCacheHits = 0;
 static std::uint64_t maxMemsPrefixPruned = 0;
@@ -3986,6 +3987,23 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     int currentMemsUpper,
     std::vector<PathDecision> decisions
 ) {
+    ++maxMemsStatesVisited;
+    const char* progressRaw = std::getenv("EPPATHER_MAXMEMS_PROGRESS_EVERY");
+    if (progressRaw && *progressRaw) {
+        char* end = nullptr;
+        const unsigned long long every =
+            std::strtoull(progressRaw, &end, 10);
+        if (end != progressRaw && *end == '\0' && every > 0 &&
+            maxMemsStatesVisited % every == 0) {
+            std::cerr << "[DP PROGRESS]: states=" << maxMemsStatesVisited
+                      << " leaves=" << maxMemsLeafSolves
+                      << " bnb_pruned=" << maxMemsBranchBoundPruned
+                      << " prefix_checks=" << maxMemsPrefixChecks
+                      << " prefix_pruned=" << maxMemsPrefixPruned
+                      << " incumbent=" << maxMemsFeasibleIncumbent
+                      << std::endl;
+        }
+    }
     if (maxMemsStopAfterFirstFeasible && maxMemsFirstFeasibleFound)
         return PathInfo(0, pathPrefix, false);
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
@@ -4491,6 +4509,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         syntaxDecisionMemsCache.clear();
         remainingMemsUpperCache.clear();
         feasCache.clear();
+        maxMemsStatesVisited = 0;
         maxMemsPrefixChecks = 0;
         maxMemsPrefixCacheHits = 0;
         maxMemsPrefixPruned = 0;
