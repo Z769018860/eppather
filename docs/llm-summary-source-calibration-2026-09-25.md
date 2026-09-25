@@ -32,3 +32,16 @@ Any further LLM-generated summary must preserve the access-bearing operations, p
 The unconstrained parameter experiment (Actions 36120332814, `maxloop=3`, `maxpaths=40`) timed out in both `-s` and `-q` after 120 seconds. Its partial paths included symbolic sizes far outside the validated 0–3 domain; the partial `[mem]` values are not usable final estimates.
 
 A generated fixed-input entry for `available=2`, `requested=3` completed (`-q`, `maxloop=3`, `maxpaths=20`): Eppather reported `[DFS MAX MEMS]: 23`. Exactly ten array-element writes initialize caller-owned state in that entry, so the projected function body contributes `23 - 10 = 13` accesses. The separately instrumented original reports **13** for that same input, with equal return and final state. The next CI run gates four representative fixed inputs, covering empty buffer, full read, and partial read. This is path-level evidence in the stated domain, not a global maximum or evidence for the cJSON and tinyexpr models.
+
+## Four Eppather path checks
+
+The automated comparison from Actions 36142636220 passed all four selected input/branch classes, using the same maxloop 3 and maxpaths 20 for the fixed-input C entries:
+
+| Available | Requested | Original-source witness | Eppather total | Caller initialization | Eppather function contribution |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 0 | 1 | 1 | 11 | 10 | 1 |
+| 1 | 1 | 9 | 19 | 10 | 9 |
+| 2 | 3 | 13 | 23 | 10 | 13 |
+| 3 | 3 | 13 | 23 | 10 | 13 |
+
+The ten caller writes are two `z` slots, four `src` slots, and four `dst` slots. Each generated entry is a separate fixed-input program that copies the validated function body; the dynamic original is never initialized inside its measured function. This four-path match supports **bounded path-level accuracy** for the calibrated Lua projection under the stated byte-level memcpy model. The unbounded-parameter analyzer experiment timed out, so it supplies no whole-domain MaxMEMS value. The historical cJSON 15, Lua 21, and tinyexpr 20 results remain model-only numbers; none is upgraded into an original-source maximum by this test.
