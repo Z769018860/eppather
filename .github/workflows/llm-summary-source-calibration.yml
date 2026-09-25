@@ -1,0 +1,38 @@
+name: LLM summary source calibration
+
+on:
+  pull_request:
+    paths:
+      - 'testcase/llm_summaries/lua_zread_summary.c'
+      - 'tools/validate_lua_projection.py'
+      - '.github/workflows/llm-summary-source-calibration.yml'
+  workflow_dispatch:
+
+jobs:
+  calibrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare against original Lua source
+        run: |
+          python3 tools/validate_lua_projection.py \
+            --lua-source testcase/lua/lzio.c \
+            --projection testcase/llm_summaries/lua_zread_summary.c \
+            --csv llm-calibration-results/lua_witness.csv
+      - name: Configure Eppather
+        run: cmake -S . -B build_llm_calibration -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_llm_calibration --target cnip -j2
+      - name: Run projected summary and DFS2
+        run: |
+          set +e
+          EPPATHER_ENTRY=summary_luaZ_read build_llm_calibration/cnip -s --maxloop 3 --maxpaths 80 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/summary.log 2>&1
+          echo "summary_rc=$?" >> llm-calibration-results/exit_codes.txt
+          build_llm_calibration/cnip -q --maxloop 3 --maxpaths 80 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/dfs2.log 2>&1
+          echo "dfs2_rc=$?" >> llm-calibration-results/exit_codes.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: llm-summary-source-calibration
+          path: llm-calibration-results/
