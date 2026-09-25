@@ -63,15 +63,15 @@ The workflow artifact includes `lua_witness.csv`, `fixed_witness_comparison.csv`
 
 The reproducible scripts are `tools/validate_other_llm_summaries.py`,
 `tools/validate_native_fragments.py`, and `tools/ablate_lua_projection.py`.
-The independent [Actions run 36155044633](https://github.com/Z769018860/eppather/actions/runs/36155044633)
-passed the source checks and all 16 Eppather Lua checks. Each row below has its own
+The final [Actions run 36155822291](https://github.com/Z769018860/eppather/actions/runs/36155822291)
+passed both fragment ablations, the source checks, and all 16 Eppather Lua checks. Each row below has its own
 scope; the numbers must not be mixed as if they counted the same call boundary.
 
 | Project | Original-source target and defined inputs | Original-source direct access witness | Negative control |
 | --- | --- | --- | --- |
 | Lua | `luaZ_read`, no refill, available/requested each 0–3 | 16/16 equal to the calibrated projection and fixed-input Eppather count; observed maximum 13 | Removing byte copies makes 9/16 inputs differ (first available=1, requested=1: source 9, ablated 7); removing ZIO state updates also makes 9/16 differ (first: source 9, ablated 5). Both changes also alter behavior or state. |
-| cJSON | `buffer_skip_whitespace`, four fixed strings (`"X"`, `" X"`, `"   X"`, `"    "`) | 3, 4, 6, 9 *direct field expressions inside this helper only* | Removing the loop's offset advance changes the resulting offset on 3/4 strings; this does not instrument the parser or called macros. |
-| tinyexpr | `te_eval` constant case, expressions `2`, `1+2`, `3.5` | 2, 2, 2 *direct type/value accesses in that case only* | Replacing the constant-value read with a zero return changes the evaluated value on 3/3 inputs; compilation, optimization and recursion are excluded. |
+| cJSON | `buffer_skip_whitespace`, four fixed strings (`"X"`, `" X"`, `"   X"`, `"    "`) | 3, 4, 6, 9 *direct field expressions inside this helper only* | Removing the loop's offset advance changes the resulting offset on 3/4 strings and leaves 3 direct accesses in each ablated helper; this does not instrument the parser or called macros. |
+| tinyexpr | `te_eval` constant case, expressions `2`, `1+2`, `3.5` | 2, 2, 2 *direct type/value accesses in that case only* | Replacing the constant-value read with a zero return changes the evaluated value on 3/3 inputs and leaves 1 direct access in each ablated constant case; compilation, optimization and recursion are excluded. |
 
 The original libraries also refute source equivalence of the *historical LLM models*.
 For cJSON, the `xxxx` input fails in the original parser but the legacy summary
