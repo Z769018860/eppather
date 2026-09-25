@@ -2,7 +2,7 @@
 
 Date: 2026-09-26  
 PR: #110  
-Primary performance run: https://github.com/Z769018860/eppather/actions/runs/36170356461
+Primary performance run: https://github.com/Z769018860/eppather/actions/runs/36171198186
 
 ## Why this audit was added
 
@@ -31,7 +31,7 @@ Configuration:
 - reported search times: the analyzer's existing `[DP TIME COST]` and
   `[DFS TIME COST]` timers.
 
-The first successful CI run produced:
+The final parameter-explicit CI run produced:
 
 | Metric | Result |
 |---|---:|
@@ -40,17 +40,17 @@ The first successful CI run produced:
 | Memo hits | 0 |
 | Memo misses | 1,767 |
 | Memo hit rate | 0.0000 |
-| Median summed DP search time per 20-subject repetition | 2.5063011 s |
-| Median summed DFS search time per 20-subject repetition | 2.5196372 s |
-| Median DFS/DP time ratio | 1.0016318x |
+| Median summed DP search time per 20-subject repetition | 2.0435077 s |
+| Median summed DFS search time per 20-subject repetition | 2.0617287 s |
+| Median DFS/DP time ratio | 1.0064951x |
 
 Per-repetition summed search times were:
 
 | Repetition | DP (s) | DFS (s) | DFS/DP |
 |---|---:|---:|---:|
-| 1 | 2.5038011 | 2.4892473 | 0.9941873x |
-| 2 | 2.5367022 | 2.5408416 | 1.0016318x |
-| 3 | 2.5063011 | 2.5196372 | 1.0053210x |
+| 1 | 2.0435077 | 2.0567805 | 1.0064951x |
+| 2 | 2.0508596 | 2.0617287 | 1.0052998x |
+| 3 | 2.0385392 | 2.0897868 | 1.0251394x |
 
 ## Interpretation
 
