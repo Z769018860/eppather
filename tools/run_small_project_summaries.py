@@ -485,7 +485,10 @@ def find_signature_start(text: str, brace_pos: int) -> int:
     semi = text.rfind(";", 0, brace_pos)
     close = text.rfind("}", 0, brace_pos)
     hash_line = text.rfind("\n#", 0, brace_pos)
-    start = max(line_start, semi + 1, close + 1, hash_line + 2)
+    # A preprocessor directive ends at its newline. Starting just after '#'
+    # accidentally folds 'endif' into the next function definition.
+    hash_end = text.find("\n", hash_line + 2) if hash_line >= 0 else -1
+    start = max(line_start, semi + 1, close + 1, hash_end + 1)
     while start < brace_pos and text[start].isspace():
         start += 1
     return start
@@ -718,7 +721,7 @@ def normalize_expression(expr: str, known: Set[str]) -> str:
     expr = re.sub(r"sizeof\s+[A-Za-z_][A-Za-z0-9_]*", "1", expr)
     expr = remove_casts(expr)
     expr = rewrite_member_access_to_index(expr)
-    expr = re.sub(r"&\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
+    expr = re.sub(r"(?<![&])&(?![&])\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
     expr = replace_unsupported_calls(expr, known)
     return expr
 
@@ -944,7 +947,7 @@ def normalize_semantic_expression(expr: str, known: Set[str], project: str) -> s
 
     expr = rewrite_external_semantic_calls(expr)
     expr = rewrite_member_access_to_index(expr)
-    expr = re.sub(r"&\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
+    expr = re.sub(r"(?<![&])&(?![&])\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
     expr = replace_unsupported_calls(expr, known)
     return expr
 
@@ -1114,6 +1117,8 @@ def invoke_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, ma
     out_log.parent.mkdir(parents=True, exist_ok=True)
     out_log.write_text(text, encoding="utf-8", errors="ignore")
     metrics = extract_metrics(text, entry)
+    if rc != 0 or timed_out or metrics["has_program_summary"] != "true":
+        metrics["summary_ok"] = "false"
     metrics.update({
         "entry": entry,
         "mode": mode,
@@ -1133,7 +1138,8 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
         "summary_ok", "has_function_summaries", "has_program_summary", "entry_seen",
         "worst_mems", "weighted_avg_mems", "function_count", "summary_case_count",
         "call_edge_count", "mems", "dfs_time", "dp_time", "reason", "notes",
-        "original_returncode", "original_timeout", "original_log", "log", "cmd"
+        "original_returncode", "original_timeout", "original_log", "log", "cmd",
+        "estimate_scope", "validated_worst_mems", "model_worst_mems"
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -1159,6 +1165,16 @@ def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
             priority.get(r.get("slice_mode", ""), 99),
             float(r.get("seconds", "999999") or 999999),
         ))[0].copy()
+        # A model or type-erased slice can demonstrate feasibility, but its access
+        # count cannot be presented as an estimate for the original C function.
+        original = best.get("slice_mode") in {"closure", "entry_only"}
+        native = best.get("epat_mode") == "pafi-rs"
+        valid = original and native and best.get("summary_ok") == "true"
+        best["estimate_scope"] = "original_slice" if valid else "approximation_or_unavailable"
+        best["validated_worst_mems"] = best.get("worst_mems", "") if valid else ""
+        best["model_worst_mems"] = best.get("worst_mems", "") if not valid else ""
+        if not valid:
+            best["worst_mems"] = ""
         best["attempt_count"] = str(len(candidates))
         best["successful_attempt_count"] = str(len(ok_rows))
         final_rows.append(best)
@@ -1291,6 +1307,7 @@ def main() -> int:
     ap.add_argument("--no-type-erased", action="store_true")
     ap.add_argument("--no-semantic-stubbed", action="store_true")
     ap.add_argument("--no-compat-fallback", action="store_true")
+    ap.add_argument("--no-auto-compat", action="store_true", help="Do not generate signature-only compatibility models.")
     ap.add_argument("--no-text-fallback", action="store_true")
     ap.add_argument("--crash-trace", action="store_true")
     ap.add_argument("--debug-epat", action="store_true")
@@ -1341,6 +1358,8 @@ def main() -> int:
                     slice_files = [(m, p) for m, p in slice_files if m != "semantic_stubbed"]
                 if args.no_compat_fallback:
                     slice_files = [(m, p) for m, p in slice_files if m != "compat_entry"]
+                if args.no_auto_compat:
+                    slice_files = [(m, p) for m, p in slice_files if m != "auto_compat"]
                 if not slice_files:
                     continue
                 for mode in modes:
