@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from e2e_path_validation import parse_signature
 from maxmems_witness_experiment import SUBJECTS, compile_replay, dynamic_oracle, replay
 
-KLEE_IMAGE = "klee/klee:3.2"
+KLEE_IMAGE = "klee/klee:3.1"
 
 def run(cmd, cwd=None, timeout=None):
     return subprocess.run(cmd, cwd=cwd, stdout=subprocess.PIPE,
