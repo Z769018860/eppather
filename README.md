@@ -163,9 +163,9 @@ feasible!!!
 
 ---
 
-### 最坏情况路径分析（动态规划）
+### 最坏情况路径分析（精确的路径敏感搜索）
 
-使用 `-g` 参数，通过动态规划算法直接搜索 MEMS 最大的最坏情况路径：
+使用 `-g` 参数，通过精确的路径敏感递归搜索 MEMS 最大的可行有界路径。实现保留完整路径前缀作为 memo 键的一部分，以避免把具有不同路径约束的状态错误合并：
 
 ```bash
 ./cnip -g test2.c
@@ -180,7 +180,7 @@ MEMS: 18
 [DP TIME COST]: 10.3801 seconds
 ```
 
-相比完整路径遍历，该模式在路径规模较大时具有显著的性能优势。
+该模式与 DFS2 使用相同的完整路径可行性/计分语义。由于当前 memo 键包含完整路径前缀，memoization 的主要作用是保持状态语义精确，**不假定存在普遍的运行时加速**。运行时会额外输出 `[DP MEMO LOOKUPS]`、`[DP MEMO HITS]`、`[DP MEMO HIT RATE]`、`[DP TERMINAL EVALS]` 与 `[DP TIME COST]`，用于量化实际复用率和与 DFS 的性能差异。
 
 ---
 
@@ -1029,9 +1029,9 @@ This helps trace paths globally across multi-function DFS runs.
 
 ---
 
-### Worst-Case Path Analysis (Dynamic Programming)
+### Worst-Case Path Analysis (Exact Path-Sensitive Search)
 
-Using the `-g` option directly computes the worst-case path with the maximum MEMS value via dynamic programming:
+Using the `-g` option computes the feasible bounded path with maximum MEMS using an exact path-sensitive recursive search. The implementation retains the complete path prefix in the memo key to avoid unsoundly merging states with different path constraints:
 
 ```bash
 ./cnip -g test2.c
@@ -1046,7 +1046,7 @@ MEMS: 18
 [DP TIME COST]: 10.3801 seconds
 ```
 
-Compared with full path enumeration, this mode provides significant performance advantages on large CFGs.
+This mode uses the same complete-path feasibility and scoring semantics as DFS2. Because the current memo key includes the complete path prefix, memoization is not assumed to provide a general runtime speedup. The run reports `[DP MEMO LOOKUPS]`, `[DP MEMO HITS]`, `[DP MEMO HIT RATE]`, `[DP TERMINAL EVALS]`, and `[DP TIME COST]` so experiments can quantify actual reuse and compare it with exhaustive DFS.
 
 ---
 
