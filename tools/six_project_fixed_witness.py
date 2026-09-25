@@ -206,7 +206,14 @@ def fixed_inih(size, length):
   src[0]={int(length>0)}; src[1]={int(length>1)}; src[2]=0; src[3]=0;
   dst[0]=0; dst[1]=0; dst[2]=0; dst[3]=0;
   size={size}; i=0;
-  while (i<size-1 && src[i]) {{dst[i]=src[i]; i=i+1;}}
+  if (size>1) {{
+    if (src[0]) {{
+      dst[0]=src[0]; i=1;
+      if (size>2) {{
+        if (src[1]) {{dst[1]=src[1]; i=2;}}
+      }}
+    }}
+  }}
   dst[i]=0;
   return 0;
 }}
@@ -236,7 +243,7 @@ def fixed_cjson(case):
   if (buffer[2]==0) {{return 0;}}
   while (i<spaces) {{buffer[0]=buffer[0]+1; i=i+1;}}
   if (buffer[0]==buffer[1]) {{buffer[0]=buffer[0]-1;}}
-  return buffer[0];
+  return 0;
 }}
 '''
 
