@@ -8,6 +8,7 @@ on:
       - 'tools/make_lua_fixed_witness.py'
       - 'tools/run_lua_fixed_witnesses.py'
       - 'tools/validate_other_llm_summaries.py'
+      - 'tools/ablate_lua_projection.py'
       - '.github/workflows/llm-summary-source-calibration.yml'
   workflow_dispatch:
 
@@ -23,6 +24,10 @@ jobs:
             --lua-source testcase/lua/lzio.c \
             --projection testcase/llm_calibrated/lua_zread_summary.c \
             --csv llm-calibration-results/lua_witness.csv
+      - name: Ablate Lua byte copy and state updates
+        run: |
+          python3 tools/ablate_lua_projection.py \
+            --output llm-calibration-results/lua_ablation.csv
       - name: Check cJSON and tinyexpr source behavior witnesses
         run: |
           python3 tools/validate_other_llm_summaries.py \
