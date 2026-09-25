@@ -22,3 +22,7 @@ The list harness also checks empty lists (7 accesses) and null nodes (0 accesses
 ## Recompute procedure
 
 Run `python3 -m unittest tools/test_summary_estimate_provenance.py`. The CI workflow `recheck-small-project-summaries.yml` builds cnip and recomputes native summaries for original slices of list_new, list_rpush, list_lpush, and ini_strncpy0. It uploads run and final CSV files; any blank validated estimate is an unavailable result, not zero. This narrow check makes no claim about the separate 193 collected cases and does not add failed cases to that corpus.
+
+## First CI recheck outcome
+
+The first run (GitHub Actions 36116854797) exposed a remaining fallback: disabling `compat_entry` did not disable `auto_compat`. For original slices, `list_new` produced `entry function not found` on both closure and entry-only; `list_rpush` and `list_lpush` returned -11 on both; `ini_strncpy0` produced `entry function has no available summary path` on both. The fallback's model counts were 0, 2, 2, 2 respectively and did not match original-source witnesses 5, 9, 9, 7. These are counts on different programs. The revised CI command explicitly disables `auto_compat` too. Until native original slices yield valid summaries, there is no comparable static estimate for these four functions.
