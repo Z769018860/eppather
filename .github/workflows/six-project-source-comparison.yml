@@ -1,0 +1,29 @@
+name: Six-project source comparison
+
+on:
+  pull_request:
+    paths:
+      - 'tools/six_project_fixed_witness.py'
+      - '.github/workflows/six-project-source-comparison.yml'
+  workflow_dispatch:
+
+jobs:
+  small-project-fixed-inputs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure and build Eppather
+        run: |
+          cmake -S . -B build_six_project -DANALYSIS_BACKEND=epat++
+          cmake --build build_six_project --target cnip -j2
+      - name: Compare original list and inih with Eppather
+        run: |
+          python3 tools/six_project_fixed_witness.py \
+            --cnip build_six_project/cnip \
+            --output-dir six-project-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: six-project-source-comparison
+          path: six-project-results/
