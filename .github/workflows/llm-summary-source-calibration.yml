@@ -5,6 +5,8 @@ on:
     paths:
       - 'testcase/llm_summaries/lua_zread_summary.c'
       - 'tools/validate_lua_projection.py'
+      - 'tools/make_lua_fixed_witness.py'
+      - 'tools/run_lua_fixed_witnesses.py'
       - '.github/workflows/llm-summary-source-calibration.yml'
   workflow_dispatch:
 
@@ -24,19 +26,13 @@ jobs:
         run: cmake -S . -B build_llm_calibration -DANALYSIS_BACKEND=epat++
       - name: Build cnip
         run: cmake --build build_llm_calibration --target cnip -j2
-      - name: Run projected summary and DFS2
+      - name: Compare fixed-input Eppather paths
         run: |
-          set +e
-          EPPATHER_ENTRY=summary_luaZ_read timeout 10 build_llm_calibration/cnip -s --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/summary.log 2>&1
-          echo "summary_rc=$?" >> llm-calibration-results/exit_codes.txt
-          timeout 10 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/dfs2.log 2>&1
-          echo "dfs2_rc=$?" >> llm-calibration-results/exit_codes.txt
-      - name: Run fixed-input projected path
-        run: |
-          python3 tools/make_lua_fixed_witness.py --projection testcase/llm_summaries/lua_zread_summary.c --available 2 --requested 3 --output llm-calibration-results/lua_fixed_2_3.c
-          set +e
-          timeout 90 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 20 llm-calibration-results/lua_fixed_2_3.c > llm-calibration-results/fixed_2_3.log 2>&1
-          echo "fixed_2_3_rc=$?" >> llm-calibration-results/exit_codes.txt
+          python3 tools/run_lua_fixed_witnesses.py \
+            --cnip build_llm_calibration/cnip \
+            --projection testcase/llm_summaries/lua_zread_summary.c \
+            --witness-csv llm-calibration-results/lua_witness.csv \
+            --output-dir llm-calibration-results
       - uses: actions/upload-artifact@v4
         if: always()
         with:
