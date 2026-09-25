@@ -69,7 +69,7 @@ def dfs_exact(n: int) -> tuple[int, int]:
 
 
 def cnip_metric(label: str, text: str) -> str:
-    found = re.findall(r"^\\[" + re.escape(label) + r"\\]:\\s*([^\\r\\n]+)", text, re.M)
+    found = re.findall(r"^\[" + re.escape(label) + r"\]:\s*([^\r\n]+)", text, re.M)
     return found[-1].strip().split()[0] if found else ""
 
 
