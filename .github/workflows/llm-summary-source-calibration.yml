@@ -9,6 +9,7 @@ on:
       - 'tools/run_lua_fixed_witnesses.py'
       - 'tools/validate_other_llm_summaries.py'
       - 'tools/ablate_lua_projection.py'
+      - 'tools/validate_native_fragments.py'
       - '.github/workflows/llm-summary-source-calibration.yml'
   workflow_dispatch:
 
@@ -32,6 +33,10 @@ jobs:
         run: |
           python3 tools/validate_other_llm_summaries.py \
             --csv llm-calibration-results/other_legacy_behavior.csv
+      - name: Instrument cJSON and tinyexpr source fragments
+        run: |
+          python3 tools/validate_native_fragments.py \
+            --csv llm-calibration-results/native_fragments.csv
       - name: Configure Eppather
         run: cmake -S . -B build_llm_calibration -DANALYSIS_BACKEND=epat++
       - name: Build cnip
