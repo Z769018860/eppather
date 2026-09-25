@@ -1,0 +1,37 @@
+name: Recheck small project summary estimates
+
+on:
+  pull_request:
+    paths:
+      - 'tools/run_small_project_summaries.py'
+      - 'tools/test_summary_estimate_provenance.py'
+      - '.github/workflows/recheck-small-project-summaries.yml'
+  workflow_dispatch:
+
+jobs:
+  recheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check preprocessing and estimate provenance
+        run: python3 -m unittest tools/test_summary_estimate_provenance.py
+      - name: Configure analyzer
+        run: cmake -S . -B build_summary_recheck -DANALYSIS_BACKEND=epat++
+      - name: Build analyzer
+        run: cmake --build build_summary_recheck --target cnip -j2
+      - name: Recompute original list entry summaries
+        run: |
+          python3 tools/run_small_project_summaries.py --root . --cnip build_summary_recheck/cnip \
+            --projects list --entries list_new,list_rpush,list_lpush --maxloop 2 --maxpaths 80 \
+            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-text-fallback
+      - name: Recompute original inih entry summary
+        run: |
+          python3 tools/run_small_project_summaries.py --root . --cnip build_summary_recheck/cnip \
+            --projects inih --entries ini_strncpy0 --maxloop 2 --maxpaths 80 \
+            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-text-fallback
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-small-project-summary-recheck
+          path: testcase/_eppather_runs/*/*.csv
