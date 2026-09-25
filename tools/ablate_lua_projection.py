@@ -41,7 +41,7 @@ def main() -> None:
             with args.output.open("a") as f:
                 f.write(",".join([name, str(len(mismatch)), first["available"],
                                   first["requested"], first["original_source_accesses"],
-                                  first["projection_accesses"], first["same_output_and_state"]]) + "\\n")
+                                  first["projection_accesses"], first["same_output_and_state"]]) + "\n")
             print(name, len(mismatch), "mismatches; first", first, flush=True)
 
 
