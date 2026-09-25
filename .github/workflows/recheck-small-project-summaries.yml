@@ -24,12 +24,12 @@ jobs:
         run: |
           python3 tools/run_small_project_summaries.py --root . --cnip build_summary_recheck/cnip \
             --projects list --entries list_new,list_rpush,list_lpush --maxloop 2 --maxpaths 80 \
-            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-text-fallback
+            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-auto-compat --no-text-fallback
       - name: Recompute original inih entry summary
         run: |
           python3 tools/run_small_project_summaries.py --root . --cnip build_summary_recheck/cnip \
             --projects inih --entries ini_strncpy0 --maxloop 2 --maxpaths 80 \
-            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-text-fallback
+            --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-auto-compat --no-text-fallback
       - uses: actions/upload-artifact@v4
         if: always()
         with:
