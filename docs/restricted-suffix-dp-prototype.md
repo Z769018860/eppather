@@ -1,6 +1,6 @@
 # Restricted suffix-DP prototype and limits
 
-This prototype is intentionally separate from the released `cnip -g` search. The latter still keys its memo by the full path prefix and recorded **0 hits / 1,701 queries** on the prior four-case audit. Do not cite this prototype as a measured speedup of `cnip -g`.
+The [successful reviewer audit run 36177948529](https://github.com/Z769018860/eppather/actions/runs/36177948529) archives the generated C subjects, source instrumentation, analyzer logs and [three-row CSV](data/restricted_dp_prototype.csv). In its four-guard case, existing cnip DFS2 and prefix-keyed search both report MEMS=8; neither demonstrates memo reuse. The eight- and twelve-guard rows have not been executed by cnip, and their cnip columns remain blank.\n\nThis prototype is intentionally separate from the released `cnip -g` search. The latter still keys its memo by the full path prefix and recorded **0 hits / 1,701 queries** on the prior four-case audit. Do not cite this prototype as a measured speedup of `cnip -g`.
 
 ## Admissible C family and proof
 
