@@ -3399,6 +3399,27 @@ namespace psy {
 namespace C {
 std::unordered_map<std::string, bool> feasCache;
 
+struct MaxMemsSearchProfile {
+    unsigned long long recursiveCalls{0};
+    unsigned long long memoLookups{0};
+    unsigned long long memoHits{0};
+    unsigned long long memoStores{0};
+    unsigned long long terminalEvaluations{0};
+    unsigned long long terminalInfeasible{0};
+    unsigned long long prefixRequests{0};
+    unsigned long long prefixCacheLookups{0};
+    unsigned long long prefixCacheHits{0};
+    unsigned long long prefixSolverCalls{0};
+    unsigned long long prefixPrunes{0};
+};
+
+static MaxMemsSearchProfile maxMemsSearchProfile;
+
+static bool maxMemsEnvEnabled(const char* name) {
+    const char* raw = std::getenv(name);
+    return raw && *raw && std::string(raw) != "0";
+}
+
 // 仅在可行性判定时拼接 vartemp；其他地方一律使用 raw path
 inline bool feasibleWithVartemp(
     SyntaxNamePrinter* self,
@@ -3411,6 +3432,14 @@ inline bool isPathFeasibleCached(
     SyntaxNamePrinter* self,
     const std::vector<PathDecision>& decisions,
     const std::string& fullExpr) {
+    ++maxMemsSearchProfile.prefixRequests;
+    // The feasibility-blind mode is an experiment-only structural baseline:
+    // it preserves the same bounded CFG and MEMS scoring, but removes SMT
+    // feasibility from path selection.  This is useful as an IPET-style
+    // flow-only reference and must never be used for the normal MaxMEMS result.
+    if (maxMemsEnvEnabled("EPPATHER_MAXMEMS_FEASIBILITY_BLIND")) {
+        return true;
+    }
     // An incomplete prefix can leave epat++'s expression stack in an invalid
     // state and is not a sound feasibility query.  Match DFS2: prune prefixes
     // only when explicitly requested, and always solve complete leaf paths.
@@ -3418,10 +3447,16 @@ inline bool isPathFeasibleCached(
     if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
         return true;
     }
+    ++maxMemsSearchProfile.prefixCacheLookups;
     auto it = feasCache.find(fullExpr);
-    if (it != feasCache.end()) return it->second;
+    if (it != feasCache.end()) {
+        ++maxMemsSearchProfile.prefixCacheHits;
+        return it->second;
+    }
 
+    ++maxMemsSearchProfile.prefixSolverCalls;
     bool ok = feasibleWithVartemp(self, decisions, fullExpr.substr(self->vartemp.size()));
+    if (!ok) ++maxMemsSearchProfile.prefixPrunes;
     feasCache.emplace(fullExpr, ok);
     return ok;
 }
@@ -3471,6 +3506,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
     std::unordered_map<CFGNode*, int>& loopUnrollMap,
     std::vector<PathDecision> decisions
 ) {
+    ++maxMemsSearchProfile.recursiveCalls;
     if (depth > 1000) return PathInfo(0, pathPrefix, false);
     if (!entry)        return PathInfo(0, pathPrefix, true);
 
@@ -3488,11 +3524,20 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
-    if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
-        return it->second;
+    const bool memoEnabled =
+        !maxMemsEnvEnabled("EPPATHER_DISABLE_DP_MEMO");
+    if (memoEnabled) {
+        ++maxMemsSearchProfile.memoLookups;
+        if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+            ++maxMemsSearchProfile.memoHits;
+            return it->second;
+        }
     }
     auto store = [&](PathInfo result) {
-        dpMemo[stateKey] = result;
+        if (memoEnabled) {
+            dpMemo[stateKey] = result;
+            ++maxMemsSearchProfile.memoStores;
+        }
         return result;
     };
     // Because the memo key includes the complete path prefix, each leaf is
@@ -3516,8 +3561,12 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             }
         }
         EpatRunner runner(vartemp);
+        ++maxMemsSearchProfile.terminalEvaluations;
         const auto eval = runner.solve(curDecisions);
-        if (eval.status != result::feasible) {
+        const bool feasibilityBlind =
+            maxMemsEnvEnabled("EPPATHER_MAXMEMS_FEASIBILITY_BLIND");
+        if (!feasibilityBlind && eval.status != result::feasible) {
+            ++maxMemsSearchProfile.terminalInfeasible;
             return store(PathInfo(0, curPath, false));
         }
         return store(PathInfo(std::max(0, eval.mem), curPath, true));
@@ -3667,6 +3716,7 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         dpMemo.clear();  // 每个函数入口前清空 memo
         decisionMemCache.clear();
         feasCache.clear();
+        maxMemsSearchProfile = MaxMemsSearchProfile{};
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3738,6 +3788,46 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 std::cout << "[VolCE] N/A" << std::endl;
             }
         }
+        const bool memoEnabled =
+            !maxMemsEnvEnabled("EPPATHER_DISABLE_DP_MEMO");
+        const bool prefixEnabled =
+            maxMemsEnvEnabled("EPPATHER_PREFIX_FEASIBILITY");
+        const bool feasibilityBlind =
+            maxMemsEnvEnabled("EPPATHER_MAXMEMS_FEASIBILITY_BLIND");
+        const auto memoMisses =
+            maxMemsSearchProfile.memoLookups - maxMemsSearchProfile.memoHits;
+        const double memoHitRate = maxMemsSearchProfile.memoLookups
+            ? static_cast<double>(maxMemsSearchProfile.memoHits) /
+                  static_cast<double>(maxMemsSearchProfile.memoLookups)
+            : 0.0;
+        std::cout << "[DP SEARCH CALLS]: "
+                  << maxMemsSearchProfile.recursiveCalls << std::endl;
+        std::cout << "[DP MEMO ENABLED]: " << (memoEnabled ? 1 : 0) << std::endl;
+        std::cout << "[DP MEMO LOOKUPS]: "
+                  << maxMemsSearchProfile.memoLookups << std::endl;
+        std::cout << "[DP MEMO HITS]: "
+                  << maxMemsSearchProfile.memoHits << std::endl;
+        std::cout << "[DP MEMO MISSES]: " << memoMisses << std::endl;
+        std::cout << "[DP MEMO HIT RATE]: " << memoHitRate << std::endl;
+        std::cout << "[DP MEMO STATES]: " << dpMemo.size() << std::endl;
+        std::cout << "[DP TERMINAL EVALS]: "
+                  << maxMemsSearchProfile.terminalEvaluations << std::endl;
+        std::cout << "[DP TERMINAL INFEASIBLE]: "
+                  << maxMemsSearchProfile.terminalInfeasible << std::endl;
+        std::cout << "[DP PREFIX FEASIBILITY ENABLED]: "
+                  << (prefixEnabled ? 1 : 0) << std::endl;
+        std::cout << "[DP PREFIX REQUESTS]: "
+                  << maxMemsSearchProfile.prefixRequests << std::endl;
+        std::cout << "[DP PREFIX CACHE LOOKUPS]: "
+                  << maxMemsSearchProfile.prefixCacheLookups << std::endl;
+        std::cout << "[DP PREFIX CACHE HITS]: "
+                  << maxMemsSearchProfile.prefixCacheHits << std::endl;
+        std::cout << "[DP PREFIX SOLVER CALLS]: "
+                  << maxMemsSearchProfile.prefixSolverCalls << std::endl;
+        std::cout << "[DP PREFIX PRUNES]: "
+                  << maxMemsSearchProfile.prefixPrunes << std::endl;
+        std::cout << "[DP FEASIBILITY MODE]: "
+                  << (feasibilityBlind ? "BLIND" : "SMT") << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
