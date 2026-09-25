@@ -27,9 +27,9 @@ jobs:
       - name: Run projected summary and DFS2
         run: |
           set +e
-          EPPATHER_ENTRY=summary_luaZ_read timeout 120 build_llm_calibration/cnip -s --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/summary.log 2>&1
+          EPPATHER_ENTRY=summary_luaZ_read timeout 10 build_llm_calibration/cnip -s --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/summary.log 2>&1
           echo "summary_rc=$?" >> llm-calibration-results/exit_codes.txt
-          timeout 120 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/dfs2.log 2>&1
+          timeout 10 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/dfs2.log 2>&1
           echo "dfs2_rc=$?" >> llm-calibration-results/exit_codes.txt
       - name: Run fixed-input projected path
         run: |
