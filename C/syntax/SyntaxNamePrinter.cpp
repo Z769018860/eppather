@@ -3488,11 +3488,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
+    ++dpMemoLookups_;
     if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+        ++dpMemoHits_;
         return it->second;
     }
     auto store = [&](PathInfo result) {
         dpMemo[stateKey] = result;
+        ++dpMemoStores_;
         return result;
     };
     // Because the memo key includes the complete path prefix, each leaf is
@@ -3515,6 +3518,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
                     PathDecision{entry.get(), PathDecisionKind::Code});
             }
         }
+        ++dpTerminalEvaluations_;
         EpatRunner runner(vartemp);
         const auto eval = runner.solve(curDecisions);
         if (eval.status != result::feasible) {
@@ -3665,6 +3669,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         const std::string functionTag = sanitizeFunctionTag(
             funcNode->functionName.empty() ? ("func_" + std::to_string(funcIndex)) : funcNode->functionName);
         dpMemo.clear();  // 每个函数入口前清空 memo
+        dpMemoLookups_ = 0;
+        dpMemoHits_ = 0;
+        dpMemoStores_ = 0;
+        dpTerminalEvaluations_ = 0;
         decisionMemCache.clear();
         feasCache.clear();
 
@@ -3738,6 +3746,19 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 std::cout << "[VolCE] N/A" << std::endl;
             }
         }
+        const double memoHitRate =
+            dpMemoLookups_ == 0
+                ? 0.0
+                : static_cast<double>(dpMemoHits_) /
+                      static_cast<double>(dpMemoLookups_);
+        std::ostringstream memoRateText;
+        memoRateText << std::fixed << std::setprecision(6) << memoHitRate;
+        std::cout << "[DP MEMO LOOKUPS]: " << dpMemoLookups_ << std::endl;
+        std::cout << "[DP MEMO HITS]: " << dpMemoHits_ << std::endl;
+        std::cout << "[DP MEMO HIT RATE]: " << memoRateText.str() << std::endl;
+        std::cout << "[DP MEMO STORES]: " << dpMemoStores_ << std::endl;
+        std::cout << "[DP MEMO ENTRIES]: " << dpMemo.size() << std::endl;
+        std::cout << "[DP TERMINAL EVALS]: " << dpTerminalEvaluations_ << std::endl;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
