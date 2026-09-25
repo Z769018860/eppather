@@ -36,6 +36,14 @@ Mode 4 is an experiment-only **IPET-style structural reference**: it keeps the s
 
 The CI artifact `maxmems-methodology-results` contains `methodology.csv`, `methodology.json`, and `methodology.md`.
 
+### Measured result (CI run 36125147243)
+
+All 25 methodology subjects passed the semantic cross-checks. The full-prefix memo table received **789 lookups and 0 hits (0.0%)**. Aggregate internal search time was 3.0185006 s with memoization enabled, 3.0027099 s with memoization disabled, and 3.0235188 s for exhaustive DFS2. The memo-on/off ratio is 0.99477 (no-memo / memo), while the DFS/MaxMEMS ratio is 1.00166. These differences are runner-scale noise; they provide no evidence of a DP speedup. On this suite, the memo table provides no reuse and the implementation behaves as a path-sensitive recursive search with caching overhead.
+
+The feasibility-blind structural reference exceeded feasible MaxMEMS in 7/25 cases. This includes **all 5/5 correlation-focused subjects** plus two input/loop-bounded witness subjects. The five correlation cases overestimate by 2, 3, 2, 4, and 6 MEMS respectively. This directly demonstrates why flow-only path selection cannot replace SMT feasibility even though it is useful as an IPET-style structural baseline.
+
+Machine-readable per-subject results are committed as `docs/maxmems-methodology-profile-2026-09-25.csv`.
+
 ## 2. Loop-summary ablation already exists and should be reported as such
 
 The maintained LoopSCC-compatible experiment executes 20 loop subjects with loop-state summaries enabled and disabled. The latest recorded semantic A/B gate reported:
