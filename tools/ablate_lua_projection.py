@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Negative controls: remove access-bearing Lua summary operations and find first source mismatch."""
 import argparse
+import csv
 import subprocess
 import tempfile
 from pathlib import Path
@@ -24,21 +25,25 @@ def main() -> None:
         for name, source in variants.items():
             projection = Path(tmp) / (name + ".c")
             projection.write_text(source)
+            out = Path(tmp) / (name + ".csv")
             cmd = ["python3", str(root / "tools/validate_lua_projection.py"),
                    "--lua-source", str(root / "testcase/lua/lzio.c"),
-                   "--projection", str(projection),
-                   "--csv", str(Path(tmp) / (name + ".csv"))]
-            run = subprocess.run(cmd, text=True, capture_output=True)
-            if run.returncode == 0:
+                   "--projection", str(projection), "--allow-mismatch",
+                   "--csv", str(out)]
+            subprocess.run(cmd, check=True)
+            with out.open(newline="") as f:
+                rows = list(csv.DictReader(f))
+            mismatch = [r for r in rows if r["original_source_accesses"] != r["projection_accesses"]
+                        or r["same_output_and_state"] != "1"]
+            if not mismatch:
                 raise AssertionError(name + " unexpectedly matches the original")
-            # The validator prints each input before stopping at the first discrepancy.
-            mismatches = [line for line in run.stdout.splitlines()
-                          if line.startswith(("0,", "1,", "2,", "3,")) and line.endswith(",0")]
-            if not mismatches:
-                raise AssertionError(name + " failed before producing a source mismatch: " + run.stderr)
+            first = mismatch[0]
             with args.output.open("a") as f:
-                f.write(name + "," + mismatches[-1] + "\n")
-            print(name, mismatches[-1], flush=True)
+                f.write(",".join([name, str(len(mismatch)), first["available"],
+                                  first["requested"], first["original_source_accesses"],
+                                  first["projection_accesses"], first["same_output_and_state"]]) + "\\n")
+            print(name, len(mismatch), "mismatches; first", first, flush=True)
+
 
 
 if __name__ == "__main__":
