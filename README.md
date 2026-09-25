@@ -180,7 +180,7 @@ MEMS: 18
 [DP TIME COST]: 10.3801 seconds
 ```
 
-该模式与完整路径遍历使用同一终端路径评价口径；实际性能取决于可复用状态与求解开销。SANER 方法审计在 20 个受控程序的 3 次重复中记录到 1,767 次 memo lookup、0 次 hit，DP/DFS 搜索时间中位数分别为 2.5063 s 和 2.5196 s，因此当前实现不作一般性加速承诺。详见 [`docs/maxmems-methodology-audit-2026-09-26.md`](docs/maxmems-methodology-audit-2026-09-26.md)。
+该模式与完整路径遍历使用同一终端路径评价口径；实际性能取决于可复用状态与求解开销。SANER 方法审计在 20 个受控程序的 3 次重复中记录到 1,767 次 memo lookup、0 次 hit，DP/DFS 搜索时间中位数分别为 2.0435 s 和 2.0617 s，因此当前实现不作一般性加速承诺。详见 [`docs/maxmems-methodology-audit-2026-09-26.md`](docs/maxmems-methodology-audit-2026-09-26.md)。
 
 ---
 
