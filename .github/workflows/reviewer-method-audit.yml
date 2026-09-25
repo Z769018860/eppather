@@ -22,6 +22,11 @@ jobs:
           python3 tools/audit_dp_memo.py \
             --cnip build_reviewer_memo/cnip \
             --output-dir reviewer-method-results
+      - name: Restricted independent-branch DP prototype
+        run: |
+          python3 tools/restricted_dp_prototype.py \
+            --cnip build_reviewer_memo/cnip \
+            --output-dir reviewer-method-results/restricted-dp
       - uses: actions/upload-artifact@v4
         if: always()
         with:
