@@ -61,9 +61,10 @@ int main(void) {
     prior.next = prior.prev = added.next = added.prev = NULL;
     measured_accesses=0;
     list_node_t *result = list_rpush(&list, mode==0 ? NULL : &added);
-    printf("%d,%lu,%d,%u,%d,%d,%d\\n", mode, measured_accesses,
+    printf("%d,%lu,%d,%u,%d,%d,%d,%d,%d\\n", mode, measured_accesses,
       result==((mode==0)?NULL:&added), list.len,
-      list.head==&added, list.tail==&added, prior.next==&added);
+      list.head==&added, list.tail==&added, prior.next==&added,
+      added.prev==&prior, added.next==NULL);
   }
 }
 ''')
@@ -161,6 +162,7 @@ int main(void) {
   for (int typ=0;typ<2;typ++) {
     sds s=typ ? sdsnewlen(NULL,40) : sdsnew("abc");
     if (!s) return 2;
+    if ((s[-1] & SDS_TYPE_MASK) != typ) return 4;
     s[0]='a';
     measured_accesses=0;
     sdsclear(s);
