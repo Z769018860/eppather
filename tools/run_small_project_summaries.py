@@ -485,7 +485,10 @@ def find_signature_start(text: str, brace_pos: int) -> int:
     semi = text.rfind(";", 0, brace_pos)
     close = text.rfind("}", 0, brace_pos)
     hash_line = text.rfind("\n#", 0, brace_pos)
-    start = max(line_start, semi + 1, close + 1, hash_line + 2)
+    # A preprocessor directive ends at its newline. Starting just after '#'
+    # accidentally folds 'endif' into the next function definition.
+    hash_end = text.find("\n", hash_line + 2) if hash_line >= 0 else -1
+    start = max(line_start, semi + 1, close + 1, hash_end + 1)
     while start < brace_pos and text[start].isspace():
         start += 1
     return start
@@ -1114,6 +1117,8 @@ def invoke_cnip(cnip: Path, cfile: Path, mode: str, entry: str, maxloop: int, ma
     out_log.parent.mkdir(parents=True, exist_ok=True)
     out_log.write_text(text, encoding="utf-8", errors="ignore")
     metrics = extract_metrics(text, entry)
+    if rc != 0 or timed_out or metrics["has_program_summary"] != "true":
+        metrics["summary_ok"] = "false"
     metrics.update({
         "entry": entry,
         "mode": mode,
