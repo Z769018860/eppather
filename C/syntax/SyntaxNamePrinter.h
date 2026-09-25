@@ -205,6 +205,14 @@ public:
         std::tuple<CFGNode*, std::string, std::string>, PathInfo
     > dpMemo;
 
+    // Instrument the exact path-sensitive memoization used by MaxMemsDP.
+    // These counters are reported per function so experiments can distinguish
+    // correctness-preserving memoization from actual state reuse.
+    mutable std::uint64_t dpMemoLookups_{0};
+    mutable std::uint64_t dpMemoHits_{0};
+    mutable std::uint64_t dpMemoStores_{0};
+    mutable std::uint64_t dpTerminalEvaluations_{0};
+
     enum class Style : char { Plain, Decorated };
 
     void print(const SyntaxNode* node, Style style);
