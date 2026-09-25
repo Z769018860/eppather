@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'tools/run_small_project_summaries.py'
-      - 'tools/test_summary_estimate_provenance.py'
+      - 'tools/test_summary_estimate_provenance.py'\n      - 'tools/check_small_project_summary_recheck.py'
       - '.github/workflows/recheck-small-project-summaries.yml'
   workflow_dispatch:
 
@@ -30,6 +30,8 @@ jobs:
           python3 tools/run_small_project_summaries.py --root . --cnip build_summary_recheck/cnip \
             --projects inih --entries ini_strncpy0 --maxloop 2 --maxpaths 80 \
             --timeout 60 --no-type-erased --no-semantic-stubbed --no-compat-fallback --no-auto-compat --no-text-fallback
+      - name: Require comparable original-source summaries
+        run: python3 tools/check_small_project_summary_recheck.py 'testcase/_eppather_runs/20260925_*/final_summary.csv'
       - uses: actions/upload-artifact@v4
         if: always()
         with:
