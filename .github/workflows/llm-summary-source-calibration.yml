@@ -3,7 +3,7 @@ name: LLM summary source calibration
 on:
   pull_request:
     paths:
-      - 'testcase/llm_summaries/lua_zread_summary.c'
+      - 'testcase/llm_calibrated/lua_zread_summary.c'
       - 'tools/validate_lua_projection.py'
       - 'tools/make_lua_fixed_witness.py'
       - 'tools/run_lua_fixed_witnesses.py'
@@ -20,7 +20,7 @@ jobs:
         run: |
           python3 tools/validate_lua_projection.py \
             --lua-source testcase/lua/lzio.c \
-            --projection testcase/llm_summaries/lua_zread_summary.c \
+            --projection testcase/llm_calibrated/lua_zread_summary.c \
             --csv llm-calibration-results/lua_witness.csv
       - name: Configure Eppather
         run: cmake -S . -B build_llm_calibration -DANALYSIS_BACKEND=epat++
@@ -30,7 +30,7 @@ jobs:
         run: |
           python3 tools/run_lua_fixed_witnesses.py \
             --cnip build_llm_calibration/cnip \
-            --projection testcase/llm_summaries/lua_zread_summary.c \
+            --projection testcase/llm_calibrated/lua_zread_summary.c \
             --witness-csv llm-calibration-results/lua_witness.csv \
             --output-dir llm-calibration-results
       - uses: actions/upload-artifact@v4
