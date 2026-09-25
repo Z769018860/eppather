@@ -1302,6 +1302,7 @@ def main() -> int:
     ap.add_argument("--no-type-erased", action="store_true")
     ap.add_argument("--no-semantic-stubbed", action="store_true")
     ap.add_argument("--no-compat-fallback", action="store_true")
+    ap.add_argument("--no-auto-compat", action="store_true", help="Do not generate signature-only compatibility models.")
     ap.add_argument("--no-text-fallback", action="store_true")
     ap.add_argument("--crash-trace", action="store_true")
     ap.add_argument("--debug-epat", action="store_true")
@@ -1352,6 +1353,8 @@ def main() -> int:
                     slice_files = [(m, p) for m, p in slice_files if m != "semantic_stubbed"]
                 if args.no_compat_fallback:
                     slice_files = [(m, p) for m, p in slice_files if m != "compat_entry"]
+                if args.no_auto_compat:
+                    slice_files = [(m, p) for m, p in slice_files if m != "auto_compat"]
                 if not slice_files:
                     continue
                 for mode in modes:
