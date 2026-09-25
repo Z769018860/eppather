@@ -77,6 +77,16 @@ int main(void) {
     }
 }
 """
+    # Negative controls remove a specific access-bearing source operation.
+    ablated_loop = counted.replace(
+        "(* (++fragment_accesses, &buffer->offset))++;", "break;")
+    assert ablated_loop != counted
+    cjson_ablated = cjson.replace(counted, ablated_loop, 1)
+    assert cjson_ablated != cjson
+    tiny_ablated = tiny.replace(
+        "case TE_CONSTANT: fragment_accesses++; return n->value;",
+        "case TE_CONSTANT: return 0.0;", 1)
+    assert tiny_ablated != tiny
     with tempfile.TemporaryDirectory() as temp:
         d = Path(temp)
         rows = []
@@ -88,7 +98,17 @@ int main(void) {
                 tag, case, count, equal = line.split(",")
                 rows.append(dict(project=tag, case=int(case),
                                  direct_fragment_accesses=int(count), same_source_behavior=int(equal)))
+        for project, source, headers in [
+            ("cJSON", cjson_ablated, ["-I" + str(root / "testcase/cJSON")]),
+            ("tinyexpr", tiny_ablated, ["-I" + str(root / "testcase/tinyexpr")]),
+        ]:
+            for line in compile_run(source, d, project + "_ablation", headers):
+                tag, case, count, equal = line.split(",")
+                row = next(r for r in rows if r["project"] == tag and r["case"] == int(case))
+                row["ablated_direct_accesses"] = int(count)
+                row["ablated_same_behavior"] = int(equal)
     assert len(rows) == 7 and all(r["same_source_behavior"] == 1 for r in rows)
+    assert sum(r["ablated_same_behavior"] == 0 for r in rows) == 6
     args.csv.parent.mkdir(parents=True, exist_ok=True)
     with args.csv.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
