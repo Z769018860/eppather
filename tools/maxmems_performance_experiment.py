@@ -39,7 +39,7 @@ def run_mode(cnip: Path, source: Path, maxloop: int, flag: str, timeout: int):
     env["EPPATHER_MAXMEMS_CORE_ONLY"] = "1"
     env["EPPATHER_PREFIX_FEASIBILITY"] = "0"
     proc = subprocess.run(
-        [str(cnip), flag, str(source), str(maxloop)],
+        [str(cnip), flag, "--maxloop", str(maxloop), "--maxpaths", "1000", str(source)],
         cwd=source.parent,
         text=True,
         stdout=subprocess.PIPE,
@@ -166,7 +166,7 @@ def main() -> int:
         "median_suite_dfs_over_dp": statistics.median(r["dfs_over_dp"] for r in suite_totals),
         "suite_repetitions": suite_totals,
         "prefix_feasibility": "off",
-        "maxpaths": None,
+        "maxpaths": 1000,
         "per_run_timeout_seconds": args.timeout,
     }
     (out / "summary.json").write_text(json.dumps(aggregate, indent=2) + "\n", encoding="utf-8")
