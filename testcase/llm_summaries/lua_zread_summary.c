@@ -1,17 +1,25 @@
-/* Source-guided bounded projection of luaZ_read for the no-refill domain.
- * z[0]=ZIO.n, z[1]=offset of ZIO.p into src; b is offset into dst.
- * Inputs must satisfy 0<=n<=3, 0<=z[0]<=3, 0<=z[1]<=3,
- * 0<=b<=3, and the copied interval must fit the arrays.
- * A zero z[0] models luaZ_fill returning EOZ. memcpy is modeled as one
- * source read and one destination write per copied byte.
- */
-int summary_luaZ_read(int *z, int *src, int *dst, int b, int n)
+/* DeepSeek-generated summary, normalized for Eppather's bounded C subset. */
+int summary_luaZ_read(int zn, int zp, int b_offset, int n)
 {
+    int src[4];
+    int dst[4];
+    int z[2];
+    int b;
     int m;
-    int p;
     int i;
+    src[0] = 0;
+    src[1] = 0;
+    src[2] = 0;
+    src[3] = 0;
+    dst[0] = 0;
+    dst[1] = 0;
+    dst[2] = 0;
+    dst[3] = 0;
+    z[0] = zn;
+    z[1] = zp;
+    b = b_offset;
     while (n > 0) {
-        if (z[0] == 0) {
+        if (z[0] <= 0) {
             return n;
         }
         if (n <= z[0]) {
@@ -19,15 +27,19 @@ int summary_luaZ_read(int *z, int *src, int *dst, int b, int n)
         } else {
             m = z[0];
         }
-        p = z[1];
+        if (m > 4) {
+            m = 4;
+        }
         i = 0;
         while (i < m) {
-            dst[b + i] = src[p + i];
+            if (b >= 0 && b < 4 && z[1] >= 0 && z[1] < 4) {
+                dst[b] = src[z[1]];
+            }
+            z[1] = z[1] + 1;
+            b = b + 1;
             i = i + 1;
         }
         z[0] = z[0] - m;
-        z[1] = z[1] + m;
-        b = b + m;
         n = n - m;
     }
     return 0;
