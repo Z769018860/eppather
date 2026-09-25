@@ -1,0 +1,35 @@
+name: MaxMEMS methodology performance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_performance_experiment.py'
+      - 'tools/maxmems_witness_experiment.py'
+      - '.github/workflows/maxmems-methodology-performance.yml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate harness
+        run: python3 -m py_compile tools/maxmems_performance_experiment.py tools/maxmems_witness_experiment.py
+      - name: Configure Eppather (Backend A)
+        run: cmake -S . -B build_maxmems_perf -DANALYSIS_BACKEND=epat++
+      - name: Build cnip
+        run: cmake --build build_maxmems_perf --target cnip -j2
+      - name: Measure memo reuse and DP/DFS time
+        run: |
+          python3 tools/maxmems_performance_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems_perf/cnip" \
+            --repetitions 3 \
+            --timeout 120 \
+            --output-dir maxmems-performance-results
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-performance-results
+          path: maxmems-performance-results/
