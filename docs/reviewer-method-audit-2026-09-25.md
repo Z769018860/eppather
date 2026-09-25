@@ -43,3 +43,9 @@ Suggested RQ3 question: *Under explicitly stated source boundaries and finite in
 - Cite the original KLEE, WISE, and IPET work; describe metric mismatch honestly until comparable experiments exist.
 - Do not label the VolCE scalar-summary A/B test as MaxMEMS DFS shortcut or LLM-summary ablation.
 - Never use the historical six-project models as original-source maxima; retain the corpus denominator 193.
+
+## Manuscript Table II provenance and recursion correction
+
+The anonymous submission package leaves a dash where no archived per-study setting can be established: controlled-witness loop bound, path cap and timeout; historical and retry backend; three selected-project backend and budget; study-specific prefix mode; Z3 version. A dash means *unrecorded*, not disabled. The library experiment documentation records `--maxloop 2`, `--maxpaths 80`, 120 s for summary generation and 60 s per same-slice DFS/DP check. The corpus configuration records loop bound 3, path cap 1000, normal budget 120 s, and retry budget 900 s.
+
+Current `MaxMemsDP` has a hard depth guard `depth > 1000`. Current cost-summary composition initializes direct summaries, reads the previous iteration's estimates, and stops when unchanged or after `kFixpointMaxIters = 32`. The slice generator's default `--max-closure-depth 2` controls which functions enter the slice; it is not a recursive call-expansion budget. The earlier manuscript recurrence claiming a configured depth budget `κ` did not describe this implementation, and the revised package replaces that claim. Historic per-study Z3 build and source revision of each bounded experiment remain unrecorded; current source constants alone are not evidence for historic run settings.
