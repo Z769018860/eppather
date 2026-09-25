@@ -21,7 +21,7 @@ jobs:
         run: python3 -m py_compile tools/klee_maxmems_baseline.py tools/maxmems_witness_experiment.py tools/e2e_path_validation.py
       - name: Run KLEE 3.2 baseline
         run: |
-          python3 tools/klee_maxmems_baseline.py             --output-dir klee-maxmems-results             --image klee/klee:3.2
+          python3 tools/klee_maxmems_baseline.py             --output-dir klee-maxmems-results             --image klee/klee:3.1
       - uses: actions/upload-artifact@v4
         if: always()
         with:
