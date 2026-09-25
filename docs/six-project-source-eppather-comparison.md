@@ -2,7 +2,7 @@
 
 **Status.** The [six-project workflow run 36161317933](https://github.com/Z769018860/eppather/actions/runs/36161317933) succeeded. Its artifact `small_project_fixed_comparison.csv` contains **20/20** matching source-instrumented versus Eppather fixed-input rows across list, inih, SDSLib, cJSON and tinyexpr. The independent [Lua run 36149816324](https://github.com/Z769018860/eppather/actions/runs/36149816324) contains **16/16** matching rows. These runs provide 36 bounded path witnesses in six repositories. They are not 36 independent project-level maximum proofs.
 
-## Reproduction and counting
+The complete 36-row comparison is checked into [the CSV](data/six_project_bounded_source_eppather.csv), and [the LaTeX table](data/six_project_bounded_table.tex) is ready for a scoped RQ subsection. The CSV preserves caller initialization and the exact per-row boundary, so a reader can recompute each comparison.\n\n## Reproduction and counting
 
 Run `python3 tools/six_project_fixed_witness.py --cnip build/cnip --output-dir six-project-results` after building Eppather with `ANALYSIS_BACKEND=epat++`. The CI uses `cnip -q --maxloop 6 --maxpaths 20` on a separate fixed-input entry per row. The driver instruments **source extracted from this repository**, executes original and instrumented versions with GCC undefined-behavior sanitizer, and compares observable source output/state. The corresponding Eppather entry uses caller-owned arrays to represent the specific source fields/bytes. Subtract only the enumerated caller array initialization writes (list 7, inih 8, SDSLib 3, cJSON 3, tinyexpr 2). Scalar initialization contributes no array accesses. The Lua workflow independently subtracts 10 caller array writes and uses `--maxloop 3`.
 
