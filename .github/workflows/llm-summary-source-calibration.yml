@@ -31,6 +31,12 @@ jobs:
           echo "summary_rc=$?" >> llm-calibration-results/exit_codes.txt
           timeout 120 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 40 testcase/llm_summaries/lua_zread_summary.c > llm-calibration-results/dfs2.log 2>&1
           echo "dfs2_rc=$?" >> llm-calibration-results/exit_codes.txt
+      - name: Run fixed-input projected path
+        run: |
+          python3 tools/make_lua_fixed_witness.py --projection testcase/llm_summaries/lua_zread_summary.c --available 2 --requested 3 --output llm-calibration-results/lua_fixed_2_3.c
+          set +e
+          timeout 90 build_llm_calibration/cnip -q --maxloop 3 --maxpaths 20 llm-calibration-results/lua_fixed_2_3.c > llm-calibration-results/fixed_2_3.log 2>&1
+          echo "fixed_2_3_rc=$?" >> llm-calibration-results/exit_codes.txt
       - uses: actions/upload-artifact@v4
         if: always()
         with:
