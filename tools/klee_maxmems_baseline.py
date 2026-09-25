@@ -114,11 +114,16 @@ def main() -> int:
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
+    # The official KLEE image runs as a non-root user. GitHub Actions creates
+    # the bind-mounted output tree with runner-only write permissions, so make
+    # the experiment workspace writable before entering the container.
+    out.chmod(0o777)
     meta = {}
 
     for s in SUBJECTS:
         d = out / s["id"]
         d.mkdir()
+        d.chmod(0o777)
         source = s["source"] + "\n"
         selected, params = parse_signature(source, s["function"])
         (d / "subject.c").write_text(source, encoding="utf-8")
