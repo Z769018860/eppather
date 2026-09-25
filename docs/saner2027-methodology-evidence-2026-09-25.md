@@ -36,6 +36,23 @@ python3 tools/maxmems_witness_experiment.py \
 
 The generated `summary.csv`, `summary.json`, and `summary.md` contain the DP/DFS timing and memo-reuse evidence.
 
+### 2026-09-25 controlled result
+
+GitHub Actions run 36130262130 completed all 20 subjects:
+
+| Metric | Result |
+|---|---:|
+| Subjects | 20/20 |
+| Memo lookups | 589 |
+| Memo hits | 0 |
+| Memo hit rate | 0.000000 |
+| Terminal evaluations | 89 |
+| MaxMEMS-search reported time | 2.4734433 s |
+| Exhaustive-DFS reported time | 2.4745845 s |
+| DFS/search time ratio | 1.000461x |
+
+The result confirms that the full-prefix key is semantically conservative but provides no state reuse on this controlled suite. The near-identical aggregate time is not evidence of a speedup. The legacy `DP` label is retained in CLI output and archived CSV column names for artifact continuity only.
+
 ## 2. Loop-summary ablation
 
 The repository already contains a paired 20-subject summary-on/summary-off experiment in
