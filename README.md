@@ -1046,7 +1046,7 @@ MEMS: 18
 [DP TIME COST]: 10.3801 seconds
 ```
 
-Compared with full path enumeration, this mode provides significant performance advantages on large CFGs.
+This mode uses an exact path-sensitive memo key that includes the complete rendered prefix. Therefore memo reuse can be low, and no general speedup over exhaustive DFS is assumed. Current builds print memo lookups/hits and DP/DFS timings so the search behavior can be measured directly; the SANER methodology experiment also provides memo-on/off and feasibility-blind structural baselines.
 
 ---
 

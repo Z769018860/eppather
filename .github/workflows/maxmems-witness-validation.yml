@@ -8,8 +8,19 @@ on:
     paths:
       - 'C/syntax/SyntaxNamePrinter.cpp'
       - 'tools/maxmems_witness_experiment.py'
+      - 'tools/maxmems_methodology_experiment.py'
       - 'tools/e2e_path_validation.py'
       - 'docs/maxmems-witness-validation-2026-09-24.md'
+      - 'docs/saner2027-methodology-evidence.md'
+      - '.github/workflows/maxmems-witness-validation.yml'
+  pull_request:
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'tools/maxmems_witness_experiment.py'
+      - 'tools/maxmems_methodology_experiment.py'
+      - 'tools/e2e_path_validation.py'
+      - 'docs/maxmems-witness-validation-2026-09-24.md'
+      - 'docs/saner2027-methodology-evidence.md'
       - '.github/workflows/maxmems-witness-validation.yml'
 
 jobs:
@@ -20,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate experiment harness
         run: |
-          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py tools/maxmems_methodology_experiment.py
           python3 -c 'import sys; sys.path.insert(0,"tools"); from e2e_path_validation import parse_signature; assert parse_signature("int smoke(int x){return x;}","smoke")==("smoke",["x"])'
       - name: Configure Eppather
         run: cmake -S . -B build_maxmems_witness -DANALYSIS_BACKEND=epat++
@@ -31,8 +42,19 @@ jobs:
           python3 tools/maxmems_witness_experiment.py \
             --cnip "${{ github.workspace }}/build_maxmems_witness/cnip" \
             --output-dir maxmems-witness-results
+      - name: Run methodology profile
+        run: |
+          python3 tools/maxmems_methodology_experiment.py \
+            --cnip "${{ github.workspace }}/build_maxmems_witness/cnip" \
+            --output-dir maxmems-methodology-results \
+            --max-paths 1000 --timeout 120
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: maxmems-witness-results
           path: maxmems-witness-results/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: maxmems-methodology-results
+          path: maxmems-methodology-results/
