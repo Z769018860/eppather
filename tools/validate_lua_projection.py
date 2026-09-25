@@ -39,6 +39,7 @@ def main() -> int:
     ap.add_argument("--lua-source", type=Path, required=True)
     ap.add_argument("--projection", type=Path, required=True)
     ap.add_argument("--csv", type=Path, required=True)
+    ap.add_argument("--allow-mismatch", action="store_true")
     args = ap.parse_args()
     source = args.lua_source.read_text()
     original = function(source, "checkbuffer") + "\n" + function(source, "luaZ_read")
@@ -90,7 +91,7 @@ int main(void) {
           original_dst[i]==projected_dst[i];
       }
       printf("%d,%d,%lu,%lu,%d\n",available,requested,observed,projected,values_equal);
-      if (!values_equal || observed!=projected) return 1;
+      if ((!values_equal || observed!=projected) && !ALLOW_MISMATCH) return 1;
     }
   }
   return 0;
@@ -99,7 +100,7 @@ int main(void) {
     with tempfile.TemporaryDirectory() as d:
         src = Path(d) / "compare.c"
         exe = Path(d) / "compare"
-        src.write_text(header + "\n" + original + "\n" + instrumented + "\n" + projection + "\n" + harness)
+        src.write_text(("#define ALLOW_MISMATCH " + str(int(args.allow_mismatch)) + "\n") + header + "\n" + original + "\n" + instrumented + "\n" + projection + "\n" + harness)
         subprocess.run(["gcc", "-std=c11", "-O0", "-fsanitize=undefined",
                         "-fno-sanitize-recover=undefined", str(src), "-o", str(exe)], check=True)
         run = subprocess.run([str(exe)], check=True, text=True, capture_output=True)
@@ -110,7 +111,8 @@ int main(void) {
         writer = csv.DictWriter(f, fieldnames=rows[0].keys())
         writer.writeheader()
         writer.writerows(rows)
-    print(f"Compared {len(rows)} defined input cases; all outputs, states, and access counts matched.")
+    matching = sum(r["original_source_accesses"] == r["projection_accesses"] and r["same_output_and_state"] == "1" for r in rows)
+    print(f"Compared {len(rows)} defined input cases; {matching} outputs, states, and access counts matched.")
     return 0
 
 
