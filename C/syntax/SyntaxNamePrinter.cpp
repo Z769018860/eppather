@@ -3441,6 +3441,12 @@ inline bool isPathFeasibleCached(
 
 static std::unordered_map<std::string, int> decisionMemCache;
 
+// Diagnostics for the path-sensitive memo table. These counters do not alter
+// search semantics; they make the amount of actual state reuse auditable.
+static std::size_t dpMemoLookups = 0;
+static std::size_t dpMemoHits = 0;
+static std::size_t dpMemoStores = 0;
+
 static int decisionMemCached(SyntaxNamePrinter* self,
                              CFGNode* node,
                              PathDecisionKind kind) {
@@ -3488,11 +3494,14 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
+    ++dpMemoLookups;
     if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+        ++dpMemoHits;
         return it->second;
     }
     auto store = [&](PathInfo result) {
         dpMemo[stateKey] = result;
+        ++dpMemoStores;
         return result;
     };
     // Because the memo key includes the complete path prefix, each leaf is
@@ -3667,6 +3676,9 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         dpMemo.clear();  // 每个函数入口前清空 memo
         decisionMemCache.clear();
         feasCache.clear();
+        dpMemoLookups = 0;
+        dpMemoHits = 0;
+        dpMemoStores = 0;
 
         std::unordered_map<CFGNode*, int> loopUnrollMap;
 
@@ -3738,6 +3750,20 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
                 std::cout << "[VolCE] N/A" << std::endl;
             }
         }
+        const std::size_t dpMemoMisses =
+            dpMemoLookups >= dpMemoHits ? dpMemoLookups - dpMemoHits : 0;
+        const double dpMemoHitRate = dpMemoLookups == 0
+            ? 0.0
+            : static_cast<double>(dpMemoHits) /
+              static_cast<double>(dpMemoLookups);
+        std::cout << "[DP MEMO LOOKUPS]: " << dpMemoLookups << std::endl;
+        std::cout << "[DP MEMO HITS]: " << dpMemoHits << std::endl;
+        std::cout << "[DP MEMO MISSES]: " << dpMemoMisses << std::endl;
+        std::cout << "[DP MEMO STORES]: " << dpMemoStores << std::endl;
+        std::cout << "[DP MEMO ENTRIES]: " << dpMemo.size() << std::endl;
+        std::cout << "[DP MEMO HIT RATE]: " << std::fixed
+                  << std::setprecision(6) << dpMemoHitRate << std::endl;
+        std::cout << std::defaultfloat;
         std::cout << "[DP TIME COST]: " << diff.count() << " seconds" << std::endl;
     }
 }
