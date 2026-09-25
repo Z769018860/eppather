@@ -6,7 +6,16 @@ This note separates measured results from proposed baselines. The 193 collected 
 
 `MaxMemsDP` currently indexes `dpMemo` by `(CFGNode*, LoopMapKey(loopUnrollMap), pathPrefix)`. Because `pathPrefix` encodes complete decisions, a memo entry is reused only if exactly the same recorded prefix and loop state reach the same CFG node. It is **not justified** to claim merging of semantically equivalent states or asymptotic dynamic-programming acceleration. Exact bounded leaf scoring comes from `EpatRunner(...).solve(curDecisions)`; the bounded search explores CFG decisions and checks feasibility. The `-g` command name is retained for reproducibility, but paper prose should call it **prefix-keyed bounded search** until a sound state abstraction and actual reuse are demonstrated.
 
-The new `tools/audit_dp_memo.py` logs per-case memo lookups, hits, stores, distinct entries, leaf solves, `-q` DFS2 versus `-g` bounded-search MEMS, and the core durations from each mode. It sets `--maxpaths 0`, identical loop bounds, and disables opt-in LoopSCC shortcuts. Workflow `Reviewer method audit` archives the raw logs and CSV. Timing is diagnostic only: four small cases, no repeated runs, no hardware normalization or speedup claim. The older three-project 66-entry experiment reported DP timeouts on two inih slices and does not establish general superiority. Insert the actual audit data below only after CI completes.
+The new `tools/audit_dp_memo.py` logs per-case memo lookups, hits, stores, distinct entries, leaf solves, `-q` DFS2 versus `-g` bounded-search MEMS, and the core durations from each mode. It sets `--maxpaths 0`, identical loop bounds, and disables opt-in LoopSCC shortcuts. Workflow `Reviewer method audit` archives the raw logs and CSV. Timing is diagnostic only: four small cases, no repeated runs, no hardware normalization or speedup claim. The older three-project 66-entry experiment reported DP timeouts on two inih slices and does not establish general superiority. The [successful audit run 36165941941](https://github.com/Z769018860/eppather/actions/runs/36165941941) and [archived CSV](data/reviewer_memo_audit.csv) show **0 hits in 1,701 lookups** across four cases. Results and one-shot core times (seconds) are:
+
+| Case | DFS2 / prefix search MEMS | Memo hits / lookups | Leaf solves | DFS2 s | Prefix search s |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| branch | 2 / 2 | 0 / 10 | 2 | 0.047997 | 0.047894 |
+| nested | 3 / 3 | 0 / 1,524 | 254 | 3.395760 | 3.470630 |
+| loop array | 4 / 4 | 0 / 100 | 18 | 0.317184 | 0.315288 |
+| fixed cell | 10 / 10 | 0 / 67 | 11 | 0.204484 | 0.204922 |
+
+These times are single runs within the engine, not stable performance estimates. The experiment supports the reviewer's diagnosis: current prefix-keyed memoization gives no observed state reuse. The runtime comparison does not show a consistent speedup.
 
 ## 2. Loop-state summary ablation and baselines
 
@@ -24,11 +33,11 @@ Suggested RQ3 question: *Under explicitly stated source boundaries and finite in
 
 ### Paper-ready scoped prose
 
-> We audited the prefix-keyed search by recording memo lookups and hits while comparing the same loop-bounded functions with exhaustive DFS2. The key includes the entire branch prefix, so reuse is not assumed; its measured hit rate and timing are reported in Table X. In a separate loop-state-summary ablation, all 20 finite-domain subjects retained the same model counts and weighted MEMS, while counting assertions fell from 563 to 209. The loop ablation does not evaluate the separate function-summary projection. For function summaries, historical generation success (66/66) concealed 46 zero-valued maximum counts and substantial model fallback. We therefore test fidelity directly: 36 bounded source-instrumented witnesses across six projects matched counts of their scoped Eppather projections. These are path-level validation observations, not proofs of full-library maxima.
+> We audited the prefix-keyed search by recording memo lookups and hits while comparing the same loop-bounded functions with exhaustive DFS2. The key includes the entire branch prefix, so reuse is not assumed; its observed hit rate was 0/1,701 across four test cases and its single-run times were comparable to DFS2. In a separate loop-state-summary ablation, all 20 finite-domain subjects retained the same model counts and weighted MEMS, while counting assertions fell from 563 to 209. The loop ablation does not evaluate the separate function-summary projection. For function summaries, historical generation success (66/66) concealed 46 zero-valued maximum counts and substantial model fallback. We therefore test fidelity directly: 36 bounded source-instrumented witnesses across six projects matched counts of their scoped Eppather projections. These are path-level validation observations, not proofs of full-library maxima.
 
 ### Checklist before submission
 
-- Replace Table X with measured per-case lookup/hit/time output and state clearly if hits are zero.
+- Report the measured 0/1,701 memo hit rate and identify the four-case, single-run timing scope.
 - Cite the original KLEE, WISE, and IPET work; describe metric mismatch honestly until comparable experiments exist.
 - Do not label the VolCE scalar-summary A/B test as MaxMEMS DFS shortcut or LLM-summary ablation.
 - Never use the historical six-project models as original-source maxima; retain the corpus denominator 193.
