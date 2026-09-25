@@ -30,10 +30,14 @@ def main() -> None:
     fragment = cjson[start:end]
     assert "buffer->offset++;" in fragment and "buffer->offset--;" in fragment
     counted = fragment.replace("buffer_skip_whitespace(", "counted_buffer_skip_whitespace(", 1)
+    counted = re.sub(r"buffer->offset(\+\+|--)", r"MEM_RW(buffer,offset)\1", counted)
     counted = re.sub(r"buffer->(content|offset|length)",
-                     r"(* (++fragment_accesses, &buffer->\1))", counted)
+                     r"MEM_FIELD(buffer,\1)", counted)
     # Only direct field expressions written in this helper are counted.
-    cjson = ("static unsigned long fragment_accesses;\n" + cjson[:end] + counted + cjson[end:])
+    cjson = ("""static unsigned long fragment_accesses;
+#define MEM_FIELD(p,f) (*(++fragment_accesses, &((p)->f)))
+#define MEM_RW(p,f) (*(fragment_accesses += 2, &((p)->f)))
+""" + cjson[:end] + counted + cjson[end:])
     cjson += r"""
 #include <stdio.h>
 int main(void) {
@@ -79,7 +83,7 @@ int main(void) {
 """
     # Negative controls remove a specific access-bearing source operation.
     ablated_loop = counted.replace(
-        "(* (++fragment_accesses, &buffer->offset))++;", "break;")
+        "MEM_RW(buffer,offset)++;", "break;")
     assert ablated_loop != counted
     cjson_ablated = cjson.replace(counted, ablated_loop, 1)
     assert cjson_ablated != cjson
