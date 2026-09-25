@@ -45,3 +45,16 @@ The automated comparison from Actions 36142636220 passed all four selected input
 | 3 | 3 | 13 | 23 | 10 | 13 |
 
 The ten caller writes are two `z` slots, four `src` slots, and four `dst` slots. Each generated entry is a separate fixed-input program that copies the validated function body; the dynamic original is never initialized inside its measured function. This four-path match supports **bounded path-level accuracy** for the calibrated Lua projection under the stated byte-level memcpy model. The unbounded-parameter analyzer experiment timed out, so it supplies no whole-domain MaxMEMS value. The historical cJSON 15, Lua 21, and tinyexpr 20 results remain model-only numbers; none is upgraded into an original-source maximum by this test.
+
+## Complete bounded Eppather comparison
+
+Actions [36149816324](https://github.com/Z769018860/eppather/actions/runs/36149816324) passed the original-source instrumentation and **all 16** fixed-input Eppather checks. Each cell below is `original instrumented count / Eppather function count`; the latter subtracts exactly ten caller array initialization writes from the recorded analyzer total.
+
+| Available bytes | Requested 0 | Requested 1 | Requested 2 | Requested 3 |
+| --- | ---: | ---: | ---: | ---: |
+| 0 | 0 / 0 | 1 / 1 | 1 / 1 | 1 / 1 |
+| 1 | 0 / 0 | 9 / 9 | 11 / 11 | 11 / 11 |
+| 2 | 0 / 0 | 9 / 9 | 11 / 11 | 13 / 13 |
+| 3 | 0 / 0 | 9 / 9 | 11 / 11 | 13 / 13 |
+
+The workflow artifact includes `lua_witness.csv`, `fixed_witness_comparison.csv`, generated fixed-input sources and per-case logs. This is exhaustive for the stated 4-by-4 **input grid**, not for Lua's full input space. In particular, `luaZ_fill`'s successful reader branch, callback memory accesses, and larger buffers remain outside the contract. A claim about those paths needs a separate reader/callback summary and an original-source witness under the same counting convention. These results do not alter the 193 collected failure records or establish a DP speed advantage.
