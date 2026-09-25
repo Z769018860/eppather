@@ -116,6 +116,66 @@ int main(void) {
             for line in outputs[0] for parts in [line.split(",")]}
 
 
+def sds_source(root, temp):
+    directory = root / "testcase/sds"
+    header = (directory / "sds.h").read_text()
+    source = (directory / "sds.c").read_text()
+    begin, end = function_bounds(header, "sdssetlen")
+    body = header[begin:end]
+    assert "unsigned char flags = s[-1];" in body
+    body = body.replace("unsigned char flags = s[-1];",
+                        "unsigned char flags = MEM_ELEM(s,-1);")
+    body = body.replace("*fp = SDS_TYPE_5", "MEM_DEREF(fp) = SDS_TYPE_5")
+    for typ in (8, 16, 32, 64):
+        body = body.replace(f"SDS_HDR({typ},s)->len = newlen;",
+                            f"MEM_HDR(SDS_HDR({typ},s),len) = newlen;")
+    assert body.count("MEM_HDR(") == 4
+    modified_header = header[:begin] + body + header[end:]
+    begin, end = function_bounds(source, "sdsclear")
+    body = source[begin:end]
+    assert "s[0] = '\\0';" in body
+    body = body.replace("s[0] = '\\0';", "MEM_ELEM(s,0) = '\\0';")
+    modified_source = source[:begin] + body + source[end:]
+    prelude = '''unsigned long measured_accesses;
+#define MEM_ELEM(p,i) (*(++measured_accesses, &((p)[i])))
+#define MEM_DEREF(p) (*(++measured_accesses, &(p)[0]))
+#define MEM_HDR(p,f) (*(++measured_accesses, &((p)->f)))
+'''
+    header_dir = temp / "sds_header"
+    header_dir.mkdir()
+    (header_dir / "sds.h").write_text(modified_header)
+    (header_dir / "sdsalloc.h").write_text((directory / "sdsalloc.h").read_text())
+    measured_source = temp / "sds_instrumented.c"
+    measured_source.write_text(prelude + modified_source)
+    plain_source = temp / "sds_plain.c"
+    plain_source.write_text("unsigned long measured_accesses;\n" + source)
+    harness = temp / "sds_harness.c"
+    harness.write_text('''#include "sds.h"
+#include <stdio.h>
+extern unsigned long measured_accesses;
+int main(void) {
+  for (int typ=0;typ<2;typ++) {
+    sds s=typ ? sdsnewlen(NULL,40) : sdsnew("abc");
+    if (!s) return 2;
+    s[0]='a';
+    measured_accesses=0;
+    sdsclear(s);
+    unsigned long count=measured_accesses;
+    printf("%d,%lu,%d,%d\\n",typ,count,sdslen(s)==0,s[0]==0);
+    sdsfree(s);
+  }
+}
+''')
+    outputs=[]
+    for name, impl, include in (("sds_measured",measured_source,header_dir),
+                                ("sds_control",plain_source,directory)):
+        exe=temp/name
+        compile_c([impl,harness],exe,[include])
+        outputs.append(subprocess.check_output([str(exe)],text=True).splitlines())
+    assert [line.split(",")[2:] for line in outputs[0]] == [line.split(",")[2:] for line in outputs[1]]
+    return {int(line.split(",")[0]):int(line.split(",")[1]) for line in outputs[0]}
+
+
 def fixed_list(mode):
     # list[0]=len, [1]=head, [2]=tail; node[0]=next, [1]=prev.
     # old[0] is the old tail's next, and list[2]=0 denotes old.
@@ -149,6 +209,18 @@ def fixed_inih(size, length):
 '''
 
 
+def fixed_sds(typ):
+    return f'''int main(void) {{
+  int s[3]; int flags;
+  s[0]={1 if typ else 24}; s[1]={40 if typ else 3}; s[2]=97;
+  flags=s[0];
+  if (flags == 24) {{s[0]=0;}} else {{s[1]=0;}}
+  s[2]=0;
+  return 0;
+}}
+'''
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
@@ -164,6 +236,8 @@ def main():
             cases.append(("list","list_rpush",str(mode),expected,7,fixed_list(mode)))
         for (size,length), expected in inih_source(root,temp).items():
             cases.append(("inih","ini_strncpy0",f"{size}-{length}",expected,8,fixed_inih(size,length)))
+        for typ, expected in sds_source(root,temp).items():
+            cases.append(("SDSLib","sdsclear",str(typ),expected,3,fixed_sds(typ)))
         for project,function,case,expected,caller,source in cases:
             fixture=out/(project+"_"+case+".c");fixture.write_text(source)
             run=subprocess.run([str(args.cnip.resolve()),"-q","--maxloop","4","--maxpaths","20",str(fixture)],
