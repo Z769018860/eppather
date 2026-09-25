@@ -143,7 +143,11 @@ def sds_source(root, temp):
 '''
     header_dir = temp / "sds_header"
     header_dir.mkdir()
-    (header_dir / "sds.h").write_text(modified_header)
+    (header_dir / "sds.h").write_text('''extern unsigned long measured_accesses;
+#define MEM_ELEM(p,i) (*(++measured_accesses, &((p)[i])))
+#define MEM_DEREF(p) (*(++measured_accesses, &(p)[0]))
+#define MEM_HDR(p,f) (*(++measured_accesses, &((p)->f)))
+''' + modified_header)
     (header_dir / "sdsalloc.h").write_text((directory / "sdsalloc.h").read_text())
     measured_source = temp / "sds_instrumented.c"
     measured_source.write_text(prelude + modified_source)
