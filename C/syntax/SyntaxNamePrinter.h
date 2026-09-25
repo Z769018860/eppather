@@ -204,6 +204,10 @@ public:
     mutable std::unordered_map<
         std::tuple<CFGNode*, std::string, std::string>, PathInfo
     > dpMemo;
+    std::size_t dpMemoLookups_{0};
+    std::size_t dpMemoHits_{0};
+    std::size_t dpMemoStores_{0};
+    std::size_t dpLeafSolves_{0};
 
     enum class Style : char { Plain, Decorated };
 
