@@ -26,3 +26,9 @@ The CI workflow runs Eppather on this projection separately. An analyzer maximum
 The cJSON model replaces `parse_value` with an unconstrained `parse_success` parameter and changes the parser's pointer/global state into small arrays. The tinyexpr model scans a nine-element array, whereas the source wrapper calls `te_compile`, `te_eval`, and `te_free`. Existing values (15 and 20) are **model results**, not estimates validated against original-source instrumentation. They should not be presented as original cJSON/tinyexpr MaxMEMS, and DFS2/DP agreement on those files cannot supply the missing source check.
 
 Any further LLM-generated summary must preserve the access-bearing operations, pointer aliases, branch conditions, and called-function contracts within a stated input domain. Require a behavior and access-count witness comparison against the original before using a generated file as a source-level estimate.
+
+## First Eppather comparison
+
+The unconstrained parameter experiment (Actions 36120332814, `maxloop=3`, `maxpaths=40`) timed out in both `-s` and `-q` after 120 seconds. Its partial paths included symbolic sizes far outside the validated 0–3 domain; the partial `[mem]` values are not usable final estimates.
+
+A generated fixed-input entry for `available=2`, `requested=3` completed (`-q`, `maxloop=3`, `maxpaths=20`): Eppather reported `[DFS MAX MEMS]: 23`. Exactly ten array-element writes initialize caller-owned state in that entry, so the projected function body contributes `23 - 10 = 13` accesses. The separately instrumented original reports **13** for that same input, with equal return and final state. The next CI run gates four representative fixed inputs, covering empty buffer, full read, and partial read. This is path-level evidence in the stated domain, not a global maximum or evidence for the cJSON and tinyexpr models.
