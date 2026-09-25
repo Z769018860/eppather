@@ -58,3 +58,34 @@ Actions [36149816324](https://github.com/Z769018860/eppather/actions/runs/361498
 | 3 | 0 / 0 | 9 / 9 | 11 / 11 | 13 / 13 |
 
 The workflow artifact includes `lua_witness.csv`, `fixed_witness_comparison.csv`, generated fixed-input sources and per-case logs. This is exhaustive for the stated 4-by-4 **input grid**, not for Lua's full input space. In particular, `luaZ_fill`'s successful reader branch, callback memory accesses, and larger buffers remain outside the contract. A claim about those paths needs a separate reader/callback summary and an original-source witness under the same counting convention. These results do not alter the 193 collected failure records or establish a DP speed advantage.
+
+## Source witnesses and ablations across projects
+
+The reproducible scripts are `tools/validate_other_llm_summaries.py`,
+`tools/validate_native_fragments.py`, and `tools/ablate_lua_projection.py`.
+The independent [Actions run 36155044633](https://github.com/Z769018860/eppather/actions/runs/36155044633)
+passed the source checks and all 16 Eppather Lua checks. Each row below has its own
+scope; the numbers must not be mixed as if they counted the same call boundary.
+
+| Project | Original-source target and defined inputs | Original-source direct access witness | Negative control |
+| --- | --- | --- | --- |
+| Lua | `luaZ_read`, no refill, available/requested each 0–3 | 16/16 equal to the calibrated projection and fixed-input Eppather count; observed maximum 13 | Removing byte copies makes 9/16 inputs differ (first available=1, requested=1: source 9, ablated 7); removing ZIO state updates also makes 9/16 differ (first: source 9, ablated 5). Both changes also alter behavior or state. |
+| cJSON | `buffer_skip_whitespace`, four fixed strings (`"X"`, `" X"`, `"   X"`, `"    "`) | 3, 4, 6, 9 *direct field expressions inside this helper only* | Removing the loop's offset advance changes the resulting offset on 3/4 strings; this does not instrument the parser or called macros. |
+| tinyexpr | `te_eval` constant case, expressions `2`, `1+2`, `3.5` | 2, 2, 2 *direct type/value accesses in that case only* | Replacing the constant-value read with a zero return changes the evaluated value on 3/3 inputs; compilation, optimization and recursion are excluded. |
+
+The original libraries also refute source equivalence of the *historical LLM models*.
+For cJSON, the `xxxx` input fails in the original parser but the legacy summary
+returns success when its external `parse_success=1` parameter is assumed. For
+tinyexpr, `1+2` evaluates to 3 in the library, while the legacy summary returns
+49, the first character's ASCII code; input `2` analogously yields 2 versus 50.
+Some positive example outputs coincide for cJSON, but that does not validate its
+memory count or its missing parser call. The cJSON helper and tinyexpr leaf
+witnesses cannot calibrate the old whole-call values 15 and 20.
+
+All experiments use fixed inputs and the source snapshot in this repository.
+The fragment counts omit accesses inside macros and callees; they are neither
+whole-program MaxMEMS nor a cross-project ranking. A defensible whole-call
+estimate for cJSON or tinyexpr requires preserving and instrumenting their
+parser/compiler/evaluator call trees, including allocation and error paths,
+under an explicit input and memory-access contract. The 193 collected failure
+records are unaffected.
