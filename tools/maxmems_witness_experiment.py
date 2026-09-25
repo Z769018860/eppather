@@ -11,6 +11,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -25,6 +26,14 @@ from e2e_path_validation import (
 )
 
 MEM_RE = re.compile(r"\[mem\]:(-?\d+)")
+DP_TIME_RE = re.compile(r"\[DP TIME COST\]:\s*([0-9.eE+-]+)")
+DFS_TIME_RE = re.compile(r"\[DFS TIME COST\]:\s*([0-9.eE+-]+)")
+DP_MEMO_LOOKUPS_RE = re.compile(r"\[DP MEMO LOOKUPS\]:\s*(\d+)")
+DP_MEMO_HITS_RE = re.compile(r"\[DP MEMO HITS\]:\s*(\d+)")
+DP_MEMO_RATE_RE = re.compile(r"\[DP MEMO HIT RATE\]:\s*([0-9.eE+-]+)")
+DP_MEMO_STORES_RE = re.compile(r"\[DP MEMO STORES\]:\s*(\d+)")
+DP_MEMO_ENTRIES_RE = re.compile(r"\[DP MEMO ENTRIES\]:\s*(\d+)")
+DP_TERMINAL_EVALS_RE = re.compile(r"\[DP TERMINAL EVALS\]:\s*(\d+)")
 DP_PATH_RE = re.compile(
     r"\[MAX MEMS PATH\]:\s*\n(.*?)(?=\n(?:\[DP INTERNAL MEMS\]|\[DP SCORE DELTA\]|MEMS:))",
     re.S,
@@ -46,6 +55,16 @@ class Result:
     defined_oracle_inputs: int
     undefined_oracle_inputs: int
     detail: str = ""
+    dp_reported_seconds: float | None = None
+    dfs_reported_seconds: float | None = None
+    dp_wall_seconds: float | None = None
+    dfs_wall_seconds: float | None = None
+    memo_lookups: int | None = None
+    memo_hits: int | None = None
+    memo_hit_rate: float | None = None
+    memo_stores: int | None = None
+    memo_entries: int | None = None
+    terminal_evals: int | None = None
 
 def mem_instrument(source: str) -> str:
     out, pos = [], 0
@@ -84,7 +103,27 @@ def env_for(cnip: Path) -> dict[str, str]:
     return env
 
 def analyze(cnip: Path, src: Path, max_loop: int, work: Path, flag: str):
-    return run([str(cnip), flag, str(src), str(max_loop)], work, env_for(cnip))
+    start = time.perf_counter()
+    proc = run([str(cnip), flag, str(src), str(max_loop)], work, env_for(cnip))
+    return proc, time.perf_counter() - start
+
+def _metric(pattern: re.Pattern[str], text: str, cast):
+    match = pattern.search(text)
+    return cast(match.group(1)) if match else None
+
+def attach_search_metrics(result: Result, dp_text: str, dfs_text: str,
+                          dp_wall: float, dfs_wall: float) -> Result:
+    result.dp_reported_seconds = _metric(DP_TIME_RE, dp_text, float)
+    result.dfs_reported_seconds = _metric(DFS_TIME_RE, dfs_text, float)
+    result.dp_wall_seconds = dp_wall
+    result.dfs_wall_seconds = dfs_wall
+    result.memo_lookups = _metric(DP_MEMO_LOOKUPS_RE, dp_text, int)
+    result.memo_hits = _metric(DP_MEMO_HITS_RE, dp_text, int)
+    result.memo_hit_rate = _metric(DP_MEMO_RATE_RE, dp_text, float)
+    result.memo_stores = _metric(DP_MEMO_STORES_RE, dp_text, int)
+    result.memo_entries = _metric(DP_MEMO_ENTRIES_RE, dp_text, int)
+    result.terminal_evals = _metric(DP_TERMINAL_EVALS_RE, dp_text, int)
+    return result
 
 def parse_dp(text: str):
     path_m = DP_PATH_RE.search(text)
@@ -180,11 +219,11 @@ def validate(src: Path, function: str, cnip: Path, max_loop: int, lo: int, hi: i
         root = Path(td)
         dpw, dfw, rpw = root/"dp", root/"dfs", root/"replay"
         dpw.mkdir(); dfw.mkdir(); rpw.mkdir()
-        dp = analyze(cnip, src, max_loop, dpw, "-g")
+        dp, dp_wall = analyze(cnip, src, max_loop, dpw, "-g")
         if dp.returncode:
             raise RuntimeError("cnip -g failed: " + (dp.stderr or dp.stdout)[-1200:])
         dp_mem, dp_branches = parse_dp(dp.stdout)
-        dfs = analyze(cnip, src, max_loop, dfw, "-q")
+        dfs, dfs_wall = analyze(cnip, src, max_loop, dfw, "-q")
         if dfs.returncode:
             raise RuntimeError("cnip -q failed: " + (dfs.stderr or dfs.stdout)[-1200:])
         rows = dfs_cases(dfw, selected, params, source)
@@ -204,17 +243,21 @@ def validate(src: Path, function: str, cnip: Path, max_loop: int, lo: int, hi: i
         try:
             actual, dyn_witness = replay(exe, params, witness["inputs"], rpw)
         except UndefinedBehaviorError as exc:
-            return Result("undefined_witness", dp_mem, dfs_max, None, None,
-                          witness["inputs"], dp_branches, [], len(rows), 0, 1, str(exc))
+            return attach_search_metrics(
+                Result("undefined_witness", dp_mem, dfs_max, None, None,
+                       witness["inputs"], dp_branches, [], len(rows), 0, 1, str(exc)),
+                dp.stdout, dfs.stdout, dp_wall, dfs_wall)
         dyn_max, defined, undefined = dynamic_oracle(exe, params, lo, hi, rpw)
         failures = []
         if dp_mem != dfs_max: failures.append(f"DP {dp_mem} != DFS {dfs_max}")
         if actual != dp_branches: failures.append("concrete branch sequence differs")
         if dyn_witness != dp_mem: failures.append(f"dynamic witness {dyn_witness} != DP {dp_mem}")
         if dyn_max != dp_mem: failures.append(f"dynamic oracle {dyn_max} != DP {dp_mem}")
-        return Result("pass" if not failures else "fail", dp_mem, dfs_max,
-                      dyn_witness, dyn_max, witness["inputs"], dp_branches, actual,
-                      len(rows), defined, undefined, "; ".join(failures))
+        return attach_search_metrics(
+            Result("pass" if not failures else "fail", dp_mem, dfs_max,
+                   dyn_witness, dyn_max, witness["inputs"], dp_branches, actual,
+                   len(rows), defined, undefined, "; ".join(failures)),
+            dp.stdout, dfs.stdout, dp_wall, dfs_wall)
 
 def subject(i, category, source, max_loop=4, lo=-2, hi=3):
     return {"id":f"mw{i:02d}","category":category,"function":f"mw{i:02d}",
@@ -268,17 +311,38 @@ def main() -> int:
     passed = sum(r["status"]=="pass" for r in rows)
     failed = sum(r["status"]=="fail" for r in rows)
     errors = len(rows)-passed-failed
+    perf_rows = [r for r in rows if r.get("dp_reported_seconds") is not None
+                 and r.get("dfs_reported_seconds") is not None]
+    memo_rows = [r for r in rows if r.get("memo_lookups") is not None
+                 and r.get("memo_hits") is not None]
+    total_lookups = sum(int(r["memo_lookups"]) for r in memo_rows)
+    total_hits = sum(int(r["memo_hits"]) for r in memo_rows)
+    performance = {
+        "subjects_with_timing": len(perf_rows),
+        "dp_total_seconds": sum(float(r["dp_reported_seconds"]) for r in perf_rows),
+        "dfs_total_seconds": sum(float(r["dfs_reported_seconds"]) for r in perf_rows),
+        "memo_lookups": total_lookups,
+        "memo_hits": total_hits,
+        "memo_hit_rate": (total_hits / total_lookups) if total_lookups else 0.0,
+    }
     summary = {"subjects":len(rows),"passed":passed,"failed":failed,"errors":errors,
-               "all_passed":bool(rows) and passed==len(rows),"results":rows}
+               "all_passed":bool(rows) and passed==len(rows),
+               "performance":performance,"results":rows}
     (out/"summary.json").write_text(json.dumps(summary,indent=2)+"\n")
     fields=["id","category","status","dp_mems","dfs_oracle_mems","dynamic_witness_mems",
             "dynamic_oracle_mems","feasible_paths","defined_oracle_inputs",
-            "undefined_oracle_inputs","detail"]
+            "undefined_oracle_inputs","dp_reported_seconds","dfs_reported_seconds",
+            "dp_wall_seconds","dfs_wall_seconds","memo_lookups","memo_hits",
+            "memo_hit_rate","memo_stores","memo_entries","terminal_evals","detail"]
     with (out/"summary.csv").open("w",newline="",encoding="utf-8") as fh:
         w=csv.DictWriter(fh,fieldnames=fields,extrasaction="ignore");w.writeheader();w.writerows(rows)
     md=["# Independent MaxMEMS witness validation","",
         f"- Subjects: **{len(rows)}**",f"- Passed: **{passed}**",
-        f"- Failed: **{failed}**",f"- Errors: **{errors}**","",
+        f"- Failed: **{failed}**",f"- Errors: **{errors}**",
+        f"- DP total reported time: **{performance['dp_total_seconds']:.6f} s**",
+        f"- DFS total reported time: **{performance['dfs_total_seconds']:.6f} s**",
+        f"- Memo hits/lookups: **{performance['memo_hits']}/{performance['memo_lookups']}** "
+        f"({performance['memo_hit_rate']:.6f})","",
         "| ID | Category | DP | DFS max | Dynamic witness | Dynamic oracle | Status |",
         "|---|---|---:|---:|---:|---:|---|"]
     for r in rows:
