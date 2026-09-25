@@ -1,0 +1,34 @@
+name: Reviewer method audit
+
+on:
+  pull_request:
+    paths:
+      - 'C/syntax/SyntaxNamePrinter.cpp'
+      - 'C/syntax/SyntaxNamePrinter.h'
+      - 'tools/audit_dp_memo.py'
+      - '.github/workflows/reviewer-method-audit.yml'
+  workflow_dispatch:
+
+jobs:
+  memo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S . -B build_reviewer_memo -DANALYSIS_BACKEND=epat++
+      - run: cmake --build build_reviewer_memo --target cnip -j2
+      - name: DP memo reuse and DFS2 control
+        run: |
+          python3 tools/audit_dp_memo.py \
+            --cnip build_reviewer_memo/cnip \
+            --output-dir reviewer-method-results
+      - name: Restricted independent-branch DP prototype
+        run: |
+          python3 tools/restricted_dp_prototype.py \
+            --cnip build_reviewer_memo/cnip \
+            --output-dir reviewer-method-results/restricted-dp
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reviewer-method-audit
+          path: reviewer-method-results/

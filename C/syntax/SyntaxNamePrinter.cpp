@@ -3488,10 +3488,13 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
 
     const auto stateKey = std::make_tuple(
         entry.get(), LoopMapKey(loopUnrollMap), pathPrefix);
+    ++dpMemoLookups_;
     if (auto it = dpMemo.find(stateKey); it != dpMemo.end()) {
+        ++dpMemoHits_;
         return it->second;
     }
     auto store = [&](PathInfo result) {
+        ++dpMemoStores_;
         dpMemo[stateKey] = result;
         return result;
     };
@@ -3516,6 +3519,7 @@ PathInfo SyntaxNamePrinter::MaxMemsDP(
             }
         }
         EpatRunner runner(vartemp);
+        ++dpLeafSolves_;
         const auto eval = runner.solve(curDecisions);
         if (eval.status != result::feasible) {
             return store(PathInfo(0, curPath, false));
@@ -3665,6 +3669,10 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         const std::string functionTag = sanitizeFunctionTag(
             funcNode->functionName.empty() ? ("func_" + std::to_string(funcIndex)) : funcNode->functionName);
         dpMemo.clear();  // 每个函数入口前清空 memo
+        dpMemoLookups_ = 0;
+        dpMemoHits_ = 0;
+        dpMemoStores_ = 0;
+        dpLeafSolves_ = 0;
         decisionMemCache.clear();
         feasCache.clear();
 
@@ -3676,6 +3684,14 @@ void SyntaxNamePrinter::printCFG_greedyDFS(int maxloop, int maxpaths, bool enabl
         std::chrono::duration<double> diff = end - start;
 
         std::cout << "[FUNCTION TAG]: " << functionTag << std::endl;
+        std::cout << "[DP MEMO LOOKUPS]: " << dpMemoLookups_ << std::endl;
+        std::cout << "[DP MEMO HITS]: " << dpMemoHits_ << std::endl;
+        std::cout << "[DP MEMO STORES]: " << dpMemoStores_ << std::endl;
+        std::cout << "[DP MEMO ENTRIES]: " << dpMemo.size() << std::endl;
+        std::cout << "[DP LEAF SOLVES]: " << dpLeafSolves_ << std::endl;
+        std::cout << "[DP MEMO HIT RATE]: "
+                  << (dpMemoLookups_ ? static_cast<double>(dpMemoHits_) / dpMemoLookups_ : 0.0)
+                  << std::endl;
         std::cout << "[MAX MEMS PATH]:\n";
         const std::string fullPath = vartemp + result.path; // 只在这里拼接一次
         if (!result.feasible) {
