@@ -70,7 +70,7 @@ scope; the numbers must not be mixed as if they counted the same call boundary.
 | Project | Original-source target and defined inputs | Original-source direct access witness | Negative control |
 | --- | --- | --- | --- |
 | Lua | `luaZ_read`, no refill, available/requested each 0–3 | 16/16 equal to the calibrated projection and fixed-input Eppather count; observed maximum 13 | Removing byte copies makes 9/16 inputs differ (first available=1, requested=1: source 9, ablated 7); removing ZIO state updates also makes 9/16 differ (first: source 9, ablated 5). Both changes also alter behavior or state. |
-| cJSON | `buffer_skip_whitespace`, four fixed strings (`"X"`, `" X"`, `"   X"`, `"    "`) | 3, 4, 6, 9 *direct field expressions inside this helper only* | Removing the loop's offset advance changes the resulting offset on 3/4 strings and leaves 3 direct accesses in each ablated helper; this does not instrument the parser or called macros. |
+| cJSON | `buffer_skip_whitespace`, four fixed strings (`"X"`, `" X"`, `"   X"`, `"    "`) | 3, 5, 9, 15 *direct field reads/writes inside this helper only* | Removing the loop's offset advance changes the resulting offset on 3/4 strings and leaves 3 direct accesses in each ablated helper; this does not instrument the parser or called macros. |
 | tinyexpr | `te_eval` constant case, expressions `2`, `1+2`, `3.5` | 2, 2, 2 *direct type/value accesses in that case only* | Replacing the constant-value read with a zero return changes the evaluated value on 3/3 inputs and leaves 1 direct access in each ablated constant case; compilation, optimization and recursion are excluded. |
 
 The original libraries also refute source equivalence of the *historical LLM models*.
@@ -83,7 +83,7 @@ memory count or its missing parser call. The cJSON helper and tinyexpr leaf
 witnesses cannot calibrate the old whole-call values 15 and 20.
 
 All experiments use fixed inputs and the source snapshot in this repository.
-The fragment counts omit accesses inside macros and callees; they are neither
+The cJSON fragment counts now treat each compound offset update as one read and one write, aligning that operation with Eppather's rule. Fragment counts omit accesses inside macros and callees; they are neither
 whole-program MaxMEMS nor a cross-project ranking. A defensible whole-call
 estimate for cJSON or tinyexpr requires preserving and instrumenting their
 parser/compiler/evaluator call trees, including allocation and error paths,
