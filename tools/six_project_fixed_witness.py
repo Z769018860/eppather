@@ -221,6 +221,33 @@ def fixed_sds(typ):
 '''
 
 
+def fixed_cjson(case):
+    # Restriction: count only the helper's direct fields; macros/callees are out of scope.
+    spaces = (0, 1, 3, 5)[case]
+    lengths = (2, 3, 5, 5)[case]
+    return f'''int main(void) {{
+  int buffer[3]; int spaces; int i;
+  buffer[0]=0; buffer[1]={lengths}; buffer[2]=1;
+  spaces={spaces}; i=0;
+  if (buffer[2]==0) {{return 0;}}
+  while (i<spaces) {{buffer[0]=buffer[0]+1; i=i+1;}}
+  if (buffer[0]==buffer[1]) {{buffer[0]=buffer[0]-1;}}
+  return buffer[0];
+}}
+'''
+
+
+def fixed_tinyexpr(case):
+    value=(2,3)[case]
+    return f'''int main(void) {{
+  int expr[2];
+  expr[0]=1; expr[1]={value};
+  if (expr[0]==1) {{return expr[1];}}
+  return 0;
+}}
+'''
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--root", type=Path, default=Path(__file__).resolve().parents[1])
@@ -238,9 +265,24 @@ def main():
             cases.append(("inih","ini_strncpy0",f"{size}-{length}",expected,8,fixed_inih(size,length)))
         for typ, expected in sds_source(root,temp).items():
             cases.append(("SDSLib","sdsclear",str(typ),expected,3,fixed_sds(typ)))
+        native_csv=out/"native_fragments.csv"
+        subprocess.run(["python3",str(root/"tools/validate_native_fragments.py"),
+                        "--root",str(root),"--csv",str(native_csv)],check=True)
+        with native_csv.open(newline="") as f:
+            fragments=list(csv.DictReader(f))
+        for row in fragments:
+            project=row["project"]
+            case=int(row["case"])
+            expected=int(row["direct_fragment_accesses"])
+            if project=="cJSON":
+                cases.append((project,"buffer_skip_whitespace:direct-fields",str(case),
+                              expected,3,fixed_cjson(case)))
+            elif project=="tinyexpr" and case<2:
+                cases.append((project,"te_eval:constant-case",str(case),
+                              expected,2,fixed_tinyexpr(case)))
         for project,function,case,expected,caller,source in cases:
             fixture=out/(project+"_"+case+".c");fixture.write_text(source)
-            run=subprocess.run([str(args.cnip.resolve()),"-q","--maxloop","4","--maxpaths","20",str(fixture)],
+            run=subprocess.run([str(args.cnip.resolve()),"-q","--maxloop","6","--maxpaths","20",str(fixture)],
                                capture_output=True,text=True,timeout=60)
             (out/(fixture.stem+".log")).write_text(run.stdout+run.stderr)
             m=re.search(r"^\[DFS MAX MEMS\]:\s*(\d+)\s*$",run.stdout,re.M)
