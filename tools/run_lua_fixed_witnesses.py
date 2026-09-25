@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 
-CASES = [(0, 1), (1, 1), (2, 3), (3, 3)]
+CASES = [(available, requested) for available in range(4) for requested in range(4)]
 CALLER_ARRAY_WRITES = 10
 
 
