@@ -31,7 +31,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate experiment harness
         run: |
-          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py
+          python3 -m py_compile tools/e2e_path_validation.py tools/maxmems_witness_experiment.py tools/maxmems_methodology_experiment.py
           python3 -c 'import sys; sys.path.insert(0,"tools"); from e2e_path_validation import parse_signature; assert parse_signature("int smoke(int x){return x;}","smoke")==("smoke",["x"])'
       - name: Configure Eppather
         run: cmake -S . -B build_maxmems_witness -DANALYSIS_BACKEND=epat++
