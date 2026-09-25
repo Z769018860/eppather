@@ -718,7 +718,7 @@ def normalize_expression(expr: str, known: Set[str]) -> str:
     expr = re.sub(r"sizeof\s+[A-Za-z_][A-Za-z0-9_]*", "1", expr)
     expr = remove_casts(expr)
     expr = rewrite_member_access_to_index(expr)
-    expr = re.sub(r"&\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
+    expr = re.sub(r"(?<![&])&(?![&])\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
     expr = replace_unsupported_calls(expr, known)
     return expr
 
@@ -944,7 +944,7 @@ def normalize_semantic_expression(expr: str, known: Set[str], project: str) -> s
 
     expr = rewrite_external_semantic_calls(expr)
     expr = rewrite_member_access_to_index(expr)
-    expr = re.sub(r"&\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
+    expr = re.sub(r"(?<![&])&(?![&])\s*([A-Za-z_][A-Za-z0-9_]*)", r"\1", expr)
     expr = replace_unsupported_calls(expr, known)
     return expr
 
@@ -1133,7 +1133,8 @@ def write_csv(path: Path, rows: List[Dict[str, str]]) -> None:
         "summary_ok", "has_function_summaries", "has_program_summary", "entry_seen",
         "worst_mems", "weighted_avg_mems", "function_count", "summary_case_count",
         "call_edge_count", "mems", "dfs_time", "dp_time", "reason", "notes",
-        "original_returncode", "original_timeout", "original_log", "log", "cmd"
+        "original_returncode", "original_timeout", "original_log", "log", "cmd",
+        "estimate_scope", "validated_worst_mems", "model_worst_mems"
     ]
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as f:
@@ -1159,6 +1160,16 @@ def select_final_rows(rows: List[Dict[str, str]]) -> List[Dict[str, str]]:
             priority.get(r.get("slice_mode", ""), 99),
             float(r.get("seconds", "999999") or 999999),
         ))[0].copy()
+        # A model or type-erased slice can demonstrate feasibility, but its access
+        # count cannot be presented as an estimate for the original C function.
+        original = best.get("slice_mode") in {"closure", "entry_only"}
+        native = best.get("epat_mode") == "pafi-rs"
+        valid = original and native and best.get("summary_ok") == "true"
+        best["estimate_scope"] = "original_slice" if valid else "approximation_or_unavailable"
+        best["validated_worst_mems"] = best.get("worst_mems", "") if valid else ""
+        best["model_worst_mems"] = best.get("worst_mems", "") if not valid else ""
+        if not valid:
+            best["worst_mems"] = ""
         best["attempt_count"] = str(len(candidates))
         best["successful_attempt_count"] = str(len(ok_rows))
         final_rows.append(best)
