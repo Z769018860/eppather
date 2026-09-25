@@ -13,6 +13,12 @@ class SummaryEstimateTests(unittest.TestCase):
         expression = "i < size - 1 && src[i]"
         self.assertEqual(summaries.normalize_expression(expression, set()), expression)
 
+    def test_header_guard_is_not_absorbed_into_function(self):
+        source = "#ifndef HEADER\n#define HEADER\ntypedef int item;\n#endif\nitem *\nnew_item(void) { return 0; }\n"
+        functions, preamble = summaries.extract_functions(source)
+        self.assertTrue(functions["new_item"].signature.startswith("item *"))
+        self.assertIn("#endif", preamble)
+
     def test_approximation_is_never_an_original_estimate(self):
         rows = [dict(project="list", entry="list_rpush", mode="summary",
                      summary_ok="true", slice_mode="type_erased",
