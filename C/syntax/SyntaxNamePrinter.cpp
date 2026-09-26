@@ -276,6 +276,24 @@ std::optional<psy::C::SourceMemoryRegion> parseSourceMemoryRegion(
     return std::nullopt;
 }
 
+std::optional<std::string> parseScalarInputParameter(
+    const std::string& declaration) {
+    if (parseSourceMemoryRegion(declaration)) {
+        return std::nullopt;
+    }
+
+    std::smatch match;
+    // Keep the experimental pruning domain intentionally narrow: integral
+    // scalar parameters only. Structs, floating point, pointers, arrays and
+    // declarators with unsupported syntax conservatively remain unbounded.
+    static const std::regex scalarPattern(
+        R"(^[[:space:]]*(?:const[[:space:]]+|volatile[[:space:]]+)*(?:(?:signed|unsigned)[[:space:]]+)?(?:char|short|int|long|_Bool)[[:space:]]+([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*;?[[:space:]]*$)");
+    if (!std::regex_match(declaration, match, scalarPattern)) {
+        return std::nullopt;
+    }
+    return match[1].str();
+}
+
 std::vector<psy::C::SourceMemoryRegion> parseSignatureMemoryRegions(
     const std::string& signature) {
     std::vector<psy::C::SourceMemoryRegion> regions;
@@ -1024,6 +1042,7 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
     VarDefStack_.clear();
     vartemp.clear();
     inputMemoryRegions_.clear();
+    inputScalarVariables_.clear();
 
     bool callExprFlag = false;
     int  depth_count  = 0;
@@ -1163,6 +1182,13 @@ void SyntaxNamePrinter::getCFG(const SyntaxNode* root) {
                             return existing.name == region->name;
                         });
                     if (!duplicate) inputMemoryRegions_.push_back(*region);
+                } else if (auto scalar = parseScalarInputParameter(sn)) {
+                    if (std::find(
+                            inputScalarVariables_.begin(),
+                            inputScalarVariables_.end(),
+                            *scalar) == inputScalarVariables_.end()) {
+                        inputScalarVariables_.push_back(*scalar);
+                    }
                 }
             }
         }
@@ -1844,6 +1870,8 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
         feasiblePaths_.clear();
         totalVolceCount_ = 0;
         feasCache.clear();
+        volceDomainPrefixChecks_ = 0;
+        volceDomainPrefixPruned_ = 0;
 
         maxmem = -1;
         minmem = std::numeric_limits<int>::max();
@@ -1855,6 +1883,10 @@ void SyntaxNamePrinter::printCFG_DFS2(int maxloop, int maxpaths, bool enableVolc
         std::chrono::duration<double> diff = end - start;
 
         std::cout << "[DFS TIME COST]: " << diff.count() << " seconds" << std::endl;
+        std::cout << "[VOLCE DOMAIN PREFIX CHECKS]: "
+                  << volceDomainPrefixChecks_ << std::endl;
+        std::cout << "[VOLCE DOMAIN PREFIX PRUNED]: "
+                  << volceDomainPrefixPruned_ << std::endl;
         printFeasiblePathSummary(enableVolce, volceLower, volceUpper);
         std::cout << "[MATRIX]:" << std::endl;
         printMatrixFileContent(matrixFileName);
@@ -2767,10 +2799,107 @@ void SyntaxNamePrinter::DFS2(std::shared_ptr<CFGNode> node,
         if ((int)vec.size() < want) vec.resize(want, false);
     };
     auto is_decision_feasible = [&](const std::vector<PathDecision>& nextDecisions) {
-        // Prefix scripts are not complete C paths.  In particular, a prefix
+        const char* domainRaw =
+            std::getenv("EPPATHER_VOLCE_DOMAIN_PRUNE");
+        const bool domainPrune =
+            enableVolce && domainRaw && *domainRaw &&
+            std::string(domainRaw) != "0" &&
+            !inputScalarVariables_.empty();
+
+        if (domainPrune) {
+            auto decisionWritesVariable =
+                [](const PathDecision& decision,
+                   const std::string& variable) {
+                    std::string text;
+                    switch (decision.kind) {
+                        case PathDecisionKind::Code:
+                            if (decision.node) {
+                                text = decision.node->getCode();
+                            }
+                            break;
+                        case PathDecisionKind::LoopInit:
+                            if (decision.node) {
+                                text = decision.node->initstmt_str;
+                            }
+                            break;
+                        case PathDecisionKind::LoopUpdate:
+                            if (decision.node) {
+                                text = decision.node->expr_str;
+                            }
+                            break;
+                        case PathDecisionKind::SyntheticCode:
+                            text = decision.syntheticText;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (text.empty()) return false;
+                    const std::string escaped = variable;
+                    const std::regex postfixOrAssign(
+                        "\\b" + escaped +
+                        R"(\b[[:space:]]*(?:\+\+|--|\+=|-=|\*=|/=|%=|&=|\|=|\^=|<<=|>>=|=(?!=)))");
+                    const std::regex prefixUpdate(
+                        R"((?:\+\+|--)[[:space:]]*\b)" +
+                        escaped + R"(\b)");
+                    return std::regex_search(text, postfixOrAssign) ||
+                           std::regex_search(text, prefixUpdate);
+                };
+
+            std::vector<std::string> boundedInputs;
+            for (const auto& variable : inputScalarVariables_) {
+                bool written = false;
+                for (const auto& decision : nextDecisions) {
+                    if (decisionWritesVariable(decision, variable)) {
+                        written = true;
+                        break;
+                    }
+                }
+                if (!written) boundedInputs.push_back(variable);
+            }
+            if (boundedInputs.empty()) {
+                return true;
+            }
+
+            ++volceDomainPrefixChecks_;
+            EpatRunner boundedRunner(vartemp);
+            std::string boundedScript =
+                boundedRunner.render(nextDecisions);
+            for (const auto& variable : boundedInputs) {
+                boundedScript += "@((" + variable + " >= " +
+                    std::to_string(volceLower) + ") && (" +
+                    variable + " <= " +
+                    std::to_string(volceUpper) + "));\n";
+            }
+            // Prefixes are not complete source programs. Appending a dummy
+            // return lets epat++ solve the current prefix without relying on
+            // its expression-stack behavior for truncated paths.
+            boundedScript += "return 0;\n";
+
+            const std::string cacheKey =
+                "[volce-domain:" + std::to_string(volceLower) + ":" +
+                std::to_string(volceUpper) + "]\n" + boundedScript;
+            auto cached = feasCache.find(cacheKey);
+            if (cached != feasCache.end()) {
+                if (!cached->second) ++volceDomainPrefixPruned_;
+                return cached->second;
+            }
+
+            const auto status =
+                boundedRunner.solveScript(boundedScript).status;
+            // Unknown is not a proof of infeasibility: keep the subtree.
+            const bool feasibleInDomain =
+                status != result::infeasible;
+            feasCache.emplace(cacheKey, feasibleInDomain);
+            if (!feasibleInDomain) {
+                ++volceDomainPrefixPruned_;
+            }
+            return feasibleInDomain;
+        }
+
+        // Prefix scripts are not complete C paths. In particular, a prefix
         // ending at a negated loop guard can underflow epat++'s expression
-        // stack.  Solve complete leaf paths by default; keep prefix pruning as
-        // an explicit experimental opt-in.
+        // stack. Solve complete leaf paths by default; keep legacy prefix
+        // pruning as a separate explicit experimental opt-in.
         const char* prefixCheck = std::getenv("EPPATHER_PREFIX_FEASIBILITY");
         if (!prefixCheck || !*prefixCheck || std::string(prefixCheck) == "0") {
             return true;

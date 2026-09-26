@@ -197,6 +197,11 @@ public:
     using SyntaxDumper::SyntaxDumper;
     std::string vartemp = "";
     std::vector<SourceMemoryRegion> inputMemoryRegions_;
+    // Scalar function inputs that VolCE projects over. Pointer/array
+    // parameters remain represented by inputMemoryRegions_ instead.
+    std::vector<std::string> inputScalarVariables_;
+    std::size_t volceDomainPrefixChecks_{0};
+    std::size_t volceDomainPrefixPruned_{0};
     int temp_loopcount;
 
 
